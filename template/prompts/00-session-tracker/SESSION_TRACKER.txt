@@ -1,0 +1,30 @@
+SESSION TRACKER — [PROJECT NAME]
+Last updated: [DATE]
+=============================================
+
+FILES
+00-shared-context/context.md    — Inter-agent communication (reset each cycle, archived as context-cycle-N.md)
+00-shared-context/usage.txt     — API usage status (0=ok, 80=overage, 100=limited)
+00-backup/                      — Prompt snapshots per cycle (7-day rotation)
+01-pm/01-project-manager.txt    — PM: planning, tracking, coordination
+99-me/99-actions.txt            — Human manual action items
+SESSION_TRACKER.txt             — This file: long-term changelog + dashboard
+
+SCRIPTS
+scripts/auto-agent.sh           — Orchestrator (cycle loop, file ownership, merge, notifications)
+scripts/agents.conf             — Agent config (IDs, prompts, ownership, intervals)
+
+=============================================
+MILESTONE DASHBOARD
+=============================================
+(PM updates this after each cycle)
+
+=============================================
+CODEBASE SIZE
+=============================================
+(PM updates this after each cycle)
+
+=============================================
+WHAT SHIPPED
+=============================================
+(PM appends each cycle's output here)
