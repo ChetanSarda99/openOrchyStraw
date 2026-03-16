@@ -5,11 +5,13 @@
 <h1 align="center">OrchyStraw</h1>
 
 <p align="center">
-  <strong>A simple way to get multiple AI coding agents working together on the same project.</strong>
+  <strong>A simple way to get multiple AI agents working together on the same project.</strong><br/>
+  Claude Code, Codex, Gemini CLI, Aider, Windsurf, Cursor — anything that takes a prompt.
 </p>
 
 <p align="center">
   <img src="https://img.shields.io/badge/license-MIT-green" alt="MIT License" />
+  <img src="https://img.shields.io/badge/agents-Claude_%7C_Codex_%7C_Gemini_%7C_ChatGPT_%7C_Aider_%7C_any-blue" alt="Any AI Agent" />
 </p>
 
 ---
@@ -157,7 +159,13 @@ This looks at your codebase and generates all the agent files automatically:
 
 ```bash
 cd your-project
-claude --print "$(cat orchystraw/bootstrap-prompt.txt)"
+
+# Use whatever agent you have:
+claude --print "$(cat orchystraw/bootstrap-prompt.txt)"         # Claude Code
+codex --approval-mode full-auto -q "$(cat orchystraw/bootstrap-prompt.txt)"  # OpenAI Codex
+gemini "$(cat orchystraw/bootstrap-prompt.txt)"                 # Gemini CLI
+aider --message "$(cat orchystraw/bootstrap-prompt.txt)"        # Aider
+# Or just paste the prompt into ChatGPT, Windsurf, Cursor — anything
 ```
 
 You'll get `agents.conf`, `CLAUDE.md`, and prompt files tailored to your project's stack.
@@ -171,7 +179,10 @@ You'll get `agents.conf`, `CLAUDE.md`, and prompt files tailored to your project
 Or run a single agent to test:
 
 ```bash
+# Any of these work:
 claude --print < prompts/02-backend/02-backend-dev.txt
+codex --approval-mode full-auto -q < prompts/02-backend/02-backend-dev.txt
+gemini < prompts/02-backend/02-backend-dev.txt
 ```
 
 ---
