@@ -1,5 +1,5 @@
 # Agent Design — How to Write Good Agent Prompts
-# Distilled from 15+ production auto-cycles (441 files, 1877 tests, 2 QA reports, 0 blockers)
+# Agent Design Guide
 
 ---
 

@@ -575,4 +575,4 @@ Then: git add prompts/ && git commit -m "chore: auto-update all prompts"
 
 ---
 
-*Built from 15+ production cycles — 441 source files, 1877 tests, 0 data-loss incidents.*
+

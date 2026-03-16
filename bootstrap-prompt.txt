@@ -379,9 +379,9 @@ Count worker prompt files — should match agents.conf entries.
 
 ---
 
-## Lessons Learned (battle-tested across 15+ auto-cycles, 5 agents, 441 files)
+## Lessons Learned
 
-These are battle-tested patterns. Follow them.
+Follow these patterns.
 
 ### What Worked
 1. **Shared context (00-shared-context/)** — agents reading each other's output eliminated duplicate work. Backend writes "added POST /batch", iOS reads it and wires the endpoint same cycle.
@@ -401,7 +401,7 @@ These are battle-tested patterns. Follow them.
 5. **No usage tracking** — early cycles had no budget awareness. Fix: `check-usage.sh` + `usage.txt` + PM reads it.
 6. **QA findings not actionable** — "improve error handling" vs "digests.ts:142 — extractActions Claude call unwrapped, add try/catch". Fix: QA must cite file:line and severity for every finding.
 
-### Scale Reference (from production use)
+### Scale Reference
 - 226 source files (88 TS + 18 tests + 120 Swift)
 - 302 tests, all passing
 - 5 agents (PM + Backend + iOS + Design + QA)

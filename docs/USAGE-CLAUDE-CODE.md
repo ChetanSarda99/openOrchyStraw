@@ -118,7 +118,7 @@ your-project/
 
 ---
 
-## Tips from 15+ Production Cycles
+## Tips
 
 ### 1. PM writes standing orders, not chat
 The PM doesn't "talk" to devs. It updates their prompt files with specific objectives. This is the key insight — async file-based delegation beats LLM-to-LLM conversation.
