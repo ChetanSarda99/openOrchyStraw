@@ -202,11 +202,20 @@ orchystraw still helps — the shared context file, the CLAUDE.md, and the cycle
 
 ## Docs
 
-- **[Claude Code Usage Guide](docs/USAGE-CLAUDE-CODE.md)** — full setup, flags, model selection, tips from 15+ cycles
-- **[Windsurf Usage Guide](docs/USAGE-WINDSURF.md)** — Cascade integration, Flows, hybrid setup
+### Getting Started
+- **[Concepts](docs/CONCEPTS.md)** — what every piece is, why it exists, how they work together
+- **[Creating Custom Agents](docs/CREATING-CUSTOM-AGENTS.md)** — add new agents, ownership rules, design patterns
+- **[CLI Guide](docs/CLI-GUIDE.md)** — which CLI to use per agent role, cost optimization, multi-CLI setup
+
+### Usage Guides
+- **[Claude Code](docs/USAGE-CLAUDE-CODE.md)** — full setup, flags, model selection, tips from 15+ cycles
+- **[Windsurf](docs/USAGE-WINDSURF.md)** — Cascade integration, Flows, hybrid setup
 - **[Cursor / Codex / Others](docs/USAGE-CURSOR-CODEX.md)** — Cursor, Codex, Aider, any CLI agent
+
+### Reference
 - **[Agent Design Guide](AGENT-DESIGN.md)** — how to write prompts that actually work
 - **[Workflow Reference](WORKFLOW.md)** — full cycle lifecycle, git ops, safety
+- **[Architecture](ARCHITECTURE.md)** — system architecture overview
 - **[Troubleshooting](TROUBLESHOOTING.md)** — common failures and fixes
 
 ## License
