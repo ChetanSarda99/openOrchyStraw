@@ -5,184 +5,170 @@
 <h1 align="center">OrchyStraw</h1>
 
 <p align="center">
-  <strong>Drop-in multi-agent prompt system for AI coding agents.</strong><br/>
-  Zero dependencies. Works with any AI agent that has a CLI.
+  <strong>A simple way to get multiple AI coding agents working together on the same project.</strong>
 </p>
 
 <p align="center">
-  <img src="https://img.shields.io/badge/dependencies-zero-brightgreen" alt="Zero Dependencies" />
-  <img src="https://img.shields.io/badge/works_with-Claude_Code_%7C_Windsurf_%7C_Cursor_%7C_Codex-blue" alt="Works With" />
   <img src="https://img.shields.io/badge/license-MIT-green" alt="MIT License" />
 </p>
 
 ---
 
-## What This Is
+## What is this?
 
-A **prompt scaffold** — not a framework, not a library, not another `pip install`. Just markdown files and a bash script that orchestrate multiple AI coding agents working on the same codebase without stepping on each other.
+If you've ever tried to get two AI agents working on the same codebase, you know the mess — they overwrite each other's files, lose context between sessions, and forget what they were doing.
+
+OrchyStraw fixes that. It's a set of markdown files and one bash script. No framework to install, no Python package, no runtime. You copy a folder into your project and you're up and running.
+
+It keeps agents in their lanes, gives them a shared memory, and has one agent (the PM) coordinate the whole thing.
 
 ---
 
-## How It Works
+## How it actually works
 
-OrchyStraw has three moving parts: **prompts** (skills), **a script** (orchestrator), and **shared context** (team memory).
+There are three pieces: **prompts**, **a script**, and **shared context**.
 
-### The Prompts (Agent Skills)
+### Prompts — each agent's skill file
 
-Each agent gets a **prompt file** — a markdown document that acts as its standing orders. Not a chat message. A complete instruction set.
+Every agent gets its own markdown file. Think of it as a job description — not a chat message, but a complete set of instructions the agent reads fresh every cycle.
 
 ```
 prompts/
-├── 00-shared-context/         ← every agent reads + writes to this
-├── 01-pm/                     ← PM coordinator (writes all other prompts)
+├── 00-shared-context/         ← the team's shared memory
+├── 01-pm/                     ← the coordinator
 │   └── 01-project-manager.txt
-├── 02-backend/                ← backend dev prompt
+├── 02-backend/                ← backend agent
 │   └── 02-backend-dev.txt
-├── 03-frontend/               ← frontend dev prompt
+├── 03-frontend/               ← frontend agent
 │   └── 03-frontend-dev.txt
-├── 05-qa/                     ← QA reviewer prompt
+├── 05-qa/                     ← QA reviewer
 │   └── 05-qa-review.txt
-└── 99-me/                     ← human action items
+└── 99-me/                     ← stuff only you can do
     └── 99-actions.txt
 ```
 
-Every prompt follows the same structure:
+A prompt looks like this:
 
 ```markdown
-# [Project] Backend Developer Prompt
+# [Project] Backend Developer
 
 **Your Role:** Backend Developer — APIs, database, auth, tests
-**Objective:** [specific tasks for this cycle]
+**Objective:** [what to build this cycle]
 
 ## Context
-[What the project is, tech stack, current state]
+[What the project is, tech stack, where things stand]
 
 ## YOUR TASKS (This Cycle)
 1. Add POST /api/users endpoint with validation
-2. Write 5 integration tests for auth flow
+2. Write 5 integration tests for the auth flow
 3. Update shared-context with what you built
 
 ## Rules
-- Only modify files in: backend/ prisma/
-- DO NOT touch: frontend/ ios/ prompts/
-- Read shared-context before starting
-- Append what you did to shared-context when done
+- Only touch files in: backend/ prisma/
+- Don't touch: frontend/ ios/ prompts/
+- Read shared-context before you start
+- Write what you did to shared-context when you're done
 ```
 
-**Why standing orders instead of chat?** Chat drifts. Context gets buried. Agents hallucinate old messages. Standing orders are deterministic — the agent reads the full prompt from scratch every cycle. No memory issues.
+Why not just chat with agents? Because chat drifts. Instructions get buried ten messages deep and agents start hallucinating old context. A fresh prompt every cycle means the agent always knows exactly what to do.
 
-### The Script (Orchestrator)
+### The script — runs everything
 
-`scripts/auto-agent.sh` runs the full cycle:
+`auto-agent.sh` handles the full cycle so you don't have to babysit:
 
 ```bash
-./scripts/auto-agent.sh orchestrate     # run 10 cycles (default)
+./scripts/auto-agent.sh orchestrate     # run 10 cycles
 ./scripts/auto-agent.sh orchestrate 5   # run 5 cycles
-./scripts/auto-agent.sh run 02-backend  # run single agent once
-./scripts/auto-agent.sh list            # show registered agents
+./scripts/auto-agent.sh run 02-backend  # run one agent
+./scripts/auto-agent.sh list            # see who's registered
 ```
 
-**What the script does each cycle:**
+Each cycle, the script:
 
+1. Pulls latest code
+2. Creates a feature branch
+3. Runs all the worker agents
+4. Commits each agent's work (only files they're allowed to touch)
+5. Catches and reverts any rogue writes (agent editing files it shouldn't)
+6. Runs the PM last — it reviews everything, then updates all the prompts for the next cycle
+7. Merges back to main
+8. Backs up all prompts (rotates every 7 days)
+
+The script handles git, file ownership, backups, and rogue detection. Agents just focus on code.
+
+### Shared context — how agents stay in sync
+
+There's one file every agent reads before starting and writes to before finishing:
+
+`prompts/00-shared-context/context.md`
+
+```markdown
+## Backend
+- Added POST /api/users (3 files, 5 tests)
+- NEED: Frontend to build the user creation form
+
+## Frontend
+- Built login page and signup form
+- BLOCKED: Waiting on /api/auth/refresh from backend
 ```
-1. Pull latest from main
-2. Create feature branch for this cycle
-3. Reset shared context
-4. Run all worker agents (parallel or sequential)
-5. Commit each agent's changes by file ownership
-6. Detect rogue writes (agent wrote outside its boundaries) → revert
-7. Run PM coordinator last (reviews work, updates all prompts for next cycle)
-8. Merge → main, push
-9. Backup all prompts (7-day rotation)
-10. Repeat
-```
 
-**What the script handles that agents shouldn't:**
-- Git branching and merging (agents mess this up)
-- File ownership enforcement (prevents agent A from editing agent B's files)
-- Backup rotation (recovers from prompt corruption)
-- Rogue write detection and rollback
-- Timestamp and file count injection into prompts
+That's it. No vector databases, no RAG pipelines, no embeddings. Just a markdown file agents read and append to. It's simple because it doesn't need to be complicated.
 
-### Agent Configuration
+### The PM — the brain of the operation
 
-`scripts/agents.conf` defines who runs:
+The PM agent is what makes multi-agent actually work. It:
+
+- Runs **last**, after all the workers are done
+- Reads shared context to see what everyone built
+- Writes new instructions directly into each agent's prompt file for the next cycle
+- Keeps a running record in the session tracker
+- Drops anything it can't handle into `99-me/` for you
+
+Agents never talk to each other. Everything goes through PM via the shared context file. It's a hub, not a mesh.
+
+### Agent configuration
+
+`scripts/agents.conf` is where you define your team:
 
 ```bash
 # id | prompt_path | ownership | interval | label
-01-pm      | prompts/01-pm/01-pm.txt       | prompts/ docs/    | 0 | PM Coordinator
-02-backend | prompts/02-backend/02-be.txt   | backend/ prisma/  | 1 | Backend Dev
-03-frontend| prompts/03-front/03-fe.txt     | frontend/ src/    | 1 | Frontend Dev
-05-qa      | prompts/05-qa/05-qa.txt        | none              | 5 | QA Engineer
+01-pm      | prompts/01-pm/01-pm.txt       | prompts/ docs/    | 0 | PM
+02-backend | prompts/02-backend/02-be.txt   | backend/ prisma/  | 1 | Backend
+03-frontend| prompts/03-front/03-fe.txt     | frontend/ src/    | 1 | Frontend
+05-qa      | prompts/05-qa/05-qa.txt        | none              | 5 | QA
 ```
 
-| Column | Meaning |
-|--------|---------|
-| `id` | Unique agent identifier |
-| `prompt_path` | Path to the prompt file |
-| `ownership` | Directories this agent can write to. `!path` excludes. `none` = read-only. |
-| `interval` | `0` = coordinator (runs last). `1` = every cycle. `5` = every 5th cycle. |
-| `label` | Human-readable name |
-
-### The Shared Context (Team Memory)
-
-`prompts/00-shared-context/context.md` is the single file all agents share:
-
-- Every agent **reads it** before starting (knows what others did)
-- Every agent **appends to it** before finishing (tells others what it did)
-
-```markdown
-## Backend Status
-- Added POST /api/users endpoint (3 files, 5 tests)
-- NEED: Frontend to add user creation form
-
-## Frontend Status
-- Built login page and signup form
-- BLOCKER: Waiting for /api/auth/refresh endpoint from backend
-```
-
-No vector databases. No RAG. No embeddings. Just a markdown file.
-
-### The PM Pattern
-
-The PM agent is the key to everything. It:
-
-1. **Runs last** (after all workers finish)
-2. **Reads shared context** to see what everyone built
-3. **Writes new standing orders** directly to each agent's prompt file
-4. **Updates the session tracker** (permanent record across cycles)
-5. **Adds human tasks** to `99-me/99-actions.txt`
-
-The PM doesn't chat with agents. It reads their output, plans the next cycle, and overwrites their prompt files with new instructions. Agents never talk to each other — everything goes through PM.
+- **ownership** = what directories this agent can write to. `none` means read-only.
+- **interval** = `1` means every cycle. `5` means every 5th. `0` means coordinator (runs last).
 
 ---
 
-## Quick Start
+## Getting started
 
-### 1. Copy the template
+### 1. Copy the template into your project
 
 ```bash
 cp -r orchystraw/template/ your-project/
 ```
 
-### 2. Bootstrap
+### 2. Run the bootstrap prompt
 
-Run the bootstrap prompt to auto-generate agents for your stack:
+This looks at your codebase and generates all the agent files automatically:
 
 ```bash
 cd your-project
 claude --print "$(cat orchystraw/bootstrap-prompt.txt)"
 ```
 
-This scans your codebase and creates: `agents.conf`, `CLAUDE.md`, and all agent prompt files — tailored to your project's languages and structure.
+You'll get `agents.conf`, `CLAUDE.md`, and prompt files tailored to your project's stack.
 
-### 3. Run
+### 3. Let it run
 
 ```bash
 ./scripts/auto-agent.sh orchestrate
 ```
 
-Or run agents manually:
+Or run a single agent to test:
 
 ```bash
 claude --print < prompts/02-backend/02-backend-dev.txt
@@ -190,30 +176,30 @@ claude --print < prompts/02-backend/02-backend-dev.txt
 
 ---
 
-## Agent Numbering
+## Agent numbering
 
 ```
-00-*  → Reserved: shared-context, backups, session-tracker
-01-*  → PM coordinator (runs last, writes to all prompts)
+00-*  → Reserved: shared context, backups, session tracker
+01-*  → PM (coordinator — runs last)
 02-09 → Core dev agents
-10-49 → Specialty agents (design, docs, security, i18n)
-50-98 → Expansion
-99-*  → Reserved: YOU (human manual tasks)
+10-49 → Specialists (design, docs, security, i18n)
+50-98 → Room to grow
+99-*  → Reserved: you (manual tasks)
 ```
 
 ---
 
-## What You Get
+## Repo structure
 
 ```
 orchystraw/
 ├── README.md
-├── AGENT-DESIGN.md              ← how to write prompts that work
-├── WORKFLOW.md                  ← full cycle lifecycle reference
-├── ARCHITECTURE.md              ← system architecture
-├── TROUBLESHOOTING.md           ← common failures + fixes
-├── bootstrap-prompt.txt         ← one prompt to scaffold any project
-├── assets/branding/             ← logo + icon variants
+├── AGENT-DESIGN.md              ← writing good agent prompts
+├── WORKFLOW.md                  ← how a cycle works end to end
+├── ARCHITECTURE.md              ← system overview
+├── TROUBLESHOOTING.md           ← when things go wrong
+├── bootstrap-prompt.txt         ← one prompt to set up any project
+├── assets/branding/             ← logo + icons
 ├── template/                    ← copy this into your project
 │   ├── CLAUDE.md
 │   ├── prompts/
@@ -230,8 +216,8 @@ orchystraw/
 │   ├── sample-agents.conf
 │   └── sample-pm-prompt.txt
 └── docs/
-    ├── CONCEPTS.md              ← detailed explainer of every component
-    ├── CREATING-CUSTOM-AGENTS.md ← add new agents, patterns, ownership
+    ├── CONCEPTS.md
+    ├── CREATING-CUSTOM-AGENTS.md
     ├── USAGE-CLAUDE-CODE.md
     ├── USAGE-WINDSURF.md
     └── USAGE-CURSOR-CODEX.md
@@ -241,20 +227,15 @@ orchystraw/
 
 ## Docs
 
-### Getting Started
-- **[Concepts](docs/CONCEPTS.md)** — what every piece is, why it exists, how they fit together
-- **[Creating Custom Agents](docs/CREATING-CUSTOM-AGENTS.md)** — add agents, ownership rules, design patterns
-
-### Usage Guides
-- **[Claude Code](docs/USAGE-CLAUDE-CODE.md)** — setup, flags, model selection
-- **[Windsurf](docs/USAGE-WINDSURF.md)** — Cascade integration, Flows, hybrid setup
-- **[Cursor / Codex / Others](docs/USAGE-CURSOR-CODEX.md)** — Cursor, Codex, Aider, any CLI agent
-
-### Reference
-- **[Agent Design](AGENT-DESIGN.md)** — how to write prompts that actually work
-- **[Workflow](WORKFLOW.md)** — full cycle lifecycle, git ops, safety
-- **[Architecture](ARCHITECTURE.md)** — system architecture overview
-- **[Troubleshooting](TROUBLESHOOTING.md)** — common failures and fixes
+- **[Concepts](docs/CONCEPTS.md)** — every piece explained in detail
+- **[Creating Custom Agents](docs/CREATING-CUSTOM-AGENTS.md)** — adding agents, ownership rules, patterns
+- **[Claude Code](docs/USAGE-CLAUDE-CODE.md)** — setup and flags
+- **[Windsurf](docs/USAGE-WINDSURF.md)** — Cascade integration
+- **[Cursor / Codex / Others](docs/USAGE-CURSOR-CODEX.md)** — other CLIs and editors
+- **[Agent Design](AGENT-DESIGN.md)** — writing prompts that actually work
+- **[Workflow](WORKFLOW.md)** — cycle lifecycle and git operations
+- **[Architecture](ARCHITECTURE.md)** — system architecture
+- **[Troubleshooting](TROUBLESHOOTING.md)** — common issues and fixes
 
 ---
 
