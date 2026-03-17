@@ -86,7 +86,32 @@ These block the release tag. Do them in this order:
 22. **#23** CTO: architecture decision records → **02-cto**
 23. **#24** CEO: open-source vs proprietary boundary → **01-ceo**
 
-### ⚪ P4 — Benchmarks & Positioning (after v0.1.0)
+### 🔴 P1.5 — Smart Cycle System (self-improvement — implement AFTER v0.1.0)
+These make OrchyStraw smarter. Backend owns implementation, CTO owns architecture docs.
+
+12a. **#40** Loop review & critique — QA auto-reruns agents on structured rejection → **06-backend**
+12b. **#41** Dynamic routing / smart mode — PM decides who runs → **06-backend**
+12c. **#43** Dependency-aware parallel execution (depends_on in agents.conf) → **06-backend**
+12d. **#44** Git worktree isolation per agent → **06-backend**
+12e. **#46** Model tiering per agent (model col in agents.conf) → **06-backend**
+
+### 🟡 P2.5 — Token Optimization (implement alongside smart cycle system)
+12f. **#47** Prompt compression — tiered loading (stable/dynamic/reference) → **06-backend**
+12g. **#48** Conditional agent activation (skip idle agents) → **06-backend**
+12h. **#49** Differential context — per-agent relevant sections only → **06-backend**
+12i. **#50** Progressive task decomposition — backlog one-liners → **03-pm** (PM process change)
+12j. **#51** Output budgets — add to agent prompts → **03-pm**
+12k. **#52** Smart session tracker windowing → **06-backend**
+12l. **#53** Auto-refresh QMD index each cycle → **06-backend**
+12m. **#54** Prompt template inheritance → **06-backend**
+
+### 🟢 P3 — Smart Agent Provisioning
+12n. **#45** auto-agent.sh init — project analyzer → agent blueprint → **06-backend**
+
+### 🔵 P3.5 — Agent-as-Tool (advanced, after above)
+12o. **#42** Agent-as-tool — lightweight read-only invocations → **06-backend**
+
+### ⚪ P4 — Benchmarks & Positioning (after v0.1.0 + improvements)
 24. **#4** SWE-bench Benchmark scaffold → **06-backend**
 25. **#5** Ralph Loop vs OrchyStraw head-to-head → **06-backend**
 26. **#6** FeatureBench evaluation → **06-backend**
@@ -171,12 +196,28 @@ Use the **Edit tool** to modify ONLY:
 - [ ] #21 QA audit PASS
 - [ ] #25 Release tag
 
-### v0.2.0 — Pixel Agents + Tauri MVP (P1+P2)
-- [ ] Synthetic JSONL emitter working
-- [ ] Pixel agents fork with OrchyStraw adapter
-- [ ] Tauri app scaffolded
-- [ ] Dashboard showing agent status + cycle count
-- [ ] Pixel agents embedded in Tauri dashboard
+### v0.2.0 — Smart Cycle System (self-improvement sprint)
+- [ ] #40 Loop review & critique
+- [ ] #41 Dynamic routing / smart mode
+- [ ] #43 Dependency-aware parallel execution
+- [ ] #44 Git worktree isolation
+- [ ] #46 Model tiering per agent
+- [ ] #47 Prompt compression
+- [ ] #48 Conditional agent activation
+- [ ] #51 Output budgets
+
+### v0.3.0 — Token Optimization + Smart Provisioning
+- [ ] #49 Differential context
+- [ ] #50 Progressive task decomposition
+- [ ] #52 Session tracker windowing
+- [ ] #53 QMD auto-refresh
+- [ ] #54 Prompt template inheritance
+- [ ] #45 auto-agent.sh init
+
+### v0.4.0 — Benchmarks
+- [ ] #4 SWE-bench scaffold
+- [ ] #5 Ralph Loop comparison
+- [ ] #6 FeatureBench evaluation
 
 ---
 
