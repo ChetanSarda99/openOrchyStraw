@@ -72,11 +72,29 @@ logs/                    — Cycle logs (gitignored)
 4. **Benchmarks** — SWE-bench, Ralph comparison, FeatureBench
 5. **Distribution** — Demo GIF, launch posts, community
 
+## Stack Reference Docs (LOCKED — read before building)
+
+| Surface | Reference Doc | Agents |
+|---------|--------------|--------|
+| Tauri Desktop App | `docs/references/TAURI-STACK.md` | 04-tauri-rust, 05-tauri-ui |
+| Landing Page | `docs/references/LANDING-PAGE-STACK.md` | 11-web |
+| Documentation Site | `docs/references/DOCS-STACK.md` | 11-web |
+
+These are **locked decisions**. Do not substitute frameworks, libraries, or templates.
+
+### Summary
+- **Tauri app:** dannysmith/tauri-template → React 19 + shadcn/ui v4 + Zustand + TanStack Query + tauri-specta
+- **Landing page:** memextech/nextjs-shadcn-landing-page-template → Next.js 15 + shadcn/ui v4 + Framer Motion
+- **Docs site:** Mintlify (same as Claude Code docs + Conductor docs)
+- **Shared:** shadcn/ui v4, Tailwind v4, Lucide React, JetBrains Mono, Inter/Geist, dark mode (#0a0a0a)
+- **MCP:** shadcn + mintlify servers in `.mcp.json`
+
 ## Rules
 1. **Read your prompt first** — it has your current tasks
-2. **Stay in your lane** — respect file ownership in agents.conf
-3. **Write to shared context** — that's how agents communicate
-4. **Never touch git branch operations** — orchestrator handles that
-5. **No external dependencies** — bash + markdown for core orchestrator
-6. **Use Edit, not Write** — for prompt updates (preserve structure)
-7. **Check the PM's prioritized backlog** — prompts/03-pm/03-pm.txt has the full ordered issue list
+2. **Read your reference doc** — locked stack decisions per surface
+3. **Stay in your lane** — respect file ownership in agents.conf
+4. **Write to shared context** — that's how agents communicate
+5. **Never touch git branch operations** — orchestrator handles that
+6. **No external dependencies** — bash + markdown for core orchestrator
+7. **Use Edit, not Write** — for prompt updates (preserve structure)
+8. **Check the PM's prioritized backlog** — prompts/03-pm/03-pm.txt has the full ordered issue list

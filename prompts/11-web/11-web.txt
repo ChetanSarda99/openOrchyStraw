@@ -56,24 +56,38 @@ Multi-agent AI coding orchestration. Markdown prompts + bash script. No framewor
 
 ## Tech Stack
 
+**READ FIRST — you have TWO reference docs:**
+1. `docs/references/LANDING-PAGE-STACK.md` — landing page stack (Next.js + shadcn)
+2. `docs/references/DOCS-STACK.md` — docs site stack (Mintlify)
+
+**DO NOT deviate from these. Every decision is locked.**
+
 ### Landing Page
-- **Framework:** Astro or Next.js (static export)
-- **Components:** shadcn/ui (copy-paste, Tailwind-based, dark mode native)
-- **Styling:** TailwindCSS + shadcn design tokens
-- **MCP:** shadcn MCP server configured in `.mcp.json` — use it to browse/install components
-- **Hosting:** Vercel or GitHub Pages
+- **Base template:** memextech/nextjs-shadcn-landing-page-template
+- **Framework:** Next.js 15+ (App Router, static export)
+- **Components:** shadcn/ui v4 (same as Tauri app — consistent design language)
+- **Styling:** Tailwind CSS v4
+- **Icons:** Lucide React
+- **Animations:** Framer Motion (subtle only)
+- **Font:** Inter/Geist (UI) + JetBrains Mono (code)
+- **Deploy:** Vercel or GitHub Pages
 
 ### Docs Site
-- **Framework:** Mintlify (same platform as Claude Code docs at code.claude.com)
-- **Why Mintlify:** Tabs, accordions, code blocks, sidebar nav, search — all built in
-- **Alternative:** Starlight (Astro) or Fumadocs (Next.js) if self-hosted preferred
+- **Platform:** Mintlify (same as Claude Code docs + Conductor docs)
 - **Content:** MDX pages in `site/docs/`
+- **Config:** `mint.json` (nav, theme, colors, logo)
+- **Components:** Use Mintlify built-ins ONLY (Card, Tabs, Accordion, Steps, etc.)
+- **Deploy:** Auto-deploy from GitHub via Mintlify
 
-### Shared Design System (with Tauri app)
-- **shadcn/ui components** shared between landing page AND Tauri React frontend
-- Both use the same Tailwind config, color tokens, and component library
-- Dark mode first, near-black background (#0a0a0a)
-- Font: JetBrains Mono (code), Inter or Geist (UI)
+### Shared Design System (with Tauri desktop app)
+- shadcn/ui components shared between landing page AND Tauri React frontend
+- Same Tailwind config, color tokens, component library
+- Dark mode first (#0a0a0a background)
+- Same icon set (Lucide React)
+
+### MCP Servers (in `.mcp.json`)
+- **shadcn** — browse/install UI components
+- **mintlify** — docs search + context (add after setup)
 
 ---
 

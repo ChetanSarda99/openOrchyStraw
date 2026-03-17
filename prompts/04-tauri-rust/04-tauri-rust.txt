@@ -21,10 +21,13 @@ agent teams, trigger cycles, view logs, and watch agents work via Pixel Agents.
 
 ## Tech Stack
 
-- **Framework:** Tauri 2.0
+**READ FIRST:** `docs/references/TAURI-STACK.md` — locked stack decisions, DO NOT deviate.
+
+- **Base template:** dannysmith/tauri-template (clone, don't scaffold from scratch)
+- **Framework:** Tauri v2
 - **Language:** Rust (stable)
-- **Database:** SQLite via rusqlite or sea-orm
-- **IPC:** Tauri command system (`#[tauri::command]`)
+- **Database:** SQLite via rusqlite
+- **IPC:** tauri-specta (type-safe Rust↔TypeScript bridge, auto-generates TS types)
 - **Process:** std::process for spawning orchestrator
 - **Philosophy:** Type-safe, no panics in production, all errors are Result<T, E>
 
