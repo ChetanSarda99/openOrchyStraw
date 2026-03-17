@@ -247,7 +247,48 @@ commit_by_ownership() {
 }
 
 detect_rogue_writes() {
-    # Build list of ALL owned paths
+    # ── PROTECTED FILES: no agent may ever touch these, even if in their ownership ──
+    # These are restored FIRST before ownership checks.
+    local PROTECTED_FILES=(
+        "scripts/auto-agent.sh"        # The orchestrator itself
+        "scripts/agents.conf"           # Agent config — only humans edit this
+        "scripts/check-usage.sh"        # Usage checker
+        "scripts/check-domain.sh"       # Domain checker
+        ".orchystraw/"                  # App data layer (future)
+        "CLAUDE.md"                     # Root project instructions
+    )
+
+    # Find all modified/untracked files
+    local all_changes=$(git diff --name-only 2>/dev/null; git ls-files --others --exclude-standard 2>/dev/null)
+
+    if [ -z "$all_changes" ]; then return 0; fi
+
+    # ── Pass 1: Restore any protected files immediately ──
+    local protected_violations=""
+    while IFS= read -r file; do
+        [ -z "$file" ] && continue
+        for protected in "${PROTECTED_FILES[@]}"; do
+            if [[ "$file" == ${protected}* ]]; then
+                protected_violations+="  $file\n"
+                git checkout -- "$file" 2>/dev/null || git rm --cached "$file" 2>/dev/null
+                break
+            fi
+        done
+    done <<< "$all_changes"
+
+    if [ -n "$protected_violations" ]; then
+        log "CRITICAL: Agent tried to modify PROTECTED files (restored):"
+        echo -e "$protected_violations" | while read -r f; do
+            [ -n "$f" ] && log "  PROTECTED VIOLATION: $f"
+        done
+        notify "Agent tried to modify protected files — restored automatically" "warning"
+    fi
+
+    # Refresh change list after protected restores
+    all_changes=$(git diff --name-only 2>/dev/null; git ls-files --others --exclude-standard 2>/dev/null)
+    [ -z "$all_changes" ] && return 0
+
+    # ── Pass 2: Rogue writes (outside all ownership boundaries) ──
     local all_owned=""
     for id in "${AGENT_IDS[@]}"; do
         local ownership="${AGENT_OWNERSHIP[$id]}"
@@ -258,13 +299,9 @@ detect_rogue_writes() {
         done
     done
 
-    # Find all modified/untracked files
-    local all_changes=$(git diff --name-only 2>/dev/null; git ls-files --others --exclude-standard 2>/dev/null)
-
-    if [ -z "$all_changes" ]; then return 0; fi
-
     local rogue_files=""
     while IFS= read -r file; do
+        [ -z "$file" ] && continue
         local is_owned=false
         for path in $all_owned; do
             if [[ "$file" == ${path}* ]]; then
