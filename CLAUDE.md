@@ -6,7 +6,7 @@ Multi-agent AI coding orchestration. Markdown prompts + bash script. No framewor
 **Private repo** — research, benchmarks, proprietary features, Tauri desktop app, Pixel Agents integration.
 **Public repo** — openOrchyStraw (MIT, community-facing scaffold).
 
-## Agent Team (10 agents)
+## Agent Team (11 agents)
 - **01-CEO** — Vision, strategy, market positioning (every 3rd cycle)
 - **02-CTO** — Architecture, tech standards, code quality (every 2nd cycle)
 - **03-PM** — Coordination, task assignment, milestone tracking (runs LAST)
@@ -17,6 +17,7 @@ Multi-agent AI coding orchestration. Markdown prompts + bash script. No framewor
 - **08-Pixel** — Pixel Agents visualization: pixel art office showing agents at work (every 2nd cycle)
 - **09-QA** — Testing, code review, quality gates (every 3rd cycle)
 - **10-Security** — Threat modeling, vulnerability scanning (every 3rd cycle, read-only)
+- **11-Web** — Landing page + docs site, inspired by conductor.build (every 2nd cycle)
 
 ## File Structure
 ```
@@ -49,6 +50,11 @@ pixel-agents/            — Forked pixel-agents-standalone (when created)
 ios/                     — iOS companion app (Xcode project)
 src/native/              — Shared native code
 
+site/                    — Landing page + docs site
+  src/                   — Pages, components, layouts
+  public/                — Static assets
+  content/               — Markdown docs content
+
 tests/                   — Test files
 docs/                    — Documentation
   strategy/              — CEO strategic docs
@@ -61,7 +67,8 @@ logs/                    — Cycle logs (gitignored)
 ## Priority Order
 1. **v0.1.0** — Harden orchestrator (backend), security audit, QA pass, release tag
 2. **Pixel Agents** — Synthetic JSONL emitter, fork + adapter, character mapping
-3. **Tauri App** — Scaffold, Rust commands, dashboard, embedded Pixel Agents
+3. **Tauri App** — Scaffold, Rust commands, dashboard, UI inspired by Conductor
+3.5. **Landing Page** — Public site inspired by conductor.build + Claude Code docs
 4. **Benchmarks** — SWE-bench, Ralph comparison, FeatureBench
 5. **Distribution** — Demo GIF, launch posts, community
 

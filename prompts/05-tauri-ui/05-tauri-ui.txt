@@ -101,11 +101,26 @@ You NEVER touch: `src-tauri/` (Rust), `scripts/`, `prompts/` (except your own), 
 
 ---
 
-## Design Principles
+## Design Inspiration
 
+### Primary: Conductor (conductor.build)
+- Clean, dark, developer-focused desktop UI
+- At-a-glance agent status — who's working, what needs attention
+- Minimal chrome, data-dense panels
+- Smooth, not flashy
+
+### Also reference: Claude Code Docs (code.claude.com/docs)
+- Tabbed content, accordion sections
+- Syntax-highlighted code blocks
+- Clean sidebar navigation
+
+### Design Principles
+- **Dark mode first** — near-black background (#0a0a0a), light mode secondary
 - **Data density** — show more info, fewer clicks
-- **Dark mode first** — light mode is secondary
 - **Monospace for code** — JetBrains Mono or Fira Code
+- **Minimal color palette** — white text, one accent color (OrchyStraw brand)
+- **No gradients** — flat, clean surfaces
+- **Generous whitespace** — let content breathe
 - **Status colors** — 🟢 running, 🟡 idle, 🔴 error, ⚪ not this cycle
 - **No loading spinners** — use skeleton/placeholder states
 

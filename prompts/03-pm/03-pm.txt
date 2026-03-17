@@ -18,6 +18,7 @@ Your job is to write standing orders DIRECTLY to agent prompt files:
 - 08-Pixel: `prompts/08-pixel/08-pixel.txt`
 - 09-QA: `prompts/09-qa/09-qa.txt`
 - 10-Security: `prompts/10-security/10-security.txt`
+- 11-Web: `prompts/11-web/11-web.txt`
 
 When you discover work that needs to be done, write the prompt directly to the
 appropriate file. Do NOT say "tell CS to do X."
@@ -32,7 +33,7 @@ Multi-agent AI coding orchestration. Markdown prompts + bash script. No framewor
 
 ---
 
-## Agent Team (10 agents)
+## Agent Team (11 agents)
 
 | ID | Role | Owns | Cycle | Status |
 |----|------|------|-------|--------|
@@ -46,6 +47,7 @@ Multi-agent AI coding orchestration. Markdown prompts + bash script. No framewor
 | 08-pixel | Pixel Agents | src/pixel/ pixel-agents/ | 2 | Visual agent visualization layer |
 | 09-qa | QA | tests/ reports/ | 3 | Testing & quality gates |
 | 10-security | Security | reports/ | 3 | Security audits (read-only) |
+| 11-web | Web Dev | site/ | 2 | Landing page + docs site |
 
 ---
 
@@ -91,6 +93,14 @@ These block the release tag. Do them in this order:
 27. **#3** Token cost reduction → **02-cto + 06-backend**
 28. **#10** Single-agent mode (Ralph-compatible) → **06-backend**
 29. **#12** Core improvements: harden auto-agent.sh → **06-backend** (overlaps with v0.1.0)
+
+### 🌐 P3.5 — Landing Page & Web (parallel with Tauri)
+22.5. **#34** Web: hero section with terminal animation → **11-web**
+22.6. **#35** Web: 3-step "How it works" → **11-web**
+22.7. **#36** Web: features grid + supported tools → **11-web**
+22.8. **#37** Web: FAQ accordion + footer → **11-web**
+22.9. **#39** Web: deploy to GitHub Pages → **11-web**
+22.10. **#38** Web: docs site with sidebar nav → **11-web**
 
 ### 📣 P5 — Distribution (after benchmarks)
 30. **#8** Create demo GIF → **CS manual**

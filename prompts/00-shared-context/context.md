@@ -8,7 +8,7 @@
 ## Progress (last cycle → this cycle)
 - Previous cycle: 0 (fresh start — v0.1.0 hardening)
 - This is the initial setup cycle. All agents bootstrapping.
-- 10-agent team configured: CEO, CTO, PM, Tauri-Rust, Tauri-UI, Backend, iOS, Pixel Agents, QA, Security
+- 11-agent team configured: CEO, CTO, PM, Tauri-Rust, Tauri-UI, Backend, iOS, Pixel Agents, QA, Security, Web
 
 ---
 
@@ -26,6 +26,7 @@
 | 08-Pixel | 🟡 Ready | #26 Synthetic JSONL emitter (can start now) |
 | 09-QA | 🟡 Ready | #21 Full doc audit (after backend ships) |
 | 10-Security | 🟡 Ready | #22 Pre-release security audit (after backend ships) |
+| 11-Web | 🟡 Ready | #34-39 Landing page + docs site (conductor.build style) |
 
 ## Dependencies
 
@@ -33,6 +34,8 @@
 - 08-Pixel depends on 06-Backend (JSONL emitter goes in auto-agent.sh)
 - 09-QA + 10-Security gate v0.1.0 release (#25)
 - 04/05 Tauri scaffold starts after v0.1.0
+- 11-Web can start landing page in parallel (no backend dependency)
+- 05-Tauri-UI + 11-Web share design language (conductor.build inspired)
 
 ---
 

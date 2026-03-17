@@ -18,6 +18,7 @@ This repo dogfoods OrchyStraw to develop OrchyStraw. 10 AI agents coordinate via
 | 08 | Pixel Agents | 2nd | Pixel art visualization of agents at work |
 | 09 | QA | 3rd | Testing, code review, quality gates |
 | 10 | Security | 3rd | Threat modeling, secret scanning (read-only) |
+| 11 | Web Dev | 2nd | Landing page + docs site (conductor.build style) |
 
 ## Products Being Built
 
@@ -25,7 +26,10 @@ This repo dogfoods OrchyStraw to develop OrchyStraw. 10 AI agents coordinate via
 The bash script that reads `agents.conf`, spawns AI agents, manages cycles, and coordinates via shared context. Hardening: error handling, signal trapping, config validation, lock files, logging.
 
 ### Tauri Desktop App (v0.2.0 — planned)
-Cross-platform desktop GUI for OrchyStraw. Dashboard showing agent status, cycle management, log viewer, agents.conf visual editor. Tauri 2.0 (Rust backend + React frontend).
+Cross-platform desktop GUI for OrchyStraw. Dashboard showing agent status, cycle management, log viewer, agents.conf visual editor. Tauri 2.0 (Rust backend + React frontend). UI inspired by [Conductor](https://conductor.build).
+
+### Landing Page & Docs (v0.2.0 — planned)
+Public-facing website inspired by [conductor.build](https://conductor.build) and [Claude Code docs](https://code.claude.com/docs). Hero with terminal animation, 3-step how-it-works, features grid, FAQ, docs with sidebar nav.
 
 ### Pixel Agents Integration (v0.2.0 — planned)
 Pixel art office visualization showing agents coding, reading, talking. Adapted from [pixel-agents-standalone](https://github.com/rolandal/pixel-agents-standalone). Synthetic JSONL emitter in auto-agent.sh feeds real-time events. Embedded in Tauri dashboard.
@@ -36,7 +40,7 @@ Native mobile app for monitoring cycles and getting push notifications.
 ## Repo Structure
 
 ```
-agents.conf          — 10-agent configuration
+agents.conf          — 11-agent configuration
 CLAUDE.md            — Project guide for all agents
 prompts/             — Agent prompts + shared context
 scripts/             — Orchestrator (auto-agent.sh) + helpers
@@ -44,6 +48,7 @@ src-tauri/           — Tauri Rust backend
 src/                 — Tauri React frontend
 src/pixel/           — Pixel Agents OrchyStraw adapter
 ios/                 — iOS companion app
+site/                — Landing page + docs site
 research/            — Competitive analysis, benchmarks
 docs/                — Architecture + strategy docs
 tests/               — Test files
