@@ -7,7 +7,87 @@ _Status: DESIGN — not implemented_
 
 ## The Core Insight
 
-OrchyStraw isn't a "developer tool that runs in terminal." It's a **project management app where the employees are AI agents.** The user is the CEO. They shouldn't need to know bash, git, or markdown to run their team.
+OrchyStraw isn't a "developer tool that runs in terminal." It's a **startup in a box.**
+
+### The Org Chart
+
+```
+┌──────────────────────────────────────────────┐
+│              THE FOUNDERS                     │
+│                                               │
+│  👤 User (Founder)    🤖 Front Agent (Co-F)  │
+│  Has the vision.      Translates vision →     │
+│  Makes final calls.   execution. Manages      │
+│  Talks naturally.     the entire team.        │
+│                                               │
+│  "I want a fitness    "Got it. Let me brief   │
+│   app that tracks      the team, set up the   │
+│   knee-safe exercises" architecture, and get   │
+│                        cycles running."        │
+└──────────────────┬───────────────────────────┘
+                   │
+                   │ The Co-Founder manages ↓
+                   │
+┌──────────────────┴───────────────────────────┐
+│              THE EXECUTIVE TEAM               │
+│                                               │
+│  🤖 CEO Agent        → Vision, strategy,      │
+│                        market positioning,     │
+│                        revenue model           │
+│  🤖 CTO Agent        → Architecture, tech     │
+│                        decisions, standards,   │
+│                        knowledge curation      │
+│  🤖 PM Agent         → Coordination, backlog, │
+│                        agent prompts, tracking │
+└──────────────────┬───────────────────────────┘
+                   │
+                   │ Executives direct ↓
+                   │
+┌──────────────────┴───────────────────────────┐
+│              THE WORKERS                      │
+│                                               │
+│  🤖 Backend  🤖 Frontend  🤖 iOS  🤖 QA      │
+│  🤖 Security  🤖 Web  🤖 Pixel  🤖 Brand     │
+│                                               │
+│  Each owns specific files. Builds, tests,     │
+│  proposes tech decisions to CTO, reports       │
+│  status to PM. Never steps on another's turf. │
+└───────────────────────────────────────────────┘
+```
+
+### Why This Matters for the Product
+
+The user NEVER manages agents directly. They don't drag-and-drop agent cards or tweak intervals in a settings panel. They talk to their **co-founder** — the front agent — who:
+
+1. Understands what the user wants (natural language)
+2. Briefs the CEO on strategy
+3. Tells the PM to plan the work
+4. Kicks off cycles
+5. Reports back: "Here's what we shipped today"
+
+The dashboard exists for **transparency**, not management. It's like a founder checking their company's Slack — you can see what's happening, but you trust your co-founder to run it.
+
+### What the Founders Do vs What the Team Does
+
+| Task | Who Does It |
+|------|-------------|
+| "Build me a fitness app" | Founder (user) says it |
+| Translate into project plan, agent prompts, backlog | Co-founder (front agent) |
+| Market research, competitive positioning | CEO agent |
+| Architecture, tech stack decisions | CTO agent |
+| Sprint planning, task assignment, status tracking | PM agent |
+| Writing code, building features | Worker agents |
+| Final approval on major decisions | Founder (user), with co-founder recommendation |
+
+### The Co-Founder's Unique Role
+
+The front agent (co-founder) is NOT another agent in auto-agent.sh. It's the **always-on interface** between the human founder and the AI team. It:
+
+- Has context the agents don't (user's preferences, mood, priorities, budget)
+- Can override any agent's decision ("User changed their mind, pivot to X")
+- Summarizes progress without drowning the founder in details
+- Escalates only what matters ("CTO wants to use Firebase but it's $200/mo — your call")
+- Remembers cross-project history (the institutional memory layer)
 
 ---
 
@@ -198,35 +278,41 @@ OrchyStraw CLI wraps the VCS adapter. Agents never touch git directly.
 └─────────────────────────────────────────────┘
 ```
 
-### Project Dashboard
+### Project Dashboard (Founder's View)
+
+The dashboard is a **transparency layer** — not a control panel. The founder glances at it like checking Slack. The co-founder runs the team.
 
 ```
 ┌─────────────────────────────────────────────────────────────┐
-│ 🏗️  Momentum — Cycle 7 of 10                    [▶ Run] [⏸] │
+│ 🏗️  Momentum                                                │
 │                                                             │
-│ ┌──────────┬──────────┬──────────┬──────────┬──────────┐   │
-│ │ Backend  │   Web    │   CTO    │    QA    │    PM    │   │
-│ │ ✅ Done   │ ⏳ Active │ 💤 Skip  │ 💤 Skip  │ ⏳ Queue │   │
-│ │ 2m 14s   │ 1m 02s   │ (cyc 8) │ (cyc 9) │ (last)  │   │
-│ └──────────┴──────────┴──────────┴──────────┴──────────┘   │
+│ 💬 Co-founder: "Backend shipped auth + payments today.      │
+│    CTO picked Clerk over Supabase Auth — better iOS SDK.    │
+│    Web agent is building the landing page. QA runs tonight. │
+│    One thing needs your input ↓"                            │
 │                                                             │
-│ 📊 This Cycle                                               │
-│ Files changed: 14  │  Tokens used: 42K  │  Cost: $0.38     │
-│                                                             │
-│ 📬 Proposals (2 pending)                                     │
+│ ⚡ Needs Your Input (1)                                      │
 │ ┌─────────────────────────────────────────────────────────┐ │
-│ │ 🟡 Backend: Use Astro for landing page (vs Next.js)     │ │
-│ │    ↳ CTO will review cycle 8                            │ │
-│ │ 🟡 Web: Use Shiki for code highlighting (vs Prism)      │ │
-│ │    ↳ CTO will review cycle 8                            │ │
+│ │ CTO recommends Firebase for push notifications ($75/mo  │ │
+│ │ at 10K users). Alternative: free OneSignal but worse DX.│ │
+│ │ [Go with Firebase] [Use OneSignal] [Let CTO decide]     │ │
 │ └─────────────────────────────────────────────────────────┘ │
 │                                                             │
-│ 📋 Issues: 12 open │ 3 closed this session │ 2 blocked      │
-│ 📚 Knowledge: 8 decisions │ 14 patterns │ 5 anti-patterns   │
+│ 📊 Today's Progress                                         │
+│ ┌───────────────────────────────────────────────────────┐   │
+│ │ Cycle 7/10  │  14 files changed  │  $0.38 spent      │   │
+│ │ 3 issues closed  │  2 tech decisions made             │   │
+│ └───────────────────────────────────────────────────────┘   │
 │                                                             │
-│ [View Agents] [View Issues] [View Knowledge] [View Logs]   │
+│ 🧑‍💼 Team Activity                                           │
+│ Backend ████████░░ 80%  │  Web ████░░░░░░ 40%              │
+│ CTO ██████████ done     │  QA scheduled tonight            │
+│                                                             │
+│ [💬 Talk to Co-founder] [📋 Backlog] [📚 Knowledge] [📜 Log]│
 └─────────────────────────────────────────────────────────────┘
 ```
+
+The primary action is always **"Talk to Co-founder"** — that's the main interface. Everything else is optional drill-down for when the founder wants to see under the hood.
 
 ### Knowledge Browser
 
@@ -505,51 +591,53 @@ The adapter reads `vcs_config` from project.db and routes to the right backend.
 
 ## Onboarding Flow (New User Experience)
 
+The onboarding is a **conversation with the co-founder**, not a wizard with dropdowns.
+
 ```
-$ orchystraw init
-
-👋 Welcome to OrchyStraw!
-
-What kind of project are you building?
-  1. Web app (Next.js, React, etc.)
-  2. Mobile app (iOS/Android)
-  3. CLI tool
-  4. API/Backend service
-  5. Other / I'll configure manually
-
-> 1
-
-Do you use version control?
-  1. Git (GitHub)
-  2. Git (GitLab)
-  3. Git (other remote)
-  4. Git (local only, no remote)
-  5. No version control — OrchyStraw will track changes for you
-
-> 5
-
-Do you want a built-in issue tracker, or sync with an external one?
-  1. Built-in (recommended for getting started)
-  2. GitHub Issues
-  3. GitLab Issues
-  4. Jira
-  5. Linear
-
-> 1
-
-Setting up your team...
-✅ Created: PM (coordinator)
-✅ Created: Backend Developer
-✅ Created: Frontend Developer
-✅ Created: QA Engineer
-✅ Created: CTO (reviews tech decisions)
-
-📚 Importing global knowledge (8 tech decisions, 14 patterns)...
-✅ Imported. Your agents will build on your existing research.
-
-🚀 Ready! Run `orchystraw start` to begin your first cycle.
-   Or open the dashboard: `orchystraw ui`
+┌─────────────────────────────────────────────────────────────┐
+│ 🤝 Meet your Co-Founder                                     │
+│                                                             │
+│ Co-F: "Hey! I'm your co-founder — I'll run the team,       │
+│  you bring the vision. Tell me about what we're building."  │
+│                                                             │
+│ You: "A fitness app for people with knee injuries.          │
+│  Tracks exercises, suggests knee-safe alternatives,         │
+│  maybe AI coaching eventually."                             │
+│                                                             │
+│ Co-F: "Love it. I'm thinking iOS-first since fitness is     │
+│  mobile. Let me set up the team:                            │
+│                                                             │
+│  🤖 CEO — market research, competitive positioning          │
+│  🤖 CTO — architecture, stack decisions                     │
+│  🤖 PM — sprint planning, backlog management                │
+│  🤖 Backend — API, database, AI coaching logic              │
+│  🤖 iOS — SwiftUI app                                       │
+│  🤖 QA — testing                                            │
+│                                                             │
+│  I already know you prefer Supabase + Clerk from your       │
+│  last project. Want me to start with that stack, or         │
+│  have CTO evaluate fresh?"                                  │
+│                                                             │
+│ You: "Start with what worked. Let's move fast."             │
+│                                                             │
+│ Co-F: "Done. Team is set up, backlog is seeded with         │
+│  MVP features. First cycle starts in 30 seconds.            │
+│  I'll check in when there's something to show you."         │
+│                                                             │
+│ [📊 View Dashboard]  [Just let me know when it's ready]     │
+└─────────────────────────────────────────────────────────────┘
 ```
+
+### Behind the Scenes (what the co-founder actually does)
+1. Parses the user's description → project brief
+2. Selects blueprint from `blueprints` table ("Consumer iOS SaaS")
+3. Imports global knowledge (tech decisions, patterns, anti-patterns)
+4. Generates agent prompts from templates
+5. Creates initial backlog (issues) from blueprint
+6. Configures VCS adapter (detects git if present, falls back to built-in)
+7. Starts first cycle
+
+The user said 3 sentences. The co-founder did everything else.
 
 ---
 
