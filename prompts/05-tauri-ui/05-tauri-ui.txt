@@ -22,10 +22,13 @@ agent teams, trigger cycles, view logs, and watch agents work via Pixel Agents.
 ## Tech Stack
 
 - **Framework:** React 18+ with TypeScript
-- **Styling:** TailwindCSS
+- **Components:** shadcn/ui (copy-paste component library, Tailwind-based)
+- **Styling:** TailwindCSS + shadcn design tokens (shared with landing page)
 - **IPC:** Tauri `invoke()` for calling Rust commands
 - **State:** React Context or Zustand (lightweight)
-- **Theme:** Dark mode default, developer-focused, clean
+- **Theme:** Dark mode default (#0a0a0a background), developer-focused, clean
+- **Font:** JetBrains Mono (code), Inter or Geist (UI)
+- **MCP:** shadcn MCP server configured in `.mcp.json` — use to browse/install components
 - **Philosophy:** Fast, minimal, no unnecessary animations. Data-dense.
 
 ---

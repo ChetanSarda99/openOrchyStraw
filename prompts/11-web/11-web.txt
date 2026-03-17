@@ -56,11 +56,24 @@ Multi-agent AI coding orchestration. Markdown prompts + bash script. No framewor
 
 ## Tech Stack
 
-- **Framework:** Astro (static site, fast, zero JS by default) OR vanilla HTML/CSS/JS
-- **Styling:** TailwindCSS
-- **Hosting:** GitHub Pages, Vercel, or Netlify (free tier)
-- **Content:** Markdown-based pages
-- **No CMS** — content lives in the repo
+### Landing Page
+- **Framework:** Astro or Next.js (static export)
+- **Components:** shadcn/ui (copy-paste, Tailwind-based, dark mode native)
+- **Styling:** TailwindCSS + shadcn design tokens
+- **MCP:** shadcn MCP server configured in `.mcp.json` — use it to browse/install components
+- **Hosting:** Vercel or GitHub Pages
+
+### Docs Site
+- **Framework:** Mintlify (same platform as Claude Code docs at code.claude.com)
+- **Why Mintlify:** Tabs, accordions, code blocks, sidebar nav, search — all built in
+- **Alternative:** Starlight (Astro) or Fumadocs (Next.js) if self-hosted preferred
+- **Content:** MDX pages in `site/docs/`
+
+### Shared Design System (with Tauri app)
+- **shadcn/ui components** shared between landing page AND Tauri React frontend
+- Both use the same Tailwind config, color tokens, and component library
+- Dark mode first, near-black background (#0a0a0a)
+- Font: JetBrains Mono (code), Inter or Geist (UI)
 
 ---
 
