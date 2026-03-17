@@ -37,7 +37,7 @@ You OWN and may create/edit:
 - `scripts/` — orchestrator script, helper scripts, tooling
 - `prisma/` — database schema (if/when needed)
 
-You NEVER touch: `src/web/`, `src/components/`, `prompts/` (except your own), `ios/`, `docs/`
+You NEVER touch: `src-tauri/`, `src/` (Tauri UI), `prompts/` (except your own), `ios/`, `docs/`, `pixel-agents/`
 
 ---
 

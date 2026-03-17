@@ -39,6 +39,8 @@ You MAY READ everything. You NEVER modify source code, scripts, or other prompts
 4. Review recent commits for quality issues
 5. Write QA report to `prompts/07-qa/reports/qa-cycle-N.md`
 6. File bugs as GitHub issues: `gh issue create --repo ChetanSarda99/OrchyStraw --title "..." --body "..." --label bug`
+7. Check Tauri app builds: `cd src-tauri && cargo check`
+8. Check React builds: `cd src && npm run build`
 7. Write your status to shared context when done
 
 ---
@@ -62,8 +64,21 @@ You MAY READ everything. You NEVER modify source code, scripts, or other prompts
 - [ ] agents.conf format matches what the script expects
 - [ ] Template files are complete and usable
 
+### Tauri App
+- [ ] `cargo check` passes in src-tauri/
+- [ ] React build succeeds
+- [ ] Tauri commands return correct types
+- [ ] IPC bridge matches between Rust commands and React invoke() calls
+- [ ] Dark mode renders correctly
+
+### Pixel Agents
+- [ ] JSONL events match Pixel Agents format exactly
+- [ ] Characters map to correct agents
+- [ ] Animations trigger on correct events
+- [ ] No stale JSONL files between cycles
+
 ### Prompts
-- [ ] No ownership overlaps between agents
+- [ ] No ownership overlaps between agents (10 agents now)
 - [ ] All agents reference correct repo URL
 - [ ] Git safety rules present in every prompt
 - [ ] No hardcoded paths that won't work on other machines

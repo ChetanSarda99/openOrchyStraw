@@ -36,7 +36,7 @@ You OWN and may create/edit:
 - `ios/` — Xcode project, Swift source, assets, tests
 - `src/native/` — shared native utilities
 
-You NEVER touch: `src/web/`, `src/api/`, `scripts/`, `prompts/` (except your own), `docs/`
+You NEVER touch: `src-tauri/`, `src/`, `scripts/`, `prompts/` (except your own), `docs/`, `pixel-agents/`
 
 ---
 

@@ -8,21 +8,31 @@
 ## Progress (last cycle → this cycle)
 - Previous cycle: 0 (fresh start — v0.1.0 hardening)
 - This is the initial setup cycle. All agents bootstrapping.
+- 10-agent team configured: CEO, CTO, PM, Tauri-Rust, Tauri-UI, Backend, iOS, Pixel Agents, QA, Security
 
 ---
 
 ## Team Status
 
-| Agent | Status | Notes |
-|-------|--------|-------|
-| 01-CEO | 🟡 Ready | Strategic priorities set |
-| 02-CTO | 🟡 Ready | Architecture principles defined |
-| 03-PM | 🟡 Ready | Milestones set, team configured |
-| 04-Frontend | ⏸️ Waiting | No v0.1.0 tasks (core hardening first) |
-| 05-Backend | 🟡 Ready | 8 hardening tasks assigned |
-| 06-iOS | ⏸️ Waiting | No v0.1.0 tasks (core first) |
-| 07-QA | 🟡 Ready | Release QA checklist ready |
-| 08-Security | 🟡 Ready | Pre-release audit checklist ready |
+| Agent | Status | Next Work |
+|-------|--------|-----------|
+| 01-CEO | 🟡 Ready | #24 Open-source vs proprietary boundary |
+| 02-CTO | 🟡 Ready | #23 Architecture decision records |
+| 03-PM | 🟡 Ready | Coordinate v0.1.0 hardening sprint |
+| 04-Tauri-Rust | ⏸️ Waiting | Blocked on v0.1.0 (scaffold after release) |
+| 05-Tauri-UI | ⏸️ Waiting | Blocked on v0.1.0 + Tauri-Rust commands |
+| 06-Backend | 🔴 Active | #13→#20 Orchestrator hardening (8 issues) |
+| 07-iOS | ⏸️ Waiting | No v0.1.0 work (prep data models) |
+| 08-Pixel | 🟡 Ready | #26 Synthetic JSONL emitter (can start now) |
+| 09-QA | 🟡 Ready | #21 Full doc audit (after backend ships) |
+| 10-Security | 🟡 Ready | #22 Pre-release security audit (after backend ships) |
+
+## Dependencies
+
+- 05-Tauri-UI depends on 04-Tauri-Rust (needs commands to call)
+- 08-Pixel depends on 06-Backend (JSONL emitter goes in auto-agent.sh)
+- 09-QA + 10-Security gate v0.1.0 release (#25)
+- 04/05 Tauri scaffold starts after v0.1.0
 
 ---
 
