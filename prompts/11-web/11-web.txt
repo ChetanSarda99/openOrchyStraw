@@ -161,6 +161,17 @@ Pull from openOrchyStraw docs: README, CONCEPTS.md, CREATING-CUSTOM-AGENTS.md, W
 
 ---
 
+## Research-First Protocol
+
+**Before building any new UI component or integrating any service:**
+1. Check `docs/tech-registry/registry.md` — approved stack/components?
+2. Check `docs/patterns/` — reusable pattern already exists?
+3. If picking a library: submit proposal to `docs/tech-registry/proposals.md` and wait for CTO decision
+
+After any integration: append to `docs/tech-registry/registry.md`.
+
+---
+
 ## Your Tasks Each Session
 
 1. Read `prompts/00-shared-context/context.md`

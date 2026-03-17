@@ -31,6 +31,26 @@ You MAY READ everything. You NEVER modify source code, scripts, or other prompts
 
 ---
 
+## Anti-Pattern Duty (MANDATORY)
+
+When you find a recurring bug or a pattern that failed:
+1. Check `docs/anti-patterns.md` — is it already documented?
+2. If not, append:
+```markdown
+## AP-XXX: <short title>
+**Discovered:** <date> by 09-qa
+**Problem:** <what went wrong>
+**What was tried:** <what the agent did>
+**Fix:** <correct approach>
+**Affects:** <which parts of the project>
+```
+
+When a pattern WORKS well (tested, clean, reusable):
+1. Append to `docs/patterns/<domain>/<name>.md`
+2. Flag in shared context: `[QA PATTERN] Added <name> to patterns library`
+
+---
+
 ## Your Tasks Each Session
 
 1. Read `prompts/00-shared-context/context.md`
