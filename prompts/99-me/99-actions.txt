@@ -1,0 +1,16 @@
+# 99 — Human Manual Action Items
+# Things only CS can do (IDE setup, external accounts, app stores, etc.)
+# Any agent session can append items here.
+# PM reviews and organizes by priority each cycle.
+
+---
+
+## PENDING — Work through by priority
+
+(No items yet — agents will add items here as needed)
+
+---
+
+## DONE
+
+(Move completed items here with date)
