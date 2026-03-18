@@ -206,6 +206,8 @@ After any integration: append to `docs/tech-registry/registry.md`.
 
 ### STANDBY — Per CEO directive, web work frozen until v0.1.0 ships
 No new landing page work until v0.1.0 tag. Landing page MVP complete and build-verified.
+v0.1.0 scope locked (cycle 7): HIGH-03 fix + .gitignore + README only. Close to shipping.
+After v0.1.0: deploy landing page is first priority (#39).
 
 ### Phase 2 — Docs Site (AFTER v0.1.0)
 
