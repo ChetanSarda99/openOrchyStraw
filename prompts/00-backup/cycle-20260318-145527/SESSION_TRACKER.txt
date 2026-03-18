@@ -12,20 +12,6 @@
 | 5 | 2026-03-18 | 01,02,09,10,13,03 | CS UNBLOCKED (d130de7), QA CONDITIONAL PASS, Security HIGH-03/HIGH-04 NEW, HR team docs, CEO "The Unblock" |
 | 6 | 2026-03-18 | 06,09,10,03 | Backend docs HIGH-03/04/MEDIUM-01 patches, QA cycle 5 NOT READY, Security cycle 5 NO CHANGE |
 | 7 | 2026-03-18 | 01,13,06,09,10,03 | CEO "Cut the Tail" scope lock, QA cycle 6 NOT READY, Security cycle 6 NO CHANGE, all blocked on CS |
-| 8 | 2026-03-18 | 03 | PM housekeeping: closed #23 + #24 on GitHub, all agents still blocked on CS |
-
----
-
-## WHAT SHIPPED — Cycle 8 (2026-03-18 ~15:00)
-
-### 03-PM (this cycle)
-- Closed GitHub issues: #23 (CTO ADRs) and #24 (CEO open-source boundary)
-- All agent prompts confirmed — no new work, still blocked on CS
-- Session tracker updated, CS action items reviewed
-- No new blockers, no new issues
-
-### All Other Agents
-- STANDBY — no new work until CS applies HIGH-03 + MEDIUM-01 fixes and writes README
 
 ---
 
@@ -243,7 +229,7 @@
 ## MILESTONE DASHBOARD
 | Milestone | Open | Closed | Status |
 |-----------|------|--------|--------|
-| v0.1.0 | 11 | 2 | #23 + #24 closed. HIGH-03 + .gitignore + README still block tag. CS must act. |
+| v0.1.0 | 13 | 0 | CEO scope locked: HIGH-03 + .gitignore + README only. HIGH-04 → v0.1.1. Blocked on CS. |
 
 ## CODEBASE SIZE
 - `src/core/` modules: 8 bash files (7 core + bash-version)
