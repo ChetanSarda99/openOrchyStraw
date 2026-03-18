@@ -1,25 +1,31 @@
 # Orchestrator Hardening — Priority Issues
 
-_Date: March 18, 2026_
+_Date: March 18, 2026 (updated cycle 2)_
 _Status: SPEC — for backend agent to implement_
+_Reviewed by: CTO cycle 2 — deeper audit confirmed all findings, added new issues_
 
 ---
 
 ## Issues Found (Cycle 1 Review)
 
-### P0: Bash Version Check (Missing)
+### P0: Bash Version Check (Missing) — ADR: BASH-001
 
 `auto-agent.sh` uses `declare -A` (bash 4+) but has no version guard.
-Documented in PLATFORM-COMPATIBILITY.md but never implemented.
+`error-handler.sh` and `logger.sh` use `declare -g -A` which requires bash 5.0+.
+
+**Decision (BASH-001):** Minimum version is **bash 5.0**, not 4.0. See `docs/tech-registry/decisions/BASH-001-version-compatibility.md`.
 
 **Fix:**
 ```bash
 # Add after set -uo pipefail (line 23):
-if ((BASH_VERSINFO[0] < 4)); then
-    echo "ERROR: bash 4+ required. macOS: brew install bash"
+if ((BASH_VERSINFO[0] < 5)); then
+    echo "ERROR: OrchyStraw requires bash 5.0+" >&2
+    echo "  macOS: brew install bash && sudo chsh -s /opt/homebrew/bin/bash" >&2
     exit 1
 fi
 ```
+
+**Also fix:** Standardize all shebangs to `#!/usr/bin/env bash` (portable, finds Homebrew bash).
 
 ### P0: Ownership Overlap — Backend Agent vs Protected Files
 
@@ -49,9 +55,13 @@ fi
 
 **Fix:** Track "agent ran successfully" separately from "files committed". Only count truly failed cycles (all agents returned non-zero).
 
-### P2: `eval` Usage in commit_by_ownership
+### P2 → P0: `eval` Usage in commit_by_ownership (UPGRADED)
 
-Lines 236-237 use `eval` to expand paths. This is a shell injection risk if `agents.conf` contains malicious paths.
+Lines 236-237, 241 use `eval` to expand paths. This is a **confirmed shell injection risk**.
+CTO cycle 2 audit verified: 3 eval calls in `commit_by_ownership()` — all vulnerable.
+Paths from `agents.conf` are passed directly to `eval` with zero validation or escaping.
+
+**Severity upgraded to P0** — this is the only code injection vector in the orchestrator.
 
 **Fix:** Use arrays instead of eval:
 ```bash
@@ -79,6 +89,75 @@ doc_count=$(find "$PROJECT_ROOT/docs" -name '*.md' 2>/dev/null | wc -l)
 
 ---
 
-## Not Blocking v0.1 Release
+## New Issues Found (Cycle 2 CTO Audit)
 
-These are spec'd here for the backend agent. The orchestrator works — these are hardening improvements, not blockers.
+### P1: Missing `set -e` (errexit) in auto-agent.sh
+
+Line 23: `set -uo pipefail` — missing `-e`. Non-pipeline command failures are silently
+ignored. The `$(...)` subshells in lines 236-237 return empty strings on git failure
+instead of aborting.
+
+**Fix:** Change to `set -euo pipefail`. Audit all commands that intentionally fail
+(grep, git diff on clean tree) and add `|| true` where needed.
+
+### P1: Shebang Inconsistency
+
+- `auto-agent.sh`: `#!/bin/bash` (hardcoded path)
+- Core modules: `#!/usr/bin/env bash` (portable)
+- `check-usage.sh`: `#!/bin/bash` (hardcoded path)
+
+**Fix:** Standardize all to `#!/usr/bin/env bash` per BASH-001.
+
+### P1: .gitignore Missing Sensitive Patterns
+
+Current .gitignore is minimal (7 patterns). Missing:
+- `.env`, `.env.local`, `.env.*.local` — API keys
+- `*.pem`, `*.key` — private keys
+- `dist/`, `build/`, `.next/` — build artifacts
+- `.vscode/`, `.idea/` — IDE settings
+- `*.swp`, `*.swo`, `*~` — editor swap files
+- `coverage/` — test coverage
+- `prompts/00-shared-context/usage.txt` — API usage tracking
+
+**Fix:** Expand .gitignore with standard patterns. See SECURITY-HARDENING section.
+
+### P2: Ownership Overlap — 05-tauri-ui `src/` vs 06-backend `src/core/` `src/lib/`
+
+05-tauri-ui owns `src/` (parent). 06-backend owns `src/core/` and `src/lib/` (children).
+If both agents write in the same cycle, commit order determines winner for overlapping paths.
+
+**Fix for v0.1:** Document as known limitation. PM should not schedule both in same cycle
+for `src/` changes. **Fix for v0.5:** Add overlap detection in `config-validator.sh`.
+
+### P2: `auto-agent.sh` Has No Owner
+
+The main orchestrator script is PROTECTED (agents can't modify it) but has no designated
+agent responsible for its evolution. Backend agent owns `scripts/` but protected files
+are silently restored.
+
+**Fix:** Explicitly document that `auto-agent.sh` changes are human-only (CS) with CTO
+review. Backend agent contributes via `src/core/` modules that get sourced.
+
+---
+
+## Priority Summary (Cycle 2)
+
+| Priority | Issue | Owner | Status |
+|----------|-------|-------|--------|
+| **P0** | Bash 5.0 version guard | 06-backend | SPEC (BASH-001) |
+| **P0** | eval injection fix (3 calls) | 06-backend | SPEC |
+| **P1** | Add `set -e` to auto-agent.sh | CS (protected) | SPEC |
+| **P1** | Shebang standardization | 06-backend | SPEC |
+| **P1** | .gitignore expansion | 06-backend | SPEC |
+| **P1** | Signal handling | 06-backend | SPEC (cycle 1) |
+| **P1** | Empty cycle detection | 06-backend | SPEC (cycle 1) |
+| **P0** | Ownership overlap fix | CS (agents.conf) | SPEC (cycle 1) |
+| **P2** | Progress checkpoint fix | 06-backend | SPEC (cycle 1) |
+| **P2** | src/ overlap | PM | DOCUMENT |
+| **P2** | auto-agent.sh ownership | PM | DOCUMENT |
+
+## Blocking v0.1 Release
+
+**P0 items are now blocking.** The eval injection and missing version guard must be fixed
+before v0.1.0 tag. The .gitignore gaps (P1) should also be fixed — committing secrets
+to a public repo is not recoverable.
