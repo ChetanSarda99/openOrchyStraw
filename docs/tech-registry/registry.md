@@ -1,6 +1,6 @@
 # Tech Stack Registry — OrchyStraw
 
-_Last updated: 2026-03-17_
+_Last updated: 2026-03-18_
 _Maintained by: CTO (02-cto)_
 _See docs/KNOWLEDGE-REPOSITORIES.md for full system documentation._
 
@@ -8,15 +8,28 @@ _See docs/KNOWLEDGE-REPOSITORIES.md for full system documentation._
 
 ## Approved Stack
 
-| Domain | Solution | Version | Decision | Projects | Notes |
+| Domain | Solution | Version | Decision | Surfaces | Notes |
 |--------|----------|---------|----------|----------|-------|
-| Core runtime | Bash | 5.x | Built-in | OrchyStraw | POSIX-compatible |
-| Config format | Markdown + plain text | — | Built-in | OrchyStraw | No deps policy |
-| AI CLI | claude CLI (primary) | latest | Built-in | OrchyStraw | bypassPermissions mode |
-| Doc search | QMD | latest | — | OrchyStraw | BM25 + vector |
-| Docs framework | context7 MCP | latest | — | OrchyStraw | Framework docs |
-
-_CTO: fill in decisions as you evaluate proposals_
+| Core runtime | Bash | 5.x | Built-in | Orchestrator | POSIX-compat, Python in v0.5 |
+| Config format | Markdown + plain text | — | Built-in | Orchestrator | No deps policy |
+| AI CLI | claude CLI (primary) | latest | Built-in | Orchestrator | bypassPermissions mode |
+| Doc search | QMD | latest | — | Orchestrator | BM25 + vector |
+| Docs framework | context7 MCP | latest | — | Orchestrator | Framework docs |
+| Tauri frontend | React 19 + TypeScript | 19 / strict | UI-001 | Desktop App | dannysmith/tauri-template |
+| Tauri build | Vite | 7 | UI-001 | Desktop App | — |
+| UI components | shadcn/ui | v4 | STYLE-001 | All surfaces | Shared across app, site, docs |
+| CSS framework | Tailwind CSS | v4 | STYLE-001 | All surfaces | Utility-first |
+| Icons | Lucide React | latest | STYLE-001 | All surfaces | — |
+| UI state | Zustand | v5 | UI-001 | Desktop App | Global UI state |
+| Data state | TanStack Query | v5 | UI-001 | Desktop App | Server/backend state |
+| Type bridge | tauri-specta | latest | UI-001 | Desktop App | Rust ↔ TS type safety |
+| Testing (frontend) | Vitest | v4 | UI-001 | Desktop App | — |
+| Landing page | Next.js (App Router) | 15+ | WEB-001 | Landing Page | Static export, memextech template |
+| Animations | Framer Motion | latest | WEB-001 | Landing Page | Subtle only |
+| Documentation | Mintlify | latest | DOCS-001 | Docs Site | Same as Claude Code docs |
+| Desktop DB | SQLite | — | DB-001 | Desktop App | rusqlite / Tauri plugin |
+| Font (code) | JetBrains Mono | — | STYLE-001 | All surfaces | — |
+| Font (UI) | Inter / Geist | — | STYLE-001 | All surfaces | — |
 
 ---
 
@@ -24,10 +37,24 @@ _CTO: fill in decisions as you evaluate proposals_
 
 | Domain | Status | ADR | Notes |
 |--------|--------|-----|-------|
-| Tauri UI framework | Pending | — | React vs Svelte vs Vue |
-| Desktop DB | Pending | — | SQLite vs libsql (Turso) |
-| Desktop styling | Pending | — | Tailwind vs UnoCSS |
+| Tauri UI framework | **LOCKED** | UI-001 | React 19 + TypeScript |
+| Desktop DB | **APPROVED** | DB-001 | SQLite |
+| Desktop styling | **LOCKED** | STYLE-001 | Tailwind v4 + shadcn/ui v4 |
+| Landing page framework | **LOCKED** | WEB-001 | Next.js 15 |
+| Docs site | **LOCKED** | DOCS-001 | Mintlify |
+| Design system | **LOCKED** | STYLE-001 | Shared dark theme, tokens |
 | Benchmark runner | Pending | — | Custom vs existing SWE-bench harness |
-| Landing page framework | Pending | — | Next.js vs Astro vs plain HTML |
-| Docs site | Pending | — | Mintlify vs Nextra vs Docusaurus |
+| v0.5 CLI language | Pending | — | Python (recommended in PLATFORM-COMPATIBILITY.md) |
+| Notifications | Pending | — | Desktop toast (WSL), Telegram, Slack |
 
+---
+
+## Pending Decisions (CTO will evaluate when relevant)
+
+These domains need ADRs when implementation begins:
+
+1. **Benchmark runner** — SWE-bench integration vs custom harness
+2. **v0.5 CLI language** — Python strongly recommended, needs formal ADR
+3. **Notification channels** — Currently WSL toast only, need cross-platform strategy
+4. **Auth for public API** — If OrchyStraw exposes a CLI/API (v1.0+)
+5. **Accent color** — Warm orange (#F97316 from Mintlify) vs teal (TBD)
