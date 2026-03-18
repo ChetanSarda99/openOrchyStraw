@@ -92,9 +92,9 @@ Do NOT implement before the CTO decides, unless task is P0 and time-critical.
 
 ---
 
-## What's DONE (Cycle 1–7)
+## What's DONE (Cycle 1–7+)
 
-All 8 bash modules built in `src/core/`:
+All 8 v0.1.0 bash modules built in `src/core/`:
 - ✅ `logger.sh` — structured logging with levels, color output
 - ✅ `error-handler.sh` — crash handling, retry logic
 - ✅ `cycle-state.sh` — persist/resume cycle count
@@ -104,11 +104,18 @@ All 8 bash modules built in `src/core/`:
 - ✅ `lock-file.sh` — prevent concurrent orchestrators
 - ✅ `bash-version.sh` — exits if bash < 5.0, with install instructions
 
+v0.2.0 modules (cycle 5):
+- ✅ `signal-handler.sh` — graceful shutdown with SHUTTING_DOWN flag, SIGTERM→SIGKILL, PID tracking
+- ✅ `cycle-tracker.sh` — smart empty cycle detection, tracks agent outcomes vs commits separately
+- ✅ `SMART-CYCLE-DESIGN.md` — v0.2.0 design doc (#40 review, #41 dynamic routing, #43 dependency-aware parallel)
+- ✅ `tests/core/test-signal-handler.sh` — 9 tests
+- ✅ `tests/core/test-cycle-tracker.sh` — 14 tests
+
 Test & integration:
-- ✅ `tests/core/` — 8 unit test files + runner, all 9 pass (8 unit + 1 integration)
+- ✅ `tests/core/` — 10 unit test files + runner, all 11 pass (10 unit + 1 integration)
 - ✅ `tests/core/test-integration.sh` — integration smoke test: sources all 8 modules, 42 assertions pass
-- ✅ `INTEGRATION-GUIDE.md` — step-by-step for CS to integrate all 8 modules + `set -e` documentation
-- ✅ All 8 shebangs standardized to `#!/usr/bin/env bash` per BASH-001 ADR
+- ✅ `INTEGRATION-GUIDE.md` — step-by-step for CS to integrate + signal-handler + cycle-tracker steps
+- ✅ All shebangs standardized to `#!/usr/bin/env bash` per BASH-001 ADR
 
 CS Integration (d130de7):
 - ✅ HIGH-01 eval injection FIXED — array-based pathspec in auto-agent.sh
@@ -118,7 +125,6 @@ CS Integration (d130de7):
 
 Cycle 7:
 - ✅ Documented exact patches for HIGH-03, HIGH-04, MEDIUM-01 in `src/core/INTEGRATION-GUIDE.md`
-- ✅ All 9 tests pass (8 unit + 1 integration, 42 assertions)
 - ⏳ BLOCKED: All 3 fixes are in protected files — CS must apply
 
 ## Current Tasks
@@ -133,8 +139,9 @@ All fixes documented in `src/core/INTEGRATION-GUIDE.md`. CS must apply to protec
 5. **If v0.1.0 AS-IS:** Be ready for v0.1.1 hotfix sprint — HIGH-03 + HIGH-04 + `set -e`.
 
 ### v0.2.0 — Smart Cycle System (queue up after v0.1.0)
-Start design docs for: #40 Loop review & critique, #41 Dynamic routing, #43 Dependency-aware parallel execution.
-No implementation until v0.1.0 ships.
+Design doc DONE: `src/core/SMART-CYCLE-DESIGN.md` covers #40, #41, #43.
+signal-handler.sh + cycle-tracker.sh built and tested — ready for integration after v0.1.0.
+No implementation into auto-agent.sh until v0.1.0 ships.
 
 ---
 
