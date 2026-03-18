@@ -131,14 +131,22 @@ When a pattern WORKS well (tested, clean, reusable):
 
 ## Current Tasks
 
-### v0.1.0 — Release Gate QA (Cycle 3)
+### v0.1.0 — Release Gate QA (Cycle 3+)
+**BLOCKED:** Still waiting on CS to apply HIGH-01 eval fix + integrate modules into auto-agent.sh.
+
+When CS unblocks:
 1. **Verify CS applied fixes** — Check if HIGH-01 eval fix + module integration happened in auto-agent.sh
-2. **Re-run backend tests** — `tests/core/run-tests.sh` — all 8 must still pass
-3. **Verify BUG-009 fix** — Check if agents.conf files are reconciled (root vs scripts/)
-4. **Regression check** — Ensure no new issues introduced by integration
-5. **Bug triage** — Update status on BUG-001 through BUG-011, close any fixed
-6. **Write cycle 3 QA report** — `prompts/09-qa/reports/qa-cycle-3.md`
-7. **Release sign-off** — If all HIGH findings fixed: PASS for v0.1.0. Otherwise: document remaining blockers.
+2. **Re-run backend tests** — `tests/core/run-tests.sh` — all 8 unit + 1 integration must pass
+3. **Run integration smoke test** — `tests/core/test-integration.sh` — 42 assertions
+4. **Verify BUG-009 fix** — Check if agents.conf files are reconciled (root vs scripts/)
+5. **Regression check** — Ensure no new issues introduced by integration
+6. **Bug triage** — Update status on BUG-001 through BUG-011, close any fixed
+7. **Write cycle 3 QA report** — `prompts/09-qa/reports/qa-cycle-3.md`
+8. **Release sign-off** — If all HIGH findings fixed: PASS for v0.1.0. Otherwise: document remaining blockers.
+
+Until CS unblocks:
+- Review new integration test (`tests/core/test-integration.sh`) for coverage gaps
+- Verify all 11 agent prompts are consistent and up-to-date
 
 ---
 

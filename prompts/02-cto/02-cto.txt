@@ -104,12 +104,16 @@ For now: maintain registry here, PM will propose migration when 2nd project star
 
 ## Current Technical Priorities
 
-1. **CS BLOCKER: Dual agents.conf** — Root has 13 agents, scripts/ has 8. auto-agent.sh uses scripts/ copy. Must migrate to root. See OWN-001.
-2. **CS BLOCKER: eval injection** — 3 eval calls in commit_by_ownership() still open. Array-based fix spec'd.
+### BLOCKED — Waiting on CS for all P0 items:
+1. **CS BLOCKER: Dual agents.conf (BUG-009)** — Root has 13 agents, scripts/ has 8. auto-agent.sh uses scripts/ copy. Must migrate to root. See OWN-001.
+2. **CS BLOCKER: eval injection (HIGH-01)** — 3 eval calls in commit_by_ownership() still open. Array-based fix spec'd in INTEGRATION-GUIDE.md.
 3. **CS BLOCKER: `set -e`** — Missing from auto-agent.sh line 23. Must add.
 4. **CS: Backend ownership exclusions** — Add `!scripts/auto-agent.sh !scripts/agents.conf !scripts/check-*.sh` to 06-backend ownership.
-5. **After CS acts:** Review integrated auto-agent.sh for architecture compliance.
-6. Cycle reproducibility — deterministic runs, clean restarts
+
+### After CS Applies Fixes (Cycle 3+):
+5. **Review integrated auto-agent.sh** — Architecture compliance check post-integration.
+6. **v0.2.0 architecture planning** — Begin design docs for smart cycle system (#40-#46). Focus on dependency graph and execution model.
+7. Cycle reproducibility — deterministic runs, clean restarts
 
 ---
 

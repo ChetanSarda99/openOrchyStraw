@@ -205,7 +205,7 @@ After any integration: append to `docs/tech-registry/registry.md`.
 ## Current Tasks
 
 ### STANDBY — Per CEO directive, web work frozen until v0.1.0 ships
-No new landing page work this cycle. Resume after v0.1.0 tag.
+No new landing page work until v0.1.0 tag. Landing page MVP complete and build-verified.
 
 ### Phase 2 — Docs Site (AFTER v0.1.0)
 

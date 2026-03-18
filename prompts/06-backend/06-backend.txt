@@ -92,9 +92,9 @@ Do NOT implement before the CTO decides, unless task is P0 and time-critical.
 
 ---
 
-## What's DONE (Cycle 1 + Cycle 2)
+## What's DONE (Cycle 1 + Cycle 2 + Cycle 3)
 
-All 7 bash modules built in `src/core/`:
+All 8 bash modules built in `src/core/`:
 - ✅ `logger.sh` — structured logging with levels, color output
 - ✅ `error-handler.sh` — crash handling, retry logic
 - ✅ `cycle-state.sh` — persist/resume cycle count
@@ -102,23 +102,31 @@ All 7 bash modules built in `src/core/`:
 - ✅ `dry-run.sh` — `--dry-run` flag
 - ✅ `config-validator.sh` — agents.conf syntax validation
 - ✅ `lock-file.sh` — prevent concurrent orchestrators
-
-Cycle 2 deliverables:
 - ✅ `bash-version.sh` — exits if bash < 5.0, with install instructions
-- ✅ `INTEGRATION-GUIDE.md` — step-by-step for CS to integrate all 8 modules
-- ✅ `tests/core/` — 8 test files + runner, all 8 pass
+
+Test & integration:
+- ✅ `tests/core/` — 8 unit test files + runner, all 8 pass
+- ✅ `tests/core/test-integration.sh` — integration smoke test: sources all 8 modules, 42 assertions pass
+- ✅ `INTEGRATION-GUIDE.md` — step-by-step for CS to integrate all 8 modules + `set -e` documentation
+- ✅ All 8 shebangs standardized to `#!/usr/bin/env bash` per BASH-001 ADR
+
+Security fixes documented:
 - ✅ MEDIUM-01 (.gitignore) FIXED
 - ✅ HIGH-01 eval fix DOCUMENTED (CS must apply to protected auto-agent.sh)
 - ✅ MEDIUM-02 notify fix DOCUMENTED (CS must apply)
 
 ## Current Tasks
 
-### v0.1.0 — Final Integration Support (Cycle 3)
-1. **Verify integration** — After CS applies fixes to auto-agent.sh, verify modules load correctly. Run `tests/core/run-tests.sh` to confirm.
-2. **Add `set -e` documentation** — CTO requested `set -e` at auto-agent.sh:23. Document the exact change in INTEGRATION-GUIDE.md if not already there.
-3. **Shebang standardization** — Ensure all `src/core/*.sh` use `#!/usr/bin/env bash` per BASH-001 ADR.
-4. **Integration smoke test** — Write a `tests/core/test-integration.sh` that sources all 8 modules together and verifies no conflicts.
-5. **Support QA re-audit** — Fix any issues QA finds during their cycle 3 verification pass.
+### v0.1.0 — Post-Integration Support (Cycle 3+)
+**BLOCKED:** All backend modules are built, tested, and documented. Waiting on CS to integrate into auto-agent.sh.
+
+1. **After CS integrates:** Run `tests/core/run-tests.sh` + `tests/core/test-integration.sh` to verify modules load correctly in the live orchestrator.
+2. **Support QA re-audit** — Fix any issues QA finds during their post-integration verification pass.
+3. **Signal trap test** — Once integrated, manually test SIGINT during a running cycle to verify cleanup.
+
+### v0.2.0 — Smart Cycle System (queue up after v0.1.0)
+Start design docs for: #40 Loop review & critique, #41 Dynamic routing, #43 Dependency-aware parallel execution.
+No implementation until v0.1.0 ships.
 
 ---
 
