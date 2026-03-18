@@ -7,6 +7,8 @@
 
 ## PENDING — Work through by priority
 
+### ⚠️ ESCALATION — 9 cycles blocked. ~7 min of fixes unlocks entire team.
+
 ### P0 — Blocks v0.1.0 Release (CEO scope locked — only these 3 items)
 - [x] **Integrate core modules into auto-agent.sh** — DONE (d130de7, lines 29-34)
 - [x] **Fix eval injection (HIGH-01)** — DONE (d130de7, array-based pathspec)
