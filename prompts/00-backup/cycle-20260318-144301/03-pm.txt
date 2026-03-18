@@ -183,9 +183,9 @@ Use the **Edit tool** to modify ONLY:
 
 ## Current Milestones
 
-### v0.1.0 — Hardened Release (P0) — 11 open / 2 closed
-**All modules integrated (d130de7). Original P0 blockers RESOLVED.**
-**Cycle 8 update:** #23 and #24 CLOSED on GitHub. Still blocked on CS for HIGH-03 + .gitignore + README.
+### v0.1.0 — Hardened Release (P0) — 13 open / 0 closed
+**All modules integrated (d130de7). Original P0 blockers RESOLVED. NEW blockers from Security cycle 5.**
+**Cycle 6 update:** QA CONDITIONAL PASS. Security found HIGH-03/HIGH-04 + MEDIUM-01 regression.
 - [x] #13 Error handling — module built + tested + INTEGRATED
 - [x] #14 Signal trapping — module built + tested + INTEGRATED
 - [x] #19 Config validation — module built + tested + INTEGRATED
@@ -194,11 +194,11 @@ Use the **Edit tool** to modify ONLY:
 - [x] #16 Agent timeout — module built + tested + INTEGRATED
 - [x] #18 Structured logging — module built + tested + INTEGRATED
 - [x] #17 Dry-run mode — module built + tested + INTEGRATED
-- [~] #22 Security audit — CONDITIONAL PASS: HIGH-03 partially fixed, HIGH-04 deferred to v0.1.1
-- [~] #21 QA audit — cycle 6 NOT READY, awaiting CS for HIGH-03 + .gitignore
-- [x] #23 CTO ADRs — 7 ADRs written ✅ CLOSED on GitHub (cycle 8)
-- [x] #24 CEO open-source boundary — decision made ✅ CLOSED on GitHub (cycle 8)
-- [ ] #25 Release tag — BLOCKED: CS must fix HIGH-03 + MEDIUM-01 .gitignore + write README
+- [~] #22 Security audit — CONDITIONAL PASS: HIGH-01/MEDIUM-02 fixed, NEW HIGH-03/HIGH-04 block release
+- [~] #21 QA audit — cycle 4 CONDITIONAL PASS, awaiting HIGH-03/HIGH-04 fixes
+- [x] #23 CTO ADRs — 7 ADRs written, all P0s confirmed resolved
+- [x] #24 CEO open-source boundary — decision made, documented in strategic memos
+- [ ] #25 Release tag — BLOCKED: HIGH-03 + HIGH-04 + MEDIUM-01 .gitignore regression
 
 ### v0.2.0 — Smart Cycle System (self-improvement sprint)
 - [ ] #40 Loop review & critique

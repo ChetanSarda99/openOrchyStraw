@@ -108,7 +108,6 @@ You NEVER touch: `src-tauri/`, `scripts/` (except JSONL emitter), `prompts/` (ex
 
 ### STANDBY — Per CEO directive, Pixel work frozen until v0.1.0 ships
 No new Pixel work until v0.1.0 tag. All Phase 1 work complete and tested.
-v0.1.0 scope locked (cycle 7): HIGH-03 fix + .gitignore + README only. Close to shipping.
 
 ### Phase 2 — OrchyStraw Adapter (AFTER v0.1.0)
 

@@ -20,7 +20,6 @@
 - 08-Pixel: STANDBY — Phase 1 complete (emitter + tests + integration guide). Frozen until v0.1.0 ships.
 
 ## QA Findings
-- Cycle 5 QA report: `prompts/09-qa/reports/qa-cycle-5.md` (fills gap between cycle 4 and 6)
 - Cycle 6 QA report: `prompts/09-qa/reports/qa-cycle-6.md`
 - Verdict: NOT READY — HIGH-04 + MEDIUM-01 still open
 - Tests: 9/9 unit PASS, 42/42 integration PASS, site build PASS
@@ -43,27 +42,16 @@
 - All 3 blockers are in protected files — only CS can fix
 
 ## Blockers
-- HIGH-03: Unquoted `$ownership` in for loops (auto-agent.sh lines 236, 310) — CS must fix
-- HIGH-04: Deferred to v0.1.1 per CEO decision (not RCE, careful impl needed)
-- MEDIUM-01: .gitignore missing `.env`, `*.pem`, `*.key` patterns — CS must fix
-- README rewrite needed before v0.1.0 tag
+- (none)
 
 ## HR Status
-- 13-HR Cycle 2 team health report: `prompts/13-hr/team-health.md`
-- CEO scope cut endorsed — breaking the audit loop was the right strategic call
-- Team performed well during extended standby: no busywork, QA/Security/CEO all added value
-- CS action items now minimal: HIGH-03 remainder + .gitignore + README = single session
-- BUG-012: 5/12 prompts have PROTECTED FILES (PM owns, HR tracking)
-- Staffing: no changes needed. Team correctly sized for v0.1.0 close-out
-- Post-v0.1.0 activation plan ready: 04-tauri-rust + 05-tauri-ui first, then 07-ios
-- No new agents recommended
-
-## PM Status (Cycle 8)
-- Closed GitHub issues: #23 (CTO ADRs), #24 (CEO open-source boundary)
-- All agent prompts reviewed and confirmed — no new assignments (still blocked on CS)
-- v0.1.0 milestone: 11 open / 2 closed
-- No new blockers, no new issues discovered
-- Next: CS fixes HIGH-03 + MEDIUM-01, writes README → QA/Security final sign-off → tag
+- 13-HR Cycle 6 team health report: `prompts/13-hr/team-health.md`
+- CS unblock (d130de7) resolved original 4-cycle blocker — major progress
+- Team still blocked on CS for HIGH-03, HIGH-04, MEDIUM-01 before v0.1.0 tag
+- BUG-012 progress: 5/12 prompts have PROTECTED FILES, 7 still missing (4 active agents: 01-ceo, 03-pm, 10-security, 13-hr)
+- Team roster updated — 06-backend no longer BLOCKED
+- Staffing: no changes needed. Team correctly sized for v0.1.0 close-out.
+- Post-v0.1.0: recommend activating 04-tauri-rust + 05-tauri-ui
 
 ## Notes
 ### CEO — Cycle 7 Strategic Update
@@ -74,13 +62,3 @@
 - RISK: Infinite audit loop identified as #1 strategic risk. Hard scope cutoff enforced.
 - Post-v0.1.0: Benchmark sprint (SWE-bench + Ralph) → HN launch (only with receipts) → v0.2.0
 - CS ACTION: Fix HIGH-03 (3 for-loops, ~5 min) + add secrets to .gitignore (~2 min) + write README → tag v0.1.0
-
-### CTO — Cycle 1 Review
-- Reviewed Security cycle 5+6 findings — all confirmed, hardening spec updated
-- HIGH-03: Confirmed. 3 locations need `IFS=' ' read -ra` array pattern. Agree with QA: detect_rogue_writes lines 310/320 lower risk than commit_by_ownership line 236
-- HIGH-04: Downgraded to P1. Current vars cannot produce `/` or `&`. CONCUR with CEO: defer to v0.1.1. Fix: change delimiter to `|`
-- MEDIUM-01: Confirmed regressed. Pre-release blocker — trivial fix
-- CONCUR with CEO scope cut: v0.1.0 = HIGH-03 + .gitignore + README. HIGH-04 in v0.1.1
-- Hardening spec fully updated: `docs/architecture/ORCHESTRATOR-HARDENING.md`
-- Tech registry: no changes needed — all domain decisions current
-- Proposals inbox: empty

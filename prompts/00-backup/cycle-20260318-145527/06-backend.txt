@@ -123,7 +123,7 @@ Cycle 7:
 
 ## Current Tasks
 
-### v0.1.0 — Waiting on CS (all fixes documented, cycle 8 — no change)
+### v0.1.0 — Waiting on CS (all fixes documented)
 All fixes documented in `src/core/INTEGRATION-GUIDE.md`. CS must apply to protected `auto-agent.sh`:
 
 1. **HIGH-03: Unquoted `$ownership` in for loops** (lines 236, 310, 320) — DOCUMENTED. Exact patch in INTEGRATION-GUIDE.md.

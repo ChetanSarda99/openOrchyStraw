@@ -206,14 +206,8 @@ When advising PM on new agent prompts, ensure they follow this structure:
 - [x] Reviewed agents.conf for ownership overlaps
 - [x] First team health report: `prompts/13-hr/team-health.md`
 
-### Done (Cycle 6–7)
-- [x] Cycle 6 team health update — CS unblock (d130de7) resolved 4-cycle blocker
-- [x] BUG-012 progress tracked: 5/12 prompts have PROTECTED FILES, 7 still missing
-- [x] Team roster updated — 06-backend no longer BLOCKED
-- [x] Staffing confirmed: team correctly sized for v0.1.0 close-out
-
-### Current (Cycle 8 — no change, still blocked on CS)
-- [ ] Monitor team health — still blocked on CS for HIGH-03 + MEDIUM-01
-- [ ] Track BUG-012 completion — PM adding PROTECTED FILES to remaining prompts
+### Current (Cycle 6)
+- [ ] Monitor team health — no blockers expected until HIGH-03/HIGH-04 are fixed
+- [ ] Verify BUG-012 progress — PM adding PROTECTED FILES to remaining agent prompts
+- [ ] Update team roster if any agents added/removed
 - [ ] Post-v0.1.0: recommend reactivating 04-tauri-rust + 05-tauri-ui
-- [ ] Post-v0.1.0: evaluate if benchmark sprint needs a dedicated agent

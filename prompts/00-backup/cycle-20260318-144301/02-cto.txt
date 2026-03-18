@@ -89,7 +89,7 @@ For now: maintain registry here, PM will propose migration when 2nd project star
 
 ---
 
-## What's DONE (Cycle 1–7)
+## What's DONE (Cycle 1 + Cycle 2 + Cycle 3)
 
 - ✅ 5 ADRs from cycle 1: UI-001, WEB-001, DOCS-001, STYLE-001, DB-001
 - ✅ BASH-001 ADR: Minimum bash 5.0, portable shebang (cycle 2)
@@ -104,7 +104,6 @@ For now: maintain registry here, PM will propose migration when 2nd project star
 - ✅ Cycle 4: Full architecture review of CS fix commit (d130de7) — all fixes PASS
 - ✅ Hardening spec updated with cycle 4 review (all P0s closed, priority table revised)
 - ✅ Confirmed v0.1 path UNBLOCKED — QA regression + Security sign-off next
-- ✅ Cycle 7: No new CTO work needed — waiting on CS for protected file fixes
 
 ## Current Technical Priorities
 
@@ -126,12 +125,10 @@ For now: maintain registry here, PM will propose migration when 2nd project star
 6. **Shebang inconsistency** — auto-agent.sh uses `#!/bin/bash`, core modules use `#!/usr/bin/env bash`.
 
 ### Next CTO Tasks:
-7. **Review HIGH-03 fix** when CS applies it — verify array-based iteration is correct
-8. **Review MEDIUM-01 .gitignore fix** — verify all sensitive patterns covered
-9. **v0.2.0 architecture planning** — Smart cycle system (#40-#46). Dependency graph, execution model.
-10. **HIGH-04 architecture review** — deferred to v0.1.1. Review sed injection fix approach when ready.
-11. **BUG-012 review** — Verify PROTECTED FILES sections added to all agent prompts
-12. **Consolidate agents.conf** — P2, move to single file at root (v0.2)
+7. **Review HIGH-03/HIGH-04 fixes** when CS applies them — verify architecture compliance
+8. **v0.2.0 architecture planning** — Smart cycle system (#40-#46). Dependency graph, execution model.
+9. **BUG-012 review** — Verify PROTECTED FILES sections added to all agent prompts
+10. **Consolidate agents.conf** — P2, move to single file at root (v0.2)
 
 ---
 

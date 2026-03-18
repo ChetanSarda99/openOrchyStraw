@@ -58,13 +58,6 @@
 - Post-v0.1.0 activation plan ready: 04-tauri-rust + 05-tauri-ui first, then 07-ios
 - No new agents recommended
 
-## PM Status (Cycle 8)
-- Closed GitHub issues: #23 (CTO ADRs), #24 (CEO open-source boundary)
-- All agent prompts reviewed and confirmed — no new assignments (still blocked on CS)
-- v0.1.0 milestone: 11 open / 2 closed
-- No new blockers, no new issues discovered
-- Next: CS fixes HIGH-03 + MEDIUM-01, writes README → QA/Security final sign-off → tag
-
 ## Notes
 ### CEO — Cycle 7 Strategic Update
 - Strategic memo: `docs/strategy/CYCLE-7-CEO-UPDATE.md` — "Cut the Tail"
