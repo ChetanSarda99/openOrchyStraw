@@ -10,7 +10,7 @@ _See docs/KNOWLEDGE-REPOSITORIES.md for full system documentation._
 
 | Domain | Solution | Version | Decision | Surfaces | Notes |
 |--------|----------|---------|----------|----------|-------|
-| Core runtime | Bash | 5.x | Built-in | Orchestrator | POSIX-compat, Python in v0.5 |
+| Core runtime | Bash | 5.0+ | BASH-001 | Orchestrator | macOS: brew install bash |
 | Config format | Markdown + plain text | — | Built-in | Orchestrator | No deps policy |
 | AI CLI | claude CLI (primary) | latest | Built-in | Orchestrator | bypassPermissions mode |
 | Doc search | QMD | latest | — | Orchestrator | BM25 + vector |
@@ -37,6 +37,7 @@ _See docs/KNOWLEDGE-REPOSITORIES.md for full system documentation._
 
 | Domain | Status | ADR | Notes |
 |--------|--------|-----|-------|
+| Bash version | **APPROVED** | BASH-001 | Minimum bash 5.0, portable shebang |
 | Tauri UI framework | **LOCKED** | UI-001 | React 19 + TypeScript |
 | Desktop DB | **APPROVED** | DB-001 | SQLite |
 | Desktop styling | **LOCKED** | STYLE-001 | Tailwind v4 + shadcn/ui v4 |
