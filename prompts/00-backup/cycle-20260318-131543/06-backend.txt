@@ -92,7 +92,7 @@ Do NOT implement before the CTO decides, unless task is P0 and time-critical.
 
 ---
 
-## What's DONE (Cycle 1 + Cycle 2)
+## What's DONE (Cycle 1)
 
 All 7 bash modules built in `src/core/`:
 - ✅ `logger.sh` — structured logging with levels, color output
@@ -103,22 +103,15 @@ All 7 bash modules built in `src/core/`:
 - ✅ `config-validator.sh` — agents.conf syntax validation
 - ✅ `lock-file.sh` — prevent concurrent orchestrators
 
-Cycle 2 deliverables:
-- ✅ `bash-version.sh` — exits if bash < 5.0, with install instructions
-- ✅ `INTEGRATION-GUIDE.md` — step-by-step for CS to integrate all 8 modules
-- ✅ `tests/core/` — 8 test files + runner, all 8 pass
-- ✅ MEDIUM-01 (.gitignore) FIXED
-- ✅ HIGH-01 eval fix DOCUMENTED (CS must apply to protected auto-agent.sh)
-- ✅ MEDIUM-02 notify fix DOCUMENTED (CS must apply)
-
 ## Current Tasks
 
-### v0.1.0 — Final Integration Support (Cycle 3)
-1. **Verify integration** — After CS applies fixes to auto-agent.sh, verify modules load correctly. Run `tests/core/run-tests.sh` to confirm.
-2. **Add `set -e` documentation** — CTO requested `set -e` at auto-agent.sh:23. Document the exact change in INTEGRATION-GUIDE.md if not already there.
-3. **Shebang standardization** — Ensure all `src/core/*.sh` use `#!/usr/bin/env bash` per BASH-001 ADR.
-4. **Integration smoke test** — Write a `tests/core/test-integration.sh` that sources all 8 modules together and verifies no conflicts.
-5. **Support QA re-audit** — Fix any issues QA finds during their cycle 3 verification pass.
+### v0.1.0 — Integration + Security Fixes (Cycle 2)
+1. **[HIGH-01] Fix eval injection** — Replace `eval` in `commit_by_ownership()` (auto-agent.sh:236-241) with array-based args. Security finding, blocks release.
+2. **[MEDIUM-01] Fix .gitignore** — Add `.env`, `*.pem`, `*.key`, `credentials.json` patterns. Security finding.
+3. **[MEDIUM-02] Fix PowerShell notify** — Unescaped variable in notify function. Security finding.
+4. **Bash version check** — Add bash 5.x version check at script start (CTO P0, see #66). macOS ships bash 3.x.
+5. **Integration prep** — Document exactly how `src/core/*.sh` modules integrate into `auto-agent.sh` (protected file — CS will do the actual integration). Write `src/core/INTEGRATION-GUIDE.md`.
+6. **Write unit tests** — Create `tests/core/` with basic tests for each module (source + call functions, check exit codes).
 
 ---
 

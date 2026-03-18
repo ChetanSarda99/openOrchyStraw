@@ -95,14 +95,13 @@ You NEVER touch: `src-tauri/`, `scripts/` (except JSONL emitter), `prompts/` (ex
 
 ---
 
-## What's DONE (Cycle 1 + Cycle 2)
+## What's DONE (Cycle 1)
 
 - ✅ Phase 1 Synthetic JSONL Emitter complete: `src/pixel/emit-jsonl.sh`
 - ✅ Full API: pixel_init, pixel_emit, pixel_say, pixel_end + convenience wrappers
 - ✅ Test script: `src/pixel/test-emitter.sh` — 28 events validate
 - ✅ Integration guide: `src/pixel/INTEGRATION.md`
 - ✅ Config: PIXEL_ENABLED=0 to disable, PIXEL_SESSION_DIR to customize
-- ✅ Cycle 2: STANDBY per CEO directive — no changes needed
 
 ## Current Tasks
 

@@ -68,7 +68,7 @@ When a pattern WORKS well (tested, clean, reusable):
 2. Check your assigned review tasks below
 3. Run any existing tests
 4. Review recent commits for quality issues
-5. Write QA report to `prompts/09-qa/reports/qa-cycle-N.md`
+5. Write QA report to `prompts/07-qa/reports/qa-cycle-N.md`
 6. File bugs as GitHub issues: `gh issue create --repo ChetanSarda99/OrchyStraw --title "..." --body "..." --label bug`
 7. Check Tauri app builds: `cd src-tauri && cargo check`
 8. Check React builds: `cd src && npm run build`
@@ -116,29 +116,22 @@ When a pattern WORKS well (tested, clean, reusable):
 
 ---
 
-## What's DONE (Cycle 1 + Cycle 2)
+## What's DONE (Cycle 1)
 
 - ✅ Full QA cycle 1 — report at `prompts/09-qa/reports/qa-cycle-1.md`
 - ✅ Found 7 bugs: 2 critical, 3 high, 2 medium
 - ✅ Identified agents.conf / prompt mismatches
 - ✅ Verified all 11 prompts have git safety rules + correct repo URLs
-- ✅ Cycle 2 QA report: `prompts/09-qa/reports/qa-cycle-2.md`
-- ✅ Verdict: NOT READY — HIGH-01 eval still open (CS must apply)
-- ✅ All 8 src/core/*.sh modules pass syntax checks + code review
-- ✅ 8/8 backend tests independently verified
-- ✅ Site build PASS
-- ✅ 4 new bugs filed: BUG-008 orphan dir, BUG-009 agents.conf divergence, BUG-010 incomplete prompts, BUG-011 modules not integrated
 
 ## Current Tasks
 
-### v0.1.0 — Release Gate QA (Cycle 3)
-1. **Verify CS applied fixes** — Check if HIGH-01 eval fix + module integration happened in auto-agent.sh
-2. **Re-run backend tests** — `tests/core/run-tests.sh` — all 8 must still pass
-3. **Verify BUG-009 fix** — Check if agents.conf files are reconciled (root vs scripts/)
-4. **Regression check** — Ensure no new issues introduced by integration
-5. **Bug triage** — Update status on BUG-001 through BUG-011, close any fixed
-6. **Write cycle 3 QA report** — `prompts/09-qa/reports/qa-cycle-3.md`
-7. **Release sign-off** — If all HIGH findings fixed: PASS for v0.1.0. Otherwise: document remaining blockers.
+### v0.1.0 — Release Hardening QA (Cycle 2)
+1. **Verify security fixes** — Confirm backend fixed HIGH-01 (eval), MEDIUM-01 (.gitignore), MEDIUM-02 (notify)
+2. **Test backend modules** — Source each `src/core/*.sh` module, check for syntax errors, run any unit tests
+3. **Re-check agents.conf** — Verify ownership fixes after CS updates the protected file
+4. **Full doc audit** — every .md file reviewed for accuracy
+5. **Link checker** — no broken internal links
+6. **Write cycle 2 QA report** — `prompts/09-qa/reports/qa-cycle-2.md`
 
 ---
 

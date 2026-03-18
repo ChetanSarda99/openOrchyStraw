@@ -102,12 +102,11 @@ For now: maintain registry here, PM will propose migration when 2nd project star
 
 ## Current Technical Priorities
 
-1. **Verify eval fix integration** — CS must apply backend's array-based fix to auto-agent.sh. Check after CS acts.
-2. **Verify `set -e` addition** — CS must add to auto-agent.sh (protected file). Check after CS acts.
-3. **Review integrated auto-agent.sh** — Once CS integrates modules, review for architecture compliance.
-4. **Resolve src/ ownership overlap** — 05-tauri-ui vs 06-backend both claim `src/`. Document clear boundaries.
-5. **auto-agent.sh ownership** — Currently no agent owns it. Propose adding to agents.conf as protected-but-owned.
-6. Cycle reproducibility — deterministic runs, clean restarts
+1. **Verify eval fix integration** — CS must apply backend's array-based fix to auto-agent.sh
+2. **Verify `set -e` addition** — CS must add to auto-agent.sh (protected file)
+3. **Document threat model** — Work with 10-security on `--dangerously-skip-permissions` for v0.5
+4. Agent isolation — ensure agents can't break each other's state (ownership overlap documented)
+5. Cycle reproducibility — deterministic runs, clean restarts
 
 ---
 

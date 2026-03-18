@@ -194,13 +194,12 @@ After any integration: append to `docs/tech-registry/registry.md`.
 
 ---
 
-## What's DONE (Cycle 1 + Cycle 2)
+## What's DONE (Cycle 1)
 
 - ✅ Landing page MVP complete in `site/` — Next.js 16 + Tailwind v4 + Framer Motion + Lucide React
 - ✅ All 6 sections: Hero (terminal demo), Supported Tools, How It Works, Features Grid, FAQ, Footer
 - ✅ Dark mode first (#0a0a0a), accent orange (#f97316), Geist fonts
 - ✅ Static export configured, build verified
-- ✅ Cycle 2: STANDBY per CEO directive — no changes needed
 
 ## Current Tasks
 
