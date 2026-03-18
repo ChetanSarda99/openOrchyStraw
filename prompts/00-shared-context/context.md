@@ -1,39 +1,39 @@
-# Shared Context — Cycle 4 — 2026-03-18 15:10:13
+# Shared Context — Cycle 5 (PM pass) — 2026-03-18 15:25
 > Agents: read before starting, append before finishing.
 
 ## Usage
 - API status: 0 (0=ok, 80=overage, 90+=limited)
 
 ## Progress (last cycle → this cycle)
-- Previous cycle: 3 (0 backend, 0 frontend, 2 commits)
-- Build on this momentum. Don't redo what's already shipped.
+- Previous cycle: 4 (0 backend, 0 frontend, 0 commits)
+- This cycle: Backend built 2 new v0.2.0 modules + design doc + 23 tests. Security: cycle 7 audit NO CHANGE.
+- PM committed all agent work (3 commits), updated 4 agent prompts + session tracker.
 
 ## Backend Status
-- All 9 tests pass (8 unit + 1 integration, 42 assertions) — no regressions
-- BLOCKED: All 3 remaining fixes (HIGH-03, HIGH-04, MEDIUM-01) are in protected files — CS must apply
-- Exact patches documented in `src/core/INTEGRATION-GUIDE.md`
-- .gitignore still missing `.env`, `*.pem`, `*.key` patterns (MEDIUM-01 confirmed)
-- v0.2.0 design docs queued but waiting for v0.1.0 to ship first
+- NEW: `src/core/signal-handler.sh` — graceful shutdown with SHUTTING_DOWN flag, SIGTERM→SIGKILL, PID tracking
+- NEW: `src/core/cycle-tracker.sh` — smart empty cycle detection, tracks agent outcomes vs commits
+- NEW: `src/core/SMART-CYCLE-DESIGN.md` — v0.2.0 design doc (#40 review, #41 dynamic routing, #43 dependency-aware parallel)
+- NEW: 23 new tests (9 signal-handler + 14 cycle-tracker)
+- UPDATED: `src/core/INTEGRATION-GUIDE.md` — added signal-handler + cycle-tracker integration steps
+- Full test suite: 11/11 pass (9 original + 2 new)
+- v0.1.0 STILL BLOCKED: HIGH-03, MEDIUM-01 in protected files — CS must apply
 
-## iOS Status
-- (fresh cycle)
+## Security Status
+- Cycle 7 audit: NO CHANGE — same 3 findings (HIGH-03, HIGH-04, MEDIUM-01)
+- New modules (signal-handler.sh, cycle-tracker.sh): SAFE — no vulnerabilities
+- Option B acceptable — all RCE vectors FIXED
 
 ## Design Status
-- 11-Web: STANDBY — landing page MVP complete, no changes. Waiting for v0.1.0 tag to deploy (#39).
-- 08-Pixel: STANDBY — Phase 1 complete, Phase 2 blocked on v0.1.0 tag. No changes.
+- 11-Web: STANDBY — landing page MVP complete, waiting for v0.1.0 tag
+- 08-Pixel: STANDBY — Phase 1 complete, waiting for v0.1.0 tag
 
-## QA Findings
-- (fresh cycle)
+## v0.1.0 Status
+- 🚨 13+ cycles total. CS must: (A) apply 3 fixes ~10 min OR (B) tag AS-IS with known issues.
+- All agent work that CAN be done IS done. Only CS can unblock.
 
 ## Blockers
-- (none)
+- CS must apply HIGH-03 + MEDIUM-01 .gitignore + README (or tag AS-IS)
 
 ## Notes
-- [CTO] Cycle 4: No new technical work. Proposals inbox empty. No new CS commits to review.
-- [CTO] Hardening spec and priority table remain current. All P0s closed, 3 P1s open (HIGH-03, HIGH-04, MEDIUM-01) — all in protected files.
-- [CTO] Architecture position unchanged: CS should either apply the 3 fixes or tag v0.1.0 AS-IS per CEO Option B.
-- [CTO] Post-v0.1.0 planning ready: v0.2.0 smart cycle system (#40-#46) and single agents.conf consolidation queued.
-- [PM] Cycle 4 (overall 12): No new work from any agent. CTO confirmed status quo. 12 total cycles, ~55 idle agent-cycles wasted.
-- [PM] HR interval recommendation ACCEPTED: idle agents should run less frequently. CS must update agents.conf intervals.
-- [PM] FINAL ESCALATION: v0.1.0 has been ready to ship for 7 cycles. 3 options remain: (A) apply fixes ~10 min, (B) tag AS-IS, (C) abandon. Team recommends A or B.
-- [PM] All agent prompts confirmed current. No task changes needed — same assignments stand when CS unblocks.
+- Backend used standby time productively — v0.2.0 prep underway
+- HR interval adjustment accepted but not yet applied to agents.conf
