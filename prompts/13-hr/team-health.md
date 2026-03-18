@@ -1,78 +1,113 @@
-# Team Health Report — Cycle 1 (2026-03-18)
+# Team Health Report — Cycle 6 (2026-03-18)
 
-> First HR team health assessment. Baseline report.
+> Second HR assessment. Updated from Cycle 1 baseline.
 
-## Team Composition: 9 agents active
+---
 
-| Agent | Cycles Active | This Cycle | Output Quality | Notes |
-|-------|--------------|------------|----------------|-------|
-| 01-ceo | 4 | STANDBY | Good | Strategic memos clear and actionable |
-| 02-cto | 4 | STANDBY | Good | ADRs well-structured, hardening spec thorough |
-| 03-pm | 4 | Active | Good | Consistent coordination, prompt updates reliable |
-| 06-backend | 4 | BLOCKED | Good | 8 modules built + tested, blocked on CS integration |
-| 08-pixel | 4 | STANDBY | Good | Phase 1 complete, correctly frozen per CEO |
-| 09-qa | 4 | STANDBY | Good | Thorough reports, bug tracking effective |
-| 10-security | 4 | STANDBY | Good | Audit + threat model delivered, read-only respected |
-| 11-web | 4 | STANDBY | Good | Landing page MVP shipped and build-verified |
-| 13-hr | 0 | Active (first cycle) | N/A | This report is first output |
+## Previous Report: Cycle 1 (archived below)
+
+---
+
+## Team Composition: 9 agents active (unchanged)
+
+| Agent | Total Cycles | This Cycle | Output Quality | Notes |
+|-------|-------------|------------|----------------|-------|
+| 01-ceo | 6 | STANDBY | Good | Strategic memos clear; correctly holding "stay the course" |
+| 02-cto | 6 | STANDBY | Good | ADRs + hardening spec complete; waiting on CS fixes |
+| 03-pm | 6 | Active | Good | Reliable coordination every cycle, BUG-004/005 fixed in C4 |
+| 06-backend | 6 | Active | Good | CS integration landed (d130de7). Modules in production. |
+| 08-pixel | 6 | STANDBY | Good | Phase 1 complete, correctly frozen per CEO |
+| 09-qa | 6 | Active | Conditional | C5 verdict: CONDITIONAL PASS — new HIGH-03/04 found |
+| 10-security | 6 | Active | Conditional | C5: HIGH-03/04 NEW findings block v0.1.0 sign-off |
+| 11-web | 6 | STANDBY | Good | Landing page MVP shipped and build-verified |
+| 13-hr | 1 | Active | Good | This is second cycle output |
 
 ## Key Findings
 
-### 1. BLOCKER: Entire team blocked on CS (human)
+### 1. CS UNBLOCK: Integration landed (d130de7)
 
-The #1 issue is not an agent problem — it's a human bottleneck:
-- Backend has 8 modules ready but can't integrate into `auto-agent.sh` (protected file)
-- HIGH-01 eval injection fix documented but unapplied
-- QA can't do final regression until integration happens
-- Security can't give final sign-off until HIGH-01 is fixed
-- **4 cycles of zero forward progress on v0.1.0 core integration**
+**Major progress since Cycle 1.** The original blocker (4 cycles of zero movement) is resolved:
+- CS applied module integration to `auto-agent.sh`
+- Backend modules now in production
+- Original P0s (HIGH-01 eval, MEDIUM-01 gitignore) RESOLVED
 
-**Recommendation:** This is the single highest-priority item. No agent changes will help until CS applies the integration steps.
+**However, new blockers emerged from the integration:**
+- HIGH-03: Unquoted `$ownership` in for loops (auto-agent.sh lines 236, 310, 320)
+- HIGH-04: sed injection in prompt updates (auto-agent.sh lines 785-791)
+- MEDIUM-01 regression: root `.gitignore` still missing `.env`, `*.pem`, `*.key`
 
-### 2. 5 orphaned prompt directories
+**Impact:** Team is STILL blocked on CS for final v0.1.0 tag, but we're closer.
 
-Agents listed in CLAUDE.md but NOT in `agents.conf`:
-- `04-tauri-rust` — Tauri work is post-v0.1.0, correct to defer
-- `05-tauri-ui` — Same as above
-- `07-ios` — Same as above
-- `12-brand` — Not even in CLAUDE.md agent list. Investigate.
-- `01-pm` — Old PM location (PM is now 03-pm). Safe to archive.
+### 2. BUG-012 Progress: PARTIAL — 5/12 prompts fixed
 
-**Recommendation:** Archive `01-pm`. Keep 04/05/07 for post-v0.1.0 activation. Clarify `12-brand` status with CEO.
+QA flagged BUG-012 in Cycle 4: agent prompts missing PROTECTED FILES section.
 
-### 3. Ownership overlap: `reports/`
+**Status check (Cycle 6):**
 
-Both `09-qa` and `10-security` list `reports/` in agents.conf. In practice they write to different subdirectories under their own prompt dirs, but the top-level `reports/` overlap should be cleaned up.
+| Has PROTECTED FILES | Missing PROTECTED FILES |
+|---|---|
+| 02-cto | 01-ceo |
+| 06-backend | 03-pm |
+| 08-pixel | 04-tauri-rust (inactive) |
+| 09-qa | 05-tauri-ui (inactive) |
+| 11-web | 07-ios (inactive) |
+| | 10-security |
+| | 13-hr |
 
-**Recommendation:** Change to explicit paths: `prompts/09-qa/reports/` and `prompts/10-security/reports/`.
+**5 of 12 prompts have the section. 7 still missing.**
+- Of the 7 missing, 3 are inactive agents (04/05/07) — lower priority.
+- 4 active agents still missing: 01-ceo, 03-pm, 10-security, 13-hr.
 
-### 4. BUG-012: 9 agent prompts missing PROTECTED FILES section
+**Recommendation:** PM should prioritize active agents first. Inactive agents can be fixed at activation time.
 
-QA flagged this in Cycle 4. This is an HR concern — prompt standardization is our domain.
+### 3. Orphaned directories — status unchanged
 
-**Recommendation:** PM should add PROTECTED FILES sections. HR will provide the standard template.
+Still 5 orphaned prompt directories. No action taken since Cycle 1:
+- `01-pm` — still safe to archive
+- `04-tauri-rust`, `05-tauri-ui`, `07-ios` — correctly deferred to post-v0.1.0
+- `12-brand` — still unresolved; CEO has not commented
 
-### 5. No agent needed right now
+**Recommendation:** Carry forward. Not blocking anything.
 
-Current team is correctly sized for v0.1.0:
-- No issues piling up without an assigned agent
-- Most agents are correctly on STANDBY
-- The bottleneck is human action, not agent capacity
+### 4. Ownership overlap: `reports/` — unchanged
 
-Post-v0.1.0, we'll need to activate 04-tauri-rust and 05-tauri-ui for the desktop app phase.
+Both `09-qa` and `10-security` still list `reports/` in agents.conf. Low actual risk since they write to their own prompt subdirs.
 
-## Staffing Recommendations
+**Recommendation:** Fix when CS next edits agents.conf.
 
-| Action | Agent | Justification | Priority |
-|--------|-------|---------------|----------|
-| KEEP | All 9 active | Correctly staffed for v0.1.0 | — |
-| ACTIVATE post-v0.1.0 | 04-tauri-rust | Desktop app phase requires Rust backend agent | P2 |
-| ACTIVATE post-v0.1.0 | 05-tauri-ui | Desktop app phase requires React frontend agent | P2 |
-| ACTIVATE post-v0.1.0 | 07-ios | iOS companion app is on roadmap | P3 |
-| INVESTIGATE | 12-brand | Not in CLAUDE.md. Clarify with CEO if needed. | P3 |
-| ARCHIVE | 01-pm | Orphaned old PM directory | P3 |
+### 5. Team sizing: Still correct for v0.1.0
+
+- No new agent needed
+- No agent underperforming
+- No agent idle for 3+ cycles without reason (all STANDBY agents are correctly frozen)
+- Bottleneck remains CS applying fixes to protected files
+
+### 6. Post-v0.1.0 readiness
+
+Once HIGH-03, HIGH-04, and MEDIUM-01 are fixed:
+1. QA runs regression → Security gives final sign-off → tag v0.1.0
+2. Then activate: 04-tauri-rust, 05-tauri-ui for desktop app phase
+3. 07-ios activation after Tauri scaffold is stable
+4. Benchmark sprint can begin (06-backend leads, no new agent needed)
+
+## Staffing Recommendations (updated)
+
+| Action | Agent | Justification | Priority | Change from C1 |
+|--------|-------|---------------|----------|-----------------|
+| KEEP | All 9 active | Correctly staffed for v0.1.0 close-out | — | No change |
+| ACTIVATE post-v0.1.0 | 04-tauri-rust | Desktop app Rust backend | P2 | No change |
+| ACTIVATE post-v0.1.0 | 05-tauri-ui | Desktop app React frontend | P2 | No change |
+| ACTIVATE post-v0.1.0 | 07-ios | iOS companion app | P3 | No change |
+| INVESTIGATE | 12-brand | Still unresolved. Not in CLAUDE.md. | P3 | No change |
+| ARCHIVE | 01-pm | Orphaned old PM directory | P3 | No change |
 
 ## Next Review
 
-- Next HR cycle: Cycle 4 (every 3rd cycle)
-- Will track: CS blocker resolution, post-integration team activation needs
+- Next HR cycle: Cycle 9 (every 3rd cycle)
+- Will track: v0.1.0 tag status, post-v0.1.0 agent activations, BUG-012 completion
+
+---
+
+## Archived: Cycle 1 Report
+
+> First HR team health assessment (baseline). Key findings: CS blocker (since resolved at d130de7), 5 orphaned dirs, reports/ overlap, BUG-012 opened, team correctly sized. See git history for full text.
