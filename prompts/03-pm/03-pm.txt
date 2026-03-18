@@ -183,18 +183,21 @@ Use the **Edit tool** to modify ONLY:
 
 ## Current Milestones
 
-### v0.1.0 — Hardened Release (P0)
-- [ ] #13 Error handling
-- [ ] #14 Signal trapping
-- [ ] #19 Config validation
-- [ ] #20 Lock file
-- [ ] #15 State persistence
-- [ ] #16 Agent timeout
-- [ ] #18 Structured logging
-- [ ] #17 Dry-run mode
-- [ ] #22 Security audit PASS
-- [ ] #21 QA audit PASS
-- [ ] #25 Release tag
+### v0.1.0 — Hardened Release (P0) — 13 open / 0 closed
+**Modules BUILT (not yet integrated into auto-agent.sh — CS must do):**
+- [~] #13 Error handling — module built (`src/core/error-handler.sh`), needs integration
+- [~] #14 Signal trapping — module built (`src/core/error-handler.sh`), needs integration
+- [~] #19 Config validation — module built (`src/core/config-validator.sh`), needs integration
+- [~] #20 Lock file — module built (`src/core/lock-file.sh`), needs integration
+- [~] #15 State persistence — module built (`src/core/cycle-state.sh`), needs integration
+- [~] #16 Agent timeout — module built (`src/core/agent-timeout.sh`), needs integration
+- [~] #18 Structured logging — module built (`src/core/logger.sh`), needs integration
+- [~] #17 Dry-run mode — module built (`src/core/dry-run.sh`), needs integration
+- [~] #22 Security audit — CONDITIONAL PASS (fix HIGH-01, MEDIUM-01 first)
+- [~] #21 QA audit — cycle 1 done, need re-audit after fixes
+- [ ] #23 CTO ADRs — 5 ADRs written, may need more
+- [ ] #24 CEO open-source boundary — decision made, needs documentation
+- [ ] #25 Release tag — blocked until all above are done
 
 ### v0.2.0 — Smart Cycle System (self-improvement sprint)
 - [ ] #40 Loop review & critique

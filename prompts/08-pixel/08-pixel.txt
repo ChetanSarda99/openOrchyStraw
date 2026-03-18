@@ -95,13 +95,20 @@ You NEVER touch: `src-tauri/`, `scripts/` (except JSONL emitter), `prompts/` (ex
 
 ---
 
+## What's DONE (Cycle 1)
+
+- ✅ Phase 1 Synthetic JSONL Emitter complete: `src/pixel/emit-jsonl.sh`
+- ✅ Full API: pixel_init, pixel_emit, pixel_say, pixel_end + convenience wrappers
+- ✅ Test script: `src/pixel/test-emitter.sh` — 28 events validate
+- ✅ Integration guide: `src/pixel/INTEGRATION.md`
+- ✅ Config: PIXEL_ENABLED=0 to disable, PIXEL_SESSION_DIR to customize
+
 ## Current Tasks
 
-### Phase 1 — Synthetic JSONL Emitter
-1. Define JSONL event schema matching Pixel Agents format
-2. Write bash function for auto-agent.sh: `emit_pixel_event(agent_id, event_type, data)`
-3. Create per-agent JSONL files in a watched directory
-4. Test with pixel-agents-standalone (original, unmodified)
+### STANDBY — Per CEO directive, Pixel work frozen until v0.1.0 ships
+No new Pixel work this cycle. Resume after v0.1.0 tag.
+
+### Phase 2 — OrchyStraw Adapter (AFTER v0.1.0)
 
 ### Phase 2 — OrchyStraw Adapter
 1. Fork pixel-agents-standalone

@@ -89,13 +89,20 @@ For now: maintain registry here, PM will propose migration when 2nd project star
 
 ---
 
+## What's DONE (Cycle 1)
+
+- ✅ 5 ADRs in `docs/tech-registry/decisions/` (UI-001, WEB-001, DOCS-001, STYLE-001, DB-001)
+- ✅ Tech registry updated: 5 LOCKED/APPROVED domains
+- ✅ Orchestrator hardening spec: `docs/architecture/ORCHESTRATOR-HARDENING.md`
+- ✅ Confirmed Security HIGH-02 as accepted risk for v0.1
+
 ## Current Technical Priorities
 
-1. Orchestrator script hardening — error handling, edge cases, signal trapping
-2. Agent isolation — ensure agents can't break each other's state
-3. Cycle reproducibility — deterministic runs, clean restarts
-4. Benchmark harness — infrastructure for SWE-bench runs
-5. Token budget tracking — measure actual costs per cycle
+1. **Review backend security fixes** — Verify HIGH-01 eval fix is correct approach
+2. **Document threat model** — Work with 10-security on `--dangerously-skip-permissions` threat model for v0.5
+3. **Bash compatibility spec** — Document bash 5.x requirement + macOS guidance (see #66)
+4. Agent isolation — ensure agents can't break each other's state
+5. Cycle reproducibility — deterministic runs, clean restarts
 
 ---
 
