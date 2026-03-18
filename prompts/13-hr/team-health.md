@@ -1,85 +1,85 @@
 # Team Health Report — Cycle 2 (HR) / Batch Cycle 1 — 2026-03-18
 
-> Second HR assessment. Updated from baseline.
+> Second HR assessment. Updated from baseline with cycle 6-7 findings.
 
 ## Team Composition: 9 agents active (unchanged)
 
 | Agent | Cycles Active | This Cycle | Output Quality | Notes |
 |-------|--------------|------------|----------------|-------|
-| 01-ceo | 6+ | STANDBY | Good | Strategic memos clear and actionable |
-| 02-cto | 6+ | STANDBY | Good | ADRs well-structured, all P0s confirmed resolved |
-| 03-pm | 6+ | Active | Good | Consistent coordination, BUG-004/005 fixed in cycle 4 |
-| 06-backend | 6+ | BLOCKED | Good | All modules built+tested, blocked on CS for protected file fixes |
-| 08-pixel | 6+ | STANDBY | Good | Phase 1 complete, correctly frozen per CEO |
-| 09-qa | 6+ | STANDBY | Good | Conditional pass issued, thorough bug tracking |
-| 10-security | 6+ | STANDBY | Good | Found HIGH-03/HIGH-04 in cycle 5 — good catch |
-| 11-web | 6+ | STANDBY | Good | Landing page MVP shipped, waiting for v0.1.0 |
-| 13-hr | 1 | Active | N/A | Second cycle |
+| 01-ceo | 7+ | Active | Good | "Cut the Tail" — locked v0.1.0 scope, broke audit loop |
+| 02-cto | 7+ | STANDBY | Good | All P0s confirmed resolved, no new tech decisions needed |
+| 03-pm | 7+ | Active | Good | BUG-004/005 fixed, BUG-012 in progress (5/12 → partial) |
+| 06-backend | 7+ | Active | Good | Documented exact patches for CS in INTEGRATION-GUIDE.md |
+| 08-pixel | 7+ | STANDBY | Good | Phase 1 complete, correctly frozen per CEO |
+| 09-qa | 7+ | Active | Good | Cycle 6 report: HIGH-03 partially fixed, QA-F001 closed |
+| 10-security | 7+ | Active | Good | Cycle 6 audit: no change, 3 blockers still open |
+| 11-web | 7+ | STANDBY | Good | Landing page MVP shipped, waiting for v0.1.0 |
+| 13-hr | 2 | Active | N/A | This report |
 
 ## Key Findings
 
-### 1. BLOCKER: CS bottleneck persists — 3 open items in protected files
+### 1. CEO broke the audit loop — v0.1.0 scope LOCKED
 
-Still the #1 team issue. Three items remain unfixed in `auto-agent.sh`:
-- **HIGH-03:** Unquoted `$ownership` in for loops (lines ~236, 310, 320) — glob expansion risk
-- **HIGH-04:** Sed injection in prompt updates (lines 785-791) — unescaped variables
-- **MEDIUM-01 regression:** `.gitignore` still missing `.env`, `*.pem`, `*.key` patterns
-- **QA-F001:** `set -e` missing from `set -uo pipefail` (line 23) — unclear if intentional
+CEO strategic decision (Cycle 7): "Cut the Tail"
+- **v0.1.0 scope:** HIGH-03 fix + .gitignore + README only
+- **HIGH-04 deferred to v0.1.1** (not RCE, ships within 24hr of v0.1.0)
+- **QA-F001 CLOSED** — `set -uo pipefail` without `-e` is deliberate
+- **HIGH-03 partially fixed** — `commit_by_ownership` uses arrays now; `detect_rogue_writes` still unquoted but downgraded to P2
 
-Only the stray `local` fix (0025b1d) was applied since last cycle. All other blockers remain.
+This is the right call. The infinite audit loop was the #1 strategic risk — 7+ cycles of standby.
 
-**Impact:** 6+ cycles of team standby. No agent can make forward progress on v0.1.0 until CS acts.
+### 2. CS action items are now minimal
 
-**Recommendation:** ESCALATE. This is now a chronic bottleneck. Consider:
-1. Batching all 4 fixes into a single CS session
-2. Having CTO pre-review the exact patches so CS can apply them quickly
-3. Setting a deadline — if unfixed by cycle 3 of this batch, de-scope from v0.1.0
+What CS needs to do for v0.1.0:
+1. Fix remaining HIGH-03 for-loops (~5 min) — exact patches in INTEGRATION-GUIDE.md
+2. Add `.env`, `*.pem`, `*.key` to .gitignore (~2 min)
+3. Write README
 
-### 2. Team morale signal: prolonged STANDBY
+Backend has documented exact patches. This should be a single session.
 
-7 of 9 agents have been on STANDBY for multiple cycles. This isn't harmful (agents don't create busywork, which is correct behavior), but it means we're paying cycle cost for no output.
+### 3. Team performed well despite extended standby
 
-**Recommendation:** Consider reducing cycle frequency for blocked agents:
-- Move 06-backend to interval 2 until CS unblocks
-- Move 11-web to interval 2 until post-v0.1.0 work begins
-- This saves API cost without losing capability
+Positive signals:
+- No agents created busywork during standby (correct behavior)
+- QA and Security continued to add value even in "blocked" state
+- CEO identified the meta-problem (audit loop) and cut scope — good leadership
+- Backend proactively documented patches for CS — reduces friction
 
-### 3. BUG-012 progress: partial
+### 4. BUG-012 progress: 5/12 prompts have PROTECTED FILES
 
-PM added PROTECTED FILES to 5/13 agent prompts (up from 4/13). 8 still need it. This is a PM task, tracked but not urgent.
+Still in progress. 7 prompts need it. PM owns this, HR flagged it.
+Active agents missing it: 01-ceo, 03-pm, 10-security, 13-hr.
 
-### 4. Previous recommendations status
+### 5. Previous recommendations status
 
 | Recommendation | Status | Notes |
 |---------------|--------|-------|
-| Archive `01-pm` orphaned dir | NOT DONE | Low priority, still valid |
+| Archive `01-pm` orphaned dir | NOT DONE | Low priority |
 | Investigate `12-brand` | NOT DONE | Low priority |
-| Fix `reports/` ownership overlap | NOT DONE | Low priority, no actual conflict |
-| Activate 04/05 post-v0.1.0 | WAITING | v0.1.0 not shipped yet |
-| PM add PROTECTED FILES (BUG-012) | IN PROGRESS | 5/13 done |
-
-### 5. No new agents needed
-
-Team is correctly sized. The bottleneck is human action on protected files, not agent capacity. No issues are piling up without an assigned agent.
+| Fix `reports/` ownership overlap | NOT DONE | No actual conflict |
+| Activate 04/05 post-v0.1.0 | WAITING | v0.1.0 almost ready |
+| PM add PROTECTED FILES (BUG-012) | IN PROGRESS | 5/12 done |
+| Reduce interval for blocked agents | SUPERSEDED | Scope cut means unblock is imminent |
 
 ## Staffing Recommendations
 
 | Action | Agent | Justification | Priority |
 |--------|-------|---------------|----------|
-| KEEP | All 9 active | Correctly staffed for v0.1.0 | — |
-| CONSIDER interval change | 06-backend, 11-web | Reduce to interval 2 while blocked to save API cost | P2 |
-| ACTIVATE post-v0.1.0 | 04-tauri-rust, 05-tauri-ui | Desktop app phase | P2 |
-| ACTIVATE post-v0.1.0 | 07-ios | iOS companion app | P3 |
+| KEEP | All 9 active | Correctly staffed for v0.1.0 close-out | — |
+| ACTIVATE post-v0.1.0 | 04-tauri-rust | Desktop app phase (v0.2.0 roadmap) | P2 |
+| ACTIVATE post-v0.1.0 | 05-tauri-ui | Desktop app phase (v0.2.0 roadmap) | P2 |
+| ACTIVATE post-v0.1.0 | 07-ios | iOS companion app (roadmap) | P3 |
 
-## Risk Flag
+## Post-v0.1.0 Activation Plan
 
-**If CS blockers are not resolved within 2 more batch cycles**, HR recommends CEO consider:
-1. De-scoping HIGH-03/HIGH-04 from v0.1.0 (ship with known risk + mitigation docs)
-2. Or granting temporary protected file access to 06-backend for specific patches
+When v0.1.0 ships, the team transitions to growth mode. HR recommends:
 
-This is an organizational decision, not a technical one — flagging it early.
+1. **Immediate (v0.1.1):** Keep current 9 agents. PM assigns HIGH-04 fix + README polish.
+2. **Benchmark sprint:** 06-backend leads SWE-bench + Ralph comparison. 09-qa validates.
+3. **v0.2.0 phase:** Activate 04-tauri-rust + 05-tauri-ui. Update agents.conf intervals.
+4. **HN launch prep:** 11-web + 01-ceo collaborate on launch materials.
 
 ## Next Review
 
 - Next HR cycle: ~3 cycles from now
-- Will track: CS blocker resolution, interval optimization adoption, BUG-012 completion
+- Will track: v0.1.0 tag status, post-v0.1.0 agent activation, BUG-012 completion

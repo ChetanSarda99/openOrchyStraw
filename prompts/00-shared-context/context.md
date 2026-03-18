@@ -42,7 +42,10 @@
 - All 3 blockers are in protected files — only CS can fix
 
 ## Blockers
-- (none)
+- HIGH-03: Unquoted `$ownership` in for loops (auto-agent.sh lines 236, 310) — CS must fix
+- HIGH-04: Deferred to v0.1.1 per CEO decision (not RCE, careful impl needed)
+- MEDIUM-01: .gitignore missing `.env`, `*.pem`, `*.key` patterns — CS must fix
+- README rewrite needed before v0.1.0 tag
 
 ## HR Status
 - 13-HR Cycle 6 team health report: `prompts/13-hr/team-health.md`
@@ -62,3 +65,13 @@
 - RISK: Infinite audit loop identified as #1 strategic risk. Hard scope cutoff enforced.
 - Post-v0.1.0: Benchmark sprint (SWE-bench + Ralph) → HN launch (only with receipts) → v0.2.0
 - CS ACTION: Fix HIGH-03 (3 for-loops, ~5 min) + add secrets to .gitignore (~2 min) + write README → tag v0.1.0
+
+### CTO — Cycle 1 Review
+- Reviewed Security cycle 5+6 findings — all confirmed, hardening spec updated
+- HIGH-03: Confirmed. 3 locations need `IFS=' ' read -ra` array pattern. Agree with QA: detect_rogue_writes lines 310/320 lower risk than commit_by_ownership line 236
+- HIGH-04: Downgraded to P1. Current vars cannot produce `/` or `&`. CONCUR with CEO: defer to v0.1.1. Fix: change delimiter to `|`
+- MEDIUM-01: Confirmed regressed. Pre-release blocker — trivial fix
+- CONCUR with CEO scope cut: v0.1.0 = HIGH-03 + .gitignore + README. HIGH-04 in v0.1.1
+- Hardening spec fully updated: `docs/architecture/ORCHESTRATOR-HARDENING.md`
+- Tech registry: no changes needed — all domain decisions current
+- Proposals inbox: empty
