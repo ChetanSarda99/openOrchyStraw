@@ -23,7 +23,15 @@
 set -uo pipefail
 
 PROJECT_ROOT="$(cd "$(dirname "$0")/.." && pwd)"
+SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
 cd "$PROJECT_ROOT"
+
+# ── Core modules ─────────────────────────────────────────────────────────
+if [ -d "$PROJECT_ROOT/src/core" ]; then
+    for mod in bash-version logger error-handler cycle-state agent-timeout dry-run config-validator lock-file; do
+        [ -f "$PROJECT_ROOT/src/core/${mod}.sh" ] && source "$PROJECT_ROOT/src/core/${mod}.sh"
+    done
+fi
 
 MAX_CYCLES="${2:-10}"
 PROMPTS_DIR="$PROJECT_ROOT/prompts"
@@ -53,18 +61,21 @@ notify() {
     local level="${2:-info}"  # info, warning, error
     local ps_exe="/mnt/c/Windows/System32/WindowsPowerShell/v1.0/powershell.exe"
 
-    # Windows Toast Notification (works from WSL)
+    # Windows Toast Notification (works from WSL) — safe via env var, no shell interpolation
     if [ -x "$ps_exe" ]; then
-        local escaped_title=$(echo "$title" | sed 's/&/&amp;/g; s/</\&lt;/g; s/>/\&gt;/g')
-        "$ps_exe" -Command "
+        local safe_title
+        safe_title=$(printf '%s' "$title" | sed 's/&/\&amp;/g; s/</\&lt;/g; s/>/\&gt;/g; s/"/\&quot;/g; s/'"'"'/\&apos;/g')
+
+        ORCH_TOAST_TITLE="$safe_title" "$ps_exe" -NoProfile -Command '
 [Windows.UI.Notifications.ToastNotificationManager, Windows.UI.Notifications, ContentType = WindowsRuntime] | Out-Null
 [Windows.Data.Xml.Dom.XmlDocument, Windows.Data.Xml.Dom, ContentType = WindowsRuntime] | Out-Null
-\$template = '<toast><visual><binding template=\"ToastText02\"><text id=\"1\">orchystraw</text><text id=\"2\">$escaped_title</text></binding></visual></toast>'
-\$xml = New-Object Windows.Data.Xml.Dom.XmlDocument
-\$xml.LoadXml(\$template)
-\$toast = [Windows.UI.Notifications.ToastNotification]::new(\$xml)
-[Windows.UI.Notifications.ToastNotificationManager]::CreateToastNotifier('orchystraw').Show(\$toast)
-" 2>/dev/null &
+$title = $env:ORCH_TOAST_TITLE
+$template = "<toast><visual><binding template=`"ToastText02`"><text id=`"1`">orchystraw</text><text id=`"2`">$title</text></binding></visual></toast>"
+$xml = New-Object Windows.Data.Xml.Dom.XmlDocument
+$xml.LoadXml($template)
+$toast = [Windows.UI.Notifications.ToastNotification]::new($xml)
+[Windows.UI.Notifications.ToastNotificationManager]::CreateToastNotifier("orchystraw").Show($toast)
+' 2>/dev/null &
     fi
 
     log "NOTIFY [$level]: $title"
@@ -218,27 +229,30 @@ commit_by_ownership() {
 
     [ "$ownership" = "none" ] && return 0
 
-    # Parse ownership: "backend/ prisma/" or "ios/ !ios/Views/Components/"
-    local include_paths=""
-    local exclude_paths=""
+    # Build arrays instead of eval strings (fixes HIGH-01 eval injection)
+    local -a include_args=()
+    local -a exclude_args=()
 
     for path in $ownership; do
         if [[ "$path" == !* ]]; then
-            exclude_paths+=" ':!${path#!}'"
+            exclude_args+=(":(exclude)${path#!}")
         else
-            include_paths+=" $path"
+            include_args+=("$path")
         fi
     done
 
-    if [ -z "$include_paths" ]; then return 0; fi
+    if [[ ${#include_args[@]} -eq 0 ]]; then return 0; fi
+
+    local -a pathspec=("--" "${include_args[@]}" "${exclude_args[@]}")
 
     # Check for changes in owned paths
-    local changes=$(eval "git diff --name-only -- $include_paths $exclude_paths" 2>/dev/null | wc -l | tr -d ' ')
-    local untracked=$(eval "git ls-files --others --exclude-standard -- $include_paths $exclude_paths" 2>/dev/null | wc -l | tr -d ' ')
+    local changes untracked
+    changes=$(git diff --name-only "${pathspec[@]}" 2>/dev/null | wc -l | tr -d ' ')
+    untracked=$(git ls-files --others --exclude-standard "${pathspec[@]}" 2>/dev/null | wc -l | tr -d ' ')
     local total=$((changes + untracked))
 
-    if [ "$total" -gt 0 ]; then
-        eval "git add -- $include_paths $exclude_paths" 2>/dev/null
+    if [[ "$total" -gt 0 ]]; then
+        git add "${pathspec[@]}" 2>/dev/null
         git commit -m "feat($agent_id): auto-cycle $(date '+%m-%d %H:%M') — $total files" 2>/dev/null
         log "[$agent_id] Committed $total files"
         return 0
