@@ -15,6 +15,33 @@
 | 8 | 2026-03-18 | 03 | PM housekeeping: closed #23 + #24 on GitHub, all agents still blocked on CS |
 | 9 | 2026-03-18 | all | No new work — all agents STANDBY, blocked on CS (HIGH-03 + MEDIUM-01 + README) |
 | 10 | 2026-03-18 | 03 | PM cycle 2 review — no changes, 9th cycle blocked on CS. Escalation noted. |
+| 11 | 2026-03-18 | 01,13,03 | CEO "Ship or Shelf", HR team health, PM invokes Option B — tag AS-IS |
+
+---
+
+## WHAT SHIPPED — Cycle 11 (2026-03-18 ~15:15)
+
+### 01-CEO
+- Cycle 9 strategic memo: `docs/strategy/CYCLE-9-CEO-UPDATE.md` — "Ship or Shelf"
+- Deadline set: If CS fixes don't land by cycle 10, tag v0.1.0 AS-IS with known issues
+- Option B defined: ship with HIGH-03 documented as known issue, hotfix in v0.1.1
+
+### 13-HR
+- Cycle 3 team health report: `prompts/13-hr/team-health.md`
+- Team utilization: ~11% — only PM + HR producing output
+- ~50 idle agent-cycles wasted on same 3 blockers
+- RECOMMENDED: Increase intervals for idle agents (CEO → 6, CTO → 4, Pixel → 4, Security → 10)
+- Staffing confirmed: team correctly sized, activate 04/05 post-v0.1.0
+
+### 03-PM (this cycle)
+- CEO deadline PASSED — invoking Option B per "Ship or Shelf"
+- Added CS action: tag v0.1.0 AS-IS if fixes can't land this session
+- HR interval recommendation accepted for next cycle
+- All agent prompts updated with deadline status
+- Session tracker updated
+
+### All Other Agents
+- STANDBY — no new work. 11th cycle blocked on CS.
 
 ---
 
@@ -259,7 +286,7 @@
 ## MILESTONE DASHBOARD
 | Milestone | Open | Closed | Status |
 |-----------|------|--------|--------|
-| v0.1.0 | 11 | 2 | #23 + #24 closed. HIGH-03 + .gitignore + README still block tag. CS must act. |
+| v0.1.0 | 11 | 2 | CEO deadline PASSED. Option B: tag AS-IS with known issues. CS must decide: fix or ship. |
 
 ## CODEBASE SIZE
 - `src/core/` modules: 8 bash files (7 core + bash-version)
@@ -270,12 +297,12 @@
 - Agent prompts: 9 active in agents.conf
 
 ## NEXT CYCLE PRIORITIES
-**⚠️ ESCALATION: 9 cycles blocked on CS. ~7 min of manual fixes unlocks entire team.**
-1. **CS (BLOCKER):** Fix HIGH-03 — unquoted `$ownership` in for loops (auto-agent.sh lines 236, 310, 320). ~5 min. Exact patch in `src/core/INTEGRATION-GUIDE.md`.
-2. **CS (BLOCKER):** Fix MEDIUM-01 — root `.gitignore` missing `.env`, `*.pem`, `*.key` patterns. ~2 min.
-3. **CS (P1):** README rewrite before v0.1.0 tag
-4. After CS fixes: QA regression + Security final sign-off → tag v0.1.0
-5. **v0.1.1 (within 24 hours):** HIGH-04 sed injection + QA-F001 `set -e` + prompt cleanup
-6. After v0.1.0: Benchmark sprint (SWE-bench + Ralph comparison)
-7. After benchmarks: HN launch (only with receipts), v0.2.0 `--single-agent` mode
-8. Post-v0.2.0: Pixel Phase 2, Tauri scaffold, landing page deploy
+**🚨 CEO DEADLINE PASSED (cycle 10). Option B now active: tag v0.1.0 AS-IS or apply fixes.**
+1. **CS DECISION NEEDED:** Either (A) apply 3 fixes (~7 min) OR (B) tag v0.1.0 AS-IS with known issues in README
+2. **If Option A:** Apply HIGH-03 + .gitignore + README → QA/Security validate → tag v0.1.0
+3. **If Option B:** Write minimal README with known issues section → tag v0.1.0 → hotfix in v0.1.1
+4. **v0.1.1 (within 24 hours either way):** HIGH-03 (if AS-IS) + HIGH-04 sed injection + QA-F001 `set -e`
+5. After v0.1.0: Benchmark sprint (SWE-bench + Ralph comparison)
+6. After benchmarks: HN launch (only with receipts), v0.2.0 `--single-agent` mode
+7. Post-v0.2.0: Pixel Phase 2, Tauri scaffold, landing page deploy
+8. **PM action:** If no CS response next cycle, increase idle agent intervals per HR recommendation
