@@ -10,46 +10,6 @@
 | 3 | 2026-03-18 | 02,06,03 | OWN-001 ADR, integration smoke test (42 assertions), BUG-009 P0 confirmed, all agents BLOCKED on CS |
 | 4 | 2026-03-18 | 09,03 | QA cycle 3 report (NOT READY), BUG-004/005 path typos FIXED, BUG-012 NEW, all CS blockers remain |
 | 5 | 2026-03-18 | 01,02,09,10,13,03 | CS UNBLOCKED (d130de7), QA CONDITIONAL PASS, Security HIGH-03/HIGH-04 NEW, HR team docs, CEO "The Unblock" |
-| 6 | 2026-03-18 | 06,09,10,03 | Backend docs HIGH-03/04/MEDIUM-01 patches, QA cycle 5 NOT READY, Security cycle 5 NO CHANGE |
-| 7 | 2026-03-18 | 01,13,06,09,10,03 | CEO "Cut the Tail" scope lock, QA cycle 6 NOT READY, Security cycle 6 NO CHANGE, all blocked on CS |
-
----
-
-## WHAT SHIPPED — Cycle 7 (2026-03-18 14:34–14:50)
-
-### 01-CEO
-- Strategic update: `docs/strategy/CYCLE-7-CEO-UPDATE.md` — "Cut the Tail"
-- v0.1.0 scope LOCKED: HIGH-03 fix + .gitignore + README only
-- HIGH-04 deferred to v0.1.1 (not RCE, needs careful impl)
-- `--single-agent` mode elevated to v0.2.0 (growth hack)
-- Infinite audit loop identified as #1 strategic risk — hard scope cutoff enforced
-
-### 06-Backend
-- Documented exact patches for HIGH-03, HIGH-04, MEDIUM-01 in `src/core/INTEGRATION-GUIDE.md`
-- All 9 tests pass (8 unit + 1 integration, 42 assertions)
-- BLOCKED: All 3 fixes are in protected files — CS must apply
-
-### 09-QA
-- Cycle 6 QA report: `prompts/09-qa/reports/qa-cycle-6.md`
-- Verdict: NOT READY — HIGH-04 + MEDIUM-01 still open
-- HIGH-03 PARTIALLY FIXED (commit_by_ownership arrays done, detect_rogue_writes P2)
-- QA agrees with CEO scope cut for v0.1.0
-
-### 10-Security
-- Cycle 6 audit: `prompts/10-security/reports/security-cycle-6.md`
-- Verdict: NO CHANGE — all 3 blockers still need CS
-- Secrets scan: CLEAN
-
-### 13-HR
-- Cycle 6 team health update
-- CS unblock resolved original 4-cycle blocker
-- BUG-012 progress: 5/12 prompts have PROTECTED FILES
-- Team correctly sized, no changes needed
-
-### 03-PM (this cycle)
-- All agent prompts updated with cycle 7/8 status
-- Session tracker updated
-- CS action items reviewed
 
 ---
 
@@ -229,22 +189,21 @@
 ## MILESTONE DASHBOARD
 | Milestone | Open | Closed | Status |
 |-----------|------|--------|--------|
-| v0.1.0 | 13 | 0 | CEO scope locked: HIGH-03 + .gitignore + README only. HIGH-04 → v0.1.1. Blocked on CS. |
+| v0.1.0 | 13 | 0 | All modules integrated (d130de7). Original P0s RESOLVED. NEW blockers: HIGH-03 + HIGH-04 + MEDIUM-01 regression |
 
 ## CODEBASE SIZE
 - `src/core/` modules: 8 bash files (7 core + bash-version)
 - `src/pixel/` files: 3 (emitter + test + integration guide)
 - `tests/core/` files: 10 (8 unit tests + runner + integration test)
-- `site/` files: ~16,122 TS/TSX/JS (Next.js project)
-- Backend scripts: 11 shell files
-- Agent prompts: 9 active in agents.conf
+- `site/` files: ~3,312 TS/TSX (Next.js project)
+- Agent prompts: 9 active in agents.conf (added 13-hr)
 
 ## NEXT CYCLE PRIORITIES
-1. **CS (BLOCKER):** Fix HIGH-03 — unquoted `$ownership` in for loops (auto-agent.sh lines 236, 310, 320). ~5 min.
-2. **CS (BLOCKER):** Fix MEDIUM-01 — root `.gitignore` missing `.env`, `*.pem`, `*.key` patterns. ~2 min.
-3. **CS (P1):** README rewrite before v0.1.0 tag
-4. After CS fixes: QA regression + Security final sign-off → tag v0.1.0
-5. **v0.1.1 (within 24 hours):** HIGH-04 sed injection + QA-F001 `set -e` + prompt cleanup
-6. After v0.1.0: Benchmark sprint (SWE-bench + Ralph comparison)
-7. After benchmarks: HN launch (only with receipts), v0.2.0 `--single-agent` mode
-8. Post-v0.2.0: Pixel Phase 2, Tauri scaffold, landing page deploy
+1. **CS (BLOCKER):** Fix HIGH-03 — unquoted `$ownership` in for loops (auto-agent.sh lines 236, 310, 320). Use array-based iteration.
+2. **CS (BLOCKER):** Fix HIGH-04 — sed injection in prompt updates (auto-agent.sh lines 785-791). Use `|` delimiter + escaping.
+3. **CS (BLOCKER):** Fix MEDIUM-01 — root `.gitignore` missing `.env`, `*.pem`, `*.key` patterns. Add all sensitive patterns.
+4. **CS (P1):** Add `set -e` to auto-agent.sh line 23 (QA-F001)
+5. **CS (P1):** README rewrite before v0.1.0 tag
+6. **PM (P1):** Add PROTECTED FILES section to remaining agent prompts (BUG-012)
+7. After CS fixes: QA regression + Security final sign-off → tag v0.1.0
+8. After v0.1.0: Benchmark sprint (SWE-bench + Ralph comparison), Pixel Phase 2, Tauri scaffold

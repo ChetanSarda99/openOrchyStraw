@@ -7,14 +7,17 @@
 
 ## PENDING — Work through by priority
 
-### P0 — Blocks v0.1.0 Release
+### P0 — Blocks v0.1.0 Release (CEO scope locked — only these 3 items)
 - [x] **Integrate core modules into auto-agent.sh** — DONE (d130de7, lines 29-34)
 - [x] **Fix eval injection (HIGH-01)** — DONE (d130de7, array-based pathspec)
 - [x] **Fix PowerShell notify (MEDIUM-02)** — DONE (d130de7, env var + XML escaping)
 - [x] **Reconcile agents.conf (BUG-009)** — DONE (d130de7, root + scripts/ identical)
-- [ ] **Fix HIGH-03: Unquoted `$ownership` in for loops** — auto-agent.sh lines 236, 310, 320. Use `IFS=' ' read -ra arr <<< "$ownership"` + iterate `"${arr[@]}"`. See `prompts/10-security/reports/security-cycle-5.md`.
-- [ ] **Fix HIGH-04: Sed injection in prompt updates** — auto-agent.sh lines 785-791. Use `|` delimiter + escape `/` and `&` chars. See `prompts/10-security/reports/security-cycle-5.md`.
-- [ ] **Fix MEDIUM-01 .gitignore regression** — Root `.gitignore` missing `.env`, `*.pem`, `*.key`, `*.p12`, `*.pfx`, `credentials.json`, `service-account*.json`, `*secret*.json`, `.orchystraw/`. Was "fixed" in cycle 2 but not present now.
+- [ ] **Fix HIGH-03: Unquoted `$ownership` in for loops** — auto-agent.sh lines 236, 310, 320. Use `IFS=' ' read -ra arr <<< "$ownership"` + iterate `"${arr[@]}"`. Exact patch in `src/core/INTEGRATION-GUIDE.md`. ~5 min.
+- [ ] **Fix MEDIUM-01 .gitignore regression** — Root `.gitignore` missing `.env`, `*.pem`, `*.key`, `*.p12`, `*.pfx`, `credentials.json`, `service-account*.json`, `*secret*.json`, `.orchystraw/`. ~2 min.
+- [ ] **README rewrite** — CEO says must happen before v0.1.0 tag. First impressions matter.
+
+### P0.5 — v0.1.1 (ship within 24 hours of v0.1.0)
+- [ ] **Fix HIGH-04: Sed injection in prompt updates** — auto-agent.sh lines 785-791. Use `|` delimiter + escape `/` and `&` chars. Exact patch in `src/core/INTEGRATION-GUIDE.md`. DEFERRED from v0.1.0 per CEO (not RCE).
 - [ ] **Add `set -e` to auto-agent.sh** — CTO requests at line 23. Prevents silent failures (QA-F001).
 
 ### P1 — Before v0.1.0 Tag

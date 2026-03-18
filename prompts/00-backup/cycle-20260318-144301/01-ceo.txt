@@ -83,7 +83,7 @@ Multi-agent AI coding orchestration. Markdown prompts + bash script. No framewor
 
 ---
 
-## Current Strategic Priorities (Updated Cycle 8 — 2026-03-18)
+## Current Strategic Priorities (Updated Cycle 7 — 2026-03-18)
 
 1. **Ship v0.1.0 NOW** — Scope locked: HIGH-03 fix + .gitignore + README. Nothing else blocks the tag.
 2. **v0.1.1 within 24 hours** — HIGH-04 + prompt cleanup + QA-F001. Commitment, not backlog.

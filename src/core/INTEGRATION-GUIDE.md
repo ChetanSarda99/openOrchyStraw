@@ -272,3 +272,127 @@ $toast = [Windows.UI.Notifications.ToastNotification]::new($xml)
 - Pass the title via `$env:ORCH_TOAST_TITLE` (environment variable) instead of shell interpolation
 - Use single-quoted PowerShell command block so bash doesn't expand anything
 - Added `-NoProfile` for faster startup
+
+---
+
+### [HIGH-03] Fix unquoted `$ownership` in for loops (Cycle 6)
+
+**Location:** `auto-agent.sh` lines 236, 310, 320
+**Problem:** `for path in $ownership` is unquoted — shell performs word-splitting AND glob expansion. A path like `src/*.sh` in agents.conf would expand to actual filenames.
+
+**Fix — Line 236** (in `commit_by_ownership()`):
+
+Replace:
+```bash
+    for path in $ownership; do
+```
+
+With:
+```bash
+    IFS=' ' read -ra _ownership_arr <<< "$ownership"
+    for path in "${_ownership_arr[@]}"; do
+```
+
+**Fix — Lines 306-313** (in `detect_rogue_writes()`):
+
+Replace:
+```bash
+    local all_owned=""
+    for id in "${AGENT_IDS[@]}"; do
+        local ownership="${AGENT_OWNERSHIP[$id]}"
+        [ "$ownership" = "none" ] && continue
+        for path in $ownership; do
+            [[ "$path" == !* ]] && continue
+            all_owned+=" $path"
+        done
+    done
+```
+
+With:
+```bash
+    local -a all_owned_arr=()
+    for id in "${AGENT_IDS[@]}"; do
+        local ownership="${AGENT_OWNERSHIP[$id]}"
+        [ "$ownership" = "none" ] && continue
+        IFS=' ' read -ra _own_arr <<< "$ownership"
+        for path in "${_own_arr[@]}"; do
+            [[ "$path" == !* ]] && continue
+            all_owned_arr+=("$path")
+        done
+    done
+```
+
+**Fix — Line 320** (also in `detect_rogue_writes()`):
+
+Replace:
+```bash
+        for path in $all_owned; do
+```
+
+With:
+```bash
+        for path in "${all_owned_arr[@]}"; do
+```
+
+**Why this works:** `read -ra` splits the string into an array at read time, then `"${arr[@]}"` iterates without glob expansion. Each element is individually quoted.
+
+---
+
+### [HIGH-04] Fix sed injection in prompt updates (Cycle 6)
+
+**Location:** `auto-agent.sh` lines 785-791
+**Problem:** Variables interpolated in sed with `/` delimiter. If any variable contains `/` or `&`, the sed command breaks or injects unintended content.
+
+**Fix — Replace lines 785-791** with:
+
+```bash
+                # Escape sed special chars in variables
+                local _safe_date _safe_time _safe_bsrc _safe_tc _safe_ts _safe_sw _safe_comp _safe_total
+                _safe_date=$(printf '%s\n' "$(date '+%B %d, %Y')" | sed 's/[|&]/\\&/g')
+                _safe_time=$(printf '%s\n' "${current_time}" | sed 's/[|&]/\\&/g')
+                _safe_bsrc=$(printf '%s\n' "${backend_src}" | sed 's/[|&]/\\&/g')
+                _safe_tc=$(printf '%s\n' "${test_count}" | sed 's/[|&]/\\&/g')
+                _safe_ts=$(printf '%s\n' "${ts_count}" | sed 's/[|&]/\\&/g')
+                _safe_sw=$(printf '%s\n' "${swift_count}" | sed 's/[|&]/\\&/g')
+                _safe_comp=$(printf '%s\n' "${component_count}" | sed 's/[|&]/\\&/g')
+                _safe_total=$(printf '%s\n' "$total" | sed 's/[|&]/\\&/g')
+
+                # Use | delimiter to avoid / conflicts in date strings
+                sed -i "s|\*\*Date:\*\* .*|\*\*Date:\*\* ${_safe_date} — ${_safe_time}|" "$pf" 2>/dev/null
+                sed -i "s|[0-9]* TypeScript source + [0-9]* test files = [0-9]* total|${_safe_bsrc} TypeScript source + ${_safe_tc} test files = ${_safe_ts} total|" "$pf" 2>/dev/null
+                sed -i "s|[0-9]* Swift files|${_safe_sw} Swift files|" "$pf" 2>/dev/null
+                sed -i "s|[0-9]* components|${_safe_comp} components|" "$pf" 2>/dev/null
+                sed -i "s|Total:.*source files|Total: ${_safe_total} source files|" "$pf" 2>/dev/null
+```
+
+**Why this works:**
+- `|` delimiter means `/` in date strings (e.g., "March 18, 2026") won't break sed
+- `&` is escaped so it won't be interpreted as "insert match"
+- Numeric variables are sanitized too (defense in depth — if state files are corrupted)
+
+---
+
+### [MEDIUM-01] Fix .gitignore regression (Cycle 6)
+
+**Location:** Root `.gitignore`
+**Problem:** Missing patterns for secrets. Was reportedly fixed in cycle 2 but not present in current file.
+
+**Fix — Append to root `.gitignore`:**
+
+```gitignore
+# Secrets & credentials
+.env
+.env.*
+*.pem
+*.key
+*.p12
+*.pfx
+credentials.json
+service-account*.json
+*secret*.json
+
+# App data
+.orchystraw/
+```
+
+**Note:** `site/.gitignore` already covers `.env*` and `*.pem` for the Next.js project, but the root `.gitignore` must also cover repo-root files.

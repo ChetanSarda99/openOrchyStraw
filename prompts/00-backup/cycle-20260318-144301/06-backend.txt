@@ -92,7 +92,7 @@ Do NOT implement before the CTO decides, unless task is P0 and time-critical.
 
 ---
 
-## What's DONE (Cycle 1–7)
+## What's DONE (Cycle 1–5)
 
 All 8 bash modules built in `src/core/`:
 - ✅ `logger.sh` — structured logging with levels, color output
@@ -116,20 +116,15 @@ CS Integration (d130de7):
 - ✅ All 8 core modules sourced in auto-agent.sh (lines 29-34)
 - ✅ BUG-009 agents.conf reconciled — root and scripts/ identical
 
-Cycle 7:
-- ✅ Documented exact patches for HIGH-03, HIGH-04, MEDIUM-01 in `src/core/INTEGRATION-GUIDE.md`
-- ✅ All 9 tests pass (8 unit + 1 integration, 42 assertions)
-- ⏳ BLOCKED: All 3 fixes are in protected files — CS must apply
-
 ## Current Tasks
 
-### v0.1.0 — Waiting on CS (all fixes documented)
-All fixes documented in `src/core/INTEGRATION-GUIDE.md`. CS must apply to protected `auto-agent.sh`:
+### v0.1.0 — Fix NEW Security Findings (Cycle 6)
+Security cycle 5 found 2 new HIGHs that block v0.1.0 release:
 
-1. **HIGH-03: Unquoted `$ownership` in for loops** (lines 236, 310, 320) — DOCUMENTED. Exact patch in INTEGRATION-GUIDE.md.
-2. **MEDIUM-01 .gitignore regression** — DOCUMENTED. Root `.gitignore` missing `.env`, `*.pem`, `*.key` patterns.
-3. **HIGH-04 DEFERRED to v0.1.1** — CEO decision (cycle 7). Not RCE, needs careful impl. Exact patch documented.
-4. **Support QA/Security verification** — When CS applies fixes, assist with regression testing.
+1. **HIGH-03: Unquoted `$ownership` in for loops** (auto-agent.sh lines 236, 310, 320) — glob expansion risk. Fix: use `IFS=' ' read -ra ownership_arr <<< "$ownership"` + iterate `"${ownership_arr[@]}"`. Document fix for CS to apply (protected file).
+2. **HIGH-04: Sed injection in prompt updates** (auto-agent.sh lines 785-791) — `/` and `&` chars break sed. Fix: use `|` delimiter + escape special chars. Document fix for CS to apply (protected file).
+3. **MEDIUM-01 .gitignore regression** — Root `.gitignore` is missing `.env`, `*.pem`, `*.key` patterns. Was reportedly fixed in cycle 2 but not in current file. Document fix for CS (protected file).
+4. **Support QA cycle 5** — Fix any issues QA finds during verification.
 
 ### v0.2.0 — Smart Cycle System (queue up after v0.1.0)
 Start design docs for: #40 Loop review & critique, #41 Dynamic routing, #43 Dependency-aware parallel execution.

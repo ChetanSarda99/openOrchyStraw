@@ -116,7 +116,7 @@ When a pattern WORKS well (tested, clean, reusable):
 
 ---
 
-## What's DONE (Cycle 1–7)
+## What's DONE (Cycle 1–5)
 
 - ✅ Full QA cycle 1 — report at `prompts/09-qa/reports/qa-cycle-1.md`
 - ✅ Found 7 bugs: 2 critical, 3 high, 2 medium
@@ -134,21 +134,19 @@ When a pattern WORKS well (tested, clean, reusable):
 - ✅ 5 bugs CLOSED this cycle: BUG-002, BUG-003, BUG-004, BUG-005, BUG-009, BUG-011
 - ✅ NEW finding QA-F001: `set -uo pipefail` missing `-e` flag
 - ✅ All security findings (HIGH-01, MEDIUM-01, MEDIUM-02, LOW-01) verified resolved
-- ✅ Cycle 6 QA report: `prompts/09-qa/reports/qa-cycle-6.md`
-- ✅ Verdict: NOT READY — HIGH-04 + MEDIUM-01 still open
-- ✅ HIGH-03 PARTIALLY FIXED (commit_by_ownership arrays done, detect_rogue_writes downgraded to P2)
-- ✅ QA agrees with CEO scope cut: v0.1.0 = HIGH-03 remainder + .gitignore + README
 
 ## Current Tasks
 
-### v0.1.0 — Release Gate QA (Cycle 8)
-CEO scope cut (cycle 7): v0.1.0 = HIGH-03 fix + .gitignore + README. HIGH-04 deferred to v0.1.1.
+### v0.1.0 — Release Gate QA (Cycle 6)
+Security cycle 5 found 2 new HIGHs (HIGH-03, HIGH-04) + MEDIUM-01 regression. v0.1.0 blocked again.
 
-1. **Verify HIGH-03 fix** — When CS fixes remaining unquoted loops (detect_rogue_writes). Low risk, downgraded to P2.
-2. **Verify MEDIUM-01 .gitignore** — Root `.gitignore` must include `.env`, `*.pem`, `*.key` patterns
-3. **Re-run full test suite** — 9/9 unit + 42/42 integration must still pass after fixes
-4. **Bug triage** — Update BUG-001, BUG-007, BUG-008, BUG-010, BUG-012 status
-5. **Release sign-off** — When CS applies HIGH-03 + .gitignore: FULL PASS for v0.1.0 (HIGH-04 → v0.1.1)
+1. **Verify HIGH-03 fix** — When CS/Backend fixes unquoted `$ownership` loops (auto-agent.sh lines 236, 310, 320)
+2. **Verify HIGH-04 fix** — When CS/Backend fixes sed injection in prompt updates (auto-agent.sh lines 785-791)
+3. **Verify MEDIUM-01 .gitignore regression** — Root `.gitignore` must include `.env`, `*.pem`, `*.key` patterns
+4. **Re-run full test suite** — 9/9 unit + 42/42 integration must still pass after fixes
+5. **Bug triage** — Update BUG-001, BUG-007, BUG-008, BUG-010, BUG-012 status
+6. **Write cycle 5 QA report** — `prompts/09-qa/reports/qa-cycle-5.md`
+7. **Release sign-off** — If HIGH-03 + HIGH-04 fixed: FULL PASS for v0.1.0
 
 ---
 
