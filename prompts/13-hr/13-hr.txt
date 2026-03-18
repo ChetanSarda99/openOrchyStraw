@@ -199,8 +199,15 @@ When advising PM on new agent prompts, ensure they follow this structure:
 
 ## YOUR TASKS (PM updates this section)
 
-- [ ] Create `docs/team/TEAM_ROSTER.md` with current agent lineup
-- [ ] Create `docs/team/ONBOARDING.md` guide
-- [ ] Create `docs/team/NORMS.md` with team conventions
-- [ ] Review current agents.conf for ownership overlaps
-- [ ] Produce first team health report
+### DONE (Cycle 5)
+- [x] Created `docs/team/TEAM_ROSTER.md` — full agent lineup + ownership overlap analysis
+- [x] Created `docs/team/ONBOARDING.md` — agent add/remove guide
+- [x] Created `docs/team/NORMS.md` — team conventions
+- [x] Reviewed agents.conf for ownership overlaps
+- [x] First team health report: `prompts/13-hr/team-health.md`
+
+### Current (Cycle 6)
+- [ ] Monitor team health — no blockers expected until HIGH-03/HIGH-04 are fixed
+- [ ] Verify BUG-012 progress — PM adding PROTECTED FILES to remaining agent prompts
+- [ ] Update team roster if any agents added/removed
+- [ ] Post-v0.1.0: recommend reactivating 04-tauri-rust + 05-tauri-ui

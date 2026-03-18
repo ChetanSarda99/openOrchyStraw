@@ -92,7 +92,7 @@ Do NOT implement before the CTO decides, unless task is P0 and time-critical.
 
 ---
 
-## What's DONE (Cycle 1 + Cycle 2 + Cycle 3)
+## What's DONE (Cycle 1–5)
 
 All 8 bash modules built in `src/core/`:
 - ✅ `logger.sh` — structured logging with levels, color output
@@ -105,24 +105,26 @@ All 8 bash modules built in `src/core/`:
 - ✅ `bash-version.sh` — exits if bash < 5.0, with install instructions
 
 Test & integration:
-- ✅ `tests/core/` — 8 unit test files + runner, all 8 pass
+- ✅ `tests/core/` — 8 unit test files + runner, all 9 pass (8 unit + 1 integration)
 - ✅ `tests/core/test-integration.sh` — integration smoke test: sources all 8 modules, 42 assertions pass
 - ✅ `INTEGRATION-GUIDE.md` — step-by-step for CS to integrate all 8 modules + `set -e` documentation
 - ✅ All 8 shebangs standardized to `#!/usr/bin/env bash` per BASH-001 ADR
 
-Security fixes documented:
-- ✅ MEDIUM-01 (.gitignore) FIXED
-- ✅ HIGH-01 eval fix DOCUMENTED (CS must apply to protected auto-agent.sh)
-- ✅ MEDIUM-02 notify fix DOCUMENTED (CS must apply)
+CS Integration (d130de7):
+- ✅ HIGH-01 eval injection FIXED — array-based pathspec in auto-agent.sh
+- ✅ MEDIUM-02 notify injection FIXED — env var + single-quoted PS
+- ✅ All 8 core modules sourced in auto-agent.sh (lines 29-34)
+- ✅ BUG-009 agents.conf reconciled — root and scripts/ identical
 
 ## Current Tasks
 
-### v0.1.0 — Post-Integration Support (Cycle 3+)
-**BLOCKED:** All backend modules are built, tested, and documented. Waiting on CS to integrate into auto-agent.sh.
+### v0.1.0 — Fix NEW Security Findings (Cycle 6)
+Security cycle 5 found 2 new HIGHs that block v0.1.0 release:
 
-1. **After CS integrates:** Run `tests/core/run-tests.sh` + `tests/core/test-integration.sh` to verify modules load correctly in the live orchestrator.
-2. **Support QA re-audit** — Fix any issues QA finds during their post-integration verification pass.
-3. **Signal trap test** — Once integrated, manually test SIGINT during a running cycle to verify cleanup.
+1. **HIGH-03: Unquoted `$ownership` in for loops** (auto-agent.sh lines 236, 310, 320) — glob expansion risk. Fix: use `IFS=' ' read -ra ownership_arr <<< "$ownership"` + iterate `"${ownership_arr[@]}"`. Document fix for CS to apply (protected file).
+2. **HIGH-04: Sed injection in prompt updates** (auto-agent.sh lines 785-791) — `/` and `&` chars break sed. Fix: use `|` delimiter + escape special chars. Document fix for CS to apply (protected file).
+3. **MEDIUM-01 .gitignore regression** — Root `.gitignore` is missing `.env`, `*.pem`, `*.key` patterns. Was reportedly fixed in cycle 2 but not in current file. Document fix for CS (protected file).
+4. **Support QA cycle 5** — Fix any issues QA finds during verification.
 
 ### v0.2.0 — Smart Cycle System (queue up after v0.1.0)
 Start design docs for: #40 Loop review & critique, #41 Dynamic routing, #43 Dependency-aware parallel execution.

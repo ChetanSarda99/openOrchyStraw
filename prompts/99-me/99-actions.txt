@@ -8,11 +8,14 @@
 ## PENDING — Work through by priority
 
 ### P0 — Blocks v0.1.0 Release
-- [ ] **Integrate core modules into auto-agent.sh** — Source all 8 modules (`src/core/*.sh`). Full step-by-step in `src/core/INTEGRATION-GUIDE.md`. This is the #1 blocker for v0.1.0.
-- [ ] **Fix eval injection (HIGH-01)** — Replace `eval` in `commit_by_ownership()` (auto-agent.sh:236-241) with array-based args. Exact replacement code in `src/core/INTEGRATION-GUIDE.md`.
-- [ ] **Fix PowerShell notify (MEDIUM-02)** — Escape variable in notify function. Replacement code in `src/core/INTEGRATION-GUIDE.md`.
-- [ ] **Add `set -e` to auto-agent.sh** — CTO requests at line 23. Prevents silent failures.
-- [ ] **Reconcile agents.conf (BUG-009)** — Two divergent copies: root has 13 agents, scripts/ has 8. Pick one source of truth.
+- [x] **Integrate core modules into auto-agent.sh** — DONE (d130de7, lines 29-34)
+- [x] **Fix eval injection (HIGH-01)** — DONE (d130de7, array-based pathspec)
+- [x] **Fix PowerShell notify (MEDIUM-02)** — DONE (d130de7, env var + XML escaping)
+- [x] **Reconcile agents.conf (BUG-009)** — DONE (d130de7, root + scripts/ identical)
+- [ ] **Fix HIGH-03: Unquoted `$ownership` in for loops** — auto-agent.sh lines 236, 310, 320. Use `IFS=' ' read -ra arr <<< "$ownership"` + iterate `"${arr[@]}"`. See `prompts/10-security/reports/security-cycle-5.md`.
+- [ ] **Fix HIGH-04: Sed injection in prompt updates** — auto-agent.sh lines 785-791. Use `|` delimiter + escape `/` and `&` chars. See `prompts/10-security/reports/security-cycle-5.md`.
+- [ ] **Fix MEDIUM-01 .gitignore regression** — Root `.gitignore` missing `.env`, `*.pem`, `*.key`, `*.p12`, `*.pfx`, `credentials.json`, `service-account*.json`, `*secret*.json`, `.orchystraw/`. Was "fixed" in cycle 2 but not present now.
+- [ ] **Add `set -e` to auto-agent.sh** — CTO requests at line 23. Prevents silent failures (QA-F001).
 
 ### P1 — Before v0.1.0 Tag
 - [ ] **Update CLAUDE.md** — QA found it lists 11 agents and paths (src-tauri/, ios/) that don't exist yet. Align with reality.
@@ -39,4 +42,8 @@
 
 - [x] **2026-03-18** Fix QA prompt path (BUG-004) — PM fixed in cycle 4
 - [x] **2026-03-18** Fix Security prompt path (BUG-005) — PM fixed in cycle 4
-- [x] **2026-03-18** .gitignore update (MEDIUM-01) — Backend fixed in cycle 2
+- [x] **2026-03-18** .gitignore update (MEDIUM-01) — Backend fixed in cycle 2 (**NOTE: regressed, not in root .gitignore**)
+- [x] **2026-03-18** Integrate core modules into auto-agent.sh — CS applied d130de7
+- [x] **2026-03-18** Fix eval injection (HIGH-01) — CS applied d130de7
+- [x] **2026-03-18** Fix PowerShell notify (MEDIUM-02) — CS applied d130de7
+- [x] **2026-03-18** Reconcile agents.conf (BUG-009) — CS applied d130de7

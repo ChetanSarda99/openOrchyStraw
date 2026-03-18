@@ -80,22 +80,22 @@ Multi-agent AI coding orchestration. Markdown prompts + bash script. No framewor
 
 ---
 
-## Current Strategic Priorities (Updated Cycle 5 — 2026-03-18)
+## Current Strategic Priorities (Updated Cycle 6 — 2026-03-18)
 
-1. **Ship v0.1.0** — ALL blockers resolved by CS. Gated on: QA regression, Security sign-off, README rewrite. No code work needed.
+1. **Ship v0.1.0** — Original blockers resolved. NEW blockers: Security found HIGH-03 (unquoted loops) + HIGH-04 (sed injection) + MEDIUM-01 regression (.gitignore). CS must fix these in auto-agent.sh before tag.
 2. **Benchmark proof** — SWE-bench Lite + Ralph head-to-head. Immediately after v0.1.0. Results go in README.
 3. **Pixel Agents integration** — Phase 1 emitter done. Phase 2 (fork + adapter) after v0.1.0.
 4. **Tauri desktop app** — Paid product foundation. Starts after v0.1.0 hardening is solid.
 5. **Landing page + docs** — MVP built, on standby. Deploy after v0.1.0.
 
-### Key Strategic Decisions (Cycle 1–5)
+### Key Strategic Decisions (Cycle 1–6)
 - Open-source v0.1.0 to openOrchyStraw immediately — the orchestrator is the hook
 - Benchmarks elevated from P4 to P1 — proof before polish
 - README rewrite happens BEFORE v0.1.0 tag — first impressions matter
 - v0.1.1 will add --single-agent mode (Ralph compatibility = on-ramp for new users)
 - Protected file bottleneck RESOLVED (Cycle 5) — CS shipped d130de7 with all fixes
 - HR agent (13-hr) added — good for team composition governance at scale
-- v0.1.0 has ZERO blockers for the first time — QA + Security must validate, then tag
+- v0.1.0 re-blocked on HIGH-03/HIGH-04 — security found new issues in ownership loops + sed injection
 - Full memos: `docs/strategy/CYCLE-1-STRATEGIC-MEMO.md`, `docs/strategy/CYCLE-2-CEO-UPDATE.md`, `docs/strategy/CYCLE-5-CEO-UPDATE.md`
 
 ---
