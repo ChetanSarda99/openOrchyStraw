@@ -101,20 +101,30 @@ For now: maintain registry here, PM will propose migration when 2nd project star
 - ✅ OWN-001 ADR: File ownership boundaries — src/ overlap, auto-agent.sh ownership, dual agents.conf (cycle 3)
 - ✅ Confirmed BUG-009: dual agents.conf divergence (root vs scripts/) — upgraded to P0
 - ✅ Hardening spec updated with cycle 3 findings and revised priority table
+- ✅ Cycle 4: Full architecture review of CS fix commit (d130de7) — all fixes PASS
+- ✅ Hardening spec updated with cycle 4 review (all P0s closed, priority table revised)
+- ✅ Confirmed v0.1 path UNBLOCKED — QA regression + Security sign-off next
 
 ## Current Technical Priorities
 
-### BLOCKED — Waiting on CS for all P0 items:
-1. **CS BLOCKER: Dual agents.conf (BUG-009)** — Root has 13 agents, scripts/ has 8. auto-agent.sh uses scripts/ copy. Must migrate to root. See OWN-001.
-2. **CS BLOCKER: eval injection (HIGH-01)** — 3 eval calls in commit_by_ownership() still open. Array-based fix spec'd in INTEGRATION-GUIDE.md.
-3. **CS BLOCKER: `set -e`** — Missing from auto-agent.sh line 23. Must add.
-4. **CS: Backend ownership exclusions** — Add `!scripts/auto-agent.sh !scripts/agents.conf !scripts/check-*.sh` to 06-backend ownership.
+### RESOLVED P0s (cycle 4 — CS applied d130de7):
+- ~~BUG-009 dual agents.conf~~ — FIXED, both synced to 9 agents
+- ~~HIGH-01 eval injection~~ — FIXED, array-based pathspec
+- ~~MEDIUM-02 notify injection~~ — FIXED, env var + single-quoted PS
+- ~~Core module sourcing~~ — FIXED, explicit ordered source at startup
+- CTO reviewed all fixes — architecture compliance PASS
 
-### After CS Applies Fixes (Cycle 4+):
-5. **Review integrated auto-agent.sh** — Architecture compliance check post-integration.
-6. **v0.2.0 architecture planning** — Begin design docs for smart cycle system (#40-#46). Focus on dependency graph and execution model.
-7. Cycle reproducibility — deterministic runs, clean restarts
-8. **BUG-012 review** — Verify PROTECTED FILES sections added to all agent prompts per QA finding
+### Remaining P1s (not blocking v0.1, should fix before public release):
+1. **`set -e` missing** — auto-agent.sh line 23 still `set -uo pipefail`. Silent failures possible.
+2. **Backend ownership exclusions** — 06-backend owns `scripts/` but protected files live there.
+3. **Shebang inconsistency** — auto-agent.sh uses `#!/bin/bash`, core modules use `#!/usr/bin/env bash`.
+4. **.gitignore expansion** — Missing .env, *.pem, build artifacts, IDE files.
+
+### Next CTO Tasks:
+5. **v0.2.0 architecture planning** — Smart cycle system (#40-#46). Dependency graph, execution model.
+6. Cycle reproducibility — deterministic runs, clean restarts
+7. **BUG-012 review** — Verify PROTECTED FILES sections added to all agent prompts
+8. **Consolidate agents.conf** — P2, move to single file at root (v0.2)
 
 ---
 

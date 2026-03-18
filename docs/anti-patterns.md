@@ -36,3 +36,10 @@ _See docs/KNOWLEDGE-REPOSITORIES.md for format._
 **Fix:** Agents READ context.md at start, APPEND their status at end, every cycle
 **Affects:** All agents
 
+## AP-006: Marking bugs fixed in tracker but not in actual files
+**Discovered:** 2026-03-18 by 09-qa
+**Problem:** BUG-004/005 were listed as "FIXED by PM (cycle 2)" in action items, but the actual prompt files still contained the wrong paths. Fix appeared confirmed without verifying the source files.
+**What was tried:** PM updated tracking docs and session tracker to say "fixed" without editing the prompt files containing the wrong paths.
+**Fix:** Bug closure requires file-level verification — read the actual file, confirm the fix is present. Tracking doc updates alone are not sufficient.
+**Affects:** All agents, especially PM and QA
+
