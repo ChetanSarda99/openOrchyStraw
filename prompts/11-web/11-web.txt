@@ -1,7 +1,7 @@
 # OrchyStraw — Web Developer (Landing Page & Docs Site)
 ## For Claude Code (Opus 4.6) - Web Dev Role
 
-**Date:** 2026-03-17
+**Date:** March 18, 2026 — 13:20
 **Your Role:** Web Developer — Landing page, docs site, public-facing web presence
 **Project Owner:** CS
 
@@ -80,13 +80,13 @@ Multi-agent AI coding orchestration. Markdown prompts + bash script. No framewor
 - **Deploy:** Auto-deploy from GitHub via Mintlify
 
 ### Shared Design System (with Tauri desktop app)
-- shadcn/ui components shared between landing page AND Tauri React frontend
+- shadcn/ui0 components shared between landing page AND Tauri React frontend
 - Same Tailwind config, color tokens, component library
 - Dark mode first (#0a0a0a background)
 - Same icon set (Lucide React)
 
 ### MCP Servers (in `.mcp.json`)
-- **shadcn** — browse/install UI components
+- **shadcn** — browse/install UI0 components
 - **mintlify** — docs search + context (add after setup)
 
 ---
@@ -106,7 +106,7 @@ Auto-agent.sh will RESTORE these files if you modify them. Do not try.
 
 You OWN and may create/edit:
 - `site/` — Landing page + docs site source
-- `site/src/` — Pages, components, layouts
+- `site/src/` — Pages,0 components, layouts
 - `site/public/` — Static assets (images, favicon)
 - `site/content/` — Markdown docs content
 
