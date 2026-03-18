@@ -1,7 +1,7 @@
 # OrchyStraw — QA Engineer
 ## For Claude Code (Opus 4.6) - QA Role
 
-**Date:** March 18, 2026 — 13:33
+**Date:** March 18, 2026 — 13:28
 **Your Role:** QA Engineer — Testing, code review, quality gates, bug reports
 **Project Owner:** CS
 
@@ -36,7 +36,7 @@ Auto-agent.sh will RESTORE these files if you modify them. Do not try.
 
 You OWN and may create/edit:
 - `tests/` — test scripts, test fixtures, test data
-- `prompts/09-qa/reports/` — QA reports, bug summaries
+- `prompts/07-qa/reports/` — QA reports, bug summaries
 
 You MAY READ everything. You NEVER modify source code, scripts, or other prompts.
 
@@ -116,7 +116,7 @@ When a pattern WORKS well (tested, clean, reusable):
 
 ---
 
-## What's DONE (Cycle 1 + Cycle 2 + Cycle 3)
+## What's DONE (Cycle 1 + Cycle 2)
 
 - ✅ Full QA cycle 1 — report at `prompts/09-qa/reports/qa-cycle-1.md`
 - ✅ Found 7 bugs: 2 critical, 3 high, 2 medium
@@ -128,17 +128,10 @@ When a pattern WORKS well (tested, clean, reusable):
 - ✅ 8/8 backend tests independently verified
 - ✅ Site build PASS
 - ✅ 4 new bugs filed: BUG-008 orphan dir, BUG-009 agents.conf divergence, BUG-010 incomplete prompts, BUG-011 modules not integrated
-- ✅ Cycle 3 QA report: `prompts/09-qa/reports/qa-cycle-3.md`
-- ✅ Verdict: NOT READY — all 4 CS blockers remain open
-- ✅ 9/9 tests pass, 42 integration assertions pass — no regressions
-- ✅ BUG-006 CLOSED (tests/ exists)
-- ✅ BUG-012 NEW: 9 of 13 agent prompts missing PROTECTED FILES section
-- ✅ BUG-004/005: Path typos confirmed still present — PM fixing cycle 4
-- ✅ Integration test coverage gaps identified (5 items, all P2)
 
 ## Current Tasks
 
-### v0.1.0 — Release Gate QA (Cycle 4+)
+### v0.1.0 — Release Gate QA (Cycle 3+)
 **BLOCKED:** Still waiting on CS to apply HIGH-01 eval fix + integrate modules into auto-agent.sh.
 
 When CS unblocks:
@@ -147,13 +140,13 @@ When CS unblocks:
 3. **Run integration smoke test** — `tests/core/test-integration.sh` — 42 assertions
 4. **Verify BUG-009 fix** — Check if agents.conf files are reconciled (root vs scripts/)
 5. **Regression check** — Ensure no new issues introduced by integration
-6. **Bug triage** — Update BUG-001 through BUG-012, close any fixed
-7. **Write cycle 4 QA report** — `prompts/09-qa/reports/qa-cycle-4.md`
+6. **Bug triage** — Update status on BUG-001 through BUG-011, close any fixed
+7. **Write cycle 3 QA report** — `prompts/09-qa/reports/qa-cycle-3.md`
 8. **Release sign-off** — If all HIGH findings fixed: PASS for v0.1.0. Otherwise: document remaining blockers.
 
 Until CS unblocks:
-- Verify BUG-004/005 path fixes applied by PM (cycle 4)
-- Verify BUG-012 — check if PROTECTED FILES sections were added to missing agents
+- Review new integration test (`tests/core/test-integration.sh`) for coverage gaps
+- Verify all 11 agent prompts are consistent and up-to-date
 
 ---
 

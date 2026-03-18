@@ -1,49 +1,43 @@
-# Shared Context — Cycle 2 — 2026-03-18 13:21:08
+# Shared Context — Cycle 4 — 2026-03-18 13:33:00
 > Agents: read before starting, append before finishing.
 
 ## Usage
 - API status: 0 (0=ok, 80=overage, 90+=limited)
 
 ## Progress (last cycle → this cycle)
-- Previous cycle: 1 (0 backend, 0 frontend, 4 commits)
+- Previous cycle: 3 (0 backend, 0 frontend, QA report, PM prompt updates)
 - Build on this momentum. Don't redo what's already shipped.
 
 ## Backend Status
-- All 8 shebangs already `#!/usr/bin/env bash` per BASH-001 ADR — no changes needed
-- Added Step 0 (`set -euo pipefail`) documentation to `src/core/INTEGRATION-GUIDE.md`
-- New `tests/core/test-integration.sh` — integration smoke test: sources all 8 modules together, verifies 42 assertions (guards, API functions, cross-module workflow, namespace collisions)
-- Full test suite: 9/9 pass (8 unit + 1 integration)
-- BLOCKED: Still waiting on CS to apply HIGH-01 eval fix + integrate modules into auto-agent.sh
+- All 9 tests pass (8 unit + 1 integration, 42 assertions) — no regressions
+- STILL BLOCKED: Waiting on CS to integrate src/core/*.sh into auto-agent.sh
+- No changes this cycle. Modules ready for integration.
 
 ## iOS Status
-- (fresh cycle)
+- (not started)
 
 ## Design Status
-- 11-Web: STANDBY — no changes this cycle, landing page MVP complete, awaiting v0.1.0 for Phase 2 (docs site)
-- 08-Pixel: STANDBY — no changes. Phase 1 emitter complete, waiting for v0.1.0 before Phase 2 (fork + adapter)
+- 11-Web: STANDBY — landing page MVP complete, no changes. Frozen until v0.1.0 ships.
 
-## QA Findings
-- (fresh cycle)
+## QA Findings (Cycle 3 report)
+- Cycle 3 QA report: `prompts/09-qa/reports/qa-cycle-3.md`
+- Verdict: NOT READY — all 4 CS blockers remain open (HIGH-01, set -euo, module integration, agents.conf)
+- 9/9 tests pass, 42 integration assertions pass — no regressions
+- BUG-006 CLOSED (tests/ exists now)
+- BUG-012 NEW: 9 of 13 agent prompts missing PROTECTED FILES section
+- BUG-004/005 FIXED by PM (cycle 4) — path typos corrected in actual prompt files
+- Integration test coverage gaps identified (5 items, all P2)
 
-## CTO Status
-- OWN-001 ADR written: file ownership boundaries (src/ overlap, auto-agent.sh ownership, dual agents.conf)
-- **BUG-009 CONFIRMED P0:** `auto-agent.sh` uses `scripts/agents.conf` (8 agents) but root `agents.conf` has 13 agents — 5 agents orphaned. CS must fix line 33.
-- Hardening spec updated with cycle 3 findings, revised priority table
-- Tech registry updated with OWN-001
-- Proposals inbox: empty — no pending decisions
+## PM Actions (Cycle 4)
+- BUG-004 FIXED: QA prompt path corrected (`prompts/07-qa/` → `prompts/09-qa/`)
+- BUG-005 FIXED: Security prompt path corrected (`prompts/08-security/` → `prompts/10-security/`)
+- All agent prompts updated with cycle 4 status
+- 99-cs-actions.txt updated with BUG-012 finding
+- Session tracker updated
 
 ## Blockers
-- **P0: Dual agents.conf** — auto-agent.sh references wrong file. 5 agents (04, 05, 07, 12, 13) never run. CS must fix.
-- **P0: eval injection** — 3 eval calls in commit_by_ownership() still open. CS must apply array-based fix.
-- **P1: set -e missing** — CS must add to auto-agent.sh line 23.
-
-## PM Status (Cycle 3)
-- All agent prompts updated with cycle 3 status and blockers
-- Session tracker updated with cycle 3 shipments
-- All agents confirmed BLOCKED on CS — no further progress possible without CS action
-- Integration smoke test added (42 assertions), full test suite 9/9
+- ALL agents BLOCKED on CS applying fixes to auto-agent.sh (HIGH-01 eval, module integration, set -euo, agents.conf reconciliation)
 
 ## Notes
-- [CTO DECISION] File Ownership: OWN-001 — see docs/architecture/OWN-001-file-ownership.md
-- All 8 src/core/*.sh modules remain architecture-compliant
-- [PM NOTE] Cycle 3 was primarily CTO + Backend. All other agents idle — v0.1.0 bottleneck is CS integration.
+- Zero new code this cycle — all work is coordination and bug fixes
+- Next actionable work for agents requires CS to unblock v0.1.0
