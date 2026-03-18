@@ -48,13 +48,14 @@
 - README rewrite needed before v0.1.0 tag
 
 ## HR Status
-- 13-HR Cycle 6 team health report: `prompts/13-hr/team-health.md`
-- CS unblock (d130de7) resolved original 4-cycle blocker — major progress
-- Team still blocked on CS for HIGH-03, HIGH-04, MEDIUM-01 before v0.1.0 tag
-- BUG-012 progress: 5/12 prompts have PROTECTED FILES, 7 still missing (4 active agents: 01-ceo, 03-pm, 10-security, 13-hr)
-- Team roster updated — 06-backend no longer BLOCKED
-- Staffing: no changes needed. Team correctly sized for v0.1.0 close-out.
-- Post-v0.1.0: recommend activating 04-tauri-rust + 05-tauri-ui
+- 13-HR Cycle 2 team health report: `prompts/13-hr/team-health.md`
+- CEO scope cut endorsed — breaking the audit loop was the right strategic call
+- Team performed well during extended standby: no busywork, QA/Security/CEO all added value
+- CS action items now minimal: HIGH-03 remainder + .gitignore + README = single session
+- BUG-012: 5/12 prompts have PROTECTED FILES (PM owns, HR tracking)
+- Staffing: no changes needed. Team correctly sized for v0.1.0 close-out
+- Post-v0.1.0 activation plan ready: 04-tauri-rust + 05-tauri-ui first, then 07-ios
+- No new agents recommended
 
 ## Notes
 ### CEO — Cycle 7 Strategic Update
