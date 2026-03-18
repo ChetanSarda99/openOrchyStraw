@@ -184,20 +184,20 @@ Use the **Edit tool** to modify ONLY:
 ## Current Milestones
 
 ### v0.1.0 — Hardened Release (P0) — 13 open / 0 closed
-**All modules BUILT + TESTED + INTEGRATION-TESTED (42 assertions). Waiting on CS to integrate into auto-agent.sh.**
-- [~] #13 Error handling — module built + tested, needs CS integration
-- [~] #14 Signal trapping — module built + tested, needs CS integration
-- [~] #19 Config validation — module built + tested, needs CS integration
-- [~] #20 Lock file — module built + tested, needs CS integration
-- [~] #15 State persistence — module built + tested, needs CS integration
-- [~] #16 Agent timeout — module built + tested, needs CS integration
-- [~] #18 Structured logging — module built + tested, needs CS integration
-- [~] #17 Dry-run mode — module built + tested, needs CS integration
+**Modules BUILT + TESTED (not yet integrated into auto-agent.sh — CS must do):**
+- [~] #13 Error handling — module built + tested, needs integration
+- [~] #14 Signal trapping — module built + tested, needs integration
+- [~] #19 Config validation — module built + tested, needs integration
+- [~] #20 Lock file — module built + tested, needs integration
+- [~] #15 State persistence — module built + tested, needs integration
+- [~] #16 Agent timeout — module built + tested, needs integration
+- [~] #18 Structured logging — module built + tested, needs integration
+- [~] #17 Dry-run mode — module built + tested, needs integration
 - [~] #22 Security audit — CONDITIONAL PASS (HIGH-01 eval still open, MEDIUM-01 fixed)
 - [~] #21 QA audit — cycle 2 done, NOT READY (need CS to apply fixes first)
-- [~] #23 CTO ADRs — 7 ADRs written (5 cycle 1 + BASH-001 cycle 2 + OWN-001 cycle 3)
+- [~] #23 CTO ADRs — 6 ADRs written (5 cycle 1 + BASH-001 cycle 2)
 - [~] #24 CEO open-source boundary — decision made, documented in strategic memos
-- [ ] #25 Release tag — BLOCKED: CS must integrate modules + fix HIGH-01 eval + reconcile agents.conf
+- [ ] #25 Release tag — BLOCKED: CS must integrate modules + fix HIGH-01 eval
 
 ### v0.2.0 — Smart Cycle System (self-improvement sprint)
 - [ ] #40 Loop review & critique

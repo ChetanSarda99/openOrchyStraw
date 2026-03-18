@@ -25,6 +25,8 @@
 ### P2 — After v0.1.0
 - [ ] **Deploy landing page** — Set up Vercel or GitHub Pages for `site/`
 - [ ] **Remove orphaned `prompts/01-pm/` directory (BUG-008)** — Old directory from before PM moved to 03-pm
+- [ ] **Update CLAUDE.md agent count** — Lists 11 agents but agents.conf only has 8. Align after BUG-009 fix.
+- [ ] **Update CLAUDE.md file paths** — References `src-tauri/`, `ios/` which don't exist yet. Mark as planned or remove.
 
 ---
 

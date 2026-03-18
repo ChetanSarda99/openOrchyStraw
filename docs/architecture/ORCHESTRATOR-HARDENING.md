@@ -140,21 +140,36 @@ review. Backend agent contributes via `src/core/` modules that get sourced.
 
 ---
 
-## Priority Summary (Cycle 2)
+## New Issues Found (Cycle 3 CTO Audit)
+
+### P0: Dual agents.conf (BUG-009 confirmed)
+
+Two `agents.conf` files exist with divergent content:
+- `scripts/agents.conf` — 8 agents (used by `auto-agent.sh` line 33)
+- `agents.conf` (root) — 13 agents (orphaned, not referenced by anything)
+
+Root file has 5 additional agents (04-tauri-rust, 05-tauri-ui, 07-ios, 12-brand, 13-hr) and different ownership paths for CTO (includes `prompts/02-cto/`).
+
+**Fix:** Change `auto-agent.sh` line 33 from `scripts/agents.conf` to `agents.conf` (root). Delete `scripts/agents.conf`. See ADR: OWN-001.
+
+---
+
+## Priority Summary (Cycle 3)
 
 | Priority | Issue | Owner | Status |
 |----------|-------|-------|--------|
-| **P0** | Bash 5.0 version guard | 06-backend | SPEC (BASH-001) |
-| **P0** | eval injection fix (3 calls) | 06-backend | SPEC |
-| **P1** | Add `set -e` to auto-agent.sh | CS (protected) | SPEC |
-| **P1** | Shebang standardization | 06-backend | SPEC |
+| **P0** | Dual agents.conf (BUG-009) | CS (protected) | SPEC (OWN-001) |
+| **P0** | eval injection fix (3 calls) | CS (protected) | SPEC — still open |
+| **P0** | Bash 5.0 version guard integration | CS (protected) | Module DONE, integration BLOCKED |
+| **P1** | Add `set -e` to auto-agent.sh | CS (protected) | SPEC — still open |
+| **P1** | Backend ownership exclusions | CS (agents.conf) | SPEC (OWN-001) |
+| **P1** | Shebang standardization | CS (protected) | SPEC |
 | **P1** | .gitignore expansion | 06-backend | SPEC |
 | **P1** | Signal handling | 06-backend | SPEC (cycle 1) |
 | **P1** | Empty cycle detection | 06-backend | SPEC (cycle 1) |
-| **P0** | Ownership overlap fix | CS (agents.conf) | SPEC (cycle 1) |
 | **P2** | Progress checkpoint fix | 06-backend | SPEC (cycle 1) |
-| **P2** | src/ overlap | PM | DOCUMENT |
-| **P2** | auto-agent.sh ownership | PM | DOCUMENT |
+| **P2** | src/ overlap detection | 06-backend | FUTURE (v0.5, OWN-001) |
+| **P2** | auto-agent.sh ownership | CS | DOCUMENTED (OWN-001) |
 
 ## Blocking v0.1 Release
 

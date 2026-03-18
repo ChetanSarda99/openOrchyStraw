@@ -37,13 +37,6 @@
 - **P0: eval injection** — 3 eval calls in commit_by_ownership() still open. CS must apply array-based fix.
 - **P1: set -e missing** — CS must add to auto-agent.sh line 23.
 
-## PM Status (Cycle 3)
-- All agent prompts updated with cycle 3 status and blockers
-- Session tracker updated with cycle 3 shipments
-- All agents confirmed BLOCKED on CS — no further progress possible without CS action
-- Integration smoke test added (42 assertions), full test suite 9/9
-
 ## Notes
 - [CTO DECISION] File Ownership: OWN-001 — see docs/architecture/OWN-001-file-ownership.md
 - All 8 src/core/*.sh modules remain architecture-compliant
-- [PM NOTE] Cycle 3 was primarily CTO + Backend. All other agents idle — v0.1.0 bottleneck is CS integration.
