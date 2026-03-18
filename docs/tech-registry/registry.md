@@ -44,6 +44,7 @@ _See docs/KNOWLEDGE-REPOSITORIES.md for full system documentation._
 | Landing page framework | **LOCKED** | WEB-001 | Next.js 15 |
 | Docs site | **LOCKED** | DOCS-001 | Mintlify |
 | Design system | **LOCKED** | STYLE-001 | Shared dark theme, tokens |
+| File ownership | **APPROVED** | OWN-001 | Boundaries, overlap rules, protected file policy |
 | Benchmark runner | Pending | — | Custom vs existing SWE-bench harness |
 | v0.5 CLI language | Pending | — | Python (recommended in PLATFORM-COMPATIBILITY.md) |
 | Notifications | Pending | — | Desktop toast (WSL), Telegram, Slack |

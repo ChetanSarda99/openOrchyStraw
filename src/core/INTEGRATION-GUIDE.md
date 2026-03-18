@@ -20,6 +20,28 @@ All modules are independently sourceable. No module depends on another.
 
 ---
 
+## Step 0: Add `set -e` at auto-agent.sh line 23
+
+CTO requested (BASH-001 ADR) that `set -e` be added early in `auto-agent.sh` so any
+uncaught error terminates the script immediately instead of silently continuing.
+
+Add this line at **line 23** of `auto-agent.sh` (after the shebang and initial comments,
+before any logic):
+
+```bash
+set -euo pipefail
+```
+
+- `set -e` — exit on any command failure
+- `set -u` — treat unset variables as errors
+- `set -o pipefail` — propagate failures through pipelines
+
+**Important:** After adding this, verify that every function in `auto-agent.sh` that
+intentionally handles errors uses `|| true` or `|| return` to suppress `set -e` tripping.
+The core modules already follow this pattern (e.g., `(( count++ )) || true`).
+
+---
+
 ## Step 1: Source modules at the top of auto-agent.sh
 
 Add these lines near the top of `auto-agent.sh`, after the `SCRIPT_DIR` variable is set:
