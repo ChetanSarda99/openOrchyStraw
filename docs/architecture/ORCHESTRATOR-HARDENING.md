@@ -1,8 +1,8 @@
 # Orchestrator Hardening — Priority Issues
 
-_Date: March 18, 2026 (updated cycle 2)_
-_Status: SPEC — for backend agent to implement_
-_Reviewed by: CTO cycle 2 — deeper audit confirmed all findings, added new issues_
+_Date: March 18, 2026 (updated cycle 4)_
+_Status: PARTIAL — CS applied P0 fixes in cycle 4, remaining P1s open_
+_Reviewed by: CTO cycle 4 — verified CS fixes, updated priority table_
 
 ---
 
@@ -154,25 +154,89 @@ Root file has 5 additional agents (04-tauri-rust, 05-tauri-ui, 07-ios, 12-brand,
 
 ---
 
-## Priority Summary (Cycle 3)
+## CTO Review — Cycle 4 (CS Applied Fixes)
+
+CS applied a major fix commit (`d130de7`) addressing multiple P0 and P1 items. CTO review follows.
+
+### HIGH-01 eval injection — VERIFIED FIXED
+
+The 3 `eval` calls in `commit_by_ownership()` (lines 236-237, 241) are replaced with array-based pathspec construction. The fix:
+- Uses `local -a include_args=()` and `local -a exclude_args=()` arrays
+- Builds `:(exclude)` pathspecs for `!`-prefixed paths
+- Passes arrays directly to `git diff`, `git ls-files`, and `git add` via `"${pathspec[@]}"`
+- No shell expansion of user-controlled strings — **injection vector eliminated**
+
+**Architecture verdict: PASS.** Clean implementation matching the spec in this document.
+
+### MEDIUM-02 notify injection — VERIFIED FIXED
+
+The `notify()` function now:
+- XML-escapes the title (including `"` and `'` which were missing before)
+- Passes the escaped title via `ORCH_TOAST_TITLE` env var
+- Uses single-quoted PowerShell command block — no bash interpolation inside PS
+- PowerShell reads `$env:ORCH_TOAST_TITLE` — never touches bash's `$()` or backticks
+
+**Architecture verdict: PASS.** Defense in depth — XML escaping + env var isolation.
+
+### Core module sourcing — VERIFIED, NOTE ON ORDER
+
+Modules are sourced at startup via explicit ordered list (not glob):
+```bash
+for mod in bash-version logger error-handler cycle-state agent-timeout dry-run config-validator lock-file; do
+```
+- Conditional: only if `src/core/` exists
+- Graceful: `[ -f ... ] && source` — missing modules don't crash
+- Explicit order matters: `bash-version` first (exits early if < 5.0), `logger` before error-handler
+
+**Architecture verdict: PASS.** Better than glob (`src/core/*.sh`) because order is deterministic.
+
+**NOTE:** `set -e` is still missing from line 23 (`set -uo pipefail`). This means module source failures are silent. P1, not blocking v0.1 but should be next fix.
+
+### BUG-009 agents.conf reconciliation — VERIFIED FIXED, ARCHITECTURAL NOTE
+
+CS chose to sync root → scripts/ (making root match scripts/) rather than the CTO-recommended approach (point auto-agent.sh to root, delete scripts/ copy). Result:
+- Both files are now identical (9 agents)
+- `auto-agent.sh` line 41 still reads `scripts/agents.conf`
+- Root `agents.conf` is a duplicate, not the source of truth
+
+**Functional result: PASS** — divergence eliminated, no orphaned agents.
+**Architectural note:** Two identical files is fragile. Recommend for v0.2: single `agents.conf` at root, auto-agent.sh updated to read it. Low priority since both are now synced.
+
+### Agents removed from config (04-tauri-rust, 05-tauri-ui, 07-ios, 12-brand)
+
+These 4 agents were in root agents.conf but not in scripts/. CS removed them during reconciliation. This is correct — none have active work, and unused agents waste cycles. They can be re-added when their surfaces begin development.
+
+### CTO ownership path change
+
+Root agents.conf previously had CTO owning `prompts/02-cto/ docs/architecture/`. Now matches scripts/: `docs/architecture/` only. This means CTO can't commit to its own prompt directory. Acceptable — CTO doesn't self-modify prompts; PM handles that.
+
+---
+
+## Priority Summary (Cycle 4)
 
 | Priority | Issue | Owner | Status |
 |----------|-------|-------|--------|
-| **P0** | Dual agents.conf (BUG-009) | CS (protected) | SPEC (OWN-001) |
-| **P0** | eval injection fix (3 calls) | CS (protected) | SPEC — still open |
-| **P0** | Bash 5.0 version guard integration | CS (protected) | Module DONE, integration BLOCKED |
-| **P1** | Add `set -e` to auto-agent.sh | CS (protected) | SPEC — still open |
-| **P1** | Backend ownership exclusions | CS (agents.conf) | SPEC (OWN-001) |
-| **P1** | Shebang standardization | CS (protected) | SPEC |
-| **P1** | .gitignore expansion | 06-backend | SPEC |
+| ~~**P0**~~ | ~~Dual agents.conf (BUG-009)~~ | ~~CS~~ | **FIXED** (cycle 4, d130de7) |
+| ~~**P0**~~ | ~~eval injection (HIGH-01)~~ | ~~CS~~ | **FIXED** (cycle 4, d130de7) |
+| ~~**P0**~~ | ~~Bash 5.0 version guard~~ | ~~CS~~ | **FIXED** (cycle 4, sourced at startup) |
+| ~~**P1**~~ | ~~MEDIUM-02 notify injection~~ | ~~CS~~ | **FIXED** (cycle 4, d130de7) |
+| **P1** | Add `set -e` to auto-agent.sh | CS (protected) | OPEN — still `set -uo pipefail` |
+| **P1** | Backend ownership exclusions | CS (agents.conf) | OPEN — 06-backend still owns `scripts/` |
+| **P1** | Shebang standardization | CS (protected) | OPEN — auto-agent.sh still `#!/bin/bash` |
+| **P1** | .gitignore expansion | 06-backend | OPEN |
 | **P1** | Signal handling | 06-backend | SPEC (cycle 1) |
 | **P1** | Empty cycle detection | 06-backend | SPEC (cycle 1) |
 | **P2** | Progress checkpoint fix | 06-backend | SPEC (cycle 1) |
-| **P2** | src/ overlap detection | 06-backend | FUTURE (v0.5, OWN-001) |
-| **P2** | auto-agent.sh ownership | CS | DOCUMENTED (OWN-001) |
+| **P2** | src/ overlap detection | 06-backend | FUTURE (v0.5) |
+| **P2** | Consolidate to single agents.conf | CS | NEW — remove scripts/ copy, point to root |
 
-## Blocking v0.1 Release
+## v0.1 Release Status
 
-**P0 items are now blocking.** The eval injection and missing version guard must be fixed
-before v0.1.0 tag. The .gitignore gaps (P1) should also be fixed — committing secrets
-to a public repo is not recoverable.
+**All P0 blockers are RESOLVED.** The eval injection, version guard, and agents.conf divergence are fixed.
+
+Remaining P1s are quality improvements, not security blockers. The v0.1 path is now:
+1. QA full regression on the fixed auto-agent.sh
+2. Security final sign-off (HIGH-01 and MEDIUM-02 closed)
+3. .gitignore expansion (P1 — important before public release)
+4. README rewrite
+5. Tag v0.1.0
