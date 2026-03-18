@@ -141,9 +141,8 @@ When a pattern WORKS well (tested, clean, reusable):
 
 ## Current Tasks
 
-### v0.1.0 — Release Gate QA (Cycle 11 — CEO deadline PASSED)
+### v0.1.0 — Release Gate QA (Cycle 8 — still waiting on CS)
 CEO scope cut (cycle 7): v0.1.0 = HIGH-03 fix + .gitignore + README. HIGH-04 deferred to v0.1.1.
-**Option B now active:** If CS tags v0.1.0 AS-IS, QA should document known issues for README.
 
 1. **Verify HIGH-03 fix** — When CS fixes remaining unquoted loops (detect_rogue_writes). Low risk, downgraded to P2.
 2. **Verify MEDIUM-01 .gitignore** — Root `.gitignore` must include `.env`, `*.pem`, `*.key` patterns

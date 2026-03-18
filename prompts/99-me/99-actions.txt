@@ -7,7 +7,12 @@
 
 ## PENDING — Work through by priority
 
-### ⚠️ ESCALATION — 9 cycles blocked. ~7 min of fixes unlocks entire team.
+### 🚨 CEO DEADLINE PASSED — "Ship or Shelf" (Cycle 9). Choose one:
+
+**Option A (preferred, ~10 min total):** Apply fixes, then tag v0.1.0
+**Option B (ship now):** Write minimal README with known issues, tag v0.1.0 AS-IS, hotfix in v0.1.1
+
+11 cycles blocked. ~50 agent-cycles wasted. Team is idle.
 
 ### P0 — Blocks v0.1.0 Release (CEO scope locked — only these 3 items)
 - [x] **Integrate core modules into auto-agent.sh** — DONE (d130de7, lines 29-34)

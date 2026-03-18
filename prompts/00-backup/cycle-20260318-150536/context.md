@@ -41,7 +41,3 @@
 - [HR] 9+ cycles blocked on CS. ~50 idle agent-cycles wasted. Same 3 blockers.
 - [HR] RECOMMENDATION: If CS doesn't act within 2 more cycles, increase intervals for idle agents to reduce churn
 - [HR] Staffing confirmed: team correctly sized, no changes. Post-v0.1.0: activate 04-tauri-rust + 05-tauri-ui.
-- [PM] Cycle 3 review (overall cycle 11): CEO deadline PASSED. Invoking Option B — recommend v0.1.0 AS-IS tag.
-- [PM] CEO + HR both wrote updates this cycle. No code changes. Same 3 blockers. 11 cycles total.
-- [PM] DECISION: Per CEO "Ship or Shelf" — CS should either apply fixes NOW or tag v0.1.0 AS-IS with known issues in README.
-- [PM] HR interval adjustment accepted: will increase idle agent intervals next cycle if no CS action.
