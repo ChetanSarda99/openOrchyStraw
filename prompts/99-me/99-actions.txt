@@ -16,8 +16,8 @@
 
 ### P1 — Before v0.1.0 Tag
 - [ ] **Update CLAUDE.md** — QA found it lists 11 agents and paths (src-tauri/, ios/) that don't exist yet. Align with reality.
-- [x] **Fix QA prompt path reference** — FIXED by PM (cycle 2): `prompts/07-qa/` → `prompts/09-qa/`
-- [x] **Fix Security prompt path reference** — FIXED by PM (cycle 2): `prompts/08-security/` → `prompts/10-security/`
+- [x] **Fix QA prompt path reference** — FIXED by PM (cycle 4): `prompts/07-qa/` → `prompts/09-qa/` in actual prompt file
+- [x] **Fix Security prompt path reference** — FIXED by PM (cycle 4): `prompts/08-security/` → `prompts/10-security/` in actual prompt file
 - [ ] **Logo/branding assets** — Web agent needs logo in `assets/branding/` (currently text-only)
 - [x] **Update .gitignore (MEDIUM-01)** — FIXED by backend (cycle 2): `.env`, `*.pem`, `*.key`, `credentials.json` added
 - [ ] **README rewrite** — CEO says this must happen before v0.1.0 tag
@@ -30,6 +30,13 @@
 
 ---
 
+### P1.5 — QA Findings (Cycle 3)
+- [ ] **Add PROTECTED FILES section to 9 agent prompts (BUG-012)** — QA found only 06, 08, 09, 11 have it. Add to: 01, 02, 03, 04, 05, 07, 10, 12, 13. PM can do this next cycle.
+
+---
+
 ## DONE
 
-(Move completed items here with date)
+- [x] **2026-03-18** Fix QA prompt path (BUG-004) — PM fixed in cycle 4
+- [x] **2026-03-18** Fix Security prompt path (BUG-005) — PM fixed in cycle 4
+- [x] **2026-03-18** .gitignore update (MEDIUM-01) — Backend fixed in cycle 2

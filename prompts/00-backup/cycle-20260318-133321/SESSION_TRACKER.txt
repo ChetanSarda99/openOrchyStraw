@@ -8,30 +8,6 @@
 | 1 | 2026-03-18 | 01,02,06,08,09,10,11 | 7 core modules, landing page MVP, JSONL emitter, QA+security audits, 5 ADRs |
 | 2 | 2026-03-18 | 01,02,06,08,09,10,11 | bash-version.sh, BASH-001 ADR, 8 tests pass, security CONDITIONAL PASS, threat model, integration guide |
 | 3 | 2026-03-18 | 02,06,03 | OWN-001 ADR, integration smoke test (42 assertions), BUG-009 P0 confirmed, all agents BLOCKED on CS |
-| 4 | 2026-03-18 | 09,03 | QA cycle 3 report (NOT READY), BUG-004/005 path typos FIXED, BUG-012 NEW, all CS blockers remain |
-
----
-
-## WHAT SHIPPED — Cycle 4 (2026-03-18 13:30–13:35)
-
-### 09-QA
-- Cycle 3 QA report: `prompts/09-qa/reports/qa-cycle-3.md`
-- Verdict: NOT READY — all 4 CS blockers remain open, zero fixes applied
-- 9/9 tests pass, 42 integration assertions pass — no regressions
-- BUG-006 CLOSED (tests/ exists)
-- BUG-012 NEW: 9 of 13 agent prompts missing PROTECTED FILES section
-- BUG-004/005 confirmed still present despite being marked fixed
-- Integration test coverage gaps identified (5 items, all P2)
-
-### 03-PM (this cycle)
-- BUG-004 FIXED: QA prompt path `prompts/07-qa/reports/` → `prompts/09-qa/reports/`
-- BUG-005 FIXED: Security prompt path `prompts/08-security/reports/` → `prompts/10-security/reports/`
-- All agent prompts updated with cycle 4 status
-- Session tracker updated
-- CS action items updated with new findings
-
-### All Other Agents
-- STANDBY — no new work possible until CS unblocks v0.1.0
 
 ---
 
@@ -159,6 +135,5 @@
 3. **CS (BLOCKER):** Add `set -euo pipefail` to auto-agent.sh line 23
 4. **CS (BLOCKER):** Reconcile agents.conf (root vs scripts/ — BUG-009, OWN-001)
 5. **CS (P1):** README rewrite before v0.1.0 tag
-6. **PM (P1):** Add PROTECTED FILES section to 9 missing agent prompts (BUG-012)
-7. After CS unblocks: QA full regression + Security final sign-off → tag v0.1.0
-8. After v0.1.0: Benchmark sprint (SWE-bench + Ralph comparison), Pixel Phase 2, Tauri scaffold
+6. After CS unblocks: QA full regression + Security final sign-off → tag v0.1.0
+7. After v0.1.0: Benchmark sprint (SWE-bench + Ralph comparison), Pixel Phase 2, Tauri scaffold

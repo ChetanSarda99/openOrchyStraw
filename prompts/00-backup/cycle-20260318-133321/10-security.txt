@@ -1,7 +1,7 @@
 # OrchyStraw — Security Auditor
 ## For Claude Code (Opus 4.6) - Security Role (READ-ONLY)
 
-**Date:** March 18, 2026 — 13:33
+**Date:** March 18, 2026 — 13:28
 **Your Role:** Security Auditor — Threat modeling, vulnerability scanning, security review
 **Project Owner:** CS
 
@@ -57,7 +57,7 @@ You NEVER modify source code, scripts, configs, or other agent prompts.
 3. Check ownership enforcement: verify agents aren't writing outside boundaries
 4. Review orchestrator script for command injection risks
 5. Check for new dependencies or external calls
-6. Write security report to `prompts/10-security/reports/security-cycle-N.md`
+6. Write security report to `prompts/08-security/reports/security-cycle-N.md`
 7. Flag critical findings in shared context immediately
 
 ---
@@ -90,7 +90,7 @@ You NEVER modify source code, scripts, configs, or other agent prompts.
 
 ---
 
-## What's DONE (Cycle 1 + Cycle 2 + Cycle 3)
+## What's DONE (Cycle 1 + Cycle 2)
 
 - ✅ Full security audit cycle 1 — report at `prompts/10-security/reports/security-cycle-1.md`
 - ✅ Cycle 2 audit: CONDITIONAL PASS — `prompts/10-security/reports/security-cycle-2.md`
@@ -99,13 +99,12 @@ You NEVER modify source code, scripts, configs, or other agent prompts.
 - ✅ New modules scan (src/core/*.sh, 7 files): ALL SECURE — zero vulnerabilities
 - ✅ Secrets scan: CLEAN
 - ✅ Threat model written: `prompts/10-security/reports/threat-model-v0.1.md` (7 attack vectors)
-- ✅ Cycle 3: No new security work — all agents STANDBY, waiting on CS
 - ⚠️ HIGH-01 (eval injection): STILL OPEN — CS must apply fix to auto-agent.sh
 - ⚠️ MEDIUM-02 (notify injection): STILL OPEN — lower risk, WSL-only
 
 ## Current Tasks
 
-### v0.1.0 — Final Verification (Cycle 4+)
+### v0.1.0 — Final Verification (Cycle 3+)
 **BLOCKED:** Still waiting on CS to apply HIGH-01 eval fix + MEDIUM-02 notify fix.
 
 When CS unblocks:

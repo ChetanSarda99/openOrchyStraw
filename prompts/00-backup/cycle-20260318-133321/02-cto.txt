@@ -1,7 +1,7 @@
 # OrchyStraw — CTO / Architecture & Technical Standards
 ## For Claude Code (Opus 4.6) - Technical Leadership
 
-**Date:** March 18, 2026 — 13:33
+**Date:** March 18, 2026 — 13:28
 **Your Role:** CTO — Architecture decisions, tech standards, code quality, technical debt
 **Project Owner:** CS — Mechanical engineer turned builder, values clean systems
 
@@ -110,11 +110,10 @@ For now: maintain registry here, PM will propose migration when 2nd project star
 3. **CS BLOCKER: `set -e`** — Missing from auto-agent.sh line 23. Must add.
 4. **CS: Backend ownership exclusions** — Add `!scripts/auto-agent.sh !scripts/agents.conf !scripts/check-*.sh` to 06-backend ownership.
 
-### After CS Applies Fixes (Cycle 4+):
+### After CS Applies Fixes (Cycle 3+):
 5. **Review integrated auto-agent.sh** — Architecture compliance check post-integration.
 6. **v0.2.0 architecture planning** — Begin design docs for smart cycle system (#40-#46). Focus on dependency graph and execution model.
 7. Cycle reproducibility — deterministic runs, clean restarts
-8. **BUG-012 review** — Verify PROTECTED FILES sections added to all agent prompts per QA finding
 
 ---
 
