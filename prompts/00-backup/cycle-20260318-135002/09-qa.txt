@@ -116,37 +116,44 @@ When a pattern WORKS well (tested, clean, reusable):
 
 ---
 
-## What's DONE (Cycle 1–5)
+## What's DONE (Cycle 1 + Cycle 2 + Cycle 3)
 
 - ✅ Full QA cycle 1 — report at `prompts/09-qa/reports/qa-cycle-1.md`
 - ✅ Found 7 bugs: 2 critical, 3 high, 2 medium
 - ✅ Identified agents.conf / prompt mismatches
 - ✅ Verified all 11 prompts have git safety rules + correct repo URLs
 - ✅ Cycle 2 QA report: `prompts/09-qa/reports/qa-cycle-2.md`
+- ✅ Verdict: NOT READY — HIGH-01 eval still open (CS must apply)
 - ✅ All 8 src/core/*.sh modules pass syntax checks + code review
-- ✅ 8/8 backend tests independently verified, site build PASS
-- ✅ 4 new bugs filed: BUG-008 through BUG-011
+- ✅ 8/8 backend tests independently verified
+- ✅ Site build PASS
+- ✅ 4 new bugs filed: BUG-008 orphan dir, BUG-009 agents.conf divergence, BUG-010 incomplete prompts, BUG-011 modules not integrated
 - ✅ Cycle 3 QA report: `prompts/09-qa/reports/qa-cycle-3.md`
+- ✅ Verdict: NOT READY — all 4 CS blockers remain open
 - ✅ 9/9 tests pass, 42 integration assertions pass — no regressions
-- ✅ BUG-006 CLOSED (tests/ exists), BUG-012 NEW (PROTECTED FILES missing)
-- ✅ Cycle 4 QA report: `prompts/09-qa/reports/qa-cycle-4.md`
-- ✅ Verdict: CONDITIONAL PASS — all P0 blockers verified FIXED (d130de7)
-- ✅ 5 bugs CLOSED this cycle: BUG-002, BUG-003, BUG-004, BUG-005, BUG-009, BUG-011
-- ✅ NEW finding QA-F001: `set -uo pipefail` missing `-e` flag
-- ✅ All security findings (HIGH-01, MEDIUM-01, MEDIUM-02, LOW-01) verified resolved
+- ✅ BUG-006 CLOSED (tests/ exists)
+- ✅ BUG-012 NEW: 9 of 13 agent prompts missing PROTECTED FILES section
+- ✅ BUG-004/005: Path typos confirmed still present — PM fixing cycle 4
+- ✅ Integration test coverage gaps identified (5 items, all P2)
 
 ## Current Tasks
 
-### v0.1.0 — Release Gate QA (Cycle 6)
-Security cycle 5 found 2 new HIGHs (HIGH-03, HIGH-04) + MEDIUM-01 regression. v0.1.0 blocked again.
+### v0.1.0 — Release Gate QA (Cycle 4+)
+**BLOCKED:** Still waiting on CS to apply HIGH-01 eval fix + integrate modules into auto-agent.sh.
 
-1. **Verify HIGH-03 fix** — When CS/Backend fixes unquoted `$ownership` loops (auto-agent.sh lines 236, 310, 320)
-2. **Verify HIGH-04 fix** — When CS/Backend fixes sed injection in prompt updates (auto-agent.sh lines 785-791)
-3. **Verify MEDIUM-01 .gitignore regression** — Root `.gitignore` must include `.env`, `*.pem`, `*.key` patterns
-4. **Re-run full test suite** — 9/9 unit + 42/42 integration must still pass after fixes
-5. **Bug triage** — Update BUG-001, BUG-007, BUG-008, BUG-010, BUG-012 status
-6. **Write cycle 5 QA report** — `prompts/09-qa/reports/qa-cycle-5.md`
-7. **Release sign-off** — If HIGH-03 + HIGH-04 fixed: FULL PASS for v0.1.0
+When CS unblocks:
+1. **Verify CS applied fixes** — Check if HIGH-01 eval fix + module integration happened in auto-agent.sh
+2. **Re-run backend tests** — `tests/core/run-tests.sh` — all 8 unit + 1 integration must pass
+3. **Run integration smoke test** — `tests/core/test-integration.sh` — 42 assertions
+4. **Verify BUG-009 fix** — Check if agents.conf files are reconciled (root vs scripts/)
+5. **Regression check** — Ensure no new issues introduced by integration
+6. **Bug triage** — Update BUG-001 through BUG-012, close any fixed
+7. **Write cycle 4 QA report** — `prompts/09-qa/reports/qa-cycle-4.md`
+8. **Release sign-off** — If all HIGH findings fixed: PASS for v0.1.0. Otherwise: document remaining blockers.
+
+Until CS unblocks:
+- Verify BUG-004/005 path fixes applied by PM (cycle 4)
+- Verify BUG-012 — check if PROTECTED FILES sections were added to missing agents
 
 ---
 

@@ -9,51 +9,6 @@
 | 2 | 2026-03-18 | 01,02,06,08,09,10,11 | bash-version.sh, BASH-001 ADR, 8 tests pass, security CONDITIONAL PASS, threat model, integration guide |
 | 3 | 2026-03-18 | 02,06,03 | OWN-001 ADR, integration smoke test (42 assertions), BUG-009 P0 confirmed, all agents BLOCKED on CS |
 | 4 | 2026-03-18 | 09,03 | QA cycle 3 report (NOT READY), BUG-004/005 path typos FIXED, BUG-012 NEW, all CS blockers remain |
-| 5 | 2026-03-18 | 01,02,09,10,13,03 | CS UNBLOCKED (d130de7), QA CONDITIONAL PASS, Security HIGH-03/HIGH-04 NEW, HR team docs, CEO "The Unblock" |
-
----
-
-## WHAT SHIPPED — Cycle 5 (2026-03-18 13:39–13:55)
-
-### CS (human — d130de7)
-- HIGH-01 eval injection FIXED — array-based pathspec in auto-agent.sh
-- MEDIUM-02 notify injection FIXED — env var + XML escaping
-- Core modules integrated — all 8 sourced at lines 29-34
-- BUG-009 agents.conf reconciled — root and scripts/ identical
-- HR agent (13-hr) added to agents.conf
-
-### 01-CEO
-- Strategic update: `docs/strategy/CYCLE-5-CEO-UPDATE.md` — "The Unblock"
-- v0.1.0 gated ONLY on QA regression + Security sign-off + README
-
-### 02-CTO
-- Full architecture review of CS fix commit (d130de7) — all fixes PASS
-- Hardening spec updated, all P0s struck through
-- Confirmed v0.1 path UNBLOCKED
-
-### 09-QA
-- Cycle 4 QA report: `prompts/09-qa/reports/qa-cycle-4.md`
-- Verdict: CONDITIONAL PASS — all P0 blockers verified FIXED
-- 9/9 tests pass, 42/42 integration assertions pass
-- 5 bugs CLOSED: BUG-002, BUG-003, BUG-004, BUG-005, BUG-009, BUG-011
-- NEW finding QA-F001: `set -uo pipefail` missing `-e` flag
-
-### 10-Security
-- Cycle 5 audit: `prompts/10-security/reports/security-cycle-5.md`
-- Verdict: CONDITIONAL PASS — HIGH-01/MEDIUM-02 FIXED
-- NEW HIGH-03: unquoted `$ownership` in for loops (glob expansion risk)
-- NEW HIGH-04: sed injection in prompt updates
-- MEDIUM-01 REGRESSION: root .gitignore missing sensitive patterns
-
-### 13-HR
-- Created `docs/team/TEAM_ROSTER.md`, `docs/team/ONBOARDING.md`, `docs/team/NORMS.md`
-- First team health report: `prompts/13-hr/team-health.md`
-- Team correctly sized for v0.1.0, recommend reactivating Tauri agents post-v0.1.0
-
-### 03-PM (this cycle)
-- All agent prompts updated with cycle 5/6 status
-- Session tracker updated
-- CS action items updated — old P0s moved to DONE, new P0s added (HIGH-03/HIGH-04/MEDIUM-01)
 
 ---
 
@@ -189,21 +144,21 @@
 ## MILESTONE DASHBOARD
 | Milestone | Open | Closed | Status |
 |-----------|------|--------|--------|
-| v0.1.0 | 13 | 0 | All modules integrated (d130de7). Original P0s RESOLVED. NEW blockers: HIGH-03 + HIGH-04 + MEDIUM-01 regression |
+| v0.1.0 | 13 | 0 | All modules built + tested + integration-tested (42 assertions). BLOCKED on CS integrating into auto-agent.sh + fixing HIGH-01 eval + reconciling agents.conf |
 
 ## CODEBASE SIZE
 - `src/core/` modules: 8 bash files (7 core + bash-version)
 - `src/pixel/` files: 3 (emitter + test + integration guide)
 - `tests/core/` files: 10 (8 unit tests + runner + integration test)
 - `site/` files: ~3,312 TS/TSX (Next.js project)
-- Agent prompts: 9 active in agents.conf (added 13-hr)
+- Agent prompts: 8 active in agents.conf
 
 ## NEXT CYCLE PRIORITIES
-1. **CS (BLOCKER):** Fix HIGH-03 — unquoted `$ownership` in for loops (auto-agent.sh lines 236, 310, 320). Use array-based iteration.
-2. **CS (BLOCKER):** Fix HIGH-04 — sed injection in prompt updates (auto-agent.sh lines 785-791). Use `|` delimiter + escaping.
-3. **CS (BLOCKER):** Fix MEDIUM-01 — root `.gitignore` missing `.env`, `*.pem`, `*.key` patterns. Add all sensitive patterns.
-4. **CS (P1):** Add `set -e` to auto-agent.sh line 23 (QA-F001)
+1. **CS (BLOCKER):** Apply HIGH-01 eval fix to auto-agent.sh — exact code in INTEGRATION-GUIDE.md
+2. **CS (BLOCKER):** Integrate src/core/*.sh modules into auto-agent.sh — step-by-step in INTEGRATION-GUIDE.md
+3. **CS (BLOCKER):** Add `set -euo pipefail` to auto-agent.sh line 23
+4. **CS (BLOCKER):** Reconcile agents.conf (root vs scripts/ — BUG-009, OWN-001)
 5. **CS (P1):** README rewrite before v0.1.0 tag
-6. **PM (P1):** Add PROTECTED FILES section to remaining agent prompts (BUG-012)
-7. After CS fixes: QA regression + Security final sign-off → tag v0.1.0
+6. **PM (P1):** Add PROTECTED FILES section to 9 missing agent prompts (BUG-012)
+7. After CS unblocks: QA full regression + Security final sign-off → tag v0.1.0
 8. After v0.1.0: Benchmark sprint (SWE-bench + Ralph comparison), Pixel Phase 2, Tauri scaffold
