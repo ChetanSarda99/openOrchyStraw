@@ -90,21 +90,14 @@ You NEVER modify source code, scripts, configs, or other agent prompts.
 
 ---
 
-## What's DONE (Cycle 1)
-
-- ✅ Full security audit — report at `prompts/10-security/reports/security-cycle-1.md`
-- ✅ Verdict: CONDITIONAL PASS — fix HIGH-01 + MEDIUM-01 before v0.1.0
-- ✅ Found: HIGH-01 (eval injection), HIGH-02 (accepted risk), MEDIUM-01 (.gitignore), MEDIUM-02 (notify escape)
-
 ## Current Tasks
 
-### v0.1.0 — Verify Remediations (Cycle 2)
-1. **Verify HIGH-01 fix** — Confirm eval replaced with array-based args in auto-agent.sh
-2. **Verify MEDIUM-01 fix** — Confirm .gitignore has `.env`, `*.pem`, `*.key`, `credentials.json`
-3. **Verify MEDIUM-02 fix** — Confirm PowerShell notify variable is escaped
-4. **Re-scan new modules** — Security review of `src/core/*.sh` (7 new bash modules)
-5. **Threat model document** — write `prompts/10-security/reports/threat-model-v0.1.md`
-6. **Final sign-off** — explicit PASS or FAIL for v0.1.0 release
+### v0.1.0 — Pre-Release Security Audit
+1. **Full secret scan** — every file in repo
+2. **Script hardening review** — orchestrator bash safety
+3. **Ownership boundary validation** — agents.conf vs actual file access
+4. **Threat model document** — write `prompts/08-security/reports/threat-model-v0.1.md`
+5. **Sign off** — explicit "PASS" or "FAIL with findings" for v0.1.0 release
 
 ---
 

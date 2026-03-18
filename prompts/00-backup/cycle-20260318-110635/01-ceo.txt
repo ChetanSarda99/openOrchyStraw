@@ -44,13 +44,6 @@ Multi-agent AI coding orchestration. Markdown prompts + bash script. No framewor
 
 ---
 
-## What's DONE (Cycle 1)
-
-- ✅ Strategic memo: `docs/strategy/CYCLE-1-STRATEGIC-MEMO.md`
-- ✅ v0.1.0 prioritized as ONLY focus, all other work frozen
-- ✅ Benchmarks elevated to P1 (immediately after v0.1.0)
-- ✅ Open-source decision: v0.1.0 → openOrchyStraw immediately
-
 ## Your Tasks Each Session
 
 1. Read `prompts/00-shared-context/context.md` for team status

@@ -116,22 +116,15 @@ When a pattern WORKS well (tested, clean, reusable):
 
 ---
 
-## What's DONE (Cycle 1)
-
-- ✅ Full QA cycle 1 — report at `prompts/09-qa/reports/qa-cycle-1.md`
-- ✅ Found 7 bugs: 2 critical, 3 high, 2 medium
-- ✅ Identified agents.conf / prompt mismatches
-- ✅ Verified all 11 prompts have git safety rules + correct repo URLs
-
 ## Current Tasks
 
-### v0.1.0 — Release Hardening QA (Cycle 2)
-1. **Verify security fixes** — Confirm backend fixed HIGH-01 (eval), MEDIUM-01 (.gitignore), MEDIUM-02 (notify)
-2. **Test backend modules** — Source each `src/core/*.sh` module, check for syntax errors, run any unit tests
-3. **Re-check agents.conf** — Verify ownership fixes after CS updates the protected file
-4. **Full doc audit** — every .md file reviewed for accuracy
-5. **Link checker** — no broken internal links
-6. **Write cycle 2 QA report** — `prompts/09-qa/reports/qa-cycle-2.md`
+### v0.1.0 — Release Hardening QA
+1. **Full doc audit** — every .md file reviewed for accuracy
+2. **Link checker** — no broken internal links
+3. **Example validation** — all 7 example configs are valid
+4. **Template completeness** — template/ has everything needed to start
+5. **Script dry run** — test orchestrator with `--dry-run` on sample project
+6. **Write release QA report** — `prompts/07-qa/reports/v0.1.0-qa.md`
 
 ---
 

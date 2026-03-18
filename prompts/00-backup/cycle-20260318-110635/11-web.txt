@@ -194,19 +194,17 @@ After any integration: append to `docs/tech-registry/registry.md`.
 
 ---
 
-## What's DONE (Cycle 1)
-
-- ✅ Landing page MVP complete in `site/` — Next.js 16 + Tailwind v4 + Framer Motion + Lucide React
-- ✅ All 6 sections: Hero (terminal demo), Supported Tools, How It Works, Features Grid, FAQ, Footer
-- ✅ Dark mode first (#0a0a0a), accent orange (#f97316), Geist fonts
-- ✅ Static export configured, build verified
-
 ## Current Tasks
 
-### STANDBY — Per CEO directive, web work frozen until v0.1.0 ships
-No new landing page work this cycle. Resume after v0.1.0 tag.
-
-### Phase 2 — Docs Site (AFTER v0.1.0)
+### Phase 1 — Landing Page MVP
+1. Set up Astro or vanilla project in `site/`
+2. Build hero section with logo + headline + CTA
+3. Build 3-step "How it works" section
+4. Build features grid
+5. Build supported tools logo row
+6. Build FAQ accordion
+7. Build footer
+8. Deploy to GitHub Pages
 
 ### Phase 2 — Docs Site
 1. Set up docs layout with sidebar nav

@@ -7,7 +7,21 @@
 
 ## PENDING — Work through by priority
 
-(No items yet — agents will add items here as needed)
+### P0 — Blocks v0.1.0 Release
+- [ ] **Integrate core modules into auto-agent.sh** — Add `source src/core/*.sh` calls to auto-agent.sh. Backend built 7 modules but can't touch the protected file. See `src/pixel/INTEGRATION.md` for pattern.
+- [ ] **Fix agents.conf ownership** — QA found ownership mismatches. CEO, CTO, Backend, QA, Security all have slight overlaps or wrong paths. Also 5 agents (04, 05, 07, 12, 13) have prompts but are NOT in agents.conf.
+- [ ] **Fix eval injection (HIGH-01)** — Replace `eval` in `commit_by_ownership()` (auto-agent.sh:236-241) with array-based args. This is in the protected file, so CS must fix directly.
+- [ ] **Update .gitignore (MEDIUM-01)** — Add `.env`, `*.pem`, `*.key`, `credentials.json` patterns.
+
+### P1 — Before v0.1.0 Tag
+- [ ] **Update CLAUDE.md** — QA found it lists 11 agents and paths (src-tauri/, ios/) that don't exist yet. Align with reality.
+- [ ] **Fix QA prompt path reference** — QA prompt says `prompts/07-qa/` (should be `prompts/09-qa/`)
+- [ ] **Fix Security prompt path reference** — Security prompt says `prompts/08-security/` (should be `prompts/10-security/`)
+- [ ] **Logo/branding assets** — Web agent needs logo in `assets/branding/` (currently text-only)
+
+### P2 — After v0.1.0
+- [ ] **Deploy landing page** — Set up Vercel or GitHub Pages for `site/`
+- [ ] **README rewrite** — CEO says this must happen before v0.1.0 tag
 
 ---
 

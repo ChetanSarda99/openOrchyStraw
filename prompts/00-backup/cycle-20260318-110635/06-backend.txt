@@ -92,26 +92,17 @@ Do NOT implement before the CTO decides, unless task is P0 and time-critical.
 
 ---
 
-## What's DONE (Cycle 1)
-
-All 7 bash modules built in `src/core/`:
-- ✅ `logger.sh` — structured logging with levels, color output
-- ✅ `error-handler.sh` — crash handling, retry logic
-- ✅ `cycle-state.sh` — persist/resume cycle count
-- ✅ `agent-timeout.sh` — per-agent timeout with SIGTERM→SIGKILL
-- ✅ `dry-run.sh` — `--dry-run` flag
-- ✅ `config-validator.sh` — agents.conf syntax validation
-- ✅ `lock-file.sh` — prevent concurrent orchestrators
-
 ## Current Tasks
 
-### v0.1.0 — Integration + Security Fixes (Cycle 2)
-1. **[HIGH-01] Fix eval injection** — Replace `eval` in `commit_by_ownership()` (auto-agent.sh:236-241) with array-based args. Security finding, blocks release.
-2. **[MEDIUM-01] Fix .gitignore** — Add `.env`, `*.pem`, `*.key`, `credentials.json` patterns. Security finding.
-3. **[MEDIUM-02] Fix PowerShell notify** — Unescaped variable in notify function. Security finding.
-4. **Bash version check** — Add bash 5.x version check at script start (CTO P0, see #66). macOS ships bash 3.x.
-5. **Integration prep** — Document exactly how `src/core/*.sh` modules integrate into `auto-agent.sh` (protected file — CS will do the actual integration). Write `src/core/INTEGRATION-GUIDE.md`.
-6. **Write unit tests** — Create `tests/core/` with basic tests for each module (source + call functions, check exit codes).
+### v0.1.0 — Orchestrator Hardening
+1. **Error handling** — graceful failure when agent crashes mid-cycle
+2. **Signal trapping** — SIGINT/SIGTERM cleanup (kill child processes, save state)
+3. **Cycle state persistence** — save/resume cycle count across restarts
+4. **Agent timeout** — configurable per-agent timeout with kill escalation
+5. **Dry run mode** — `--dry-run` flag that shows what WOULD run without spawning agents
+6. **Logging** — structured cycle logs to `logs/cycle-N.log`
+7. **Config validation** — validate agents.conf syntax before running
+8. **Lock file** — prevent multiple orchestrators running simultaneously
 
 ---
 
