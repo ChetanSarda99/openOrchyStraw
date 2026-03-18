@@ -1,78 +1,85 @@
-# Team Health Report — Cycle 1 (2026-03-18)
+# Team Health Report — Cycle 2 (HR) / Batch Cycle 1 — 2026-03-18
 
-> First HR team health assessment. Baseline report.
+> Second HR assessment. Updated from baseline.
 
-## Team Composition: 9 agents active
+## Team Composition: 9 agents active (unchanged)
 
 | Agent | Cycles Active | This Cycle | Output Quality | Notes |
 |-------|--------------|------------|----------------|-------|
-| 01-ceo | 4 | STANDBY | Good | Strategic memos clear and actionable |
-| 02-cto | 4 | STANDBY | Good | ADRs well-structured, hardening spec thorough |
-| 03-pm | 4 | Active | Good | Consistent coordination, prompt updates reliable |
-| 06-backend | 4 | BLOCKED | Good | 8 modules built + tested, blocked on CS integration |
-| 08-pixel | 4 | STANDBY | Good | Phase 1 complete, correctly frozen per CEO |
-| 09-qa | 4 | STANDBY | Good | Thorough reports, bug tracking effective |
-| 10-security | 4 | STANDBY | Good | Audit + threat model delivered, read-only respected |
-| 11-web | 4 | STANDBY | Good | Landing page MVP shipped and build-verified |
-| 13-hr | 0 | Active (first cycle) | N/A | This report is first output |
+| 01-ceo | 6+ | STANDBY | Good | Strategic memos clear and actionable |
+| 02-cto | 6+ | STANDBY | Good | ADRs well-structured, all P0s confirmed resolved |
+| 03-pm | 6+ | Active | Good | Consistent coordination, BUG-004/005 fixed in cycle 4 |
+| 06-backend | 6+ | BLOCKED | Good | All modules built+tested, blocked on CS for protected file fixes |
+| 08-pixel | 6+ | STANDBY | Good | Phase 1 complete, correctly frozen per CEO |
+| 09-qa | 6+ | STANDBY | Good | Conditional pass issued, thorough bug tracking |
+| 10-security | 6+ | STANDBY | Good | Found HIGH-03/HIGH-04 in cycle 5 — good catch |
+| 11-web | 6+ | STANDBY | Good | Landing page MVP shipped, waiting for v0.1.0 |
+| 13-hr | 1 | Active | N/A | Second cycle |
 
 ## Key Findings
 
-### 1. BLOCKER: Entire team blocked on CS (human)
+### 1. BLOCKER: CS bottleneck persists — 3 open items in protected files
 
-The #1 issue is not an agent problem — it's a human bottleneck:
-- Backend has 8 modules ready but can't integrate into `auto-agent.sh` (protected file)
-- HIGH-01 eval injection fix documented but unapplied
-- QA can't do final regression until integration happens
-- Security can't give final sign-off until HIGH-01 is fixed
-- **4 cycles of zero forward progress on v0.1.0 core integration**
+Still the #1 team issue. Three items remain unfixed in `auto-agent.sh`:
+- **HIGH-03:** Unquoted `$ownership` in for loops (lines ~236, 310, 320) — glob expansion risk
+- **HIGH-04:** Sed injection in prompt updates (lines 785-791) — unescaped variables
+- **MEDIUM-01 regression:** `.gitignore` still missing `.env`, `*.pem`, `*.key` patterns
+- **QA-F001:** `set -e` missing from `set -uo pipefail` (line 23) — unclear if intentional
 
-**Recommendation:** This is the single highest-priority item. No agent changes will help until CS applies the integration steps.
+Only the stray `local` fix (0025b1d) was applied since last cycle. All other blockers remain.
 
-### 2. 5 orphaned prompt directories
+**Impact:** 6+ cycles of team standby. No agent can make forward progress on v0.1.0 until CS acts.
 
-Agents listed in CLAUDE.md but NOT in `agents.conf`:
-- `04-tauri-rust` — Tauri work is post-v0.1.0, correct to defer
-- `05-tauri-ui` — Same as above
-- `07-ios` — Same as above
-- `12-brand` — Not even in CLAUDE.md agent list. Investigate.
-- `01-pm` — Old PM location (PM is now 03-pm). Safe to archive.
+**Recommendation:** ESCALATE. This is now a chronic bottleneck. Consider:
+1. Batching all 4 fixes into a single CS session
+2. Having CTO pre-review the exact patches so CS can apply them quickly
+3. Setting a deadline — if unfixed by cycle 3 of this batch, de-scope from v0.1.0
 
-**Recommendation:** Archive `01-pm`. Keep 04/05/07 for post-v0.1.0 activation. Clarify `12-brand` status with CEO.
+### 2. Team morale signal: prolonged STANDBY
 
-### 3. Ownership overlap: `reports/`
+7 of 9 agents have been on STANDBY for multiple cycles. This isn't harmful (agents don't create busywork, which is correct behavior), but it means we're paying cycle cost for no output.
 
-Both `09-qa` and `10-security` list `reports/` in agents.conf. In practice they write to different subdirectories under their own prompt dirs, but the top-level `reports/` overlap should be cleaned up.
+**Recommendation:** Consider reducing cycle frequency for blocked agents:
+- Move 06-backend to interval 2 until CS unblocks
+- Move 11-web to interval 2 until post-v0.1.0 work begins
+- This saves API cost without losing capability
 
-**Recommendation:** Change to explicit paths: `prompts/09-qa/reports/` and `prompts/10-security/reports/`.
+### 3. BUG-012 progress: partial
 
-### 4. BUG-012: 9 agent prompts missing PROTECTED FILES section
+PM added PROTECTED FILES to 5/13 agent prompts (up from 4/13). 8 still need it. This is a PM task, tracked but not urgent.
 
-QA flagged this in Cycle 4. This is an HR concern — prompt standardization is our domain.
+### 4. Previous recommendations status
 
-**Recommendation:** PM should add PROTECTED FILES sections. HR will provide the standard template.
+| Recommendation | Status | Notes |
+|---------------|--------|-------|
+| Archive `01-pm` orphaned dir | NOT DONE | Low priority, still valid |
+| Investigate `12-brand` | NOT DONE | Low priority |
+| Fix `reports/` ownership overlap | NOT DONE | Low priority, no actual conflict |
+| Activate 04/05 post-v0.1.0 | WAITING | v0.1.0 not shipped yet |
+| PM add PROTECTED FILES (BUG-012) | IN PROGRESS | 5/13 done |
 
-### 5. No agent needed right now
+### 5. No new agents needed
 
-Current team is correctly sized for v0.1.0:
-- No issues piling up without an assigned agent
-- Most agents are correctly on STANDBY
-- The bottleneck is human action, not agent capacity
-
-Post-v0.1.0, we'll need to activate 04-tauri-rust and 05-tauri-ui for the desktop app phase.
+Team is correctly sized. The bottleneck is human action on protected files, not agent capacity. No issues are piling up without an assigned agent.
 
 ## Staffing Recommendations
 
 | Action | Agent | Justification | Priority |
 |--------|-------|---------------|----------|
 | KEEP | All 9 active | Correctly staffed for v0.1.0 | — |
-| ACTIVATE post-v0.1.0 | 04-tauri-rust | Desktop app phase requires Rust backend agent | P2 |
-| ACTIVATE post-v0.1.0 | 05-tauri-ui | Desktop app phase requires React frontend agent | P2 |
-| ACTIVATE post-v0.1.0 | 07-ios | iOS companion app is on roadmap | P3 |
-| INVESTIGATE | 12-brand | Not in CLAUDE.md. Clarify with CEO if needed. | P3 |
-| ARCHIVE | 01-pm | Orphaned old PM directory | P3 |
+| CONSIDER interval change | 06-backend, 11-web | Reduce to interval 2 while blocked to save API cost | P2 |
+| ACTIVATE post-v0.1.0 | 04-tauri-rust, 05-tauri-ui | Desktop app phase | P2 |
+| ACTIVATE post-v0.1.0 | 07-ios | iOS companion app | P3 |
+
+## Risk Flag
+
+**If CS blockers are not resolved within 2 more batch cycles**, HR recommends CEO consider:
+1. De-scoping HIGH-03/HIGH-04 from v0.1.0 (ship with known risk + mitigation docs)
+2. Or granting temporary protected file access to 06-backend for specific patches
+
+This is an organizational decision, not a technical one — flagging it early.
 
 ## Next Review
 
-- Next HR cycle: Cycle 4 (every 3rd cycle)
-- Will track: CS blocker resolution, post-integration team activation needs
+- Next HR cycle: ~3 cycles from now
+- Will track: CS blocker resolution, interval optimization adoption, BUG-012 completion

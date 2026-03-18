@@ -212,7 +212,55 @@ Root agents.conf previously had CTO owning `prompts/02-cto/ docs/architecture/`.
 
 ---
 
-## Priority Summary (Cycle 4)
+## CTO Review — Cycle 5 Security Findings (Cycle 1 of new run)
+
+Security cycle 5 found 2 new HIGHs and 1 MEDIUM regression. CTO assessment follows.
+
+### HIGH-03: Unquoted `$ownership` in for loops — CTO CONFIRMED
+
+Lines 236, 310, 320: `for path in $ownership; do` — shell performs word-splitting AND glob expansion. The HIGH-01 fix removed `eval` but left the glob vector intact.
+
+**Severity assessment: Agree HIGH, but not P0.** Unlike eval (which could execute arbitrary commands), glob expansion only affects which files match — an integrity risk, not RCE. However, it undermines the ownership boundary system which is a core security control.
+
+**Approved fix pattern:**
+```bash
+IFS=' ' read -ra ownership_arr <<< "$ownership"
+for path in "${ownership_arr[@]}"; do
+```
+This preserves word-splitting (space-delimited paths) while suppressing glob expansion.
+
+**Applies to 3 locations:**
+1. `commit_by_ownership()` line 236 — `$ownership`
+2. `detect_rogue_writes()` line 310 — `$ownership`
+3. `detect_rogue_writes()` line 320 — `$all_owned`
+
+For `$all_owned` (line 320), which is built by appending in a loop, convert to array at construction time.
+
+### HIGH-04: Sed injection in prompt updates — CTO CONFIRMED, DOWNGRADED to P1
+
+Lines 785-791: sed uses `/` delimiter in double-quoted strings.
+
+**Severity assessment: P1, not HIGH.** All variables come from controlled sources:
+- `current_time` = `date '+%H:%M'` — always `HH:MM`
+- `current_date` = `date '+%B %d, %Y'` — always `Month DD, YYYY`
+- `backend_src`, `test_count`, etc. = `find|wc` — always integers
+
+No current path produces `/` or `&` in these values. Risk is future-fragility, not present exploit.
+
+**Approved fix:** Switch delimiter to `|` for all sed commands in the prompt update block:
+```bash
+sed -i "s|\*\*Date:\*\* .*|\*\*Date:\*\* ${current_date} — ${current_time}|" "$pf"
+```
+
+### MEDIUM-01: .gitignore regression — CTO CONFIRMED
+
+Root `.gitignore` has 7 patterns, missing all secret/credential patterns. The `site/.gitignore` covers the Next.js project but root does not protect against accidental commits of `.env`, `*.pem`, `*.key` at repo level.
+
+**Pre-release blocker** for public repo. No secrets currently exist in repo (verified by Security), so this is preventive.
+
+---
+
+## Priority Summary (Updated Cycle 5+)
 
 | Priority | Issue | Owner | Status |
 |----------|-------|-------|--------|
@@ -220,23 +268,29 @@ Root agents.conf previously had CTO owning `prompts/02-cto/ docs/architecture/`.
 | ~~**P0**~~ | ~~eval injection (HIGH-01)~~ | ~~CS~~ | **FIXED** (cycle 4, d130de7) |
 | ~~**P0**~~ | ~~Bash 5.0 version guard~~ | ~~CS~~ | **FIXED** (cycle 4, sourced at startup) |
 | ~~**P1**~~ | ~~MEDIUM-02 notify injection~~ | ~~CS~~ | **FIXED** (cycle 4, d130de7) |
+| **P1** | HIGH-03: Unquoted `$ownership` glob | CS (protected) | **NEW** — 3 locations, array fix |
+| **P1** | HIGH-04: Sed delimiter injection | CS (protected) | **NEW** — switch to `\|` delimiter |
+| **P1** | MEDIUM-01: .gitignore secrets | CS (protected) | **REGRESSED** — add patterns |
 | **P1** | Add `set -e` to auto-agent.sh | CS (protected) | OPEN — still `set -uo pipefail` |
 | **P1** | Backend ownership exclusions | CS (agents.conf) | OPEN — 06-backend still owns `scripts/` |
 | **P1** | Shebang standardization | CS (protected) | OPEN — auto-agent.sh still `#!/bin/bash` |
-| **P1** | .gitignore expansion | 06-backend | OPEN |
 | **P1** | Signal handling | 06-backend | SPEC (cycle 1) |
 | **P1** | Empty cycle detection | 06-backend | SPEC (cycle 1) |
 | **P2** | Progress checkpoint fix | 06-backend | SPEC (cycle 1) |
 | **P2** | src/ overlap detection | 06-backend | FUTURE (v0.5) |
-| **P2** | Consolidate to single agents.conf | CS | NEW — remove scripts/ copy, point to root |
+| **P2** | Consolidate to single agents.conf | CS | Deferred — both synced, low priority |
 
 ## v0.1 Release Status
 
-**All P0 blockers are RESOLVED.** The eval injection, version guard, and agents.conf divergence are fixed.
+**Original P0 blockers are RESOLVED.** Three new P1 issues (HIGH-03, HIGH-04, MEDIUM-01) block release.
 
-Remaining P1s are quality improvements, not security blockers. The v0.1 path is now:
-1. QA full regression on the fixed auto-agent.sh
-2. Security final sign-off (HIGH-01 and MEDIUM-02 closed)
-3. .gitignore expansion (P1 — important before public release)
-4. README rewrite
-5. Tag v0.1.0
+All three are in `auto-agent.sh` (protected file) — **CS must apply the fixes.**
+
+v0.1 path:
+1. CS fixes HIGH-03 (array-based iteration, 3 locations)
+2. CS fixes HIGH-04 (sed `|` delimiter)
+3. CS fixes MEDIUM-01 (.gitignore patterns)
+4. QA full regression
+5. Security final sign-off
+6. README rewrite
+7. Tag v0.1.0
