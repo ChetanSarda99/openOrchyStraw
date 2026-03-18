@@ -778,7 +778,7 @@ PEOF
             current_time=$(date '+%H:%M')
 
             for id in "${AGENT_IDS[@]}"; do
-                local pf="$PROJECT_ROOT/${AGENT_PROMPTS[$id]}"
+                pf="$PROJECT_ROOT/${AGENT_PROMPTS[$id]}"
                 [ ! -f "$pf" ] && continue
 
                 # Update Date: header timestamp
