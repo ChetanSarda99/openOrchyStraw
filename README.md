@@ -1,80 +1,67 @@
-# OrchyStraw (Private)
+# openOrchyStraw 🍓
 
-Private development repo for OrchyStraw — multi-agent AI coding orchestration.
+**Get multiple AI agents working on the same codebase.** Markdown prompts + bash script. No framework, no dependencies.
 
-This repo dogfoods OrchyStraw to develop OrchyStraw. 10 AI agents coordinate via the same markdown prompt + bash script system we're building.
+Works with Claude Code, Codex, Gemini, Aider, Windsurf, Cursor — anything that takes a prompt.
 
-## Agent Team
+## What It Does
 
-| # | Agent | Cycle | What They Do |
-|---|-------|-------|-------------|
-| 01 | CEO | 3rd | Vision, strategy, open-source vs proprietary decisions |
-| 02 | CTO | 2nd | Architecture, tech standards, dependency governance |
-| 03 | PM | Last | Coordination, task assignment, prioritized issue backlog |
-| 04 | Tauri Rust | 1st | Desktop app backend — IPC commands, state, SQLite |
-| 05 | Tauri UI | 1st | Desktop app frontend — React + Tailwind dashboard |
-| 06 | Backend | 1st | Core orchestrator engine (auto-agent.sh), scripts |
-| 07 | iOS | 1st | Mobile companion app (SwiftUI) |
-| 08 | Pixel Agents | 2nd | Pixel art visualization of agents at work |
-| 09 | QA | 3rd | Testing, code review, quality gates |
-| 10 | Security | 3rd | Threat modeling, secret scanning (read-only) |
-| 11 | Web Dev | 2nd | Landing page + docs site (conductor.build style) |
+Define agents in `agents.conf`, give each a markdown prompt file, and run:
 
-## Products Being Built
-
-### Core Orchestrator (v0.1.0 — in progress)
-The bash script that reads `agents.conf`, spawns AI agents, manages cycles, and coordinates via shared context. Hardening: error handling, signal trapping, config validation, lock files, logging.
-
-### Tauri Desktop App (v0.2.0 — planned)
-Cross-platform desktop GUI for OrchyStraw. Dashboard showing agent status, cycle management, log viewer, agents.conf visual editor. Tauri 2.0 (Rust backend + React frontend). UI inspired by [Conductor](https://conductor.build).
-
-### Landing Page & Docs (v0.2.0 — planned)
-Public-facing website inspired by [conductor.build](https://conductor.build) and [Claude Code docs](https://code.claude.com/docs). Hero with terminal animation, 3-step how-it-works, features grid, FAQ, docs with sidebar nav.
-
-### Pixel Agents Integration (v0.2.0 — planned)
-Pixel art office visualization showing agents coding, reading, talking. Adapted from [pixel-agents-standalone](https://github.com/rolandal/pixel-agents-standalone). Synthetic JSONL emitter in auto-agent.sh feeds real-time events. Embedded in Tauri dashboard.
-
-### iOS Companion (future)
-Native mobile app for monitoring cycles and getting push notifications.
-
-## Repo Structure
-
-```
-agents.conf          — 11-agent configuration
-CLAUDE.md            — Project guide for all agents
-prompts/             — Agent prompts + shared context
-scripts/             — Orchestrator (auto-agent.sh) + helpers
-src-tauri/           — Tauri Rust backend
-src/                 — Tauri React frontend
-src/pixel/           — Pixel Agents OrchyStraw adapter
-ios/                 — iOS companion app
-site/                — Landing page + docs site
-research/            — Competitive analysis, benchmarks
-docs/                — Architecture + strategy docs
-tests/               — Test files
+```bash
+bash scripts/auto-agent.sh orchestrate 5   # run 5 cycles
 ```
 
-## Related Repos
+The orchestrator:
+1. Runs each agent in sequence (respecting cycle intervals)
+2. Enforces file ownership (agents can't write outside their paths)
+3. Commits each agent's work separately
+4. Runs the PM agent last to review + update prompts for next cycle
+5. Backs up prompts, tracks progress, handles errors
 
-- **[openOrchyStraw](https://github.com/ChetanSarda99/openOrchyStraw)** — Public open-source repo (MIT). The coordination scaffold: markdown prompts + bash. Community-facing.
-- **OrchyStraw (this repo)** — Private. Tauri app, Pixel Agents, benchmarks, proprietary improvements.
+## Agent Configuration
 
-## Research Docs
+```
+# agents.conf — Format: id | prompt_path | ownership | interval | label
+03-pm        | prompts/03-pm/03-pm.txt    | prompts/ docs/ | 0 | PM Coordinator
+04-tauri-rust| prompts/04-tauri-rust/...  | src-tauri/      | 1 | Rust Developer
+05-tauri-ui  | prompts/05-tauri-ui/...    | src/            | 1 | UI Developer
+06-backend   | prompts/06-backend/...     | backend/        | 1 | Backend Dev
+09-qa        | prompts/09-qa/...          | none            | 3 | QA Engineer
+```
 
-| Doc | What It Covers |
-|-----|---------------|
-| `research/COMPETITIVE-LANDSCAPE.md` | Full analysis vs AutoGen, CrewAI, MetaGPT, Devin, gstack, Manus |
-| `research/RALPH-LOOP-COMPARISON.md` | Head-to-head vs Geoffrey Huntley's Ralph loop |
-| `research/WHY-ORCHYSTRAW-WINS.md` | Differentiation matrix + token cost strategy |
-| `research/PATTERN-ANALYSIS.md` | OODA, blackboard, stigmergy, MapReduce patterns |
-| `research/MARKET-RESEARCH.md` | Target user, pain points, moat, risks |
-| `research/PIXEL-AGENTS-INTEGRATION.md` | Technical spec for Pixel Agents (3 approaches) |
-| `research/BENCHMARKING-PLAN.md` | SWE-bench + FeatureBench + Ralph benchmark strategy |
-| `research/FOUNDERS-LOG.md` | Origin, design decisions, pivot history |
+- **interval=1**: runs every cycle
+- **interval=2**: every other cycle
+- **interval=0**: coordinator, runs LAST
 
-## Milestones
+## Quick Start
 
-- **v0.1.0** — Orchestrator hardening (13 issues, 8 backend + QA + security + release)
-- **v0.2.0** — Pixel Agents + Tauri desktop MVP (8 issues)
-- **v0.3.0** — Benchmarks (SWE-bench, Ralph, FeatureBench)
-- **v1.0.0** — Public launch + distribution
+```bash
+git clone https://github.com/ChetanSarda99/openOrchyStraw.git
+cd openOrchyStraw
+
+# Edit agents.conf for your project
+# Write prompt files for each agent
+# Run it
+bash scripts/auto-agent.sh orchestrate 3
+```
+
+## Features
+
+- 🔒 **File ownership enforcement** — agents can't write outside their paths
+- 🔄 **Auto-cycle** — PM reviews, updates prompts, next cycle starts automatically
+- 📊 **Usage tracking** — pauses when API usage hits threshold
+- 🛡️ **Protected files** — scripts, config, CLAUDE.md can't be modified by agents
+- 📋 **Shared context** — agents read/write to shared context file for coordination
+- 💾 **Prompt backups** — every cycle backs up all prompts before PM modifies them
+- 🌿 **Git integration** — feature branches per cycle, commits per agent, auto-merge
+
+## Requirements
+
+- Bash 4+
+- Git
+- An AI CLI that accepts a prompt: `claude -p`, `codex`, `gemini`, `aider`, etc.
+
+## License
+
+MIT

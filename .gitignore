@@ -14,3 +14,8 @@ prompts/00-backup/*.md
 
 # Node (if tooling added later)
 node_modules/
+# Private runtime data
+prompts/*/logs/
+prompts/00-backup/
+.orchystraw/
+node_modules/
