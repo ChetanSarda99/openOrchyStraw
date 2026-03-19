@@ -38,8 +38,16 @@ PROMPTS_DIR="$PROJECT_ROOT/prompts"
 BACKUP_DIR="$PROMPTS_DIR/00-backup"
 PM_LOG_DIR="$PROMPTS_DIR/01-pm/logs"
 CYCLE_LOG="$PM_LOG_DIR/orchestrator.log"
+# PM prompt: check 03-pm first (orchystraw), fall back to 01-pm (momentum/others)
 CONF_FILE="$PROJECT_ROOT/scripts/agents.conf"
-PM_PROMPT="$PROMPTS_DIR/01-pm/01-project-manager.txt"
+# Auto-detect PM prompt location
+if [ -f "$PROMPTS_DIR/03-pm/03-pm.txt" ]; then
+    PM_PROMPT="$PROMPTS_DIR/03-pm/03-pm.txt"
+elif [ -f "$PROMPTS_DIR/01-pm/01-project-manager.txt" ]; then
+    PM_PROMPT="$PROMPTS_DIR/01-pm/01-project-manager.txt"
+else
+    PM_PROMPT="$PROMPTS_DIR/01-pm/01-pm.txt"
+fi
 EMPTY_CYCLES=0
 MAX_EMPTY_CYCLES=3
 
@@ -548,8 +556,10 @@ validate_prompts() {
     fi
     if [ "$pm_lines" -lt 50 ]; then
         log "WARNING: PM prompt corrupted ($pm_lines lines). Restoring from backup."
-        if [ -n "$latest_backup" ] && [ -f "$latest_backup/01-project-manager.txt" ]; then
-            cp "$latest_backup/01-project-manager.txt" "$PM_PROMPT"
+        local pm_basename
+        pm_basename=$(basename "$PM_PROMPT")
+        if [ -n "$latest_backup" ] && [ -f "$latest_backup/$pm_basename" ]; then
+            cp "$latest_backup/$pm_basename" "$PM_PROMPT"
         fi
     fi
 }

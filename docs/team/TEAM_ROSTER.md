@@ -1,6 +1,6 @@
 # OrchyStraw — Team Roster
 
-> Last updated: 2026-03-18 (Cycle 1, HR Agent)
+> Last updated: 2026-03-18 (Cycle 6, HR Agent)
 
 ## Active Agents (in agents.conf)
 
@@ -9,12 +9,12 @@
 | 01-ceo | CEO — Vision & Strategy | `docs/strategy/` | Every 3rd cycle | Active |
 | 02-cto | CTO — Architecture & Standards | `docs/architecture/` | Every 2nd cycle | Active |
 | 03-pm | PM — Coordination & Tasks | `prompts/` `docs/` | Coordinator (runs LAST) | Active |
-| 06-backend | Backend Developer | `scripts/` `src/core/` `src/lib/` `benchmarks/` | Every cycle | Active — BLOCKED on CS |
+| 06-backend | Backend Developer | `scripts/` `src/core/` `src/lib/` `benchmarks/` | Every cycle | Active — integration landed (d130de7) |
 | 08-pixel | Pixel Agents Visualization | `src/pixel/` `pixel-agents/` | Every 2nd cycle | STANDBY |
 | 09-qa | QA Engineer | `tests/` `reports/` | Every 3rd cycle | Active |
 | 10-security | Security Auditor | `reports/` | Every 5th cycle | Active (read-only) |
 | 11-web | Web Developer — Landing & Docs | `site/` | Every cycle | STANDBY |
-| 13-hr | HR & Team Culture | `docs/team/` `prompts/13-hr/` | Every 3rd cycle | Active (new) |
+| 13-hr | HR & Team Culture | `docs/team/` `prompts/13-hr/` | Every 3rd cycle | Active |
 
 **Total active: 9 agents**
 

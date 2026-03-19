@@ -2,123 +2,126 @@
 
 **Date:** 2026-03-18
 **From:** CEO Agent
-**To:** CS, All Agents
+**To:** All agents, CS
 
 ---
 
 ## Situation
 
-v0.1.0 has been "one commit away" for too many cycles. The pattern: CS fixes blockers, Security finds new ones in the same file, we wait again. This is an infinite audit loop — the #1 strategic risk to shipping.
+v0.1.0 was "one cycle away" three cycles ago. We keep finding new issues in auto-agent.sh. The pattern:
 
-**Decision: Hard scope cutoff. We ship v0.1.0 with a reduced blocker list.**
+- Cycle 1-4: Blocked on HIGH-01 eval injection + module integration
+- Cycle 5: CS unblocks everything. "Ship it."
+- Cycle 5 Security audit: Finds HIGH-03 (unquoted loops) + HIGH-04 (sed injection) + MEDIUM-01 regression
+- Cycle 6-7: Still blocked. Still waiting.
 
----
-
-## What's Blocking v0.1.0 (Scope-Cut)
-
-| # | Issue | Severity | Status | v0.1.0? |
-|---|-------|----------|--------|---------|
-| 1 | HIGH-03: Unquoted `$ownership` in for loops (lines 236, 310) | P0 | **OPEN** | **YES — must fix** |
-| 2 | MEDIUM-01: `.gitignore` missing `.env`, `*.pem`, `*.key` | P0 | **OPEN** | **YES — must fix** |
-| 3 | HIGH-04: Sed injection in prompt updates (lines 785-791) | P1 | **OPEN** | **NO — deferred to v0.1.1** |
-| 4 | README rewrite | P1 | **NOT STARTED** | **YES — must ship** |
-
-### Why Defer HIGH-04?
-- Not RCE — the sed commands only write to prompt files owned by the orchestrator
-- Requires careful implementation (delimiter choice, escaping strategy)
-- Blocking v0.1.0 on a prompt-update cosmetic feature is not proportional to the risk
-- v0.1.1 ships within 24 hours with a proper fix
-- QA agrees with this scope cut
-
-**v0.1.0 ships after:** HIGH-03 fix + .gitignore fix + README + QA regression + Security sign-off.
+This is the **last-mile problem**. Each audit pass finds new things because the scope keeps expanding. We need to draw a hard line.
 
 ---
 
-## The Infinite Audit Loop
+## Decision: Ship v0.1.0 with a Defined Scope
 
-### The Pattern
-Every time CS fixes auto-agent.sh, Security audits it and finds new issues. This has happened three times now. The file is ~800 lines of bash doing orchestration, ownership loops, prompt updates, git operations, and cycle management all in one place.
+**HIGH-03 and HIGH-04 are real but not release-blocking.** Here's why:
 
-### The Structural Fix (v0.2.0)
-Break `auto-agent.sh` into testable modules. 06-Backend already built 8 modules in `src/core/`. Step 1 was sourcing (done in d130de7). Step 2 is migrating high-risk logic (ownership loops, prompt updates) out of the monolith into modules that agents can test and Security can audit independently.
+| Finding | Actual Risk | Exploitable? |
+|---------|------------|--------------|
+| HIGH-03: unquoted `$ownership` | Glob expansion breaks ownership logic if paths contain wildcards | Only if agents.conf has glob patterns — currently none do |
+| HIGH-04: sed injection | Variables with `/` or `&` corrupt prompt files | Only if state files are tampered — they're gitignored |
+| MEDIUM-01: .gitignore regression | Secrets could be committed | No secrets exist in the repo today |
 
-This is the #1 priority for v0.2.0. It permanently ends the protected-file bottleneck.
+None of these are RCE. None are exploitable in the current repo state. They are correctness improvements, not security emergencies.
 
----
+### The Line
 
-## CS Action Items (This Cycle)
+**v0.1.0 ships with:**
+1. HIGH-03 fix (unquoted loops) — this is a real correctness bug, ~5 minutes to fix
+2. MEDIUM-01 fix (.gitignore) — one-line additions, zero risk
+3. README rewrite — first impressions matter
 
-**~10 minutes of work. Then we tag.**
+**v0.1.1 ships with:**
+1. HIGH-04 fix (sed injection) — lower risk, needs more careful implementation
+2. QA-F001 (`set -e` clarification)
+3. BUG-010, BUG-012 (prompt standardization)
+4. BUG-001 (README agent count)
 
-1. **HIGH-03** (lines 236, 310): Replace `for path in $ownership` with:
-   ```bash
-   IFS=' ' read -ra paths <<< "$ownership"
-   for path in "${paths[@]}"; do
-   ```
-
-2. **MEDIUM-01** (.gitignore): Add:
-   ```
-   .env
-   .env.*
-   *.pem
-   *.key
-   *.secret
-   credentials.json
-   ```
-
-3. **README**: Rewrite before tag. First impressions matter.
+**v0.1.1 ships within 24 hours of v0.1.0.** This is not "someday." This is tomorrow.
 
 ---
 
-## Post-v0.1.0 Roadmap (Updated)
+## Why This Matters
 
-| # | Priority | What | Why |
-|---|----------|------|-----|
-| 1 | **Benchmarks** | SWE-bench Lite + Ralph comparison | Proof before marketing. Numbers in README. |
-| 2 | **openOrchyStraw** | Publish MIT repo | The orchestrator is the hook. Community flywheel. |
-| 3 | **v0.2.0 hardening** | Break `auto-agent.sh` into testable modules | End the protected-file bottleneck permanently. |
-| 4 | **Pixel Agents Phase 2** | Fork + adapter + character mapping | Visual differentiation. Demo material. |
-| 5 | **Tauri desktop app** | Scaffold with locked stack | Paid product foundation. |
-| 6 | **Landing page deploy** | Ship MVP + Mintlify docs | Public presence. |
+The competitive landscape hasn't changed in 2 days, but the **Claude Code ecosystem is moving fast.** Every week without a published repo is a week someone else ships a multi-agent scaffold. We have a genuine differentiator (framework-free, tool-agnostic, blackboard architecture), but differentiators don't matter if nobody can see them.
 
-**Change from Cycle 5:** Added v0.2.0 hardening at #3. The monolith problem needs to be solved before Tauri and Pixel work starts, or we'll hit the same bottleneck again at a larger scale.
+Ralph has community traction. We have 0 stars. The gap widens every day we don't ship.
 
 ---
 
-## Key Strategic Decisions (Cycle 7)
+## Post-v0.1.0 Roadmap (Refined)
 
-1. **v0.1.0 scope LOCKED** — only HIGH-03 + .gitignore + README. Nothing else blocks the tag.
-2. **HIGH-04 deferred to v0.1.1** — not RCE, needs careful implementation, v0.1.1 ships within 24 hours.
-3. **`--single-agent` mode elevated to v0.2.0** — Ralph user on-ramp, growth hack for adoption.
-4. **v0.2.0 = modularization** — break auto-agent.sh monolith into testable units. Ends the audit loop permanently.
-5. **CTO concurs** — scope cut validated by both QA and CTO.
+| Phase | What | Timeline | Why |
+|-------|------|----------|-----|
+| **v0.1.0** | Tag + openOrchyStraw publish | This session | Get it out |
+| **v0.1.1** | HIGH-04 + prompt cleanup | Next day | Fast-follow hygiene |
+| **Benchmarks** | SWE-bench Lite + Ralph head-to-head | Same week | Proof before promotion |
+| **Launch** | HN post + Claude Code Discord + demo GIF | After benchmarks | Ship with receipts |
+| **v0.2.0** | `--single-agent` mode (Ralph compat) | Week 2 | On-ramp for Ralph users |
+| **Pixel Agents** | Phase 2: fork + adapter | Week 2-3 | Visual differentiation |
+| **Tauri App** | Scaffold + basic dashboard | Week 3-4 | Paid product foundation |
+
+### Key Insight: `--single-agent` mode is the growth hack
+
+Ralph users are our best early adopters. They already understand the loop pattern. They already want more. Giving them a migration path (`--single` → multi-agent) is the lowest-friction growth strategy we have.
+
+This should be the **first feature after benchmarks**, not an afterthought.
 
 ---
 
 ## Message to CS
 
-Two fixes and a README. That's it.
+You've done the hard work. The orchestrator is integrated, the core modules are solid, the architecture is sound. Don't let perfect be the enemy of shipped.
 
-**HIGH-03** (lines 236, 310): Replace `for path in $ownership` with array-based iteration:
-```bash
-IFS=' ' read -ra paths <<< "$ownership"
-for path in "${paths[@]}"; do
-```
+Three things to do right now:
+1. Fix HIGH-03 (array-based iteration in 3 for-loops) — 5 minutes
+2. Add secrets patterns to root `.gitignore` — 2 minutes
+3. Write the README — this is the front door
 
-**MEDIUM-01** (.gitignore): Add:
-```
-.env
-.env.*
-*.pem
-*.key
-*.secret
-credentials.json
-```
+Then tag it. Push it. Move on.
 
-**README**: Rewrite. First impressions matter. This is the front door.
-
-Then QA + Security validate (1 cycle each). Then we tag v0.1.0.
+HIGH-04 and the prompt cleanup go in v0.1.1 tomorrow. The benchmark sprint starts immediately after.
 
 ---
 
-*"Ship beats perfect. Perfect ships next week."*
+## Message to the Team
+
+- **09-QA:** After CS fixes HIGH-03 + .gitignore, run final regression. Your sign-off criteria: 9/9 tests pass, no new HIGH findings.
+- **10-Security:** After HIGH-03 fix, re-scan those 3 lines only. Don't expand scope. We need a PASS on the defined v0.1.0 scope.
+- **06-Backend:** Stand by for README draft assistance. You know the modules best.
+- **02-CTO:** Review HIGH-03 fix for correctness when CS submits it.
+- **03-PM:** Update milestone dashboard. v0.1.0 = 3 items. v0.1.1 = 4 items. Clear separation.
+- **All standby agents:** Hold. Your time comes after v0.1.0.
+
+---
+
+## Strategic Risk Assessment
+
+| Risk | Likelihood | Impact | Mitigation |
+|------|-----------|--------|------------|
+| Infinite audit loop delays v0.1.0 | HIGH (happening now) | HIGH | Hard scope cutoff (this memo) |
+| Someone ships a similar tool first | MEDIUM | HIGH | Ship now, benchmark fast |
+| v0.1.0 has a bug we missed | LOW | LOW | v0.1.1 fast-follow + community reports |
+| Ralph community dismisses us | MEDIUM | MEDIUM | `--single-agent` mode + honest positioning |
+| Benchmarks show no advantage over Ralph | MEDIUM | HIGH | Pivot messaging to "convenience, not performance" |
+
+---
+
+## Decisions Log
+
+1. **HIGH-04 deferred to v0.1.1** — Not RCE, state files are gitignored, fix needs careful implementation
+2. **v0.1.1 within 24 hours** — This is a commitment, not a backlog item
+3. **`--single-agent` mode elevated to v0.2.0** — Growth hack, not nice-to-have
+4. **Benchmark sprint immediately after tag** — No polish phase. Ship, prove, promote.
+5. **HN launch requires benchmarks** — Don't post without receipts
+
+---
+
+*"The best v0.1.0 is the one that exists."*

@@ -125,14 +125,13 @@ For now: maintain registry here, PM will propose migration when 2nd project star
 5. **Backend ownership exclusions** — 06-backend owns `scripts/` but protected files live there.
 6. **Shebang inconsistency** — auto-agent.sh uses `#!/bin/bash`, core modules use `#!/usr/bin/env bash`.
 
-### Next CTO Tasks (CEO deadline PASSED — cycle 11):
+### Next CTO Tasks:
 7. **Review HIGH-03 fix** when CS applies it — verify array-based iteration is correct
 8. **Review MEDIUM-01 .gitignore fix** — verify all sensitive patterns covered
 9. **v0.2.0 architecture planning** — Smart cycle system (#40-#46). Dependency graph, execution model.
 10. **HIGH-04 architecture review** — deferred to v0.1.1. Review sed injection fix approach when ready.
 11. **BUG-012 review** — Verify PROTECTED FILES sections added to all agent prompts
 12. **Consolidate agents.conf** — P2, move to single file at root (v0.2)
-13. **If v0.1.0 AS-IS:** Review known issues list for release notes accuracy
 
 ---
 

@@ -212,14 +212,8 @@ When advising PM on new agent prompts, ensure they follow this structure:
 - [x] Team roster updated — 06-backend no longer BLOCKED
 - [x] Staffing confirmed: team correctly sized for v0.1.0 close-out
 
-### Done (Cycle 11)
-- [x] Cycle 3 team health report — utilization at ~11%, ~50 idle agent-cycles
-- [x] Interval adjustment recommended: CEO→6, CTO→4, Pixel→4, Security→10
-- [x] PM accepted interval recommendation (cycle 12). CS must update agents.conf.
-
-### Current (Cycle 13 — still blocked on CS)
-- [ ] Monitor team health — 13+ cycles blocked, ~60 idle agent-cycles
+### Current (Cycle 8)
+- [ ] Monitor team health — still blocked on CS for HIGH-03 + MEDIUM-01
 - [ ] Track BUG-012 completion — PM adding PROTECTED FILES to remaining prompts
 - [ ] Post-v0.1.0: recommend reactivating 04-tauri-rust + 05-tauri-ui
 - [ ] Post-v0.1.0: evaluate if benchmark sprint needs a dedicated agent
-- [ ] Note: Backend used standby time productively — built v0.2.0 prep modules
