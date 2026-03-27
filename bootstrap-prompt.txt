@@ -1,0 +1,465 @@
+## orchystraw - Bootstrap Prompt
+## Give this to any AI (Claude Code, Windsurf, Codex) to set up multi-agent orchestration for ANY project.
+
+You are setting up a multi-agent development orchestrator for this project.
+Your job: analyze the codebase, determine the right agents, create all config files, and produce a working system.
+
+---
+
+## Step 1: Analyze the Project
+
+Scan the codebase and determine:
+1. **Languages & frameworks** - what's the tech stack?
+2. **Directory structure** - what are the main code areas?
+3. **Project type** - web app, mobile app, API, CLI, game, library, monorepo?
+4. **Scale** - how many files? how complex?
+5. **Existing CI/CD** - GitHub Actions? Other?
+6. **Package manager** - npm, pip, cargo, swift, go mod?
+
+Run these commands:
+```bash
+find . -name '*.ts' -o -name '*.tsx' -o -name '*.js' -o -name '*.jsx' -o -name '*.py' -o -name '*.swift' -o -name '*.rs' -o -name '*.go' -o -name '*.java' -o -name '*.kt' | head -100
+wc -l $(find . -name '*.ts' -o -name '*.tsx' -o -name '*.py' -o -name '*.swift' -o -name '*.rs' -o -name '*.go' 2>/dev/null | head -50) 2>/dev/null | tail -1
+ls -la
+cat package.json 2>/dev/null | head -30 || cat Cargo.toml 2>/dev/null | head -20 || cat go.mod 2>/dev/null | head -10 || cat Package.swift 2>/dev/null | head -20 || cat requirements.txt 2>/dev/null | head -20
+cat README.md 2>/dev/null | head -50
+ls .github/workflows/ 2>/dev/null
+```
+
+---
+
+## Step 1B: Detect Skills, MCPs, and CLAUDE.md
+
+Scan for existing tooling the project uses:
+
+```bash
+# CLAUDE.md - project instructions auto-loaded by Claude Code
+cat CLAUDE.md 2>/dev/null | head -20
+
+# MCP servers - external tool integrations
+cat .mcp.json 2>/dev/null
+
+# Slash skills referenced in any docs
+grep -r "/test\|/review\|/security\|/debug\|/refactor\|/plan" docs/ README.md CLAUDE.md 2>/dev/null | head -20
+
+# Superpowers / agent-teams referenced
+grep -r "writing-plans\|verification-before-completion\|systematic-debugging\|subagent-driven\|test-driven\|agent-teams" docs/ CLAUDE.md 2>/dev/null | head -20
+```
+
+Record what you find. These get included in agent prompts.
+
+### What to Include Per Agent
+
+**Slash skills** (Claude Code built-ins - `/test`, `/review`, `/security`, `/debug`, `/refactor`):
+- Backend agents: `/test` after new logic, `/review` after features, `/security` before auth code
+- Frontend agents: `/test`, `/review`, `/debug`, `/refactor`
+- Design agents: `/review`
+- QA agents: ALL skills (`/security`, `/review`, `/test`, `/debug`)
+
+**Superpowers plugin** (v4.3.0 - full workflow system, install via `/plugin install superpowers@superpowers-marketplace`):
+- Core workflow: `brainstorming` = `writing-plans` = `subagent-driven-development` = `test-driven-development` = `verification-before-completion`
+- Additional: `executing-plans`, `dispatching-parallel-agents`, `systematic-debugging`, `requesting-code-review`, `receiving-code-review`, `writing-skills`
+- ⚠️ Do NOT use with auto-agent.sh: `using-git-worktrees`, `finishing-a-development-branch` (script manages git)
+- Commands: `/brainstorm`, `/write-plan`, `/execute-plan`
+- Per-agent: Backend gets TDD+SDD+debugging, Frontend gets SDD+plans, Design gets plans only, QA gets debugging+verification, PM gets brainstorming+plans
+- Platform-specific: `supabase-backend-platform` (if Supabase), and other platform skills as available
+
+**QMD** (local markdown search - reduces token cost for ALL agents):
+- Install: `npm install -g @tobilu/qmd`
+- Index: `qmd collection add docs --name project-docs && qmd collection add prompts --name project-prompts && qmd collection add src --name project-source && qmd embed`
+- Add as MCP in `.mcp.json`: `{"qmd": {"command": "qmd", "args": ["mcp"]}}` - this makes it available to ALL agents
+- Additionally install as PM agent skill (`.agents/skills/qmd/SKILL.md`) for prompt-gen searches
+- **All agents benefit:** Backend searches API docs, Frontend searches design tokens, QA searches prior reports + findings, PM searches everything
+
+**CRITICAL - Do NOT reference non-existent commands:**
+- Valid slash commands: `/test`, `/review`, `/security`, `/debug`, `/refactor`, `/monitor`
+- `/monitor` is defined in `~/Projects/CLAUDE.md` - tracks orchestrator cycles + background tasks
+- Do NOT invent: `/plan`, `/deploy`, `/lint`, `/build` - these don't exist
+- See `docs/SKILLS-REFERENCE.md` for the complete validated inventory
+
+**MCPs** (from `.mcp.json` - project-specific external tools):
+- Include MCP context in relevant agent prompts (e.g., Supabase MCP for backend, Context7 for all agents)
+- QA should know about ALL MCPs to verify correct usage
+
+**Agent Teams** (Claude Code sub-agent patterns):
+- QA: `agent-teams:team-reviewer` (parallel multi-dimension review)
+- Debug-heavy agents: `agent-teams:team-debugger`
+
+**CLAUDE.md**:
+- Reference it in EVERY agent prompt: "Read CLAUDE.md first - it has design system, code standards, anti-slop rules"
+- Do NOT duplicate CLAUDE.md content in prompts - just reference it
+- If CLAUDE.md doesn't exist, create one with: project overview, tech stack, code standards, design tokens
+
+### 99-me Protocol (Human Escalation)
+When any agent hits a blocker requiring the human to act:
+- Append to `prompts/99-me/99-actions.txt` with status/priority/steps
+- PM reviews each cycle
+- Create `prompts/99-me/` directory during bootstrap
+
+### PM Prompt Generation Workflow (5-Step Process)
+PM follows this every cycle when updating agent prompts:
+1. **Read current prompt** - what was assigned last cycle
+2. **Review what got done** - git log, shared context, gh issue list, skim actual files
+3. **Identify gaps & drift** - completed? partially done? not touched? emergent work?
+4. **Update task sections only** - use Edit tool (not Write) to modify "What's DONE" and "YOUR TASKS" sections. Do NOT rewrite entire prompts. The orchestrator script auto-updates timestamps and file counts.
+5. **Cross-check across agents** - no overlapping ownership, dependencies resolved
+
+Include this workflow in the PM prompt you generate.
+
+---
+
+## Step 2: Design Agents
+
+Based on your analysis, create agents. Rules:
+
+### Mandatory Agents (EVERY project gets these 7)
+
+These are non-negotiable. Every OrchyStraw project ships with:
+
+| Agent | Role | Cycle | Key Rule |
+|-------|------|-------|----------|
+| **01-ceo** | Vision, strategy, market positioning | 3 | Sets direction, doesn't code |
+| **02-cto** | Architecture, tech decisions, standards | 2 | Makes tech choices, reviews architecture |
+| **03-pm** | Coordination, task assignment, prompts | 0 (LAST) | Never codes. Updates all other prompts |
+| **XX-brand** | Naming, brand identity, voice | 3 | **RUNS FIRST on new projects. Nothing ships until name is locked.** |
+| **XX-webdev** | Landing page + docs site | 2 | Owns `site/` — landing page + Mintlify docs |
+| **XX-qa** | Quality assurance | 3-5 | Read-only. Reviews, doesn't fix |
+| **XX-hr** | Team composition, onboarding, health | 3 | Manages agent team itself, not product |
+
+### Brand Agent: NAMING IS FIRST PRIORITY
+
+The brand agent's #1 job on any new project is **choosing the name**. Process:
+1. Generate 50+ candidate names using 10 naming strategies (portmanteau, metaphor, invented, etc.)
+2. Score each on 10 criteria (memorable, pronounceable, spellable, short, unique, domain, trademark, etc.)
+3. Run `scripts/check-domain.sh` on top 10 — checks .com/.io/.app/.dev/.co/.ai + social handles
+4. Also check: Canadian trademark (ic.gc.ca), US trademark (USPTO), App Store, NPM/PyPI
+5. Present top 3-5 with full availability report
+6. Once locked: update CLAUDE.md, brand guide, all agent prompts
+
+**The brand agent blocks other agents until the name is decided.** No landing page, no docs, no marketing without a name.
+
+### Domain Checker (built-in)
+```bash
+./scripts/check-domain.sh "name1" "name2" "name3"
+# Checks: .com, .io, .app, .dev, .co, .ai + X + GitHub handles
+# Uses whois (zero external deps)
+```
+
+### Worker Agents (2-4 additional, based on project type)
+
+- **Agent boundaries must not overlap** - no two agents own the same directory.
+- **Use `!path` exclusions** for fine-grained ownership (e.g., `src/ !src/components/ui/`).
+
+### Agent Design Patterns
+
+| Project Type | Typical Workers (in addition to mandatory 7) |
+|-------------|---------------|
+| Full-stack web | backend, frontend, design |
+| iOS/Android app | backend, mobile, design |
+| Tauri desktop | tauri-rust, tauri-ui |
+| API/backend only | core, integrations |
+| Monorepo | package-a, package-b, shared |
+| CLI/library | core, docs |
+| Game | engine, gameplay, art-assets |
+| SaaS | backend, frontend, design, payments |
+
+### Naming Convention
+- `01-ceo` — CEO (always, mandatory)
+- `02-cto` — CTO (always, mandatory)
+- `03-pm` — Project Manager (always, mandatory, runs LAST)
+- `04-XX` through `08-XX` — Workers (by domain)
+- `09-qa` (or similar) — QA (always, mandatory, read-only)
+- `10-security` — Security auditor (recommended, read-only)
+- `11-web` — Web Developer (always, mandatory — landing page + docs)
+- `12-brand` — Brand & Naming (always, mandatory — FIRST PRIORITY on new projects)
+- `13-hr` — HR & Team Culture (always, mandatory)
+
+---
+
+## Step 3: Create All Files
+
+### 3A: Create `scripts/agents.conf`
+
+Format (pipe-delimited, no spaces around pipes):
+```
+# id | prompt_path | ownership | interval | label
+02-backend | prompts/02-backend/02-backend-dev.txt | backend/ prisma/ | 1 | Backend Developer
+03-frontend | prompts/03-frontend/03-frontend-dev.txt | frontend/ src/components/ | 1 | Frontend Developer
+04-design | prompts/04-design/04-design-system.txt | src/styles/ src/components/ui/ !src/components/features/ | 1 | Design System
+05-qa | prompts/05-qa/05-qa-review.txt | none | 5 | QA Engineer
+```
+
+Rules for ownership:
+- Each path is space-separated within the ownership column
+- Prefix with `!` to exclude (e.g., `src/ !src/styles/`)
+- QA always has `none` (read-only reviewer)
+- Never assign root dirs like `./` or `.` to any agent
+- `prompts/` is always PM-owned (not in agents.conf)
+
+### 3B: Create `scripts/auto-agent.sh` and `scripts/check-domain.sh`
+
+Copy EXACTLY from the template directory:
+```bash
+cp ~/Projects/orchystraw/template/scripts/auto-agent.sh scripts/
+cp ~/Projects/orchystraw/template/scripts/check-domain.sh scripts/
+chmod +x scripts/auto-agent.sh scripts/check-domain.sh
+```
+
+The orchestrator is project-agnostic - it reads agents.conf and Just Works.
+The domain checker is used by the brand agent for name validation.
+
+### 3B-2: Copy Mandatory Agent Prompt Templates
+
+Start from templates, then customize for this project:
+```bash
+# Mandatory agents — copy templates
+cp ~/Projects/orchystraw/template/prompts/ceo/ceo-agent.txt prompts/01-ceo/01-ceo.txt
+cp ~/Projects/orchystraw/template/prompts/cto/cto-agent.txt prompts/02-cto/02-cto.txt
+cp ~/Projects/orchystraw/template/prompts/brand/brand-agent.txt prompts/XX-brand/XX-brand.txt
+cp ~/Projects/orchystraw/template/prompts/webdev/webdev-agent.txt prompts/XX-web/XX-web.txt
+cp ~/Projects/orchystraw/template/prompts/hr/hr-agent.txt prompts/XX-hr/XX-hr.txt
+```
+
+Then customize: replace `XX` with actual numbers, update project-specific sections.
+
+### 3C: Create `prompts/00-shared-context/context.md`
+
+```markdown
+# Shared Context - Inter-Agent Communication
+> All agents read this before starting. Append your updates before finishing.
+> Reset by orchestrator at the start of each cycle.
+
+## Cycle
+(not yet started)
+
+## [Agent 02 Name] Status
+- Changes: (none)
+- Breaking changes: (none)
+
+## [Agent 03 Name] Status
+- Changes: (none)
+- Needs from [02]: (none)
+- Blocked on: (none)
+
+## [Agent 04 Name] Status  (if exists)
+- Changes: (none)
+
+## QA Findings
+- Issues found: (none)
+
+## Blockers
+- (none)
+
+## Notes
+- (none)
+```
+
+Replace [Agent XX Name] with actual agent names (Backend, Frontend, etc.)
+
+### 3D: Create `prompts/00-backup/.gitkeep`
+
+```bash
+mkdir -p prompts/00-backup
+touch prompts/00-backup/.gitkeep
+```
+
+### 3E: Create PM prompt - `prompts/01-pm/01-project-manager.txt`
+
+The PM prompt MUST include:
+1. **Role declaration** - "You are Lead Project Manager. You NEVER write code."
+2. **What is this project** - 2-3 sentence summary
+3. **Tech stack** - from your analysis
+4. **Repo info** - GitHub URL if available
+5. **Agent list** - who does what, file ownership
+6. **CRITICAL RULE** - "You write prompts DIRECTLY to agent prompt files"
+7. **Prompt generation workflow** - how to structure agent prompts
+8. **File ownership table** - which agent owns which dirs
+9. **What exists** - current file counts, milestone status if available
+
+PM prompt should be 150-300 lines.
+
+### 3F: Create worker prompts - `prompts/XX-name/XX-name.txt`
+
+Each worker prompt MUST include:
+1. **Date + role header**
+2. **What is this project** - brief
+3. **Tech stack** - what they work with (only their part)
+4. **File ownership boundaries** - EXPLICIT: "You MAY write to: X, Y. You MUST NOT write to: Z"
+5. **What exists** - files in their area, current state
+6. **Tasks** - what to build/fix this cycle (from issues, TODOs, or initial setup)
+7. **Code standards** - formatting, naming, patterns to follow
+8. **Auto-Cycle Mode section**: "You are running autonomously. Do all work, commit nothing (script handles git). Do NOT update your own prompt (PM handles that)."
+
+8. **Skills & Orchestration section** - slash skills, superpowers, MCPs, agent-teams relevant to this agent's role
+
+Worker prompts should be 200-380 lines each.
+
+### 3G: Create QA prompt - `prompts/XX-qa/XX-qa-review.txt`
+
+QA prompt MUST include:
+1. Role: QA Engineer, read-only reviewer
+2. Ownership: `none` - you do NOT write code, only review
+3. Checks: lint, type safety, test coverage, security, accessibility
+4. Output: write findings to `prompts/00-shared-context/context.md` under QA Findings
+5. Severity levels: CRITICAL (blocks release), WARNING (should fix), INFO (nice to have)
+
+6. Skills: ALL slash skills (`/security`, `/review`, `/test`, `/debug`), `agent-teams:team-reviewer`, `agent-teams:team-debugger`
+7. MCP awareness: list all MCPs from `.mcp.json` so QA can verify correct usage
+
+QA prompt should be 100-200 lines.
+
+### 3H: Create or Update `CLAUDE.md`
+
+If `CLAUDE.md` doesn't exist, create one from the template at `~/Projects/orchystraw/template/CLAUDE.md`.
+If it exists, verify it has ALL of these sections:
+
+1. **Project Overview** - what is this, who owns it
+2. **Tech Stack** - all finalized decisions
+3. **Working Style** - owner preferences + anti-slop rules
+4. **Code Standards** - formatting, naming, patterns (language-specific)
+5. **Design System** - colors, typography, spacing, components (if UI project)
+6. **Project Structure** - directory tree
+7. **Current Status** - file counts, milestone status (auto-updated by script)
+8. **Auto-Agent Orchestrator** - quick commands, architecture, what script handles vs PM handles, monitoring
+9. **API Endpoints** - if applicable
+10. **Common Tasks** - how to add features, integrations, etc.
+
+The orchestrator section is critical - it documents what the script auto-manages so agents don't duplicate work.
+CLAUDE.md is auto-loaded by Claude Code every session. It's the single source of truth for code quality + orchestrator docs.
+
+### 3I: Preserve `.mcp.json`
+
+If `.mcp.json` exists, do NOT modify it. Reference the MCPs it defines in relevant agent prompts.
+
+If `.mcp.json` doesn't exist but the project could benefit from MCPs, note it in SESSION_TRACKER.txt as a recommendation (don't create one - CS decides).
+
+### 3J: Create `prompts/99-me/99-actions.txt`
+
+```markdown
+# Human Action Items - Blockers
+# Agents append here when they need a human to do something manually.
+# PM reviews each cycle.
+
+(No items yet)
+```
+
+### 3K: Create `prompts/00-session-tracker/SESSION_TRACKER.txt`
+
+This is the project's long-term memory across sessions. PM updates every cycle.
+
+```markdown
+SESSION TRACKER - [Project Name]
+Last updated: [DATE]
+=============================================
+
+FILES
+00-shared-context/context.md    - Inter-agent communication (reset each cycle)
+00-shared-context/usage.txt     - API usage status (0=ok, 80=overage, 100=limited)
+00-backup/                      - Prompt snapshots per cycle (7-day rotation)
+01-pm/01-project-manager.txt    - PM: planning, tracking, coordination
+[LIST ALL AGENT PROMPT FILES]
+99-me/99-actions.txt            - Human manual action items
+SESSION_TRACKER.txt             - This file
+
+SCRIPTS
+scripts/auto-agent.sh           - Orchestrator v3.1
+scripts/check-usage.sh          - API probe
+scripts/agents.conf             - Agent config
+
+TOOLS
+[List MCPs, qmd collections, etc.]
+
+=============================================
+MILESTONE DASHBOARD
+=============================================
+[List milestones with open/closed counts]
+
+=============================================
+WHAT SHIPPED - Cycle N ([DATE])
+=============================================
+[PM fills this after each cycle]
+
+=============================================
+NEXT CYCLE PRIORITIES
+=============================================
+[PM fills this]
+
+=============================================
+DECISIONS
+=============================================
+[Track major decisions so they survive prompt rewrites]
+```
+
+### 3L: Create `prompts/00-shared-context/usage.txt`
+
+```
+0
+```
+
+Single integer - `check-usage.sh` writes to this. 0=ok, 80=overage, 90+=pause.
+
+---
+
+## Step 4: Create `.gitignore` entries
+
+Append to `.gitignore` (create if doesn't exist):
+```
+# Agent orchestrator
+prompts/*/logs/
+prompts/00-backup/cycle-*
+prompts/01-pm/logs/
+```
+
+---
+
+## Step 5: Verify
+
+Run these checks:
+```bash
+bash -n scripts/auto-agent.sh           # syntax check
+./scripts/auto-agent.sh list             # should show all agents
+cat scripts/agents.conf                  # verify format
+ls prompts/00-shared-context/context.md  # shared context exists
+ls prompts/01-pm/01-project-manager.txt  # PM exists
+```
+
+Count worker prompt files - should match agents.conf entries.
+
+---
+
+## Rules
+- Do NOT ask questions. Analyze and decide.
+- Do NOT create agents for things that don't exist yet (e.g., don't create a mobile agent if there's no mobile code)
+- DO create placeholder prompts with TODO tasks if an area needs bootstrapping
+- The orchestrator script (auto-agent.sh) is IDENTICAL across projects - copy, don't customize
+- Agent prompts are project-specific - these are what make each project unique
+- Write ALL files, verify syntax, and exit.
+
+---
+
+## Lessons Learned
+
+Follow these patterns.
+
+### What Worked
+1. **Shared context (00-shared-context/)** - agents reading each other's output eliminated duplicate work. Backend writes "added POST /batch", Frontend reads it and wires the endpoint same cycle.
+2. **PM updating task sections every cycle** - prevents stale tasks, acknowledges shipped work, keeps agents focused on what's actually next. Script handles timestamps + file counts.
+3. **File ownership enforcement** - the orchestrator commits files by ownership (not by agent). Backend can't accidentally commit frontend changes.
+4. **99-me escalation** - agents appending to 99-me when blocked (env setup, API keys) means no silent failures. PM surfaces them.
+5. **QA as final agent** - runs after workers, catches regressions same cycle.
+6. **Session tracker as long-term memory** - task sections get updated each cycle, but SESSION_TRACKER.txt preserves: what shipped, decisions made, file counts. PM reads it to write accurate task assignments.
+7. **Superpowers: writing-plans + verification-before-completion** - most impactful pair. Plans prevent scope creep, verification catches incomplete work.
+8. **Agent-teams:team-implementer for big builds** - parallel sub-agents are faster than sequential for multi-file features.
+
+### What Went Wrong (and How We Fixed It)
+1. **Agent modified auto-agent.sh** - backend agent "improved" the orchestrator script. Fix: explicit "MUST NOT WRITE TO: scripts/" in every prompt.
+2. **PM prompt grew to 400+ lines** - accumulated stale task lists. Fix: PM acknowledges done work then removes it. Target: 150-300 lines.
+3. **Two agents edited same file** - two agents both touched the same component. Fix: use `!path` exclusions in agents.conf.
+4. **Agent referenced nonexistent command** - prompt included commands that don't exist. Fix: validate every command against the real list before first cycle.
+5. **No usage tracking** - early cycles had no budget awareness. Fix: `check-usage.sh` + `usage.txt` + PM reads it.
+6. **QA findings not actionable** - "improve error handling" vs "auth.ts:142 - unwrapped API call, add try/catch". Fix: QA must cite file:line and severity for every finding.
+
+### Scale Reference
+- Works well with 3-5 agents for most projects
+- Typical cost: ~$15-20 per full orchestrated cycle (varies by model and project size)
+- PM prompt: 150-300 lines, Worker prompts: 170-380 lines each
