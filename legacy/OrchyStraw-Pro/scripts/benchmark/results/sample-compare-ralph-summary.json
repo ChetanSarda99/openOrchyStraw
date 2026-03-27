@@ -1,0 +1,14 @@
+{
+  "total": 5,
+  "resolved": 2,
+  "failed": 2,
+  "errors": 1,
+  "resolve_rate": 40.0,
+  "avg_wall_time_seconds": 223.6,
+  "avg_cycles": 1.0,
+  "rogue_write_instances": 1,
+  "rogue_write_total": 1,
+  "rogue_write_rate": 20.0,
+  "model": "sonnet",
+  "timestamp": "2026-03-21T09:31:36Z"
+}

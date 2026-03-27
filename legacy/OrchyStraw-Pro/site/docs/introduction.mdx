@@ -1,0 +1,83 @@
+---
+title: "Introduction"
+description: "Multi-agent AI coding orchestration. No framework. No dependencies."
+---
+
+# What is OrchyStraw?
+
+OrchyStraw runs a team of AI coding agents on any codebase. You define agents in a config file, write their prompts in markdown, and a single bash script orchestrates everything — spawning agents in parallel, managing file ownership, coordinating via shared context, and merging cleanly.
+
+No Python runtime. No framework. No dependencies. Just bash and your AI tool of choice.
+
+## How it works
+
+<Steps>
+  <Step title="Configure your agents">
+    Define roles in `agents.conf` — backend, frontend, QA, PM, whatever your project needs. Each agent gets a prompt file and file ownership boundaries.
+  </Step>
+  <Step title="Run the orchestrator">
+    One command: `./auto-agent.sh`. Agents read their prompts, do their work in parallel, and write status to shared context. No conflicts — file ownership prevents agents from stepping on each other.
+  </Step>
+  <Step title="Review and ship">
+    The PM agent coordinates after workers finish. QA reviews. The script commits by file ownership, merges to main, and starts the next cycle. You review and merge when ready.
+  </Step>
+</Steps>
+
+## Why OrchyStraw?
+
+<CardGroup cols={2}>
+  <Card title="Zero dependencies" icon="box-open">
+    Bash + markdown. No Python, no Node.js runtime, no package installs. Works anywhere bash runs.
+  </Card>
+  <Card title="Agent-agnostic" icon="plug">
+    Works with Claude Code, Codex, Gemini CLI, Aider, Windsurf, Cursor, ChatGPT — anything that takes a prompt.
+  </Card>
+  <Card title="File ownership" icon="shield-check">
+    Agents can't step on each other. Each agent owns specific directories. Rogue writes are detected and discarded.
+  </Card>
+  <Card title="Token-efficient" icon="coins">
+    Shared context replaces expensive agent-to-agent chat. ~100 tokens vs ~5000 for a debate. Smart filtering drops irrelevant context.
+  </Card>
+</CardGroup>
+
+## Architecture
+
+OrchyStraw uses a **parallel workers + sequential PM** pattern:
+
+1. **Workers run simultaneously** — backend, frontend, QA all work at the same time (3x faster than sequential)
+2. **PM runs last** — single coordination point that reviews work, updates tasks, and plans the next cycle
+3. **Script controls git** — agents never touch branches, commits, or merges
+
+This is intentionally a hub-and-spoke topology, not a mesh. The script is the hub. Agents are spokes.
+
+<Tip>
+  OrchyStraw dogfoods itself — the project is built by 11 AI agents coordinated by the same orchestrator.
+</Tip>
+
+## Compared to other tools
+
+| Feature | OrchyStraw | AutoGen/CrewAI | MetaGPT | ChatDev |
+|---------|-----------|----------------|---------|---------|
+| Dependencies | None (bash) | Python + packages | Python + packages | Python + packages |
+| Agent runtime | Real coding agents (Claude, Codex, etc.) | Chat LLMs | Chat LLMs | Chat LLMs |
+| Execution | Parallel workers | Sequential chain | Sequential roles | Sequential roles |
+| File safety | Ownership + rogue detection | None | None | None |
+| Token cost | ~100 tokens/coordination | ~5000+ tokens/debate | High | High |
+| Setup time | < 5 minutes | 30+ minutes | 30+ minutes | 30+ minutes |
+
+## Next steps
+
+<CardGroup cols={2}>
+  <Card title="Quickstart" icon="rocket" href="/quickstart">
+    Get running in under 5 minutes.
+  </Card>
+  <Card title="Configuration" icon="gear" href="/configuration">
+    Learn agents.conf and how to define your team.
+  </Card>
+  <Card title="Writing prompts" icon="pen" href="/writing-prompts">
+    Write effective agent prompts.
+  </Card>
+  <Card title="Examples" icon="code" href="/examples/basic">
+    See working setups you can copy.
+  </Card>
+</CardGroup>

@@ -1,0 +1,8 @@
+{
+  "instance_id": "scikit-learn__scikit-learn-10297",
+  "repo": "scikit-learn/scikit-learn",
+  "base_commit": "1c8668b0a021832386470dff2aa3e8d02e899965",
+  "problem_statement": "linear_model.RidgeClassifierCV's store_cv_values/scores is not working even if set to True\n\nWhen calling `RidgeClassifierCV.fit()` with `store_cv_values=True`, the `cv_values_` attribute is not populated.",
+  "test_patch": "",
+  "gold_patch": ""
+}

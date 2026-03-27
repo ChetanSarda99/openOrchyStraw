@@ -1,0 +1,141 @@
+---
+title: "Basic Setup"
+description: "A simple 3-agent configuration for a web application."
+---
+
+## Overview
+
+This example shows a minimal OrchyStraw setup with 3 agents: a backend developer, a frontend developer, and a PM coordinator. Good for small-to-medium web projects.
+
+## agents.conf
+
+```ini
+# id | prompt_path | cli_command | ownership | interval
+02-backend  | prompts/02-backend/02-backend.txt  | claude | src/api/ src/models/ src/middleware/ | 1
+03-frontend | prompts/03-frontend/03-frontend.txt | claude | src/components/ src/pages/ src/styles/ | 1
+01-pm       | prompts/01-pm/01-pm.txt             | claude | prompts/ | PM
+```
+
+## Directory structure
+
+```
+my-project/
+├── scripts/
+│   ├── auto-agent.sh
+│   ├── agents.conf
+│   └── check-usage.sh
+├── prompts/
+│   ├── 00-shared-context/
+│   │   └── context.md
+│   ├── 00-backup/
+│   ├── 01-pm/
+│   │   └── 01-pm.txt
+│   ├── 02-backend/
+│   │   └── 02-backend.txt
+│   ├── 03-frontend/
+│   │   └── 03-frontend.txt
+│   └── 99-me/
+│       └── 99-actions.txt
+├── src/
+│   ├── api/
+│   ├── models/
+│   ├── middleware/
+│   ├── components/
+│   ├── pages/
+│   └── styles/
+├── CLAUDE.md
+└── package.json
+```
+
+## Backend prompt (abbreviated)
+
+```markdown
+# MyApp — Backend Developer
+## For Claude Code — Backend Role
+
+**Date:** 2026-03-20
+**Your Role:** Backend developer — REST API, database models, middleware
+
+---
+
+## Context
+Building a task management app with Express + PostgreSQL.
+Tech stack: TypeScript, Express, Prisma ORM, PostgreSQL.
+
+## What Exists — 12 Files
+8 TypeScript source + 4 test files. All tests passing.
+
+## YOUR TASKS
+### Task 1: Create task CRUD endpoints — P0
+- GET /api/tasks (list with pagination)
+- POST /api/tasks (create)
+- PUT /api/tasks/:id (update)
+- DELETE /api/tasks/:id (soft delete)
+
+### Task 2: Add input validation — P1
+Use zod schemas for all request bodies.
+
+## File Ownership (STRICT)
+**YOU MAY WRITE TO:** src/api/ src/models/ src/middleware/
+**YOU MUST NOT WRITE TO:** src/components/ src/pages/ src/styles/ prompts/
+
+## Auto-Cycle Mode
+[standard block]
+```
+
+## Frontend prompt (abbreviated)
+
+```markdown
+# MyApp — Frontend Developer
+## For Claude Code — Frontend Role
+
+**Date:** 2026-03-20
+**Your Role:** Frontend developer — React components, pages, styling
+
+---
+
+## Context
+Building a task management app with React + Tailwind.
+Tech stack: React 19, Tailwind CSS v4, TypeScript.
+
+## YOUR TASKS
+### Task 1: Create TaskList component — P0
+Display tasks from GET /api/tasks with pagination.
+Read shared context for the exact API response format.
+
+### Task 2: Create TaskForm component — P1
+Form for creating/editing tasks. POST to /api/tasks.
+
+## File Ownership (STRICT)
+**YOU MAY WRITE TO:** src/components/ src/pages/ src/styles/
+**YOU MUST NOT WRITE TO:** src/api/ src/models/ src/middleware/ prompts/
+
+## Auto-Cycle Mode
+[standard block]
+```
+
+## Running it
+
+```bash
+# First cycle — both agents build their initial work
+./scripts/auto-agent.sh
+
+# Three more cycles — PM coordinates, agents iterate
+./scripts/auto-agent.sh --cycles 3
+```
+
+After the first cycle, shared context might look like:
+
+```markdown
+## Backend Status
+- Created CRUD endpoints for /api/tasks (GET, POST, PUT, DELETE)
+- Response format: { data: Task[], total: number, page: number }
+- Zod validation on POST/PUT bodies
+
+## Frontend Status
+- Created TaskList component with pagination
+- Created TaskForm component (create mode)
+- NEED: API response type definitions from backend
+```
+
+The PM reads this, updates prompts for cycle 2, and the agents continue building.

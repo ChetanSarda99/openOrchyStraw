@@ -1,0 +1,8 @@
+{
+  "instance_id": "sympy__sympy-15308",
+  "repo": "sympy/sympy",
+  "base_commit": "b7c5ba2bf3ffd5cf453b25af9c8644a4e3dc8bab",
+  "problem_statement": "LaTeX printing for trace of a matrix is not correct\n\nThe LaTeX representation of `Trace(A)` should be `\\operatorname{tr}(A)` but currently prints incorrectly.",
+  "test_patch": "",
+  "gold_patch": ""
+}

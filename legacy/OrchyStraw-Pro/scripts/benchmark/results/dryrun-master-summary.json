@@ -1,0 +1,259 @@
+{
+  "generated_at": "2026-03-21T02:30:00Z",
+  "data_type": "dry-run-sample",
+  "note": "Sample benchmark data from dry-run. Values are simulated based on task structure and cost estimates. Real runs pending.",
+  "suites": {
+    "custom": {
+      "description": "Custom multi-file bug fix and feature tasks (5 tasks from Django, DRF, SymPy)",
+      "summary": {
+        "total": 5,
+        "resolved": 3,
+        "failed": 1,
+        "errors": 1,
+        "resolve_rate": 60.0,
+        "avg_wall_time_seconds": 287.8,
+        "avg_cycles": 4.0,
+        "rogue_write_instances": 2,
+        "rogue_write_total": 3,
+        "rogue_write_rate": 40.0,
+        "model": "sonnet",
+        "timestamp": "2026-03-21T09:31:36Z"
+      },
+      "cost_estimates": {
+        "sonnet": {
+          "instances": 5,
+          "model": "sonnet",
+          "agents_per_instance": 1,
+          "max_cycles": 5,
+          "estimated_input_tokens": 625000,
+          "estimated_output_tokens": 200000,
+          "estimated_input_cost_usd": 1.88,
+          "estimated_output_cost_usd": 3.00,
+          "estimated_total_cost_usd": 4.88
+        },
+        "opus": {
+          "instances": 5,
+          "model": "opus",
+          "agents_per_instance": 1,
+          "max_cycles": 5,
+          "estimated_input_tokens": 625000,
+          "estimated_output_tokens": 200000,
+          "estimated_input_cost_usd": 9.38,
+          "estimated_output_cost_usd": 15.00,
+          "estimated_total_cost_usd": 24.38
+        }
+      },
+      "tasks": [
+        {
+          "id": "custom-001",
+          "name": "Fix regex validator trailing newline",
+          "category": "single-file-bugfix",
+          "difficulty": "easy"
+        },
+        {
+          "id": "custom-002",
+          "name": "Fix staticfiles storage hashed name crash",
+          "category": "single-file-bugfix",
+          "difficulty": "easy"
+        },
+        {
+          "id": "custom-003",
+          "name": "Add batch delete endpoint",
+          "category": "multi-file-feature",
+          "difficulty": "medium"
+        },
+        {
+          "id": "custom-004",
+          "name": "Fix sympy simplify with complex exponents",
+          "category": "single-file-bugfix",
+          "difficulty": "medium"
+        },
+        {
+          "id": "custom-005",
+          "name": "Add CSV export to management command",
+          "category": "multi-file-feature",
+          "difficulty": "hard"
+        }
+      ]
+    },
+    "swebench_lite": {
+      "description": "SWE-bench Lite evaluation (40 real-world GitHub issues)",
+      "task_count": 40,
+      "cost_estimates": {
+        "sonnet": {
+          "instances": 40,
+          "model": "sonnet",
+          "agents_per_instance": 1,
+          "max_cycles": 5,
+          "estimated_input_tokens": 5000000,
+          "estimated_output_tokens": 1600000,
+          "estimated_input_cost_usd": 15.00,
+          "estimated_output_cost_usd": 24.00,
+          "estimated_total_cost_usd": 39.00
+        }
+      },
+      "note": "Full run pending — 40 tasks loaded from scripts/benchmark/tasks/"
+    },
+    "featurebench": {
+      "description": "Feature-building evaluation (5 tasks: new modules, multi-file features)",
+      "summary": {
+        "total": 5,
+        "resolved": 3,
+        "failed": 0,
+        "errors": 2,
+        "resolve_rate": 60.0,
+        "avg_wall_time_seconds": 275.2,
+        "avg_cycles": 3.8,
+        "rogue_write_instances": 2,
+        "rogue_write_total": 3,
+        "rogue_write_rate": 40.0,
+        "model": "sonnet",
+        "timestamp": "2026-03-21T09:31:36Z"
+      },
+      "cost_estimates": {
+        "sonnet": {
+          "instances": 5,
+          "model": "sonnet",
+          "agents_per_instance": 3,
+          "max_cycles": 5,
+          "estimated_input_tokens": 1875000,
+          "estimated_output_tokens": 600000,
+          "estimated_input_cost_usd": 5.62,
+          "estimated_output_cost_usd": 9.00,
+          "estimated_total_cost_usd": 14.62
+        },
+        "opus": {
+          "instances": 5,
+          "model": "opus",
+          "agents_per_instance": 3,
+          "max_cycles": 5,
+          "estimated_input_tokens": 1875000,
+          "estimated_output_tokens": 600000,
+          "estimated_input_cost_usd": 28.12,
+          "estimated_output_cost_usd": 45.00,
+          "estimated_total_cost_usd": 73.12
+        }
+      },
+      "tasks": [
+        {
+          "id": "feat-001",
+          "name": "Add markdown table-of-contents generator",
+          "category": "new-module",
+          "difficulty": "easy"
+        },
+        {
+          "id": "feat-002",
+          "name": "Add cycle duration tracker",
+          "category": "new-module",
+          "difficulty": "easy"
+        },
+        {
+          "id": "feat-003",
+          "name": "Add multi-file refactoring task",
+          "category": "multi-file-feature",
+          "difficulty": "medium"
+        },
+        {
+          "id": "feat-004",
+          "name": "Build config migration utility",
+          "category": "new-module",
+          "difficulty": "medium"
+        },
+        {
+          "id": "feat-005",
+          "name": "Build cross-project dependency analyzer",
+          "category": "multi-file-feature",
+          "difficulty": "hard"
+        }
+      ]
+    },
+    "compare_ralph": {
+      "description": "OrchyStraw (multi-agent) vs Ralph (single-agent) head-to-head comparison",
+      "ralph_summary": {
+        "total": 5,
+        "resolved": 2,
+        "failed": 2,
+        "errors": 1,
+        "resolve_rate": 40.0,
+        "avg_wall_time_seconds": 223.6,
+        "avg_cycles": 1.0,
+        "rogue_write_instances": 1,
+        "rogue_write_total": 1,
+        "rogue_write_rate": 20.0,
+        "model": "sonnet",
+        "timestamp": "2026-03-21T09:31:36Z"
+      },
+      "orchystraw_summary": {
+        "total": 5,
+        "resolved": 3,
+        "failed": 1,
+        "errors": 1,
+        "resolve_rate": 60.0,
+        "avg_wall_time_seconds": 287.8,
+        "avg_cycles": 4.0,
+        "rogue_write_instances": 2,
+        "rogue_write_total": 3,
+        "rogue_write_rate": 40.0,
+        "model": "sonnet",
+        "timestamp": "2026-03-21T09:31:36Z"
+      },
+      "cost_estimates": {
+        "ralph": {
+          "instances": 5,
+          "model": "sonnet",
+          "agents_per_instance": 1,
+          "max_cycles": 1,
+          "estimated_input_tokens": 125000,
+          "estimated_output_tokens": 40000,
+          "estimated_input_cost_usd": 0.38,
+          "estimated_output_cost_usd": 0.60,
+          "estimated_total_cost_usd": 0.98
+        },
+        "orchystraw": {
+          "instances": 5,
+          "model": "sonnet",
+          "agents_per_instance": 3,
+          "max_cycles": 5,
+          "estimated_input_tokens": 1875000,
+          "estimated_output_tokens": 600000,
+          "estimated_input_cost_usd": 5.62,
+          "estimated_output_cost_usd": 9.00,
+          "estimated_total_cost_usd": 14.62
+        }
+      },
+      "head_to_head": [
+        {
+          "task": "custom-001",
+          "orchystraw": "pass (142s)",
+          "ralph": "pass (95s)",
+          "winner": "Ralph"
+        },
+        {
+          "task": "custom-002",
+          "orchystraw": "pass (98s)",
+          "ralph": "pass (78s)",
+          "winner": "Ralph"
+        },
+        {
+          "task": "custom-003",
+          "orchystraw": "pass (312s)",
+          "ralph": "fail (180s)",
+          "winner": "OrchyStraw"
+        },
+        {
+          "task": "custom-004",
+          "orchystraw": "fail (287s)",
+          "ralph": "fail (165s)",
+          "winner": "Neither"
+        },
+        {
+          "task": "custom-005",
+          "orchystraw": "timeout (600s)",
+          "ralph": "timeout (600s)",
+          "winner": "Neither"
+        }
+      ],
+      "key_insight": "OrchyStraw resolves 60% vs Ralph 40% — multi-agent wins on harder multi-file tasks. Ralph is faster on simple single-file fixes."
+    }
+  }
+}

@@ -1,0 +1,8 @@
+{
+  "instance_id": "astropy__astropy-6938",
+  "repo": "astropy/astropy",
+  "base_commit": "5250b2442501e67f15748dddab2e5e5e3d46aa3c",
+  "problem_statement": "Possible bug in io.fits with D exponent\n\nI came across the following code in ``weights.py``:\n\n```python\nval = 1.234D56\n```\n\nThe FITS standard uses `D` as an exponent character (like `E` but for double precision). Astropy's FITS reader doesn't properly handle this.",
+  "test_patch": "",
+  "gold_patch": ""
+}

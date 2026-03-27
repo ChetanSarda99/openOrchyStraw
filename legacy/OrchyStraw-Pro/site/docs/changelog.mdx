@@ -1,0 +1,69 @@
+---
+title: "Changelog"
+description: "Version history and release notes."
+---
+
+## v0.2.0 (in progress)
+
+### Token optimization
+- Conditional activation — agents only receive relevant context sections
+- Prompt compression — redundant information trimmed before piping to agents
+- Smart scheduling — skip agents based on interval settings
+
+### Pixel Agents
+- Synthetic JSONL emitter in `src/pixel/emit-jsonl.sh`
+- Character mapping for 11 agent types
+- Adapter for pixel-agents-standalone format
+- Overlay system for embedding in Tauri dashboard
+
+### Landing page
+- All 6 sections complete: Hero, Supported Tools, How It Works, Features Grid, FAQ, Footer
+- Terminal typing animation in hero
+- GitHub Actions deploy workflow
+- Dark mode design (#0a0a0a background)
+
+### Docs site
+- Mintlify docs setup with 11 pages
+- Full configuration reference
+- Prompt writing guide with examples
+- Auto-cycle mode documentation
+
+---
+
+## v0.1.0
+
+Initial release — orchestrator hardening.
+
+### Core orchestrator
+- 8 bash modules: logger, error-handler, cycle-state, agent-timeout, dry-run, config-validator, lock-file, bash-version
+- All modules double-source guarded
+- Portable shebang (`#!/usr/bin/env bash`)
+- Bash 5.0+ version check
+
+### Safety
+- File ownership enforcement with rogue write detection
+- Protected file restoration
+- Prompt validation (restore from backup if corrupted)
+- Usage limit pausing (≥70% threshold)
+- Empty cycle detection (auto-stop after 3)
+
+### Testing
+- 12 unit test files + integration test
+- Test runner script
+- All tests passing
+
+### Security
+- Eval injection fix documented (HIGH-01)
+- .gitignore patterns for sensitive files (MEDIUM-01)
+- Threat model with 7 attack vectors
+- Conditional security audit pass
+
+---
+
+## v0.0.1 (initial scaffold)
+
+- `auto-agent.sh` orchestrator script
+- `agents.conf` format
+- Shared context system
+- PM coordination pattern
+- Basic cycle flow (branch → work → commit → merge)

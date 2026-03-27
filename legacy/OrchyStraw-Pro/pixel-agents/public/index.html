@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>OrchyStraw — Pixel Agents</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      background: #0a0a0a;
+      color: #e5e5e5;
+      font-family: 'JetBrains Mono', 'Fira Code', monospace;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      min-height: 100vh;
+    }
+    header {
+      padding: 16px 24px;
+      width: 100%;
+      max-width: 832px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    header h1 {
+      font-size: 14px;
+      font-weight: 600;
+      color: #a78bfa;
+    }
+    header .status {
+      font-size: 11px;
+      color: #6b7280;
+    }
+    header .status.connected { color: #4ade80; }
+    #canvas-container {
+      border: 2px solid #1f1f1f;
+      border-radius: 4px;
+      overflow: hidden;
+      image-rendering: pixelated;
+    }
+    canvas {
+      display: block;
+      image-rendering: pixelated;
+    }
+    #agent-list {
+      width: 100%;
+      max-width: 832px;
+      padding: 16px 24px;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+    }
+    .agent-badge {
+      font-size: 11px;
+      padding: 4px 10px;
+      border-radius: 4px;
+      background: #1a1a1a;
+      border: 1px solid #2a2a2a;
+      color: #6b7280;
+      transition: all 0.3s ease;
+    }
+    .agent-badge.active {
+      border-color: #4ade80;
+      color: #4ade80;
+      background: #0a1a0a;
+    }
+    .agent-badge .anim {
+      font-size: 9px;
+      margin-left: 4px;
+      opacity: 0.7;
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>OrchyStraw Pixel Agents</h1>
+    <span id="ws-status" class="status">Connecting...</span>
+  </header>
+  <div id="canvas-container">
+    <canvas id="office" width="800" height="480"></canvas>
+  </div>
+  <div id="agent-list"></div>
+  <script src="app.js"></script>
+</body>
+</html>

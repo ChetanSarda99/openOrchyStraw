@@ -1,0 +1,8 @@
+{
+  "instance_id": "django__django-11179",
+  "repo": "django/django",
+  "base_commit": "d4df5e1b0b1c643fe0a3b90db05f8e4b44a3b298",
+  "problem_statement": "delete() on instances of models without any dependencies doesn't clear PKs.\n\nDescription:\n\nDeleting any model instance should set the PK to None after deletion. Currently this only happens if the instance has dependencies that are also deleted.",
+  "test_patch": "",
+  "gold_patch": ""
+}
