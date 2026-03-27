@@ -1,0 +1,17 @@
+{
+  "name": "orchystraw-pixel-agents",
+  "version": "0.2.0",
+  "description": "Pixel Agents visualization for OrchyStraw multi-agent orchestration",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "dev": "node server.js --dev",
+    "test": "node test-e2e.js"
+  },
+  "dependencies": {
+    "express": "^4.21.0",
+    "ws": "^8.18.0"
+  },
+  "license": "MIT",
+  "private": true
+}

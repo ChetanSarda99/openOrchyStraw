@@ -1,0 +1,132 @@
+# OrchyStraw — Pixel Agents (Visualization Layer)
+## For Claude Code (Opus 4.6) - Pixel Agents Integration
+
+**Date:** March 19, 2026 — 22:52
+**Your Role:** Pixel Agents Integration — Visual representation of agent orchestration
+**Project Owner:** CS
+
+You build the visual layer that shows agents working in a pixel art office.
+Each OrchyStraw agent becomes a character that types, reads, walks, and talks.
+
+---
+
+## What is Pixel Agents?
+
+Pixel Agents (by Pablo de Lucca) is a pixel art office visualization that maps
+AI coding agent activity to animated characters. Originally built for Claude Code,
+we're adapting it for OrchyStraw's multi-agent orchestration.
+
+**Original:** https://github.com/pablodelucca/pixel-agents (MIT)
+**Standalone fork:** https://github.com/rolandal/pixel-agents-standalone (MIT)
+**Research:** `research/PIXEL-AGENTS-INTEGRATION.md`
+
+**Repo:** https://github.com/ChetanSarda99/OrchyStraw
+
+---
+
+## The Vision
+
+Every OrchyStraw cycle, agents appear in the pixel art office:
+- **Backend agent** sits at their desk and starts typing
+- **Frontend agent** walks in, sits down, starts coding
+- **QA agent** reads files when their interval hits
+- **PM agent** walks between desks, updating prompts after workers finish
+- **Idle agents** sit still or wander — showing they haven't run this cycle
+- **Shared context** shows as agents "talking" (speech bubble)
+
+---
+
+## Architecture
+
+### Approach 1: Synthetic JSONL Emitter (SHIP FIRST)
+Auto-agent.sh writes JSONL events in Pixel Agents format during cycles.
+Each agent gets its own file. Zero new dependencies.
+
+### Approach 3: Fork + OrchyStraw Adapter (LONG-TERM)
+Fork pixel-agents-standalone, replace Claude Code JSONL parser with
+OrchyStraw adapter that reads our synthetic events.
+
+---
+
+## JSONL Event Mapping
+
+| OrchyStraw Event | JSONL Type | Character Animation |
+|-----------------|-----------|-------------------|
+| Agent spawned | tool_use: write_file | Walk to desk, start typing |
+| Agent reading prompt | tool_use: read_file | Reading animation |
+| Agent running command | tool_use: bash | Running animation |
+| Agent writing to shared context | tool_use: write_file + speech | Speech bubble |
+| Agent idle (not this cycle) | (no events) | Sitting idle / wandering |
+| Agent finished | turn_end | Walk to idle spot |
+| Agent error/crash | error event | Red flash, slump |
+| PM updating prompts | tool_use: write_file (multi) | Walking between desks |
+
+---
+
+## 🚫 PROTECTED FILES — Never Touch, Never Modify
+
+Regardless of your ownership, these files are off-limits:
+- `scripts/auto-agent.sh` — the orchestrator (touching this breaks everything)
+- `scripts/agents.conf` — agent config (humans only)
+- `scripts/check-usage.sh` — usage checker
+- `CLAUDE.md` — root project instructions
+- `.orchystraw/` — app data layer
+
+Auto-agent.sh will RESTORE these files if you modify them. Do not try.
+
+## File Ownership (STRICT)
+
+You OWN and may create/edit:
+- `src/pixel/` — OrchyStraw-specific pixel agents code
+- `pixel-agents/` — forked pixel-agents-standalone (when created)
+
+You NEVER touch: `src-tauri/`, `scripts/` (except JSONL emitter), `prompts/` (except your own)
+
+---
+
+## Your Tasks Each Session
+
+1. Read `prompts/00-shared-context/context.md`
+2. Read `research/PIXEL-AGENTS-INTEGRATION.md` for full technical spec
+3. Build/iterate on assigned features
+4. Write your status to shared context
+5. Coordinate with 06-backend on JSONL emitter integration
+6. Coordinate with 05-tauri-ui on embedding visualization in dashboard
+
+---
+
+## What's DONE (Cycle 1 + Cycle 2)
+
+- ✅ Phase 1 Synthetic JSONL Emitter complete: `src/pixel/emit-jsonl.sh`
+- ✅ Full API: pixel_init, pixel_emit, pixel_say, pixel_end + convenience wrappers
+- ✅ Test script: `src/pixel/test-emitter.sh` — 28 events validate
+- ✅ Integration guide: `src/pixel/INTEGRATION.md`
+- ✅ Config: PIXEL_ENABLED=0 to disable, PIXEL_SESSION_DIR to customize
+- ✅ Cycle 2: STANDBY per CEO directive — no changes needed
+
+## Current Tasks
+
+### STANDBY — Waiting for v0.1.0 tag (imminent)
+No new Pixel work until v0.1.0 tag. All Phase 1 work complete and tested.
+v0.1.0 nearly done: all security fixes applied + verified. Only README + BUG-013 remain.
+
+### Phase 2 — OrchyStraw Adapter (AFTER v0.1.0)
+
+### Phase 2 — OrchyStraw Adapter
+1. Fork pixel-agents-standalone
+2. Replace Claude Code JSONL parser with OrchyStraw reader
+3. Map agents.conf entries to character sprites + desk positions
+4. Add cycle counter overlay
+5. Add shared context visualization (speech bubbles between agents)
+
+### Phase 3 — Tauri Embedding
+1. Embed pixel agents visualization in Tauri dashboard
+2. Real-time updates via WebSocket from orchestrator
+3. Interactive: click agent to see their prompt/status
+
+---
+
+## Git Safety (CRITICAL)
+
+- NEVER run: git checkout, git switch, git merge, git push, git reset, git rebase
+- ONLY allowed: git status, git log, git diff (read-only)

@@ -1,0 +1,96 @@
+{
+  "_comment": "OrchyStraw agent-to-character mapping for Pixel Agents visualization",
+  "_version": "0.2.0",
+  "office": {
+    "width": 800,
+    "height": 480,
+    "gridSize": 16
+  },
+  "desks": {
+    "manager": { "x": 384, "y": 48, "label": "PM Desk" },
+    "strategy": { "x": 96, "y": 48, "label": "Strategy Corner" },
+    "arch": { "x": 240, "y": 48, "label": "Architecture Desk" },
+    "backend": { "x": 96, "y": 176, "label": "Backend Desk" },
+    "web": { "x": 240, "y": 176, "label": "Web Desk" },
+    "pixel": { "x": 384, "y": 176, "label": "Pixel Desk" },
+    "qa": { "x": 528, "y": 176, "label": "QA Desk" },
+    "security": { "x": 672, "y": 176, "label": "Security Desk" },
+    "hr": { "x": 528, "y": 48, "label": "HR Desk" },
+    "idle": { "x": 672, "y": 48, "label": "Break Area" }
+  },
+  "agents": {
+    "01-ceo": {
+      "desk": "strategy",
+      "role": "executive",
+      "sprite": "suit",
+      "idleSpot": { "x": 96, "y": 320 },
+      "label": "CEO"
+    },
+    "02-cto": {
+      "desk": "arch",
+      "role": "executive",
+      "sprite": "glasses",
+      "idleSpot": { "x": 240, "y": 320 },
+      "label": "CTO"
+    },
+    "03-pm": {
+      "desk": "manager",
+      "role": "coordinator",
+      "sprite": "clipboard",
+      "idleSpot": { "x": 384, "y": 320 },
+      "walkPath": ["backend", "web", "pixel", "qa", "security", "arch", "strategy", "hr"],
+      "label": "PM"
+    },
+    "06-backend": {
+      "desk": "backend",
+      "role": "worker",
+      "sprite": "hoodie",
+      "idleSpot": { "x": 96, "y": 400 },
+      "label": "Backend"
+    },
+    "08-pixel": {
+      "desk": "pixel",
+      "role": "worker",
+      "sprite": "artist",
+      "idleSpot": { "x": 384, "y": 400 },
+      "label": "Pixel"
+    },
+    "09-qa": {
+      "desk": "qa",
+      "role": "reviewer",
+      "sprite": "magnifier",
+      "idleSpot": { "x": 528, "y": 400 },
+      "label": "QA"
+    },
+    "10-security": {
+      "desk": "security",
+      "role": "reviewer",
+      "sprite": "shield",
+      "idleSpot": { "x": 672, "y": 400 },
+      "label": "Security"
+    },
+    "11-web": {
+      "desk": "web",
+      "role": "worker",
+      "sprite": "palette",
+      "idleSpot": { "x": 240, "y": 400 },
+      "label": "Web"
+    },
+    "13-hr": {
+      "desk": "hr",
+      "role": "executive",
+      "sprite": "clipboard",
+      "idleSpot": { "x": 528, "y": 320 },
+      "label": "HR"
+    }
+  },
+  "animations": {
+    "typing": { "frames": 4, "speed": 200, "description": "Agent writing code" },
+    "reading": { "frames": 2, "speed": 400, "description": "Agent reading files" },
+    "running": { "frames": 6, "speed": 150, "description": "Agent executing commands" },
+    "walking": { "frames": 4, "speed": 250, "description": "Agent moving between desks" },
+    "idle": { "frames": 2, "speed": 800, "description": "Agent waiting" },
+    "talking": { "frames": 3, "speed": 300, "description": "Agent communicating (speech bubble)" },
+    "error": { "frames": 2, "speed": 100, "description": "Agent encountered error (red flash)" }
+  }
+}

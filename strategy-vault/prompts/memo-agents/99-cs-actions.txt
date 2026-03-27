@@ -1,0 +1,565 @@
+# 99 — CS Manual Action Items
+# Things only CS can do (Xcode, external accounts, design tools, App Store, etc.)
+# Any agent session (01-04) can append items here.
+
+---
+
+## PENDING — Work through by priority
+
+### P0: Add Supabase Swift SDK to Xcode (blocking iOS compilation)
+**From:** 03-iOS | **Added:** 2026-03-13
+
+1. Open Memo.xcodeproj in Xcode (or create it — see steps below)
+2. File > Add Package Dependencies
+3. URL: `https://github.com/supabase-community/supabase-swift`
+4. Version: Up to Next Major (latest 2.x)
+5. Add to target: Memo
+6. Build and verify imports resolve
+
+**If .xcodeproj doesn't exist yet:**
+1. Xcode > Create New Project > iOS App
+2. Name: Memo, Bundle ID: com.memo.app, Interface: SwiftUI, Language: Swift
+3. Save to ios/Memo/ folder
+4. Drag all folders (Models, Views, ViewModels, Services, Utilities) into project
+5. Add Supabase Swift SDK per steps above
+
+---
+
+### P0: Add Supabase Anon Key (blocking iOS auth testing)
+**From:** 03-iOS | **Added:** 2026-03-13
+
+**Option A (Recommended):**
+1. Open Memo.xcodeproj > Edit Scheme > Run > Arguments > Environment Variables
+2. Add: `MEMO_SUPABASE_ANON_KEY` = your-real-anon-key
+3. Keeps the key out of source control
+
+**Option B (Quick):**
+1. Open ios/Memo/Utilities/Constants.swift
+2. Replace `REPLACE_WITH_ANON_KEY` with real anon key
+3. Don't commit the key to git
+
+**Find the key:** Supabase Dashboard > Settings > API > anon/public key (project: mmdbizllhnmeiimvkrtf)
+
+---
+
+### P0: Create Share Extension Target in Xcode (blocking share functionality)
+**From:** 03-iOS | **Added:** 2026-03-14
+
+All Share Extension code is written in `ios/MemoShareExtension/`. You need to create the Xcode target and configure App Groups.
+
+**Step 1: Create the extension target**
+1. Open Memo.xcodeproj in Xcode
+2. File > New > Target > iOS > Share Extension
+3. Product Name: `MemoShareExtension`
+4. Language: Swift
+5. **UNCHECK** "Include UI Extension" (we use custom SwiftUI, not the default template)
+6. Activate the scheme when prompted
+
+**Step 2: Configure App Groups (BOTH targets)**
+1. Select the **Memo** (main app) target > Signing & Capabilities
+2. Click "+ Capability" > App Groups
+3. Add: `group.com.memo.app`
+4. Select the **MemoShareExtension** target > Signing & Capabilities
+5. Click "+ Capability" > App Groups
+6. Add: `group.com.memo.app` (same group)
+
+**Step 3: Add source files to the extension target**
+1. Select `ios/MemoShareExtension/ShareViewController.swift` in Xcode
+2. In the File Inspector (right panel), check the **MemoShareExtension** target
+3. Do the same for `ShareView.swift`
+4. Also add these files from the main app to the extension target (check both targets):
+   - `ios/Memo/Models/Cache/PendingShareItem.swift` (contains SharedContainer)
+   - `ios/Memo/Utilities/Extensions/Color+Hex.swift`
+
+**Step 4: Delete the auto-generated files**
+1. Xcode may have auto-created a `ShareViewController.swift` in the extension group — delete it (we have our own)
+2. Delete `MainInterface.storyboard` if created
+
+**Step 5: Update Info.plist**
+1. Replace the auto-generated Info.plist with `ios/MemoShareExtension/Info.plist`
+2. Or just verify the NSExtension keys match (especially NSExtensionPrincipalClass)
+
+**Step 6: Build & Test**
+1. Build both targets (Cmd+B)
+2. Run the main app on simulator
+3. Open Safari, visit any page, tap Share > Memo
+4. The Memo share sheet should appear with area picker and Save button
+
+---
+
+### P1: Set Up API Keys for M1.5 Integrations (blocking data source work)
+**From:** 01-PM | **Added:** 2026-03-14
+
+Backend M1.4 is done. Next milestone needs these keys in `backend/.env`:
+
+**Telegram Bot:**
+1. Open Telegram, message @BotFather
+2. Send /newbot, name it "Memo Bot"
+3. Copy the bot token
+4. Add to backend/.env: `TELEGRAM_BOT_TOKEN=your-token`
+
+**Notion Integration:**
+1. Go to https://www.notion.so/my-integrations
+2. Create new integration "Memo App"
+3. Copy Client ID and Client Secret
+4. Add to backend/.env: `NOTION_CLIENT_ID=...` and `NOTION_CLIENT_SECRET=...`
+
+**AssemblyAI:**
+1. Go to https://www.assemblyai.com, create account (free tier: 185 hours)
+2. Copy API key from dashboard
+3. Add to backend/.env: `ASSEMBLYAI_API_KEY=your-key`
+
+**Pocket:**
+1. Go to https://getpocket.com/developer/apps/new
+2. Create app "Memo", select permissions: Retrieve
+3. Copy Consumer Key
+4. Add to backend/.env: `POCKET_CONSUMER_KEY=your-key`
+
+**SendGrid (Email Forwarding):**
+1. Go to https://sendgrid.com, create account (free tier: 100 emails/day)
+2. Settings > Inbound Parse > Add Host & URL
+3. Set your domain (e.g., memo-ingest.example.com) and webhook URL to `https://your-api.railway.app/sync/email`
+4. Copy API key
+5. Add to backend/.env: `SENDGRID_API_KEY=your-key` and `EMAIL_INGEST_DOMAIN=your-domain`
+
+---
+
+### P1: Apply Database Migrations (blocking production deploy)
+**From:** 02-Backend | **Added:** 2026-03-14
+
+The Prisma schema has been updated across multiple sessions. Run ALL pending migrations:
+
+1. `cd backend`
+2. `npx prisma migrate dev --name "phase2-models"`
+3. This adds:
+   - `Note.format`, `Note.status`, `Note.isFavorited`, `Note.lastViewedAt`, `Note.schemaId`, `Note.schemaData`
+   - `Category.isDefault` (replaces wheelOfLifeDimension)
+   - `AnalyticsEvent` model
+   - `UserUsage` model (per-user quota tracking)
+   - `Digest` model (weekly AI summaries)
+   - `NoteSchema` model (structured note templates)
+4. Verify seed still works: `npx prisma db seed`
+
+---
+
+### P1: Write App Store Description Draft
+**From:** 01-PM | **Added:** 2026-03-14
+
+APP_MINDSET.md says: "Write the App Store description NOW — forces clarity."
+
+1. Write draft in `docs/brand/APP_STORE_COPY.md`
+2. Include: tagline, subtitle, description, keywords, screenshots plan
+3. Tagline: "One search bar for everything you've ever saved."
+4. Keep it ADHD-friendly and authentic (see docs/brand/APP_BRANDING.md voice table)
+
+---
+
+### P1: Mac Arrival Sprint — Xcode Setup + Visual QA + Logo (do ALL of these on Day 1)
+**From:** 01-PM | **Added:** 2026-03-14
+
+When the Mac arrives (~1 week), this is your Day 1 checklist. Do it all in one sitting.
+
+**Step 1: Create Xcode Project**
+1. Xcode > Create New Project > iOS App
+2. Name: Memo, Bundle ID: com.memo.app, Interface: SwiftUI, Language: Swift
+3. Save to `ios/Memo/` folder
+4. Drag all folders (Models, Views, ViewModels, Services, Utilities) into project
+5. File > Add Package Dependencies > `https://github.com/supabase-community/supabase-swift` (latest 2.x)
+6. Add Supabase anon key to scheme env vars (see P0 item above)
+
+**Step 2: Create Share Extension Target**
+1. File > New > Target > Share Extension > MemoShareExtension
+2. App Group: `group.com.memo.app` on both targets
+3. Drag files from `ios/MemoShareExtension/` into the target
+
+**Step 3: Build & Fix Compile Errors**
+1. Build the project — first build WILL have errors (agents wrote code without Xcode)
+2. Fix import issues, missing type references, etc.
+3. Note: 03-iOS agent can help fix errors — screenshot them and paste into a session
+
+**Step 4: Visual QA Sprint**
+1. Run on iPhone simulator (iPhone 15 Pro, iOS 17)
+2. Screenshot EVERY screen — light mode AND dark mode
+3. Check against MemoTheme.swift tokens: do colors/spacing/radius match?
+4. Check against `docs/brand/APP_BRANDING.md`: does the voice/feel match?
+5. List anything that looks off — spacing, alignment, colors, dark mode issues
+6. Run 04-Design agent with screenshots for a polish sprint
+
+**Step 5: App Icon / Logo Design**
+The app has no icon yet. APP_BRANDING.md has 3 concepts:
+- **Search Lens** — magnifying glass with memo/note element inside
+- **Convergence** — multiple lines/streams converging into one point
+- **Brain Bookmark** — stylized bookmark with organic brain-like curves
+
+Options:
+1. Design in Figma yourself (simplest)
+2. Use **Bakery** app (Jordi Bruin) — iOS app icon generator
+3. Use **IconKitchen** for quick mockups
+4. Hire on Fiverr ($20-50) for a polished icon
+
+Requirements from HIG:
+- Simple, recognizable at 29x29pt
+- No text in icon
+- Works on light AND dark home screens
+- Consider iOS tinted icon mode
+- Use memoPrimary (#1A7A6D) or memoAccent (#E8734A) as hero color
+
+**Step 6: TestFlight**
+1. Build archive > Upload to App Store Connect
+2. Create internal testing group
+3. Invite 5-10 beta testers (#27)
+
+---
+
+### P2: Talk to 5-10 ADHD Users for Validation
+**From:** 01-PM | **Added:** 2026-03-14
+
+APP_MINDSET.md: "Talk to 10 people with ADHD. Ask: 'Would you pay $10/month for one search bar across all your apps?'"
+
+1. Reddit DMs on r/ADHD (approach people who post about losing ideas/bookmarks)
+2. Friends/colleagues with ADHD
+3. Ask: "How do you keep track of ideas across different apps?"
+4. Ask: "Would you pay $10/month for one search bar across all your apps?"
+5. Document responses — Go/No-Go: if 7+ say yes, proceed to launch
+
+---
+
+### P0: StoreKit 2 Sandbox Testing (code DONE, needs Mac for sandbox)
+**From:** 03-iOS + PM | **Added:** 2026-03-15 | **Updated:** 2026-03-15 15:30
+
+StoreKit 2 code is WRITTEN (StoreService.swift, Subscription.swift, ProGatingOverlay, PaywallView wired). #81 CLOSED. Now needs Mac to test:
+
+1. Create product IDs in App Store Connect: `com.memo.pro.monthly` ($9.99), `com.memo.pro.yearly` ($79.99)
+2. Set up StoreKit configuration file in Xcode for sandbox testing
+3. Test full purchase flow in simulator with StoreKit sandbox
+4. Verify entitlement check works after purchase
+5. Verify restore purchases works
+6. Verify pro gating (source limit, note limit) toggles correctly
+
+---
+
+### P0: Create Privacy Policy + Terms of Service pages
+**From:** QA Audit | **Added:** 2026-03-15
+
+Links added to paywall + Settings (getmemo.app/privacy and getmemo.app/terms) but pages don't exist yet.
+
+1. Create `https://getmemo.app/privacy` — describe data collection, AI processing, third-party services
+2. Create `https://getmemo.app/terms` — standard Terms of Use for subscription app
+3. Include AI processing disclosure (Claude for categorization, Voyage for embeddings)
+4. Required for App Store submission (Guideline 5.1.1)
+
+---
+
+
+### P1: Create App Info.plist with Usage Descriptions (blocking Xcode build)
+**From:** QA Audit | **Added:** 2026-03-15
+
+Main app has no Info.plist yet (only MemoShareExtension has one). Create during Xcode setup:
+
+1. NSMicrophoneUsageDescription: "Memo uses the microphone to record voice memos"
+2. NSCameraUsageDescription: (if camera used for photos)
+3. NSPhotoLibraryUsageDescription: (if importing from photos)
+4. NSCalendarsUsageDescription: "Memo adds reminders for action items" (for M2.7 calendar sync)
+
+---
+
+### P1: QA Visual Verification on Mac (add to Day 1 sprint)
+**From:** QA Audit | **Added:** 2026-03-15
+
+After Xcode project is set up, run these QA checks:
+
+1. Build for iPhone SE (smallest screen) — verify no layout overflow
+2. Build for iPhone 15 Pro Max (largest screen) — verify no wasted space
+3. Enable Dynamic Type > Accessibility Large — verify text scales correctly
+4. Enable VoiceOver — navigate every screen, verify all elements announced
+5. Enable Reduce Motion — verify all animations stop
+6. Test offline mode — enable airplane mode, verify OfflineBanner shows
+7. Test dark mode — verify navy background (#0D1B2A), no pure black
+
+---
+
+### P0: Run Performance Indexes on Supabase (before TestFlight)
+**From:** 02-Backend + PM | **Added:** 2026-03-15 15:30
+
+Backend created `prisma/performance-indexes.sql` with 6 composite indexes. Run on Supabase before TestFlight:
+
+1. Open Supabase Dashboard > SQL Editor
+2. Copy contents of `backend/prisma/performance-indexes.sql`
+3. Run the SQL
+4. Verify indexes created: `SELECT indexname FROM pg_indexes WHERE schemaname = 'public' ORDER BY indexname;`
+
+---
+
+### P1: Run Prisma Migration for User Plan + Trial Fields
+**From:** 02-Backend + PM | **Added:** 2026-03-15 15:30
+
+Backend added `plan` (default 'free') and `trialEndsAt` (nullable DateTime) to User model.
+
+1. `cd backend && npx prisma migrate dev --name "add-user-plan-trial"`
+2. Verify migration runs clean
+3. Check that existing users get `plan: 'free'` default
+
+---
+
+### P1: Create Widget Extension Target in Xcode (Mac Day 1)
+**From:** 03-iOS + PM | **Added:** 2026-03-15 17:35
+
+Widget code is written in `ios/Memo/Widgets/` (6 files). Need Xcode target + App Group.
+
+1. Open Memo.xcodeproj > File > New > Target > Widget Extension
+2. Product Name: `MemoWidgets`
+3. **UNCHECK** "Include Configuration App Intent" (we have custom intents in ios/Memo/Intents/)
+4. Activate scheme when prompted
+5. Configure App Group `group.com.memo.app` on BOTH main app AND widget extension targets
+6. Add widget source files to the extension target:
+   - `ios/Memo/Widgets/MemoWidgetBundle.swift`
+   - `ios/Memo/Widgets/WidgetNote.swift`
+   - `ios/Memo/Widgets/WidgetDataProvider.swift`
+   - `ios/Memo/Widgets/LastSavedWidget.swift`
+   - `ios/Memo/Widgets/QuickCaptureWidget.swift`
+   - `ios/Memo/Widgets/InspirationWidget.swift`
+7. Also add shared files (check both targets): `Color+Hex.swift`, `MemoTheme.swift`
+8. Delete any auto-generated widget template files
+9. Build both targets (Cmd+B)
+
+---
+
+### P1: Set Up Sentry DSN for Backend (before first deploy)
+**From:** 02-Backend + PM | **Added:** 2026-03-15 17:35
+
+Backend has Sentry middleware ready. Need DSN to activate:
+
+1. Go to https://sentry.io — create account (free tier: 5K errors/mo)
+2. Create project "memo-backend" (Node.js)
+3. Copy the DSN string
+4. Add to backend/.env: `SENTRY_DSN=your-dsn-here`
+5. Sentry will auto-capture errors on deploy
+
+---
+
+### P1: Run Smoke Tests After First Deploy
+**From:** 02-Backend + PM | **Added:** 2026-03-15 18:00
+
+Backend created `backend/scripts/smoke-test.sh` — run after first Railway deployment:
+
+1. `chmod +x backend/scripts/smoke-test.sh`
+2. `./backend/scripts/smoke-test.sh https://your-app.railway.app`
+3. All 11 checks should PASS (health, auth, CORS, rate limits, security headers)
+4. If any fail, check DEPLOYMENT_RUNBOOK.md for troubleshooting
+
+---
+
+### P2: Set Up Universal Links for Production Deep Links
+**From:** QA Audit (D4) | **Added:** 2026-03-15 19:30
+
+Current deep links use `memo://` custom URL scheme which can be hijacked by other apps. For production:
+
+1. Create Apple App Site Association (AASA) file on `getmemo.app/.well-known/apple-app-site-association`
+2. Add Associated Domains entitlement in Xcode: `applinks:getmemo.app`
+3. Update DeepLinkRouter.swift to handle `https://getmemo.app/note/{id}` URLs
+4. LOW priority — custom scheme works fine for MVP, universal links needed for App Clips or link sharing
+
+---
+
+### P2: Review API Contract Mismatches Before Mac Build
+**From:** 03-iOS + PM | **Added:** 2026-03-15 18:00
+
+iOS agent flagged 8 potential mismatches between iOS client and backend API during cross-reference. Agents are fixing both sides, but CS should verify after Mac build:
+
+1. HIGH: CreateNoteBody `content` vs `body` field — verify which the backend actually uses
+2. MEDIUM: Search filter structure (nested vs flat)
+3. GAP: iOS missing pocket/email/youtube source types (being added in next cycle)
+4. After first build, test actual API calls to confirm contracts match
+
+---
+
+### P0: DECIDE — App Name: Keep "Memo" or Rename to "Rekall"?
+**From:** PM review of docs/brand/NAME_CHANGE_PROPOSAL.md | **Added:** 2026-03-16
+
+The name change proposal is thorough. Key facts:
+- `memo.app` is taken ($5K-$50K+), `getmemo.app` is an active product, every "memo" variant is taken
+- `rekall.app` is UNREGISTERED, zero competitors, strong trademark potential
+- Publisher: "Sard Labs" — `sardlabs.com` + `sardlabs.dev` both available
+- **Rename is low effort (1 day)** — only user-facing strings + plist, no code/architecture changes
+- **Recommendation:** Rename BEFORE any public presence (pre-TestFlight)
+
+**Decision needed:**
+1. Approve "Rekall"? Or prefer Savd, MindSift, Hoardr, BrainBin?
+2. Approve "Sard Labs" as publisher?
+3. When: before TestFlight (recommended) or after beta?
+
+See: `docs/brand/NAME_CHANGE_PROPOSAL.md`, `docs/brand/BRAND_SETUP_GUIDE.md`
+
+---
+
+### P0: Register Domains + Social Handles (IMMEDIATELY after name decision)
+**From:** docs/brand/BRAND_SETUP_GUIDE.md | **Added:** 2026-03-16
+**Publisher:** Raytheon Operations (CS decided — NOT Sard Labs)
+
+Once you decide the app name, do this SAME DAY (domains can get snatched):
+
+1. Buy `rekall.app` (or chosen name) — ~$14-20/year (Cloudflare Registrar recommended)
+2. Buy publisher domain (raytheonops.com or raythornops.com — check availability)
+3. Point both to Cloudflare DNS (free)
+4. Reserve social handles (@getrekall on X, IG, TikTok — @rekallapp is taken on all three)
+5. Reserve r/rekallapp on Reddit
+6. Set up email: cs@raytheonops.com (or chosen domain)
+
+Handle availability verified Mar 15, 2026 — see `docs/brand/BRAND_SETUP_GUIDE.md` Part 2.
+
+---
+
+### P1: Apple Developer Account ($99/year)
+**From:** docs/brand/BRAND_SETUP_GUIDE.md | **Added:** 2026-03-16
+
+Required for TestFlight + App Store. Takes ~48 hours to approve.
+
+1. Sign up at developer.apple.com — $99 USD/year
+2. Register as **Individual** first (faster approval)
+3. Convert to Organization later once you have LLC (shows "Sard Labs" on App Store)
+4. **Do this BEFORE Mac arrives** so it's ready on Day 1
+
+---
+
+---
+
+### P1: Start Reddit Karma Building (start NOW, 15 min/day)
+**From:** docs/brand/MARKETING_STRATEGY_2026.md | **Added:** 2026-03-16
+
+The 90-day Reddit playbook starts BEFORE launch. r/ADHD (2.2M members) bans all self-promo, so you need 8+ weeks of genuine participation before any app mention.
+
+**Now through Mac arrival:**
+- Comment helpfully on r/ADHD daily (15 min) — morning routines, ADHD + work, information overload
+- Build to 500+ karma
+- **Never mention the app** in r/ADHD
+- Target: 2000+ karma by launch week
+
+See: `docs/brand/BRAND_SETUP_GUIDE.md` Part 9 for full playbook with example comments.
+
+---
+
+### P2: Set Up Waitlist Email (Beehiiv — free)
+**From:** docs/brand/MARKETING_STRATEGY_2026.md | **Added:** 2026-03-16
+
+1. Create Beehiiv account (free <2,500 subs)
+2. Set up waitlist landing page
+3. Embed signup on rekall.app landing page
+4. Send weekly build-in-public updates to waitlist
+5. On launch day: email everyone with App Store link
+
+---
+
+### P0: Activate Landing Page Waitlist (blocking email capture)
+**From:** 06-Landing + PM | **Added:** 2026-03-16 10:35
+
+Landing page waitlist is WIRED but needs Supabase table to activate:
+
+1. Open Supabase Dashboard (project: mmdbizllhnmeiimvkrtf) > SQL Editor
+2. Copy contents of `landing/landing-waitlist.sql`
+3. Run the SQL — creates `waitlist` table with RLS policies + indexes
+4. Copy Supabase URL + anon key into `landing/.env.local`:
+   ```
+   SUPABASE_URL=https://mmdbizllhnmeiimvkrtf.supabase.co
+   SUPABASE_ANON_KEY=your-anon-key
+   NEXT_PUBLIC_SITE_URL=https://rekall.app  (or localhost for now)
+   ```
+5. Test: submit email on landing page → check Supabase table for new row
+
+---
+
+### P2: Set Up Plausible/Umami Analytics (nice-to-have for launch)
+**From:** 06-Landing + PM | **Added:** 2026-03-16 10:35
+
+Landing page has Plausible analytics code ready but needs account:
+
+1. Go to https://plausible.io — sign up (free trial, then $9/mo or self-host)
+2. Or use Umami (free self-hosted at https://umami.is)
+3. Add domain to dashboard
+4. Set env var: `NEXT_PUBLIC_PLAUSIBLE_DOMAIN=rekall.app` in `landing/.env.local`
+5. Analytics will auto-load on page
+
+---
+
+### P1: Run Prisma Migration 20260316200000 (NoteReview + ChatConversation)
+**From:** 02-Backend (auto-cycle) | **Added:** 2026-03-16
+
+Backend built 4 new features (Spaced Repetition, AI Chat, Task Breakdown, Graph Clusters) that added 2 new Prisma models.
+
+1. `cd backend`
+2. `npx prisma migrate dev --name "add-note-review-chat-conversation"`
+3. This adds:
+   - `NoteReview` model (FSRS spaced repetition — userId, noteId, difficulty, interval, stability, retrievability, nextReviewAt)
+   - `ChatConversation` model (AI chat RAG — userId, title, messages JSON, timestamps)
+   - New quota fields on User: `reviewsPerDay`, `chatMessagesPerDay`
+   - Index on NoteReview(userId, nextReviewAt)
+   - Index on ChatConversation(userId, updatedAt DESC)
+4. Verify migration runs clean on Supabase before first deploy
+
+---
+
+### P1: Add ENCRYPTION_KEY Environment Variable (required for OAuth token encryption)
+**From:** 02-Backend + 07-Security | **Added:** 2026-03-16
+
+Backend now encrypts OAuth tokens at rest using AES-256-GCM. A new env var is required:
+
+1. Generate a 32-byte hex key: `openssl rand -hex 32`
+2. Add to `backend/.env`: `ENCRYPTION_KEY=<generated-key>`
+3. Add to Railway environment variables before first deploy
+4. **WARNING:** Losing this key means all stored OAuth tokens become unreadable — back it up securely
+
+---
+
+### P1: Run Prisma Migration for Highlight Model
+**From:** 02-Backend | **Added:** 2026-03-16
+
+Backend built Highlights + Annotations feature with a new Prisma model.
+
+1. `cd backend`
+2. `npx prisma migrate dev --name "add-highlight-model"`
+3. This adds: `Highlight` model (userId, noteId, text, annotation, color, startOffset, endOffset)
+4. Run after the NoteReview + ChatConversation migration (20260316200000)
+
+---
+
+### P2: Plan DevOps Setup (#128) — post-Mac
+**From:** CS (GitHub issue) | **Added:** 2026-03-19
+
+CS opened #128 covering three areas needed before shipping:
+1. **Prod/Dev environments** — separate Supabase projects, Xcode schemes, `.env.dev`/`.env.prod`, CI/CD
+2. **Feature rollbacks** — git tags, feature flags, backward-compatible DB migrations
+3. **Bug reporting** — in-app feedback, crash reporting (Sentry already wired), user-facing bug form
+
+Plan this after Mac arrival + first build. Backend agent (02) will implement feature flags + env configs. iOS agent (03) will add Xcode schemes + in-app feedback. Not urgent until approaching TestFlight.
+
+---
+
+### P2: Clean Up Loose PNG Screenshots (#126)
+**From:** 01-PM | **Added:** 2026-03-16
+
+Multiple landing page screenshots (hero-top.png, landing-full.png, mobile-hero.png, etc.) were left in repo root by the landing page visual QA.
+
+1. Move all .png files from repo root to `landing/screenshots/` or `docs/screenshots/`
+2. Add `*.png` to root .gitignore (screenshots should be in specific folders only)
+3. Or delete them if they were just QA artifacts
+
+---
+
+---
+
+## DONE
+
+- Create Figma Design File (P0) — 2026-03-13
+- Set Up Supabase Project (P1) — 2026-03-13 (project: mmdbizllhnmeiimvkrtf, us-east-1)
+- Wire PARAView, UsageDashboardView, ImportFlowView to Real Data (P1) — 2026-03-15 (03-iOS: PARAView verified already wired, UsageDashboardView deleted as redundant, ImportFlowView accepts connectedSources param)
+- Wire BatchReviewView to Real API Data (P1) — 2026-03-15 (03-iOS: BatchReviewViewModel created with real API calls)
+- Add AI Processing Disclosure (P1) — 2026-03-15 (03-iOS: "About AI" section added to SettingsView)
+- Sign OAuth State Parameters (P1) — 2026-03-15 (02-Backend: HMAC-SHA256 signed, Redis-backed, 10min TTL in utils/oauthState.ts)
+- Add SendGrid Webhook Signature Verification (P1) — 2026-03-15 (02-Backend: ECDSA verification in routes/sync.ts)
+- StoreKit 2 Code Implementation (P0) — 2026-03-15 (03-iOS: StoreService.swift, Subscription.swift, ProGatingOverlay, PaywallView wired. #81 CLOSED. Needs Mac for sandbox testing.)
+- Performance Optimization Backend (P0) — 2026-03-15 (02-Backend: 6 indexes, Prisma singleton, cache headers, slow search. #29 CLOSED.)
+- APP_DOC Learnings Applied (P1) — 2026-03-15 (02-Backend: trial support, Zod analytics, searchesPerDay. 03-iOS: analytics events, 7-day trial. #110 CLOSED.)
+- Build Landing Page (P1) — 2026-03-16 (06-Landing: Next.js 16 + React 19 + Tailwind v4 + Framer Motion + GSAP. 20 source files, 12 components, 8 sections, CSS iPhone mockup, waitlist API, OG/Twitter images, meta tags, Plausible analytics. Build clean.)
+- Landing Page Enhancements (P1) — 2026-03-16 (06-Landing: WaitlistCounter social proof, PocketMigration CTA, Comparison table. Updated Hero/WaitlistForm/Pricing/BuiltForADHD. 17 components, 10 sections.)
+- Backend New Features Sprint (P0) — 2026-03-16 (02-Backend: Spaced Repetition FSRS, AI Chat RAG, Goblin Tools Task Breakdown, Graph Clusters. 110 test files, 1998 tests ALL PASSING. Migration pending — see P1 above.)
+- Backend Security Hardening (P0) — 2026-03-16 (02-Backend: C1-C3 CRITICAL + H1/H5/H6 HIGH ALL FIXED. OAuth AES-256-GCM encryption, plan endpoint removed, admin bypass hardened, SSRF guard, AI rate limiting, email update locked. 115 test files, 2071 tests. New ENCRYPTION_KEY env var required — see P1 below.)
+- Backend New Features: Highlights + Content Archival (P1) — 2026-03-16 (02-Backend: Readwise-style highlights, Raindrop-style content archival. Highlight Prisma model + endpoints built. Migration pending.)

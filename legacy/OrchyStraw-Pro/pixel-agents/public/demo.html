@@ -1,0 +1,774 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>OrchyStraw — Pixel Agents Demo</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      background: #0a0a0a;
+      color: #e5e5e5;
+      font-family: 'JetBrains Mono', 'Fira Code', monospace;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      min-height: 100vh;
+    }
+    header {
+      padding: 16px 24px;
+      width: 100%;
+      max-width: 832px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    header h1 {
+      font-size: 14px;
+      font-weight: 600;
+      color: #a78bfa;
+    }
+    header .tagline {
+      font-size: 11px;
+      color: #6b7280;
+    }
+    #canvas-container {
+      position: relative;
+      border: 2px solid #1f1f1f;
+      border-radius: 4px;
+      overflow: hidden;
+      image-rendering: pixelated;
+    }
+    canvas {
+      display: block;
+      image-rendering: pixelated;
+    }
+    #agent-list {
+      width: 100%;
+      max-width: 832px;
+      padding: 16px 24px;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+    }
+    .agent-badge {
+      font-size: 11px;
+      padding: 4px 10px;
+      border-radius: 4px;
+      background: #1a1a1a;
+      border: 1px solid #2a2a2a;
+      color: #6b7280;
+      transition: all 0.3s ease;
+    }
+    .agent-badge.active {
+      border-color: #4ade80;
+      color: #4ade80;
+      background: #0a1a0a;
+    }
+    .agent-badge .anim {
+      font-size: 9px;
+      margin-left: 4px;
+      opacity: 0.7;
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>OrchyStraw Pixel Agents</h1>
+    <span class="tagline">Simulated demo — no server needed</span>
+  </header>
+  <div id="canvas-container">
+    <canvas id="office" width="800" height="480"></canvas>
+  </div>
+  <div id="agent-list"></div>
+
+  <script>
+  // ---------------------------------------------------------------------------
+  // Canvas setup
+  // ---------------------------------------------------------------------------
+
+  const canvas = document.getElementById('office');
+  const ctx = canvas.getContext('2d');
+  const W = canvas.width;   // 800
+  const H = canvas.height;  // 480
+
+  // ---------------------------------------------------------------------------
+  // Embedded character map (from src/pixel/character-map.json)
+  // ---------------------------------------------------------------------------
+
+  const characterMap = {
+    office: { width: 800, height: 480, gridSize: 16 },
+    desks: {
+      manager:  { x: 384, y: 48,  label: 'PM Desk' },
+      strategy: { x: 96,  y: 48,  label: 'Strategy Corner' },
+      arch:     { x: 240, y: 48,  label: 'Architecture Desk' },
+      backend:  { x: 96,  y: 176, label: 'Backend Desk' },
+      web:      { x: 240, y: 176, label: 'Web Desk' },
+      pixel:    { x: 384, y: 176, label: 'Pixel Desk' },
+      qa:       { x: 528, y: 176, label: 'QA Desk' },
+      security: { x: 672, y: 176, label: 'Security Desk' },
+      hr:       { x: 528, y: 48,  label: 'HR Desk' },
+      idle:     { x: 672, y: 48,  label: 'Break Area' },
+    },
+    agents: {
+      '01-ceo':     { desk: 'strategy', role: 'executive', sprite: 'suit',      idleSpot: { x: 96,  y: 320 }, label: 'CEO'      },
+      '02-cto':     { desk: 'arch',     role: 'executive', sprite: 'glasses',   idleSpot: { x: 240, y: 320 }, label: 'CTO'      },
+      '03-pm':      { desk: 'manager',  role: 'coordinator', sprite: 'clipboard', idleSpot: { x: 384, y: 320 },
+                      walkPath: ['backend', 'web', 'pixel', 'qa', 'security', 'arch', 'strategy', 'hr'], label: 'PM' },
+      '06-backend': { desk: 'backend',  role: 'worker',    sprite: 'hoodie',    idleSpot: { x: 96,  y: 400 }, label: 'Backend'  },
+      '08-pixel':   { desk: 'pixel',    role: 'worker',    sprite: 'artist',    idleSpot: { x: 384, y: 400 }, label: 'Pixel'    },
+      '09-qa':      { desk: 'qa',       role: 'reviewer',  sprite: 'magnifier', idleSpot: { x: 528, y: 400 }, label: 'QA'       },
+      '10-security':{ desk: 'security', role: 'reviewer',  sprite: 'shield',    idleSpot: { x: 672, y: 400 }, label: 'Security' },
+      '11-web':     { desk: 'web',      role: 'worker',    sprite: 'palette',   idleSpot: { x: 240, y: 400 }, label: 'Web'      },
+      '13-hr':      { desk: 'hr',       role: 'executive', sprite: 'clipboard', idleSpot: { x: 528, y: 320 }, label: 'HR'       },
+    },
+  };
+
+  // ---------------------------------------------------------------------------
+  // Constants (copied from app.js)
+  // ---------------------------------------------------------------------------
+
+  const SPRITE_COLORS = {
+    suit:      '#a78bfa',
+    glasses:   '#60a5fa',
+    clipboard: '#facc15',
+    hoodie:    '#4ade80',
+    artist:    '#f472b6',
+    magnifier: '#fb923c',
+    shield:    '#ef4444',
+    palette:   '#2dd4bf',
+  };
+
+  const ANIM_ICONS = {
+    typing:  '\u270D',
+    reading: '\uD83D\uDCD6',
+    running: '\u26A1',
+    walking: '\uD83D\uDEB6',
+    talking: '\uD83D\uDCAC',
+    idle:    '\u00B7',
+    error:   '\u26A0',
+  };
+
+  const PHASE_LABELS = {
+    workers_running: 'Workers Active',
+    pm_updating:     'PM Updating',
+    committing:      'Committing',
+    done:            'Cycle Complete',
+    idle:            'Idle',
+    unknown:         '\u2014',
+  };
+
+  const PHASE_COLORS = {
+    workers_running: '#4ade80',
+    pm_updating:     '#facc15',
+    committing:      '#60a5fa',
+    done:            '#a78bfa',
+    idle:            '#6b7280',
+    unknown:         '#6b7280',
+  };
+
+  // ---------------------------------------------------------------------------
+  // Simulation state
+  // ---------------------------------------------------------------------------
+
+  // Each agent: { label, animation, active, position: {x,y}, targetPos: {x,y} }
+  let agents = {};
+  let cycleState = { cycle: 5, phase: 'idle' };
+  let speechBubbles = []; // { agentId, label, text, x, y, expiresAt }
+  let frame = 0;
+
+  // Demo timeline: elapsed ms since cycle start
+  let cycleStartTime = null;
+  const CYCLE_DURATION = 20000; // 20 seconds per loop
+
+  // PM walk state
+  let pmWalkIndex = 0;
+  let pmWalkTimer = null;
+
+  // ---------------------------------------------------------------------------
+  // Initialise agent positions to idle spots
+  // ---------------------------------------------------------------------------
+
+  function initAgents() {
+    agents = {};
+    for (const [id, info] of Object.entries(characterMap.agents)) {
+      agents[id] = {
+        label:     info.label,
+        animation: 'idle',
+        active:    false,
+        position:  { x: info.idleSpot.x, y: info.idleSpot.y },
+        targetPos: { x: info.idleSpot.x, y: info.idleSpot.y },
+        // lerp speed (pixels per ms)
+        moveSpeed: 80,
+      };
+    }
+  }
+
+  initAgents();
+
+  // ---------------------------------------------------------------------------
+  // Agent movement helpers
+  // ---------------------------------------------------------------------------
+
+  function moveTo(id, target, onArrival) {
+    const a = agents[id];
+    if (!a) return;
+    a.targetPos = { x: target.x, y: target.y };
+    a.animation = 'walking';
+    a._onArrival = onArrival || null;
+  }
+
+  function snapTo(id, target) {
+    const a = agents[id];
+    if (!a) return;
+    a.position  = { x: target.x, y: target.y };
+    a.targetPos = { x: target.x, y: target.y };
+  }
+
+  function getDeskPos(deskName) {
+    const d = characterMap.desks[deskName];
+    // Sit slightly below the desk surface
+    return d ? { x: d.x, y: d.y + 30 } : { x: 400, y: 300 };
+  }
+
+  // ---------------------------------------------------------------------------
+  // Speech bubble helpers
+  // ---------------------------------------------------------------------------
+
+  function addSpeechBubble(agentId, label, text, x, y) {
+    speechBubbles = speechBubbles.filter(b => b.agentId !== agentId);
+    speechBubbles.push({
+      agentId,
+      label,
+      text: text.length > 35 ? text.substring(0, 32) + '...' : text,
+      x, y,
+      expiresAt: Date.now() + 4000,
+    });
+  }
+
+  function speakAt(agentId, text) {
+    const a = agents[agentId];
+    if (!a) return;
+    const info = characterMap.agents[agentId];
+    addSpeechBubble(agentId, info.label, text, a.position.x, a.position.y);
+  }
+
+  // ---------------------------------------------------------------------------
+  // Demo simulation timeline
+  // ---------------------------------------------------------------------------
+
+  // Worker agents (active each cycle)
+  const WORKERS = ['06-backend', '11-web', '08-pixel'];
+  const REVIEWERS = ['09-qa'];
+
+  // Random speech lines per agent
+  const SPEECH_LINES = {
+    '06-backend': ['Building modules...', 'Running scripts...', 'Wiring up API...'],
+    '11-web':     ['Styling landing page', 'Fixing responsive...', 'Adding animations'],
+    '08-pixel':   ['Drawing sprites...', 'Animating walk cycle', 'Pixel-perfect!'],
+    '09-qa':      ['Running tests...', 'Checking types...', 'All tests pass!'],
+    '03-pm':      ['Collecting diffs...', 'Updating context...', 'Committing cycle...'],
+  };
+
+  function randomLine(agentId) {
+    const lines = SPEECH_LINES[agentId] || ['Working...'];
+    return lines[Math.floor(Math.random() * lines.length)];
+  }
+
+  // Timeline events: { at: ms, fn: () => void }
+  let timelineEvents = [];
+  let firedEvents = new Set();
+
+  function scheduleEvents() {
+    timelineEvents = [];
+    firedEvents.clear();
+
+    // 0–2s: All idle
+    at(0, () => {
+      cycleState.phase = 'idle';
+      cycleState.cycle = Math.max(5, cycleState.cycle);
+      for (const id of Object.keys(agents)) {
+        const info = characterMap.agents[id];
+        snapTo(id, info.idleSpot);
+        agents[id].animation = 'idle';
+        agents[id].active    = false;
+      }
+    });
+
+    // 2s: Backend + Web + Pixel walk to desks
+    at(2000, () => {
+      cycleState.phase  = 'workers_running';
+      cycleState.cycle += 1;
+      for (const id of WORKERS) {
+        const info = characterMap.agents[id];
+        agents[id].active = true;
+        moveTo(id, getDeskPos(info.desk), () => {
+          agents[id].animation = 'typing';
+          setTimeout(() => speakAt(id, randomLine(id)), 300);
+        });
+      }
+    });
+
+    // 4s: Workers alternate typing/reading
+    at(4000, () => {
+      for (const id of WORKERS) {
+        agents[id].animation = 'typing';
+      }
+    });
+
+    // 5s: Bubble wave 1
+    at(5000, () => {
+      for (const id of WORKERS) {
+        speakAt(id, randomLine(id));
+      }
+    });
+
+    // 6s: QA walks to desk
+    at(6000, () => {
+      agents['09-qa'].active = true;
+      moveTo('09-qa', getDeskPos('qa'), () => {
+        agents['09-qa'].animation = 'reading';
+        setTimeout(() => speakAt('09-qa', randomLine('09-qa')), 400);
+      });
+    });
+
+    // 7s: Flip some workers to reading
+    at(7000, () => {
+      agents['06-backend'].animation = 'reading';
+      agents['11-web'].animation     = 'typing';
+      agents['08-pixel'].animation   = 'typing';
+    });
+
+    // 8.5s: Bubble wave 2
+    at(8500, () => {
+      speakAt('06-backend', randomLine('06-backend'));
+      speakAt('09-qa', randomLine('09-qa'));
+    });
+
+    // 9.5s: Flip again
+    at(9500, () => {
+      for (const id of WORKERS) {
+        agents[id].animation = 'typing';
+      }
+    });
+
+    // 10s: Workers finish — walk back to idle spots
+    at(10000, () => {
+      for (const id of [...WORKERS, ...REVIEWERS]) {
+        const info = characterMap.agents[id];
+        moveTo(id, info.idleSpot, () => {
+          agents[id].animation = 'idle';
+          agents[id].active    = false;
+        });
+      }
+    });
+
+    // 12s: PM starts walk round
+    at(12000, () => {
+      cycleState.phase = 'pm_updating';
+      agents['03-pm'].active    = true;
+      agents['03-pm'].animation = 'walking';
+      pmWalkIndex = 0;
+      pmDoNextStop();
+    });
+
+    // 15s: PM returns home; committing
+    at(15000, () => {
+      cycleState.phase = 'committing';
+      const info = characterMap.agents['03-pm'];
+      moveTo('03-pm', getDeskPos('manager'), () => {
+        agents['03-pm'].animation = 'typing';
+        speakAt('03-pm', randomLine('03-pm'));
+      });
+    });
+
+    // 17s: Cycle complete
+    at(17000, () => {
+      cycleState.phase = 'done';
+      agents['03-pm'].animation = 'idle';
+    });
+
+    // 18.5s: PM back to idle
+    at(18500, () => {
+      const info = characterMap.agents['03-pm'];
+      moveTo('03-pm', info.idleSpot, () => {
+        agents['03-pm'].animation = 'idle';
+        agents['03-pm'].active    = false;
+      });
+    });
+
+    // 20s handled by loop restart
+  }
+
+  function at(ms, fn) {
+    timelineEvents.push({ at: ms, fn });
+  }
+
+  // PM sequential desk tour
+  function pmDoNextStop() {
+    const path = characterMap.agents['03-pm'].walkPath;
+    if (pmWalkIndex >= path.length) return;
+
+    const deskName = path[pmWalkIndex];
+    pmWalkIndex++;
+    const target = getDeskPos(deskName);
+
+    moveTo('03-pm', target, () => {
+      speakAt('03-pm', randomLine('03-pm'));
+      // Next stop after 0.8s, but only if we're still in pm_updating phase
+      // and haven't been overridden by the 15s event
+      if (pmWalkIndex < path.length && cycleState.phase === 'pm_updating') {
+        pmWalkTimer = setTimeout(pmDoNextStop, 800);
+      }
+    });
+  }
+
+  // ---------------------------------------------------------------------------
+  // Movement update (called every frame)
+  // ---------------------------------------------------------------------------
+
+  let lastTimestamp = null;
+
+  function updatePositions(dt) {
+    for (const [id, a] of Object.entries(agents)) {
+      const dx = a.targetPos.x - a.position.x;
+      const dy = a.targetPos.y - a.position.y;
+      const dist = Math.sqrt(dx * dx + dy * dy);
+
+      if (dist > 1) {
+        const step = a.moveSpeed * dt;
+        const t = Math.min(step / dist, 1);
+        a.position.x += dx * t;
+        a.position.y += dy * t;
+      } else if (dist > 0) {
+        a.position.x = a.targetPos.x;
+        a.position.y = a.targetPos.y;
+        if (a._onArrival) {
+          const cb = a._onArrival;
+          a._onArrival = null;
+          cb();
+        }
+      }
+    }
+  }
+
+  // ---------------------------------------------------------------------------
+  // Timeline tick
+  // ---------------------------------------------------------------------------
+
+  function tickTimeline(elapsed) {
+    for (let i = 0; i < timelineEvents.length; i++) {
+      const ev = timelineEvents[i];
+      if (!firedEvents.has(i) && elapsed >= ev.at) {
+        firedEvents.add(i);
+        ev.fn();
+      }
+    }
+  }
+
+  // ---------------------------------------------------------------------------
+  // Drawing: floor grid  (identical to app.js)
+  // ---------------------------------------------------------------------------
+
+  function drawFloor() {
+    ctx.fillStyle = '#111111';
+    ctx.fillRect(0, 0, W, H);
+
+    ctx.strokeStyle = '#1a1a1a';
+    ctx.lineWidth = 1;
+    for (let x = 0; x < W; x += 16) {
+      ctx.beginPath(); ctx.moveTo(x, 0); ctx.lineTo(x, H); ctx.stroke();
+    }
+    for (let y = 0; y < H; y += 16) {
+      ctx.beginPath(); ctx.moveTo(0, y); ctx.lineTo(W, y); ctx.stroke();
+    }
+  }
+
+  // ---------------------------------------------------------------------------
+  // Drawing: desks  (identical to app.js)
+  // ---------------------------------------------------------------------------
+
+  function drawDesks() {
+    for (const [name, desk] of Object.entries(characterMap.desks)) {
+      if (name === 'idle') continue;
+
+      ctx.fillStyle = '#2a2a2a';
+      ctx.fillRect(desk.x - 24, desk.y - 8, 48, 24);
+
+      ctx.strokeStyle = '#3a3a3a';
+      ctx.lineWidth = 1;
+      ctx.strokeRect(desk.x - 24, desk.y - 8, 48, 24);
+
+      ctx.fillStyle = '#0f0f0f';
+      ctx.fillRect(desk.x - 8, desk.y - 14, 16, 8);
+      ctx.strokeStyle = '#404040';
+      ctx.strokeRect(desk.x - 8, desk.y - 14, 16, 8);
+
+      ctx.fillStyle = '#404040';
+      ctx.font = '7px monospace';
+      ctx.textAlign = 'center';
+      ctx.fillText(desk.label || name, desk.x, desk.y + 28);
+      ctx.textAlign = 'start';
+    }
+  }
+
+  // ---------------------------------------------------------------------------
+  // Drawing: agents  (identical to app.js)
+  // ---------------------------------------------------------------------------
+
+  function drawAgents() {
+    for (const [id, state] of Object.entries(agents)) {
+      const charInfo = characterMap.agents[id];
+      const color = SPRITE_COLORS[charInfo?.sprite] || '#6b7280';
+      const pos = state.position;
+
+      let bobY = 0;
+      if (state.animation === 'typing') {
+        bobY = Math.sin(frame * 0.3) * 1;
+      } else if (state.animation === 'walking') {
+        bobY = Math.abs(Math.sin(frame * 0.2)) * 2;
+      } else if (state.animation === 'running') {
+        bobY = Math.abs(Math.sin(frame * 0.5)) * 3;
+      }
+
+      const x = pos.x;
+      const y = pos.y + bobY;
+
+      // Torso
+      ctx.fillStyle = color;
+      ctx.fillRect(x - 4, y - 12, 8, 10);
+
+      // Head
+      ctx.fillStyle = '#e5c9a0';
+      ctx.fillRect(x - 3, y - 18, 6, 6);
+
+      // Eyes (blink every ~120 frames)
+      if (frame % 120 > 5) {
+        ctx.fillStyle = '#1a1a1a';
+        ctx.fillRect(x - 2, y - 16, 2, 2);
+        ctx.fillRect(x + 1, y - 16, 2, 2);
+      }
+
+      // Legs
+      ctx.fillStyle = '#333333';
+      ctx.fillRect(x - 3, y - 2, 3, 4);
+      ctx.fillRect(x + 1, y - 2, 3, 4);
+
+      // Activity glow
+      if (state.active) {
+        ctx.shadowColor = color;
+        ctx.shadowBlur = 8;
+        ctx.fillStyle = color;
+        ctx.fillRect(x - 1, y - 20, 2, 2);
+        ctx.shadowBlur = 0;
+      }
+
+      // Name label
+      ctx.fillStyle = state.active ? color : '#4a4a4a';
+      ctx.font = '7px monospace';
+      ctx.textAlign = 'center';
+      ctx.fillText(state.label || id, x, y + 10);
+      ctx.textAlign = 'start';
+    }
+  }
+
+  // ---------------------------------------------------------------------------
+  // Drawing: speech bubbles  (identical to app.js)
+  // ---------------------------------------------------------------------------
+
+  function drawSpeechBubbles() {
+    const now = Date.now();
+    speechBubbles = speechBubbles.filter(b => b.expiresAt > now);
+
+    for (const bubble of speechBubbles) {
+      const fadeMs = 500;
+      const remaining = bubble.expiresAt - now;
+      const opacity = remaining < fadeMs ? remaining / fadeMs : 1;
+      ctx.globalAlpha = opacity;
+
+      ctx.font = '7px monospace';
+      const textWidth  = ctx.measureText(bubble.text).width;
+      const labelWidth = ctx.measureText(bubble.label).width;
+      const bw = Math.max(textWidth, labelWidth) + 10;
+      const bh = 22;
+      const bx = bubble.x - bw / 2;
+      const by = bubble.y - 52; // lifted a little higher than agents
+
+      ctx.fillStyle = 'rgba(10, 10, 10, 0.92)';
+      roundRect(bx, by, bw, bh, 3);
+      ctx.fill();
+
+      ctx.strokeStyle = '#404040';
+      ctx.lineWidth = 1;
+      roundRect(bx, by, bw, bh, 3);
+      ctx.stroke();
+
+      // Tail
+      ctx.fillStyle = 'rgba(10, 10, 10, 0.92)';
+      ctx.beginPath();
+      ctx.moveTo(bubble.x - 3, by + bh);
+      ctx.lineTo(bubble.x + 3, by + bh);
+      ctx.lineTo(bubble.x,     by + bh + 5);
+      ctx.closePath();
+      ctx.fill();
+
+      ctx.fillStyle = '#a78bfa';
+      ctx.fillText(bubble.label, bx + 5, by + 9);
+
+      ctx.fillStyle = '#e5e5e5';
+      ctx.fillText(bubble.text, bx + 5, by + 18);
+
+      ctx.globalAlpha = 1;
+    }
+  }
+
+  function roundRect(x, y, w, h, r) {
+    ctx.beginPath();
+    ctx.moveTo(x + r, y);
+    ctx.lineTo(x + w - r, y);
+    ctx.quadraticCurveTo(x + w, y, x + w, y + r);
+    ctx.lineTo(x + w, y + h - r);
+    ctx.quadraticCurveTo(x + w, y + h, x + w - r, y + h);
+    ctx.lineTo(x + r, y + h);
+    ctx.quadraticCurveTo(x, y + h, x, y + h - r);
+    ctx.lineTo(x, y + r);
+    ctx.quadraticCurveTo(x, y, x + r, y);
+    ctx.closePath();
+  }
+
+  // ---------------------------------------------------------------------------
+  // Drawing: HUD overlay  (identical to app.js)
+  // ---------------------------------------------------------------------------
+
+  function drawOverlay() {
+    ctx.fillStyle = 'rgba(10, 10, 10, 0.85)';
+    ctx.fillRect(0, 0, W, 26);
+
+    const phaseColor = PHASE_COLORS[cycleState.phase] || PHASE_COLORS.unknown;
+    ctx.fillStyle = phaseColor;
+    ctx.fillRect(0, 26, W, 2);
+
+    ctx.font = '10px monospace';
+    ctx.textBaseline = 'middle';
+    const y = 13;
+
+    ctx.fillStyle = '#e5e5e5';
+    ctx.textAlign = 'start';
+    ctx.fillText('Cycle ' + cycleState.cycle, 8, y);
+
+    const phaseLabel = PHASE_LABELS[cycleState.phase] || cycleState.phase;
+    ctx.fillStyle = phaseColor;
+    ctx.textAlign = 'center';
+    ctx.fillText(phaseLabel, W / 2, y);
+
+    const agentList    = Object.values(agents);
+    const activeCount  = agentList.filter(a => a.active).length;
+    const totalCount   = agentList.length;
+    ctx.fillStyle = activeCount > 0 ? '#4ade80' : '#6b7280';
+    ctx.textAlign = 'end';
+    ctx.fillText(activeCount + '/' + totalCount + ' agents', W - 8, y);
+
+    ctx.textAlign = 'start';
+    ctx.textBaseline = 'alphabetic';
+  }
+
+  // ---------------------------------------------------------------------------
+  // Drawing: "Demo Mode" badge (bottom-right corner)
+  // ---------------------------------------------------------------------------
+
+  function drawDemoBadge() {
+    const text   = 'Demo Mode';
+    ctx.font     = '8px monospace';
+    const tw     = ctx.measureText(text).width;
+    const bw     = tw + 12;
+    const bh     = 16;
+    const bx     = W - bw - 8;
+    const by     = H - bh - 8;
+
+    ctx.fillStyle = 'rgba(10, 10, 10, 0.80)';
+    roundRect(bx, by, bw, bh, 3);
+    ctx.fill();
+
+    ctx.strokeStyle = '#2a2a2a';
+    ctx.lineWidth = 1;
+    roundRect(bx, by, bw, bh, 3);
+    ctx.stroke();
+
+    ctx.fillStyle = '#6b7280';
+    ctx.textBaseline = 'middle';
+    ctx.fillText(text, bx + 6, by + bh / 2);
+    ctx.textBaseline = 'alphabetic';
+  }
+
+  // ---------------------------------------------------------------------------
+  // Agent list badges (HTML below canvas)
+  // ---------------------------------------------------------------------------
+
+  const agentListEl = document.getElementById('agent-list');
+
+  function updateAgentList() {
+    agentListEl.innerHTML = '';
+    for (const [id, state] of Object.entries(agents)) {
+      const badge = document.createElement('div');
+      badge.className = 'agent-badge' + (state.active ? ' active' : '');
+      const icon = ANIM_ICONS[state.animation] || '';
+      badge.innerHTML = `${state.label || id}<span class="anim">${icon}</span>`;
+      agentListEl.appendChild(badge);
+    }
+  }
+
+  // ---------------------------------------------------------------------------
+  // Render loop
+  // ---------------------------------------------------------------------------
+
+  function render(timestamp) {
+    frame++;
+
+    // Init cycle clock on first frame
+    if (cycleStartTime === null) {
+      cycleStartTime = timestamp;
+      scheduleEvents();
+    }
+
+    const elapsed = timestamp - cycleStartTime;
+    const dt = lastTimestamp !== null ? (timestamp - lastTimestamp) / 1000 : 0;
+    lastTimestamp = timestamp;
+
+    // Loop: restart simulation after CYCLE_DURATION
+    if (elapsed >= CYCLE_DURATION) {
+      cycleStartTime = timestamp;
+      lastTimestamp  = timestamp;
+      if (pmWalkTimer) clearTimeout(pmWalkTimer);
+      pmWalkTimer = null;
+      initAgents();
+      scheduleEvents();
+      requestAnimationFrame(render);
+      return;
+    }
+
+    // Advance timeline
+    tickTimeline(elapsed);
+
+    // Move agents toward their targets
+    updatePositions(dt);
+
+    // Draw everything
+    ctx.clearRect(0, 0, W, H);
+    drawFloor();
+    drawDesks();
+    drawAgents();
+    drawSpeechBubbles();
+    drawOverlay();
+    drawDemoBadge();
+
+    // Sync HTML badges every 10 frames (cheap)
+    if (frame % 10 === 0) updateAgentList();
+
+    requestAnimationFrame(render);
+  }
+
+  // Kick off
+  requestAnimationFrame(render);
+  </script>
+</body>
+</html>

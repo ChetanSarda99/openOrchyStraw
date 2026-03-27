@@ -1,0 +1,328 @@
+# OrchyStraw Session Tracker
+# Records cycle history for continuity across sessions
+
+## Cycle Log
+| Cycle | Date | Agents Run | Key Outcomes |
+|-------|------|-----------|--------------|
+| 0 | 2026-03-17 | Setup | Initial agent prompts created, team configured |
+| 1 | 2026-03-18 | 01,02,06,08,09,10,11 | 7 core modules, landing page MVP, JSONL emitter, QA+security audits, 5 ADRs |
+| 2 | 2026-03-18 | 01,02,06,08,09,10,11 | bash-version.sh, BASH-001 ADR, 8 tests pass, security CONDITIONAL PASS, threat model, integration guide |
+| 3 | 2026-03-18 | 02,06,03 | OWN-001 ADR, integration smoke test (42 assertions), BUG-009 P0 confirmed, all agents BLOCKED on CS |
+| 4 | 2026-03-18 | 09,03 | QA cycle 3 report (NOT READY), BUG-004/005 path typos FIXED, BUG-012 NEW, all CS blockers remain |
+| 5 | 2026-03-18 | 01,02,09,10,13,03 | CS UNBLOCKED (d130de7), QA CONDITIONAL PASS, Security HIGH-03/HIGH-04 NEW, HR team docs, CEO "The Unblock" |
+| 6 | 2026-03-18 | 06,09,10,03 | Backend docs HIGH-03/04/MEDIUM-01 patches, QA cycle 5 NOT READY, Security cycle 5 NO CHANGE |
+| 7 | 2026-03-18 | 01,13,06,09,10,03 | CEO "Cut the Tail" scope lock, QA cycle 6 NOT READY, Security cycle 6 NO CHANGE, all blocked on CS |
+| 8 | 2026-03-18 | 03 | PM housekeeping: closed #23 + #24 on GitHub, all agents still blocked on CS |
+| 9 | 2026-03-18 | all | No new work — all agents STANDBY, blocked on CS (HIGH-03 + MEDIUM-01 + README) |
+| 10 | 2026-03-18 | 03 | PM cycle 2 review — no changes, 9th cycle blocked on CS. Escalation noted. |
+| 11 | 2026-03-18 | 01,13,03 | CEO "Ship or Shelf", HR team health, PM invokes Option B — tag AS-IS |
+| 12 | 2026-03-18 | 02,03 | CTO status check, PM final escalation — 12 cycles blocked, accept HR intervals |
+
+---
+
+## WHAT SHIPPED — Cycle 12 (2026-03-18 ~15:20)
+
+### 02-CTO
+- Status check only — confirmed no new proposals, no new CS commits, no technical work needed
+- Architecture position unchanged: apply fixes or tag AS-IS
+- v0.2.0 planning ready (#40-#46) when v0.1.0 ships
+
+### 03-PM (this cycle)
+- Confirmed all agents STANDBY — 12th cycle total, ~55 idle agent-cycles
+- HR interval recommendation ACCEPTED — CS must update agents.conf
+- Final escalation added to 99-me actions
+- All agent prompts confirmed current — no task changes needed
+- Session tracker updated
+
+### All Other Agents
+- STANDBY — no new work. 12th cycle blocked on CS.
+
+---
+
+## WHAT SHIPPED — Cycle 11 (2026-03-18 ~15:15)
+
+### 01-CEO
+- Cycle 9 strategic memo: `docs/strategy/CYCLE-9-CEO-UPDATE.md` — "Ship or Shelf"
+- Deadline set: If CS fixes don't land by cycle 10, tag v0.1.0 AS-IS with known issues
+- Option B defined: ship with HIGH-03 documented as known issue, hotfix in v0.1.1
+
+### 13-HR
+- Cycle 3 team health report: `prompts/13-hr/team-health.md`
+- Team utilization: ~11% — only PM + HR producing output
+- ~50 idle agent-cycles wasted on same 3 blockers
+- RECOMMENDED: Increase intervals for idle agents (CEO → 6, CTO → 4, Pixel → 4, Security → 10)
+- Staffing confirmed: team correctly sized, activate 04/05 post-v0.1.0
+
+### 03-PM (this cycle)
+- CEO deadline PASSED — invoking Option B per "Ship or Shelf"
+- Added CS action: tag v0.1.0 AS-IS if fixes can't land this session
+- HR interval recommendation accepted for next cycle
+- All agent prompts updated with deadline status
+- Session tracker updated
+
+### All Other Agents
+- STANDBY — no new work. 11th cycle blocked on CS.
+
+---
+
+## WHAT SHIPPED — Cycle 10 (2026-03-18 ~15:10)
+
+### 03-PM (this cycle)
+- No new agent work to review — all agents confirmed STANDBY
+- Shared context updated with PM escalation note
+- Session tracker updated
+- CS action items reviewed — no new items, same 3 blockers persist
+- **Escalation:** 9 consecutive cycles with no progress. CS must apply HIGH-03 + MEDIUM-01 (~7 min total) to unblock entire team.
+
+### All Other Agents
+- STANDBY — no new work. Waiting on CS to apply documented patches.
+
+---
+
+## WHAT SHIPPED — Cycle 8 (2026-03-18 ~15:00)
+
+### 03-PM (this cycle)
+- Closed GitHub issues: #23 (CTO ADRs) and #24 (CEO open-source boundary)
+- All agent prompts confirmed — no new work, still blocked on CS
+- Session tracker updated, CS action items reviewed
+- No new blockers, no new issues
+
+### All Other Agents
+- STANDBY — no new work until CS applies HIGH-03 + MEDIUM-01 fixes and writes README
+
+---
+
+## WHAT SHIPPED — Cycle 7 (2026-03-18 14:34–14:50)
+
+### 01-CEO
+- Strategic update: `docs/strategy/CYCLE-7-CEO-UPDATE.md` — "Cut the Tail"
+- v0.1.0 scope LOCKED: HIGH-03 fix + .gitignore + README only
+- HIGH-04 deferred to v0.1.1 (not RCE, needs careful impl)
+- `--single-agent` mode elevated to v0.2.0 (growth hack)
+- Infinite audit loop identified as #1 strategic risk — hard scope cutoff enforced
+
+### 06-Backend
+- Documented exact patches for HIGH-03, HIGH-04, MEDIUM-01 in `src/core/INTEGRATION-GUIDE.md`
+- All 9 tests pass (8 unit + 1 integration, 42 assertions)
+- BLOCKED: All 3 fixes are in protected files — CS must apply
+
+### 09-QA
+- Cycle 6 QA report: `prompts/09-qa/reports/qa-cycle-6.md`
+- Verdict: NOT READY — HIGH-04 + MEDIUM-01 still open
+- HIGH-03 PARTIALLY FIXED (commit_by_ownership arrays done, detect_rogue_writes P2)
+- QA agrees with CEO scope cut for v0.1.0
+
+### 10-Security
+- Cycle 6 audit: `prompts/10-security/reports/security-cycle-6.md`
+- Verdict: NO CHANGE — all 3 blockers still need CS
+- Secrets scan: CLEAN
+
+### 13-HR
+- Cycle 6 team health update
+- CS unblock resolved original 4-cycle blocker
+- BUG-012 progress: 5/12 prompts have PROTECTED FILES
+- Team correctly sized, no changes needed
+
+### 03-PM (this cycle)
+- All agent prompts updated with cycle 7/8 status
+- Session tracker updated
+- CS action items reviewed
+
+---
+
+## WHAT SHIPPED — Cycle 5 (2026-03-18 13:39–13:55)
+
+### CS (human — d130de7)
+- HIGH-01 eval injection FIXED — array-based pathspec in auto-agent.sh
+- MEDIUM-02 notify injection FIXED — env var + XML escaping
+- Core modules integrated — all 8 sourced at lines 29-34
+- BUG-009 agents.conf reconciled — root and scripts/ identical
+- HR agent (13-hr) added to agents.conf
+
+### 01-CEO
+- Strategic update: `docs/strategy/CYCLE-5-CEO-UPDATE.md` — "The Unblock"
+- v0.1.0 gated ONLY on QA regression + Security sign-off + README
+
+### 02-CTO
+- Full architecture review of CS fix commit (d130de7) — all fixes PASS
+- Hardening spec updated, all P0s struck through
+- Confirmed v0.1 path UNBLOCKED
+
+### 09-QA
+- Cycle 4 QA report: `prompts/09-qa/reports/qa-cycle-4.md`
+- Verdict: CONDITIONAL PASS — all P0 blockers verified FIXED
+- 9/9 tests pass, 42/42 integration assertions pass
+- 5 bugs CLOSED: BUG-002, BUG-003, BUG-004, BUG-005, BUG-009, BUG-011
+- NEW finding QA-F001: `set -uo pipefail` missing `-e` flag
+
+### 10-Security
+- Cycle 5 audit: `prompts/10-security/reports/security-cycle-5.md`
+- Verdict: CONDITIONAL PASS — HIGH-01/MEDIUM-02 FIXED
+- NEW HIGH-03: unquoted `$ownership` in for loops (glob expansion risk)
+- NEW HIGH-04: sed injection in prompt updates
+- MEDIUM-01 REGRESSION: root .gitignore missing sensitive patterns
+
+### 13-HR
+- Created `docs/team/TEAM_ROSTER.md`, `docs/team/ONBOARDING.md`, `docs/team/NORMS.md`
+- First team health report: `prompts/13-hr/team-health.md`
+- Team correctly sized for v0.1.0, recommend reactivating Tauri agents post-v0.1.0
+
+### 03-PM (this cycle)
+- All agent prompts updated with cycle 5/6 status
+- Session tracker updated
+- CS action items updated — old P0s moved to DONE, new P0s added (HIGH-03/HIGH-04/MEDIUM-01)
+
+---
+
+## WHAT SHIPPED — Cycle 4 (2026-03-18 13:30–13:35)
+
+### 09-QA
+- Cycle 3 QA report: `prompts/09-qa/reports/qa-cycle-3.md`
+- Verdict: NOT READY — all 4 CS blockers remain open, zero fixes applied
+- 9/9 tests pass, 42 integration assertions pass — no regressions
+- BUG-006 CLOSED (tests/ exists)
+- BUG-012 NEW: 9 of 13 agent prompts missing PROTECTED FILES section
+- BUG-004/005 confirmed still present despite being marked fixed
+- Integration test coverage gaps identified (5 items, all P2)
+
+### 03-PM (this cycle)
+- BUG-004 FIXED: QA prompt path `prompts/07-qa/reports/` → `prompts/09-qa/reports/`
+- BUG-005 FIXED: Security prompt path `prompts/08-security/reports/` → `prompts/10-security/reports/`
+- All agent prompts updated with cycle 4 status
+- Session tracker updated
+- CS action items updated with new findings
+
+### All Other Agents
+- STANDBY — no new work possible until CS unblocks v0.1.0
+
+---
+
+## WHAT SHIPPED — Cycle 3 (2026-03-18 13:21–13:30)
+
+### 02-CTO
+- OWN-001 ADR: file ownership boundaries (src/ overlap, auto-agent.sh ownership, dual agents.conf)
+- BUG-009 CONFIRMED P0: dual agents.conf divergence — 5 agents orphaned
+- Hardening spec updated with cycle 3 findings + revised priority table
+- Tech registry updated with OWN-001
+
+### 06-Backend
+- `tests/core/test-integration.sh` — integration smoke test: sources all 8 modules, 42 assertions pass
+- INTEGRATION-GUIDE.md updated with Step 0 (`set -euo pipefail`) documentation
+- All 8 shebangs confirmed `#!/usr/bin/env bash` per BASH-001 ADR
+- Full test suite: 9/9 pass (8 unit + 1 integration)
+
+### 03-PM (this cycle)
+- All agent prompts updated with cycle 3 status
+- Session tracker updated
+- CS action items reviewed and maintained
+- Confirmed: ALL agents BLOCKED on CS applying fixes to auto-agent.sh
+
+### 08-Pixel, 09-QA, 10-Security, 11-Web, 01-CEO
+- All on STANDBY — no new work possible until CS unblocks v0.1.0
+
+---
+
+## WHAT SHIPPED — Cycle 2 (2026-03-18 13:08–13:15)
+
+### 01-CEO
+- Cycle 2 strategic update: `docs/strategy/CYCLE-2-CEO-UPDATE.md` — "Stay the Course"
+- Risk flagged: CS is bottleneck for protected file integration
+
+### 02-CTO
+- BASH-001 ADR: minimum bash 5.0, portable shebang
+- Tech registry updated with BASH-001
+- Eval injection upgraded P2 → P0, aligned with Security HIGH-01
+- 5 new issues identified in hardening spec (set -e, shebang, ownership overlap)
+- Deep code review of all src/core/*.sh modules — PASS
+
+### 06-Backend
+- `src/core/bash-version.sh` — exits if bash < 5.0
+- `src/core/INTEGRATION-GUIDE.md` — step-by-step for CS
+- `tests/core/` — 8 test files + runner, all 8 pass
+- MEDIUM-01 (.gitignore) FIXED
+- HIGH-01 eval fix DOCUMENTED (CS must apply to protected auto-agent.sh)
+- MEDIUM-02 notify fix DOCUMENTED (CS must apply)
+
+### 08-Pixel
+- STANDBY per CEO directive — no changes
+
+### 09-QA
+- Cycle 2 QA report: `prompts/09-qa/reports/qa-cycle-2.md`
+- Verdict: NOT READY — HIGH-01 eval still open
+- 8/8 backend tests independently verified
+- 4 new bugs: BUG-008 through BUG-011
+- Site build PASS
+
+### 10-Security
+- Cycle 2 audit: CONDITIONAL PASS — `prompts/10-security/reports/security-cycle-2.md`
+- Threat model: `prompts/10-security/reports/threat-model-v0.1.md` (7 attack vectors)
+- New modules scan: ALL SECURE — zero vulnerabilities
+- MEDIUM-01 FIXED, LOW-01 FIXED, HIGH-01 STILL OPEN
+
+### 11-Web
+- STANDBY per CEO directive — no changes
+
+---
+
+## WHAT SHIPPED — Cycle 1 (2026-03-18 10:54–11:06)
+
+### 06-Backend
+- 7 bash modules in `src/core/`: logger, error-handler, cycle-state, agent-timeout, dry-run, config-validator, lock-file
+- All syntax-checked, double-source guarded, no external deps, bash 5.x
+- BLOCKED: Need CS to integrate into `auto-agent.sh` (protected file)
+
+### 11-Web
+- Landing page MVP in `site/` — Next.js 16 + Tailwind v4 + Framer Motion
+- All 6 sections: Hero, Supported Tools, How It Works, Features Grid, FAQ, Footer
+- Build verified, static export configured
+
+### 08-Pixel
+- Synthetic JSONL emitter: `src/pixel/emit-jsonl.sh` + test script (28 events pass)
+- Integration guide: `src/pixel/INTEGRATION.md`
+- STANDBY per CEO directive
+
+### 01-CEO
+- Strategic memo: `docs/strategy/CYCLE-1-STRATEGIC-MEMO.md`
+- v0.1.0 = ONLY priority, all other work frozen
+- Benchmarks elevated to P1, open-source v0.1.0 immediately
+
+### 02-CTO
+- 5 ADRs: UI-001, WEB-001, DOCS-001, STYLE-001, DB-001
+- Orchestrator hardening spec: `docs/architecture/ORCHESTRATOR-HARDENING.md`
+- P0: bash version check, ownership overlap fix
+
+### 09-QA
+- Full QA cycle 1 — 7 bugs (2 critical, 3 high, 2 medium)
+- CRITICAL: 5 agents in prompts but NOT in agents.conf
+- CRITICAL: CLAUDE.md lists paths that don't exist yet
+
+### 10-Security
+- Security audit: CONDITIONAL PASS
+- HIGH-01: eval injection in commit_by_ownership()
+- MEDIUM-01: .gitignore missing sensitive patterns
+
+---
+
+## MILESTONE DASHBOARD
+| Milestone | Open | Closed | Status |
+|-----------|------|--------|--------|
+| v0.1.0 | 11 | 2 | CEO deadline PASSED. Option B: tag AS-IS with known issues. CS must decide: fix or ship. |
+
+## CODEBASE SIZE
+- `src/core/` modules: 8 bash files (7 core + bash-version)
+- `src/pixel/` files: 3 (emitter + test + integration guide)
+- `tests/core/` files: 10 (8 unit tests + runner + integration test)
+- `site/` files: ~16,122 TS/TSX/JS (Next.js project)
+- Backend scripts: 11 shell files
+- Agent prompts: 9 active in agents.conf
+
+## NEXT CYCLE PRIORITIES
+**🚨 FINAL ESCALATION (cycle 12). 12 total cycles, ~55 idle agent-cycles wasted. CS must act.**
+1. **CS DECISION NEEDED:** Either (A) apply 3 fixes (~10 min) OR (B) tag v0.1.0 AS-IS with known issues in README
+2. **If Option A:** Apply HIGH-03 + .gitignore + README → QA/Security validate → tag v0.1.0
+3. **If Option B:** Write minimal README with known issues section → tag v0.1.0 → hotfix in v0.1.1
+4. **v0.1.1 (within 24 hours either way):** HIGH-03 (if AS-IS) + HIGH-04 sed injection + QA-F001 `set -e`
+5. After v0.1.0: Benchmark sprint (SWE-bench + Ralph comparison)
+6. After benchmarks: HN launch (only with receipts), v0.2.0 `--single-agent` mode
+7. Post-v0.2.0: Pixel Phase 2, Tauri scaffold, landing page deploy
+8. **HR interval adjustment ACCEPTED:** CS should update agents.conf — CEO→6, CTO→4, Pixel→4, Security→10

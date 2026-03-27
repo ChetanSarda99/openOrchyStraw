@@ -1,0 +1,146 @@
+---
+title: "Quickstart"
+description: "Get OrchyStraw running in under 5 minutes."
+---
+
+## Prerequisites
+
+- **Bash 5.0+** — check with `bash --version`
+- **Git** — any recent version
+- **An AI coding tool** — Claude Code, Codex, Gemini CLI, Aider, Windsurf, Cursor, or similar
+
+<Warning>
+  OrchyStraw requires bash 5.0 or later. macOS ships with bash 3.2 — install a newer version via `brew install bash`.
+</Warning>
+
+## Install
+
+```bash
+# Clone the repo
+git clone https://github.com/ChetanSarda99/openOrchyStraw.git
+cd openOrchyStraw
+
+# Make the orchestrator executable
+chmod +x scripts/auto-agent.sh
+```
+
+That's it. No `npm install`, no `pip install`, no build step.
+
+## Configure your agents
+
+Edit `agents.conf` to define your team. Each line is one agent:
+
+```ini
+# id | prompt_path | cli_command | ownership | interval
+02-backend | prompts/02-backend/02-backend.txt | claude | src/ scripts/ | 1
+03-frontend | prompts/03-frontend/03-frontend.txt | claude | frontend/ | 1
+05-qa | prompts/05-qa/05-qa.txt | claude | tests/ reports/ | 3
+01-pm | prompts/01-pm/01-pm.txt | claude | prompts/ | PM
+```
+
+<Note>
+  The PM agent always runs **last** — set its interval to `PM`. Workers run in parallel before the PM coordinates.
+</Note>
+
+## Write agent prompts
+
+Each agent needs a markdown prompt file. Here's the minimum structure:
+
+```markdown
+# MyProject — Backend Developer
+## For Claude Code — Backend Role
+
+**Date:** 2026-03-20
+**Your Role:** Backend developer
+
+---
+
+## Context
+Building a REST API with Node.js and Express.
+
+## YOUR TASKS
+### Task 1: Create user endpoints — P0
+Create GET /api/users and POST /api/users endpoints.
+
+## File Ownership (STRICT)
+**YOU MAY WRITE TO:** src/ scripts/
+**YOU MUST NOT WRITE TO:** frontend/ prompts/ tests/
+```
+
+See [Writing Prompts](/writing-prompts) for the full structure and best practices.
+
+## Create shared context
+
+```bash
+mkdir -p prompts/00-shared-context
+cat > prompts/00-shared-context/context.md << 'EOF'
+# Shared Context — Cycle 1
+> Agents: read before starting, append before finishing.
+
+## Backend Status
+- (fresh cycle)
+
+## Frontend Status
+- (fresh cycle)
+
+## QA Findings
+- (fresh cycle)
+
+## Blockers
+- (none)
+EOF
+```
+
+## Run it
+
+```bash
+# Single cycle
+./scripts/auto-agent.sh
+
+# Multiple cycles (run 5 cycles automatically)
+./scripts/auto-agent.sh --cycles 5
+
+# Dry run (see what would happen without executing)
+./scripts/auto-agent.sh --dry-run
+```
+
+The orchestrator will:
+1. Check API usage limits
+2. Create a branch (`auto/cycle-N-MMDD-HHMM`)
+3. Run all eligible workers in parallel
+4. Commit changes by file ownership
+5. Run the PM agent to coordinate
+6. Merge to main and start the next cycle
+
+## What happens during a cycle
+
+```
+🔄 Starting cycle 1...
+📋 Checking usage... OK (0%)
+🌿 Branch: auto/cycle-1-0320-1045
+🚀 Running workers in parallel...
+   ├── 02-backend (claude)... done (47s)
+   ├── 03-frontend (claude)... done (52s)
+   └── 05-qa (skipped, interval=3)
+📝 Committing by ownership...
+🎯 Running PM...
+   └── 01-pm (claude)... done (38s)
+✅ Merged to main. Cycle 1 complete.
+```
+
+## Next steps
+
+<CardGroup cols={2}>
+  <Card title="Configuration reference" icon="gear" href="/configuration">
+    Full agents.conf format and options.
+  </Card>
+  <Card title="Writing effective prompts" icon="pen" href="/writing-prompts">
+    Structure, best practices, and common mistakes.
+  </Card>
+  <Card title="Shared context" icon="message" href="/shared-context">
+    How agents communicate between cycles.
+  </Card>
+  <Card title="Auto-cycle mode" icon="rotate" href="/auto-cycle">
+    Run multiple cycles unattended.
+  </Card>
+</CardGroup>

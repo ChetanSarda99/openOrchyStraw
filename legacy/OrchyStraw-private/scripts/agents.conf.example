@@ -1,0 +1,32 @@
+# Agent Factory — agents.conf
+# Format: id | prompt_path | ownership | interval | label
+#
+# id:        Unique agent identifier (01-pm for coordinator, 02-XX through 0N-XX for workers)
+# prompt:    Path to prompt file (relative to project root)
+# ownership: Space-separated dirs this agent may write to. Use !path to exclude. "none" = read-only.
+# interval:  0 = coordinator (runs LAST after all workers), 1 = every cycle, N = every Nth cycle
+# label:     Human-readable name
+#
+# The 01-pm coordinator MUST have interval=0 (runs after all workers complete).
+#
+# ── Coordinator Agent (runs LAST — after all workers) ──
+# 01-pm      | prompts/01-pm/01-project-manager.txt  | prompts/ docs/ | 0 | PM Coordinator
+#
+# ── Worker Agent Examples:
+#
+# Full-stack web app:
+# 02-backend  | prompts/02-backend/02-backend-dev.txt   | backend/ prisma/ migrations/        | 1 | Backend Developer
+# 03-frontend | prompts/03-frontend/03-frontend-dev.txt  | frontend/ src/components/            | 1 | Frontend Developer
+# 04-design   | prompts/04-design/04-design-system.txt   | src/styles/ src/components/ui/       | 1 | Design System
+# 05-qa       | prompts/05-qa/05-qa-review.txt           | none                                | 5 | QA Engineer
+#
+# iOS app with backend:
+# 02-backend  | prompts/02-backend/02-backend-dev.txt    | backend/ prisma/                     | 1 | Backend Developer
+# 03-ios      | prompts/03-ios/03-ios-dev.txt             | ios/ !ios/App/Views/Components/      | 1 | iOS Developer
+# 04-design   | prompts/04-design/04-design-system.txt    | ios/App/Views/Components/ ios/App/Utilities/Theme.swift | 1 | Design System
+# 05-qa       | prompts/05-qa/05-qa-review.txt            | none                                | 5 | QA Engineer
+#
+# API / CLI only:
+# 02-core     | prompts/02-core/02-core-dev.txt          | src/ lib/                            | 1 | Core Developer
+# 03-tests    | prompts/03-tests/03-test-writer.txt       | tests/ __tests__/                   | 2 | Test Writer
+# 04-qa       | prompts/04-qa/04-qa-review.txt            | none                                | 5 | QA Engineer

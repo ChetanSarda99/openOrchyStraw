@@ -1,0 +1,161 @@
+---
+title: "Writing Prompts"
+description: "How to write effective agent prompts that produce reliable results."
+---
+
+## Prompt structure
+
+Every agent prompt follows a consistent structure. Sections are ordered for maximum agent effectiveness.
+
+```markdown
+# [Project] — [Role] Prompt
+## For [AI Tool] — [Role Title]
+
+**Date:** [auto-updated each cycle]
+**Your Role:** [specific role description]
+
+---
+
+## Context
+[What the project is, tech stack, key constraints]
+
+## What Exists — [N] Files
+[Current state of this agent's domain]
+
+## What's DONE (Previous Cycles)
+[Completed work — prevents agents from redoing it]
+
+## YOUR TASKS — [Phase/Focus]
+### Task 1: [Name] — P[0-2]
+[Context, steps, acceptance criteria]
+
+## Code Standards
+[Formatting, naming, patterns for this domain]
+
+## File Ownership (STRICT)
+**YOU MAY WRITE TO:** [paths]
+**YOU MUST NOT WRITE TO:** [paths]
+
+## Auto-Cycle Mode
+[Standard block — see below]
+```
+
+## Rules for good prompts
+
+### Be specific about what exists
+
+<Tabs>
+  <Tab title="Bad">
+    ```markdown
+    There's a backend with some endpoints.
+    ```
+  </Tab>
+  <Tab title="Good">
+    ```markdown
+    ## What Exists — 106 Files
+    88 TypeScript source + 18 test files. 297 tests all passing.
+    Key files: src/api/users.ts, src/api/auth.ts, src/middleware/rateLimit.ts
+    ```
+  </Tab>
+</Tabs>
+
+Agents that know the scale make better decisions about where to add code.
+
+### Explicit ownership boundaries
+
+<Tabs>
+  <Tab title="Bad">
+    ```markdown
+    Work on the frontend.
+    ```
+  </Tab>
+  <Tab title="Good">
+    ```markdown
+    ## File Ownership (STRICT)
+    **YOU MAY WRITE TO:** frontend/ src/components/ src/styles/
+    **YOU MUST NOT WRITE TO:** backend/ prompts/ scripts/ docs/ tests/
+    ```
+  </Tab>
+</Tabs>
+
+Without explicit boundaries, agents write to each other's files.
+
+### Tasks are actionable with context
+
+<Tabs>
+  <Tab title="Bad">
+    ```markdown
+    Improve the app.
+    ```
+  </Tab>
+  <Tab title="Good">
+    ```markdown
+    ### Task 1: Add rate limiting to Notion sync — P1
+    QA found: Notion API calls in notionTasks.ts have no internal rate limit.
+    A user spamming sync could exhaust the API.
+    Fix: Add per-user rate limit (max 5/min) via Redis key `notion-sync:${userId}` with TTL 60s.
+    ```
+  </Tab>
+</Tabs>
+
+Agents with context make better implementation choices. Without "why", they guess.
+
+### Acknowledge completed work
+
+List what shipped under "What's DONE". This prevents:
+- Agents redoing finished tasks
+- Prompt bloat from old task lists accumulating
+- Confusion about current state vs. planned state
+
+### Use priority levels consistently
+
+| Level | Meaning | Guideline |
+|-------|---------|-----------|
+| P0 | Must do this cycle | Critical bugs, blockers |
+| P1 | Should do this cycle | Important features, improvements |
+| P2 | Nice to have | Polish, optimization |
+
+Order tasks by priority AND dependencies. Put unblocked tasks first.
+
+## Auto-cycle mode block
+
+Include this at the bottom of every agent prompt:
+
+```markdown
+## Auto-Cycle Mode
+
+You are running in an automated loop. After you finish, the PM agent
+reviews your work and writes your next prompt. There is no human
+between cycles.
+
+- **Do NOT run git commit, git push, git checkout, git branch, or git switch**
+- Close completed GitHub issues with `gh issue close`
+- Do NOT self-update your prompt — the PM handles that
+- If blocked, append to `prompts/99-me/99-actions.txt`
+- Complete everything you can. The next cycle starts in ~10 minutes.
+- Read `prompts/00-shared-context/context.md` at the start
+- Append your updates to shared context before finishing
+```
+
+## Prompt length guidelines
+
+| Agent type | Target lines | Why |
+|-----------|-------------|-----|
+| PM | 150–300 | Full project context for decision-making |
+| Workers | 200–380 | Enough context + tasks without overwhelming |
+| Design | 150–250 | Fewer tasks, more standards/patterns |
+| QA | 150–250 | Focused on review criteria + verification |
+
+Trim if prompts exceed these ranges — they tend to bloat over cycles.
+
+## Common mistakes
+
+| Mistake | Fix |
+|---------|-----|
+| Agent writes outside ownership | Add explicit "MUST NOT WRITE TO" with all excluded paths |
+| Agent runs git commands | Add the auto-cycle block with git prohibition |
+| Agent updates its own prompt | Add "PM handles prompt updates" |
+| References nonexistent files | PM verifies file existence before prompting |
+| Two agents own same directory | Use exclusions to carve boundaries |
+| Stale task lists | PM must acknowledge done work and remove finished tasks |
+| No shared context usage | Add read/append instructions to every prompt |

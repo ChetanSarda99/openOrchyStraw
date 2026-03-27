@@ -1,0 +1,11 @@
+{
+  "instances": 40,
+  "model": "sonnet",
+  "agents_per_instance": 1,
+  "max_cycles": 5,
+  "estimated_input_tokens": 5000000,
+  "estimated_output_tokens": 1600000,
+  "estimated_input_cost_usd": 15.00,
+  "estimated_output_cost_usd": 24.00,
+  "estimated_total_cost_usd": 39.00
+}
