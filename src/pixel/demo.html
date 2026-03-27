@@ -1,0 +1,734 @@
+<!DOCTYPE html>
+<!--
+  OrchyStraw Pixel Agents — Landing Page Demo
+  Self-contained, looping animation showing agents working in a pixel art office.
+  Simulates a full orchestration cycle with no server needed.
+  Embed via <iframe> or extract the <canvas> + <script> for direct integration.
+-->
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>OrchyStraw — Pixel Agents Demo</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    background: #0a0a0a;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 100vh;
+    font-family: 'JetBrains Mono', monospace;
+  }
+  .demo-wrap {
+    position: relative;
+    border: 1px solid #1a1a1a;
+    border-radius: 8px;
+    overflow: hidden;
+    box-shadow: 0 0 40px rgba(167, 139, 250, 0.08);
+  }
+  canvas { display: block; cursor: pointer; }
+  .badge-bar {
+    display: flex;
+    gap: 6px;
+    padding: 8px 12px;
+    background: #0a0a0a;
+    border-top: 1px solid #1a1a1a;
+    flex-wrap: wrap;
+    justify-content: center;
+  }
+  .badge {
+    font-size: 9px;
+    padding: 2px 8px;
+    border-radius: 10px;
+    background: #1a1a1a;
+    color: #4a4a4a;
+    transition: all 0.3s;
+  }
+  .badge.active {
+    background: #1e1b4b;
+    color: #a78bfa;
+    box-shadow: 0 0 6px rgba(167, 139, 250, 0.3);
+  }
+</style>
+</head>
+<body>
+<div class="demo-wrap">
+  <canvas id="office" width="800" height="480"></canvas>
+  <div class="badge-bar" id="badges"></div>
+</div>
+
+<script>
+// ---------------------------------------------------------------------------
+// Config — matches character-map.json
+// ---------------------------------------------------------------------------
+
+const DESKS = {
+  manager:  { x: 384, y: 48,  label: 'PM Desk' },
+  strategy: { x: 96,  y: 48,  label: 'Strategy' },
+  arch:     { x: 240, y: 48,  label: 'Architecture' },
+  backend:  { x: 96,  y: 176, label: 'Backend' },
+  web:      { x: 240, y: 176, label: 'Web' },
+  pixel:    { x: 384, y: 176, label: 'Pixel' },
+  qa:       { x: 528, y: 176, label: 'QA' },
+  security: { x: 672, y: 176, label: 'Security' },
+  hr:       { x: 528, y: 48,  label: 'HR' },
+};
+
+const AGENTS = [
+  { id: '01-ceo',      label: 'CEO',      desk: 'strategy', sprite: 'suit',      idle: { x: 96,  y: 320 } },
+  { id: '02-cto',      label: 'CTO',      desk: 'arch',     sprite: 'glasses',   idle: { x: 240, y: 320 } },
+  { id: '03-pm',       label: 'PM',       desk: 'manager',  sprite: 'clipboard', idle: { x: 384, y: 320 } },
+  { id: '06-backend',  label: 'Backend',  desk: 'backend',  sprite: 'hoodie',    idle: { x: 96,  y: 400 } },
+  { id: '08-pixel',    label: 'Pixel',    desk: 'pixel',    sprite: 'artist',    idle: { x: 384, y: 400 } },
+  { id: '09-qa',       label: 'QA',       desk: 'qa',       sprite: 'magnifier', idle: { x: 528, y: 400 } },
+  { id: '10-security', label: 'Security', desk: 'security', sprite: 'shield',    idle: { x: 672, y: 400 } },
+  { id: '11-web',      label: 'Web',      desk: 'web',      sprite: 'palette',   idle: { x: 240, y: 400 } },
+  { id: '13-hr',       label: 'HR',       desk: 'hr',       sprite: 'clipboard', idle: { x: 528, y: 320 } },
+];
+
+const SPRITE_COLORS = {
+  suit:      '#a78bfa',
+  glasses:   '#60a5fa',
+  clipboard: '#facc15',
+  hoodie:    '#4ade80',
+  artist:    '#f472b6',
+  magnifier: '#fb923c',
+  shield:    '#ef4444',
+  palette:   '#2dd4bf',
+};
+
+// Status colors mapped from animation state
+const STATUS_COLORS = {
+  typing:   '#4ade80', // green — active coding
+  running:  '#4ade80', // green — active execution
+  reading:  '#60a5fa', // blue — reviewing
+  talking:  '#60a5fa', // blue — reviewing/communicating
+  walking:  '#facc15', // yellow — transitioning
+  idle:     '#6b7280', // gray — idle
+  error:    '#ef4444', // red — error
+};
+
+const PHASE_LABELS = {
+  workers_running: 'Workers Active',
+  pm_updating:     'PM Updating',
+  committing:      'Committing',
+  done:            'Cycle Complete',
+  idle:            'Idle',
+};
+
+const PHASE_COLORS = {
+  workers_running: '#4ade80',
+  pm_updating:     '#facc15',
+  committing:      '#60a5fa',
+  done:            '#a78bfa',
+  idle:            '#6b7280',
+};
+
+// ---------------------------------------------------------------------------
+// Scripted cycle timeline (times in ms from cycle start)
+// Each event: { t, agent, action, speech? }
+// Actions: 'activate', 'type', 'read', 'run', 'talk', 'walk', 'deactivate'
+// ---------------------------------------------------------------------------
+
+const CYCLE_DURATION = 18000; // 18 seconds per loop
+
+const SCRIPT = [
+  // Phase 1: Workers activate and walk to desks (0-2s)
+  { t: 0,     agent: '06-backend',  action: 'activate' },
+  { t: 200,   agent: '11-web',      action: 'activate' },
+  { t: 400,   agent: '08-pixel',    action: 'activate' },
+  { t: 600,   agent: '02-cto',      action: 'activate' },
+
+  // Phase 2: Workers coding (2-8s)
+  { t: 2000,  agent: '06-backend',  action: 'read' },
+  { t: 2200,  agent: '11-web',      action: 'read' },
+  { t: 2500,  agent: '06-backend',  action: 'type', speech: 'Writing logger module...' },
+  { t: 3000,  agent: '11-web',      action: 'type', speech: 'Building hero section' },
+  { t: 3200,  agent: '08-pixel',    action: 'read' },
+  { t: 3500,  agent: '02-cto',      action: 'read', speech: 'Reviewing architecture' },
+  { t: 4000,  agent: '08-pixel',    action: 'type', speech: 'Rendering characters' },
+  { t: 5000,  agent: '06-backend',  action: 'run',  speech: 'Running tests... 27/27 pass' },
+  { t: 5500,  agent: '02-cto',      action: 'type', speech: 'Writing ADR-005' },
+  { t: 6000,  agent: '11-web',      action: 'run',  speech: 'npm run build' },
+  { t: 6500,  agent: '08-pixel',    action: 'run' },
+
+  // Brief error flash on pixel agent (demonstrates red status)
+  { t: 7500,  agent: '08-pixel',    action: 'error', speech: 'Build failed! Retrying...' },
+  { t: 8000,  agent: '08-pixel',    action: 'type', speech: 'Fixed — rebuild OK' },
+
+  // Phase 3: QA + Security activate (8-12s)
+  { t: 8500,  agent: '09-qa',       action: 'activate' },
+  { t: 8700,  agent: '10-security', action: 'activate' },
+  { t: 9000,  agent: '09-qa',       action: 'read', speech: 'Reviewing backend changes' },
+  { t: 9500,  agent: '10-security', action: 'read', speech: 'Scanning for vulnerabilities' },
+  { t: 9500,  agent: '02-cto',      action: 'talk', speech: 'All modules PASS review' },
+  { t: 10000, agent: '06-backend',  action: 'talk', speech: 'Shared context updated' },
+  { t: 10200, agent: '02-cto',      action: 'deactivate' },
+  { t: 10500, agent: '09-qa',       action: 'type', speech: 'QA report: PASS' },
+  { t: 11000, agent: '10-security', action: 'type', speech: 'Audit: CONDITIONAL PASS' },
+
+  // Phase 4: Workers finish, PM takes over (12-15s)
+  { t: 12000, agent: '06-backend',  action: 'deactivate' },
+  { t: 12200, agent: '11-web',      action: 'deactivate' },
+  { t: 12400, agent: '08-pixel',    action: 'deactivate' },
+  { t: 12600, agent: '09-qa',       action: 'deactivate' },
+  { t: 12800, agent: '10-security', action: 'deactivate' },
+  { t: 13000, agent: '03-pm',       action: 'activate' },
+  { t: 13500, agent: '03-pm',       action: 'walk' },
+  { t: 14000, agent: '03-pm',       action: 'type', speech: 'Updating all prompts...' },
+  { t: 15000, agent: '03-pm',       action: 'talk', speech: 'Cycle 8 complete!' },
+
+  // Phase 5: PM finishes, cycle done (15-17s)
+  { t: 16000, agent: '03-pm',       action: 'deactivate' },
+];
+
+// ---------------------------------------------------------------------------
+// State
+// ---------------------------------------------------------------------------
+
+const canvas = document.getElementById('office');
+const ctx = canvas.getContext('2d');
+const W = canvas.width;
+const H = canvas.height;
+
+let frame = 0;
+let cycleStart = performance.now();
+let cycleNum = 1;
+let phase = 'idle';
+
+// Easing function for smooth walk transitions
+function easeInOutCubic(t) {
+  return t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2;
+}
+
+// Build agent state map (with move tracking for eased transitions)
+const agentState = {};
+for (const a of AGENTS) {
+  agentState[a.id] = {
+    ...a,
+    x: a.idle.x,
+    y: a.idle.y,
+    targetX: a.idle.x,
+    targetY: a.idle.y,
+    moveStartX: a.idle.x,
+    moveStartY: a.idle.y,
+    moveDist: 0,
+    moveProgress: 1,
+    animation: 'idle',
+    active: false,
+    lastSpeech: null,
+    speechExpiry: 0,
+  };
+}
+
+// Sprite cache — pre-render base sprites to offscreen canvases
+const spriteCache = {};
+for (const [type, color] of Object.entries(SPRITE_COLORS)) {
+  const oc = document.createElement('canvas');
+  oc.width = 12; oc.height = 24;
+  const octx = oc.getContext('2d');
+  octx.fillStyle = color;
+  octx.fillRect(2, 6, 8, 10);
+  octx.fillStyle = '#e5c9a0';
+  octx.fillRect(3, 0, 6, 6);
+  octx.fillStyle = '#1a1a1a';
+  octx.fillRect(4, 2, 2, 2);
+  octx.fillRect(7, 2, 2, 2);
+  spriteCache[type] = oc;
+  // Error variant (red body)
+  const ec = document.createElement('canvas');
+  ec.width = 12; ec.height = 24;
+  const ectx = ec.getContext('2d');
+  ectx.fillStyle = '#ef4444';
+  ectx.fillRect(2, 6, 8, 10);
+  ectx.fillStyle = '#e5c9a0';
+  ectx.fillRect(3, 0, 6, 6);
+  ectx.fillStyle = '#1a1a1a';
+  ectx.fillRect(4, 2, 2, 2);
+  ectx.fillRect(7, 2, 2, 2);
+  spriteCache[type + '_error'] = ec;
+}
+
+// Background cache — pre-render static floor grid and desks
+const bgCache = document.createElement('canvas');
+bgCache.width = W; bgCache.height = H;
+(function () {
+  const bg = bgCache.getContext('2d');
+  bg.fillStyle = '#0a0a0a';
+  bg.fillRect(0, 0, W, H);
+  bg.strokeStyle = '#141414'; bg.lineWidth = 1;
+  for (let gx = 0; gx < W; gx += 16) { bg.beginPath(); bg.moveTo(gx, 30); bg.lineTo(gx, H); bg.stroke(); }
+  for (let gy = 30; gy < H; gy += 16) { bg.beginPath(); bg.moveTo(0, gy); bg.lineTo(W, gy); bg.stroke(); }
+  for (const [name, desk] of Object.entries(DESKS)) {
+    if (name === 'idle') continue;
+    bg.fillStyle = '#1e1e1e';
+    bg.fillRect(desk.x - 24, desk.y - 8, 48, 24);
+    bg.strokeStyle = '#2a2a2a'; bg.lineWidth = 1;
+    bg.strokeRect(desk.x - 24, desk.y - 8, 48, 24);
+    bg.fillStyle = '#0a0a0a';
+    bg.fillRect(desk.x - 8, desk.y - 14, 16, 8);
+    bg.strokeStyle = '#333';
+    bg.strokeRect(desk.x - 8, desk.y - 14, 16, 8);
+    bg.fillStyle = '#333'; bg.font = '7px monospace'; bg.textAlign = 'center';
+    bg.fillText(desk.label, desk.x, desk.y + 28);
+    bg.textAlign = 'start';
+  }
+})();
+
+// Processed event indices for current cycle
+let nextEventIdx = 0;
+
+// Click-to-inspect state
+let inspectedAgent = null; // agent id or null
+let inspectExpiry = 0;     // auto-dismiss after 4s
+
+// Badge elements
+const badgesEl = document.getElementById('badges');
+for (const a of AGENTS) {
+  const el = document.createElement('div');
+  el.className = 'badge';
+  el.id = 'badge-' + a.id;
+  el.textContent = a.label;
+  badgesEl.appendChild(el);
+}
+
+// ---------------------------------------------------------------------------
+// Click-to-inspect handler
+// ---------------------------------------------------------------------------
+
+canvas.addEventListener('click', function (e) {
+  const rect = canvas.getBoundingClientRect();
+  const scaleX = W / rect.width;
+  const scaleY = H / rect.height;
+  const mx = (e.clientX - rect.left) * scaleX;
+  const my = (e.clientY - rect.top) * scaleY;
+
+  let closest = null;
+  let closestDist = Infinity;
+  for (const s of Object.values(agentState)) {
+    const dx = s.x - mx;
+    const dy = (s.y - 6) - my; // center of sprite
+    const dist = Math.sqrt(dx * dx + dy * dy);
+    if (dist < 24 && dist < closestDist) {
+      closest = s.id;
+      closestDist = dist;
+    }
+  }
+
+  if (closest) {
+    inspectedAgent = closest;
+    inspectExpiry = performance.now() + 4000;
+  } else {
+    inspectedAgent = null;
+  }
+});
+
+// ---------------------------------------------------------------------------
+// Cycle simulation
+// ---------------------------------------------------------------------------
+
+function resetCycle() {
+  cycleStart = performance.now();
+  nextEventIdx = 0;
+  cycleNum++;
+  phase = 'idle';
+  for (const a of AGENTS) {
+    const s = agentState[a.id];
+    s.targetX = a.idle.x;
+    s.targetY = a.idle.y;
+    s.moveStartX = a.idle.x;
+    s.moveStartY = a.idle.y;
+    s.moveDist = 0;
+    s.moveProgress = 1;
+    s.animation = 'idle';
+    s.active = false;
+    s.lastSpeech = null;
+    s.speechExpiry = 0;
+  }
+}
+
+function processEvents(elapsed) {
+  while (nextEventIdx < SCRIPT.length && SCRIPT[nextEventIdx].t <= elapsed) {
+    const evt = SCRIPT[nextEventIdx];
+    const s = agentState[evt.agent];
+    nextEventIdx++;
+
+    switch (evt.action) {
+      case 'activate': {
+        s.active = true;
+        s.animation = 'walking';
+        const desk = DESKS[s.desk];
+        s.moveStartX = s.x;
+        s.moveStartY = s.y;
+        s.targetX = desk.x;
+        s.targetY = desk.y + 20;
+        s.moveDist = Math.sqrt((s.targetX - s.x) ** 2 + (s.targetY - s.y) ** 2);
+        s.moveProgress = 0;
+        break;
+      }
+      case 'deactivate':
+        s.active = false;
+        s.animation = 'walking';
+        s.moveStartX = s.x;
+        s.moveStartY = s.y;
+        s.targetX = s.idle.x;
+        s.targetY = s.idle.y;
+        s.moveDist = Math.sqrt((s.targetX - s.x) ** 2 + (s.targetY - s.y) ** 2);
+        s.moveProgress = 0;
+        break;
+      case 'type':
+        s.animation = 'typing';
+        break;
+      case 'read':
+        s.animation = 'reading';
+        break;
+      case 'run':
+        s.animation = 'running';
+        break;
+      case 'talk':
+        s.animation = 'talking';
+        break;
+      case 'walk':
+        s.animation = 'walking';
+        break;
+      case 'error':
+        s.animation = 'error';
+        break;
+    }
+
+    if (evt.speech) {
+      s.lastSpeech = evt.speech;
+      s.speechExpiry = performance.now() + 2500;
+    }
+  }
+
+  // Update phase based on elapsed time
+  if (elapsed < 2000) phase = 'idle';
+  else if (elapsed < 12000) phase = 'workers_running';
+  else if (elapsed < 16000) phase = 'pm_updating';
+  else if (elapsed < CYCLE_DURATION) phase = 'done';
+}
+
+// ---------------------------------------------------------------------------
+// Smooth movement
+// ---------------------------------------------------------------------------
+
+function moveAgents() {
+  for (const s of Object.values(agentState)) {
+    if (s.moveProgress < 1 && s.moveDist > 0) {
+      s.moveProgress = Math.min(1, s.moveProgress + 2.5 / s.moveDist);
+      const eased = easeInOutCubic(s.moveProgress);
+      s.x = s.moveStartX + (s.targetX - s.moveStartX) * eased;
+      s.y = s.moveStartY + (s.targetY - s.moveStartY) * eased;
+      if (s.moveProgress >= 1) {
+        s.x = s.targetX;
+        s.y = s.targetY;
+        if (s.animation === 'walking') {
+          s.animation = s.active ? 'typing' : 'idle';
+        }
+      }
+    }
+  }
+}
+
+// ---------------------------------------------------------------------------
+// Drawing
+// ---------------------------------------------------------------------------
+
+function drawBackground() {
+  ctx.drawImage(bgCache, 0, 0);
+}
+
+function drawAgent(s) {
+  const color = SPRITE_COLORS[s.sprite] || '#6b7280';
+  let bobY = 0;
+  if (s.animation === 'typing') bobY = Math.sin(frame * 0.3) * 1;
+  else if (s.animation === 'walking') bobY = Math.abs(Math.sin(frame * 0.2)) * 2;
+  else if (s.animation === 'running') bobY = Math.abs(Math.sin(frame * 0.5)) * 3;
+  else if (s.animation === 'talking') bobY = Math.sin(frame * 0.15) * 0.5;
+  else if (s.animation === 'error') bobY = Math.sin(frame * 0.8) * 2;
+
+  const x = Math.round(s.x);
+  const y = Math.round(s.y + bobY);
+
+  // Draw cached sprite (body + head + eyes)
+  const useError = s.animation === 'error' && frame % 10 < 5;
+  const cacheKey = useError ? s.sprite + '_error' : s.sprite;
+  if (useError) {
+    ctx.shadowColor = '#ef4444';
+    ctx.shadowBlur = 8;
+  }
+  ctx.drawImage(spriteCache[cacheKey], x - 6, y - 18);
+  ctx.shadowBlur = 0;
+
+  // Close eyes during blink
+  if (frame % 120 <= 5) {
+    ctx.fillStyle = '#e5c9a0';
+    ctx.fillRect(x - 2, y - 16, 2, 2);
+    ctx.fillRect(x + 1, y - 16, 2, 2);
+  }
+
+  // Legs (dynamic — swing during walking)
+  ctx.fillStyle = '#2a2a2a';
+  if (s.animation === 'walking') {
+    const legOff = Math.sin(frame * 0.3) * 2;
+    ctx.fillRect(x - 3, y - 2, 3, 4 + legOff);
+    ctx.fillRect(x + 1, y - 2, 3, 4 - legOff);
+  } else {
+    ctx.fillRect(x - 3, y - 2, 3, 4);
+    ctx.fillRect(x + 1, y - 2, 3, 4);
+  }
+
+  // Active glow
+  if (s.active) {
+    ctx.shadowColor = color;
+    ctx.shadowBlur = 10;
+    ctx.fillStyle = color;
+    ctx.fillRect(x - 1, y - 20, 2, 2);
+    ctx.shadowBlur = 0;
+  }
+
+  // Name label
+  ctx.fillStyle = s.active ? color : '#3a3a3a';
+  ctx.font = '7px monospace';
+  ctx.textAlign = 'center';
+  ctx.fillText(s.label, x, y + 10);
+  ctx.textAlign = 'start';
+
+  // Typing particles
+  if (s.animation === 'typing' && frame % 8 < 4) {
+    ctx.fillStyle = color + '66';
+    const px = x + 6 + Math.random() * 8;
+    const py = y - 8 + Math.random() * 4;
+    ctx.fillRect(px, py, 2, 2);
+  }
+
+  // Status color indicator dot
+  const statusColor = STATUS_COLORS[s.animation] || STATUS_COLORS.idle;
+  ctx.fillStyle = statusColor;
+  ctx.beginPath();
+  ctx.arc(x + 6, y - 18, 2.5, 0, Math.PI * 2);
+  ctx.fill();
+  if (s.active && frame % 40 < 20) {
+    ctx.strokeStyle = statusColor + '66';
+    ctx.lineWidth = 1;
+    ctx.beginPath();
+    ctx.arc(x + 6, y - 18, 4, 0, Math.PI * 2);
+    ctx.stroke();
+  }
+}
+
+function drawSpeechBubbles() {
+  const now = performance.now();
+  ctx.font = '7px monospace';
+
+  // Collect active bubbles with computed positions
+  const bubbles = [];
+  for (const s of Object.values(agentState)) {
+    if (!s.lastSpeech || now > s.speechExpiry) continue;
+    const text = s.lastSpeech.length > 32 ? s.lastSpeech.substring(0, 29) + '...' : s.lastSpeech;
+    const tw = ctx.measureText(text).width;
+    const lw = ctx.measureText(s.label).width;
+    const bw = Math.max(tw, lw) + 12;
+    const bh = 22;
+    const bx = Math.round(s.x) - bw / 2;
+    const by = Math.round(s.y) - 44;
+    const remaining = s.speechExpiry - now;
+    const opacity = remaining < 400 ? remaining / 400 : 1;
+    bubbles.push({ s, text, bx, by, bw, bh, opacity, anchorX: Math.round(s.x) });
+  }
+
+  // Resolve overlapping bubbles — push higher ones upward
+  bubbles.sort((a, b) => a.by - b.by);
+  for (let i = 1; i < bubbles.length; i++) {
+    for (let j = 0; j < i; j++) {
+      const a = bubbles[j];
+      const b = bubbles[i];
+      if (b.bx < a.bx + a.bw && b.bx + b.bw > a.bx) {
+        const overlap = (a.by + a.bh + 5) - b.by;
+        if (overlap > 0) b.by = a.by + a.bh + 7;
+      }
+    }
+  }
+
+  // Draw resolved bubbles
+  for (const b of bubbles) {
+    ctx.globalAlpha = b.opacity;
+    ctx.fillStyle = 'rgba(10, 10, 10, 0.92)';
+    roundRect(b.bx, b.by, b.bw, b.bh, 3);
+    ctx.fill();
+    ctx.strokeStyle = '#333';
+    ctx.lineWidth = 1;
+    roundRect(b.bx, b.by, b.bw, b.bh, 3);
+    ctx.stroke();
+    // Tail
+    ctx.fillStyle = 'rgba(10, 10, 10, 0.92)';
+    ctx.beginPath();
+    ctx.moveTo(b.anchorX - 3, b.by + b.bh);
+    ctx.lineTo(b.anchorX + 3, b.by + b.bh);
+    ctx.lineTo(b.anchorX, b.by + b.bh + 5);
+    ctx.closePath();
+    ctx.fill();
+    // Label
+    ctx.fillStyle = SPRITE_COLORS[b.s.sprite] || '#a78bfa';
+    ctx.fillText(b.s.label, b.bx + 6, b.by + 9);
+    // Text
+    ctx.fillStyle = '#ccc';
+    ctx.fillText(b.text, b.bx + 6, b.by + 18);
+    ctx.globalAlpha = 1;
+  }
+}
+
+function roundRect(x, y, w, h, r) {
+  ctx.beginPath();
+  ctx.moveTo(x + r, y);
+  ctx.lineTo(x + w - r, y);
+  ctx.quadraticCurveTo(x + w, y, x + w, y + r);
+  ctx.lineTo(x + w, y + h - r);
+  ctx.quadraticCurveTo(x + w, y + h, x + w - r, y + h);
+  ctx.lineTo(x + r, y + h);
+  ctx.quadraticCurveTo(x, y + h, x, y + h - r);
+  ctx.lineTo(x, y + r);
+  ctx.quadraticCurveTo(x, y, x + r, y);
+  ctx.closePath();
+}
+
+function drawOverlay() {
+  const elapsed = performance.now() - cycleStart;
+  const elapsedSec = Math.floor(elapsed / 1000);
+  const elapsedMin = Math.floor(elapsedSec / 60);
+  const elapsedStr = elapsedMin + 'm ' + (elapsedSec % 60).toString().padStart(2, '0') + 's';
+
+  // Background bar
+  ctx.fillStyle = 'rgba(10, 10, 10, 0.9)';
+  ctx.fillRect(0, 0, W, 26);
+  const phaseColor = PHASE_COLORS[phase] || '#6b7280';
+  ctx.fillStyle = phaseColor;
+  ctx.fillRect(0, 26, W, 2);
+
+  ctx.font = '10px monospace';
+  ctx.textBaseline = 'middle';
+  const y = 13;
+
+  // Cycle number + elapsed time
+  ctx.fillStyle = '#e5e5e5';
+  ctx.textAlign = 'start';
+  ctx.fillText('Cycle ' + cycleNum, 8, y);
+  ctx.fillStyle = '#9ca3af';
+  ctx.font = '8px monospace';
+  ctx.fillText(elapsedStr, 70, y);
+
+  // Phase
+  ctx.font = '10px monospace';
+  ctx.fillStyle = phaseColor;
+  ctx.textAlign = 'center';
+  ctx.fillText(PHASE_LABELS[phase] || phase, W / 2, y);
+
+  // Agent counter
+  const activeCount = Object.values(agentState).filter(a => a.active).length;
+  const totalCount = AGENTS.length;
+  ctx.fillStyle = activeCount > 0 ? '#4ade80' : '#6b7280';
+  ctx.textAlign = 'end';
+  ctx.fillText(activeCount + '/' + totalCount + ' agents', W - 8, y);
+
+  ctx.textAlign = 'start';
+  ctx.textBaseline = 'alphabetic';
+}
+
+function drawInspectPanel() {
+  if (!inspectedAgent || performance.now() > inspectExpiry) {
+    inspectedAgent = null;
+    return;
+  }
+
+  const s = agentState[inspectedAgent];
+  if (!s) return;
+
+  const statusColor = STATUS_COLORS[s.animation] || STATUS_COLORS.idle;
+  const statusLabel = s.animation.charAt(0).toUpperCase() + s.animation.slice(1);
+  const spriteColor = SPRITE_COLORS[s.sprite] || '#6b7280';
+
+  // Panel dimensions
+  const pw = 160;
+  const ph = 64;
+  const px = Math.min(Math.max(Math.round(s.x) - pw / 2, 4), W - pw - 4);
+  const py = Math.min(Math.round(s.y) + 18, H - ph - 4);
+
+  // Background
+  ctx.fillStyle = 'rgba(10, 10, 10, 0.95)';
+  roundRect(px, py, pw, ph, 4);
+  ctx.fill();
+  ctx.strokeStyle = spriteColor + '66';
+  ctx.lineWidth = 1;
+  roundRect(px, py, pw, ph, 4);
+  ctx.stroke();
+
+  // Agent name + colored dot
+  ctx.fillStyle = statusColor;
+  ctx.beginPath();
+  ctx.arc(px + 10, py + 11, 3, 0, Math.PI * 2);
+  ctx.fill();
+  ctx.fillStyle = spriteColor;
+  ctx.font = '9px monospace';
+  ctx.fillText(s.label + ' (' + s.id + ')', px + 18, py + 14);
+
+  // Status line
+  ctx.fillStyle = statusColor;
+  ctx.font = '8px monospace';
+  ctx.fillText('Status: ' + statusLabel, px + 10, py + 28);
+
+  // Active indicator
+  ctx.fillStyle = s.active ? '#4ade80' : '#6b7280';
+  ctx.fillText(s.active ? 'ACTIVE' : 'INACTIVE', px + 10, py + 40);
+
+  // Last speech (if any)
+  if (s.lastSpeech && performance.now() < s.speechExpiry) {
+    const txt = s.lastSpeech.length > 22 ? s.lastSpeech.substring(0, 19) + '...' : s.lastSpeech;
+    ctx.fillStyle = '#9ca3af';
+    ctx.fillText(txt, px + 10, py + 52);
+  } else {
+    ctx.fillStyle = '#4a4a4a';
+    ctx.fillText('Desk: ' + (s.desk || 'none'), px + 10, py + 52);
+  }
+}
+
+function updateBadges() {
+  for (const a of AGENTS) {
+    const el = document.getElementById('badge-' + a.id);
+    const s = agentState[a.id];
+    el.className = 'badge' + (s.active ? ' active' : '');
+  }
+}
+
+// ---------------------------------------------------------------------------
+// Main loop
+// ---------------------------------------------------------------------------
+
+function loop() {
+  frame++;
+  const elapsed = performance.now() - cycleStart;
+
+  // Loop the cycle
+  if (elapsed >= CYCLE_DURATION) {
+    resetCycle();
+  }
+
+  processEvents(elapsed);
+  moveAgents();
+
+  // Draw
+  drawBackground();
+  for (const s of Object.values(agentState)) drawAgent(s);
+  drawSpeechBubbles();
+  drawOverlay();
+  drawInspectPanel();
+  updateBadges();
+
+  requestAnimationFrame(loop);
+}
+
+requestAnimationFrame(loop);
+</script>
+</body>
+</html>

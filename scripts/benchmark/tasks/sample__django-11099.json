@@ -1,0 +1,8 @@
+{
+  "instance_id": "sample__django-11099",
+  "repo": "django/django",
+  "base_commit": "17455e924e243e7a55e8a38f45966d3fce1e0b5a",
+  "problem_statement": "UsernameValidator allows trailing newline in usernames.\n\nDescription:\n\nASCIIUsernameValidator and UnicodeUsernameValidator use the regex r'^[\\w.@+-]+$' which allows a trailing newline because $ matches before a trailing newline in Python's re module.\n\nThe fix is to use \\Z instead of $ in the regex, which matches the absolute end of the string.",
+  "test_patch": "",
+  "gold_patch": "diff --git a/django/contrib/auth/validators.py b/django/contrib/auth/validators.py\n--- a/django/contrib/auth/validators.py\n+++ b/django/contrib/auth/validators.py\n@@ -8,7 +8,7 @@ class ASCIIUsernameValidator(validators.RegexValidator):\n-    regex = r'^[\\w.@+-]+$'\n+    regex = r'^[\\w.@+-]+\\Z'\n     message = _(\n         'Enter a valid username. This value may contain only English letters, '\n         'numbers, and @/./+/-/_ characters.'\n@@ -18,7 +18,7 @@ class UnicodeUsernameValidator(validators.RegexValidator):\n-    regex = r'^[\\w.@+-]+$'\n+    regex = r'^[\\w.@+-]+\\Z'\n     message = _(\n         'Enter a valid username. This value may contain only letters, '\n         'numbers, and @/./+/-/_ characters.'\n"
+}

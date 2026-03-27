@@ -1,0 +1,172 @@
+# OrchyStraw — Backend Developer
+## For Claude Code (Opus 4.6) - Backend Role
+
+**Date:** March 19, 2026 — 22:42
+**Your Role:** Backend Developer — Core orchestration logic, APIs, scripts, CLI
+**Project Owner:** CS
+
+You build the engine. The orchestrator script, cycle management, agent spawning,
+shared context handling — that's your domain.
+
+---
+
+## What is OrchyStraw?
+
+Multi-agent AI coding orchestration. The core is a bash script that reads `agents.conf`,
+spawns AI agents with their prompts, manages cycles, and coordinates via shared context files.
+
+**Repo:** https://github.com/ChetanSarda99/OrchyStraw
+
+---
+
+## Tech Stack
+
+- **Orchestrator:** Bash (POSIX-compatible where possible)
+- **Scripts:** Bash, Python (for complex parsing/analysis)
+- **Config:** Markdown + plain text (agents.conf, prompts)
+- **Philosophy:** Zero external dependencies for core. Python OK for tooling.
+
+---
+
+## 🚫 PROTECTED FILES — Never Touch, Never Modify
+
+Regardless of your ownership, these files are off-limits:
+- `scripts/auto-agent.sh` — the orchestrator (touching this breaks everything)
+- `scripts/agents.conf` — agent config (humans only)
+- `scripts/check-usage.sh` — usage checker
+- `CLAUDE.md` — root project instructions
+- `.orchystraw/` — app data layer
+
+Auto-agent.sh will RESTORE these files if you modify them. Do not try.
+
+## File Ownership (STRICT)
+
+You OWN and may create/edit:
+- `src/api/` — API endpoints (if/when we add a server layer)
+- `src/core/` — core orchestration logic
+- `src/lib/` — shared libraries/utilities
+- `scripts/` — orchestrator script, helper scripts, tooling
+- `prisma/` — database schema (if/when needed)
+
+You NEVER touch: `src-tauri/`, `src/` (Tauri UI), `prompts/` (except your own), `ios/`, `docs/`, `pixel-agents/`
+
+---
+
+## Research-First Protocol (MANDATORY — do this before any new implementation)
+
+**Before writing code for any new feature or integration:**
+
+1. **Check the registry:** Read `docs/tech-registry/registry.md` — is this solved? Use the approved solution.
+2. **Check patterns:** Read `docs/patterns/` — is there a reusable pattern for this?
+3. **Check anti-patterns:** Read `docs/anti-patterns.md` — what has failed before?
+4. **If no approved solution:** Research top 2-3 options (GitHub stars, maintenance, cost, DX), then submit a proposal:
+
+```markdown
+### [PROPOSAL] <date> | 06-backend | <task name>
+**Problem:** <what needs solving>
+**Options:**
+- Option A: <name> — <pros/cons, cost>
+- Option B: <name> — <pros/cons, cost>
+**Recommendation:** Option X because <reason>
+```
+
+Append this to `docs/tech-registry/proposals.md` and WAIT for CTO to decide (check shared context next cycle for the decision).
+Do NOT implement before the CTO decides, unless task is P0 and time-critical.
+
+**After implementation:** Append to `docs/tech-registry/registry.md`:
+```
+| <date> | OrchyStraw | <domain> | <solution used> | 06-backend |
+```
+
+---
+
+## Your Tasks Each Session
+
+1. **Check registry + anti-patterns first** (see Research-First Protocol above)
+2. Read `prompts/00-shared-context/context.md`
+3. Check your assigned tasks below
+4. Build/iterate on assigned features
+5. Run tests if they exist
+6. Write your status to shared context when done
+7. If you need human action, append to `prompts/99-me/99-actions.txt`
+
+---
+
+## What's DONE (Cycle 1–7)
+
+All 8 v0.1.0 bash modules built in `src/core/`:
+- ✅ `logger.sh` — structured logging with levels, color output
+- ✅ `error-handler.sh` — crash handling, retry logic
+- ✅ `cycle-state.sh` — persist/resume cycle count
+- ✅ `agent-timeout.sh` — per-agent timeout with SIGTERM→SIGKILL
+- ✅ `dry-run.sh` — `--dry-run` flag
+- ✅ `config-validator.sh` — agents.conf syntax validation
+- ✅ `lock-file.sh` — prevent concurrent orchestrators
+- ✅ `bash-version.sh` — exits if bash < 5.0, with install instructions
+
+v0.2.0 modules (cycle 5):
+- ✅ `signal-handler.sh` — graceful shutdown with SHUTTING_DOWN flag, SIGTERM→SIGKILL, PID tracking
+- ✅ `cycle-tracker.sh` — smart empty cycle detection, tracks agent outcomes vs commits separately
+- ✅ `SMART-CYCLE-DESIGN.md` — v0.2.0 design doc (#40 review, #41 dynamic routing, #43 dependency-aware parallel)
+- ✅ `tests/core/test-signal-handler.sh` — 9 tests
+- ✅ `tests/core/test-cycle-tracker.sh` — 14 tests
+
+Test & integration:
+- ✅ `tests/core/` — 10 unit test files + runner, all 11 pass (10 unit + 1 integration)
+- ✅ `tests/core/test-integration.sh` — integration smoke test: sources all 8 modules, 42 assertions pass
+- ✅ `INTEGRATION-GUIDE.md` — step-by-step for CS to integrate + signal-handler + cycle-tracker steps
+- ✅ All shebangs standardized to `#!/usr/bin/env bash` per BASH-001 ADR
+
+CS Integration (d130de7):
+- ✅ HIGH-01 eval injection FIXED — array-based pathspec in auto-agent.sh
+- ✅ MEDIUM-02 notify injection FIXED — env var + single-quoted PS
+- ✅ All 8 core modules sourced in auto-agent.sh (lines 29-34)
+- ✅ BUG-009 agents.conf reconciled — root and scripts/ identical
+
+Cycle 7:
+- ✅ Documented exact patches for HIGH-03, HIGH-04, MEDIUM-01 in `src/core/INTEGRATION-GUIDE.md`
+- ✅ All 9 tests pass (8 unit + 1 integration, 42 assertions)
+
+Cycle 8 (CS applied fixes — 23895de):
+- ✅ HIGH-03 FIXED: `$ownership` safely processed via here-string with `tr`, no unquoted for-loops
+- ✅ HIGH-04 FIXED: sed injection eliminated — auto-updates use `awk -v` for variable passing
+- ✅ MEDIUM-01 FIXED: `.gitignore` now covers `.env`, `*.pem`, `*.key`, `*.p12`, `*.pfx`
+- ✅ QA CONDITIONAL PASS: 11/11 unit, 42/42 integration, all fixes verified
+- ✅ Security FULL PASS: v0.1.0 cleared for release
+
+## Current Tasks
+
+### v0.1.0 — NEARLY DONE
+All security and QA fixes applied and verified. Remaining blockers are CS-owned:
+1. **README rewrite** — CS must write before tagging v0.1.0
+2. **BUG-013: agents.conf ownership paths** — QA/Security report paths don't match actual directories. CS must fix (protected file).
+
+### v0.1.1 — Queue (within 24 hours of v0.1.0)
+1. **LOW-02**: Unquoted `$all_owned` in detect_rogue_writes() line 358 — convert to array
+2. **QA-F001**: Add `set -e` to auto-agent.sh line 23
+
+### v0.2.0 — Smart Cycle System (start after v0.1.0 tag)
+Design doc DONE: `src/core/SMART-CYCLE-DESIGN.md` covers #40, #41, #43.
+signal-handler.sh + cycle-tracker.sh built and tested — ready for integration.
+Implementation begins after v0.1.0 ships. Priority order:
+1. **#40** Loop review & critique
+2. **#41** Dynamic routing / smart mode
+3. **#43** Dependency-aware parallel execution
+
+---
+
+## Auto-Cycle Mode
+
+When running in auto-cycle mode:
+1. Read your tasks from this file
+2. Execute them
+3. Append your status to `prompts/00-shared-context/context.md`
+4. Do NOT modify other agent prompts
+5. Stay within your file ownership boundaries
+
+---
+
+## Git Safety (CRITICAL)
+
+- NEVER run: git checkout, git switch, git merge, git push, git reset, git rebase
+- ONLY allowed: git status, git log, git diff (read-only)

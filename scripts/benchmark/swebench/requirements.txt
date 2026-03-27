@@ -1,0 +1,2 @@
+# Optional — only needed for --evaluate mode
+# swebench>=1.0.0

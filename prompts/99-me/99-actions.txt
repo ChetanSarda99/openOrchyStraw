@@ -1,0 +1,69 @@
+# 99 — Human Manual Action Items
+# Things only CS can do (IDE setup, external accounts, app stores, etc.)
+# Any agent session can append items here.
+# PM reviews and organizes by priority each cycle.
+
+---
+
+## PENDING — Work through by priority
+
+### ✅ v0.1.0 — TAGGED AND SHIPPED
+All P0 items complete. v0.1.0 is released.
+
+### P0 — v0.1.1 (ship within 24 hours)
+- [ ] **LOW-02: Unquoted `$all_owned` in detect_rogue_writes()** — line 358. Convert to array-based iteration.
+- [x] **Add `set -e` to auto-agent.sh** — DONE (2026-03-20). Backend added `set -euo pipefail`. PM verified. #52 CLOSED.
+- [x] **BUG-013: Fix agents.conf ownership paths** — CLOSED by QA cycle 11 (verified correct).
+
+### P0 — Enable GitHub Pages (26th cycle asking — URGENT)
+- [ ] **Enable GitHub Pages on OrchyStraw-Pro** — Settings → Pages → Source: GitHub Actions. Deploy workflow already created at `.github/workflows/deploy-site.yml`. Landing page is COMPLETE (25 pages, 0 errors). Just flip the switch. **26 cycles of asking. This is the #1 blocker for public launch.**
+
+### P0 — v0.2.0 Integration (2026-03-20)
+- [x] **#77: Module integration — DONE (2026-03-20)** — Commits `b1c7a78`, `00ca24f`, `c208a37`. PM verified: 31/31 modules, 8 lifecycle hooks. QA + CTO + Security all verified.
+- [x] **#80 CLOSED (2026-03-20):** Function naming conflict resolved. PM verified.
+- [x] **CRITICAL-01: PowerShell XML injection** — ALREADY FIXED (d130de7). Downgraded to INFO by Security.
+- [x] **QA-F005/HIGH-05: Re-add auto-agent.sh to PROTECTED_FILES** — DONE (2026-03-20). Backend fixed, PM verified.
+- [x] **CRITICAL-02: Git patch injection in benchmark harness** — DONE (2026-03-20). Backend added `_validate_repo()` + `_validate_patch()`. PM verified.
+- [ ] **Add agents.conf v2 columns** — priority, depends_on, model, reviews columns needed for Smart Cycle modules.
+- [ ] **Connect Mintlify to GitHub** — mintlify.com/start → point to site/docs/ for docs deployment.
+
+### P1 — agents.conf Interval Changes (HR escalation — 25th report)
+- [ ] **Change 11-web interval from 1 → 3** — 25 pages shipped, Phase 17/18 DONE, deploy blocked. Token waste. HR has recommended this 25 times. **NOTE: Web has Phase 19/20 (docs refresh) — keep at 1 until done, then change to 3.**
+- [ ] **Change 02-cto interval from 2 → 3** — primarily review role now. Token waste on idle cycles.
+
+### P1 — Batch Fixes
+- [ ] **Batch fix unquoted `$paths` in for-loops** — file-access.sh, self-healing.sh, quality-gates.sh. All LOW risk. Recommended for v0.3.
+
+### P1 — After v0.1.0 Tag
+- [ ] **Update CLAUDE.md** — QA found it lists 11 agents and paths (src-tauri/, ios/) that don't exist yet. Align with reality.
+- [x] **Fix QA prompt path reference** — FIXED by PM (cycle 4)
+- [x] **Fix Security prompt path reference** — FIXED by PM (cycle 4)
+- [ ] **Logo/branding assets** — Web agent needs logo in `assets/branding/` (currently text-only)
+- [x] **Update .gitignore (MEDIUM-01)** — FIXED (23895de)
+
+### P2 — After v0.1.0
+- [x] **Deploy landing page** — GitHub Actions workflow created. Just enable Pages in repo settings (see P0 above).
+- [ ] **Remove orphaned `prompts/01-pm/` directory (BUG-008)** — Old directory from before PM moved to 03-pm
+- [ ] **Update CLAUDE.md agent count** — Lists 11 agents but agents.conf only has 8. Align after BUG-009 fix.
+- [ ] **Update CLAUDE.md file paths** — References `src-tauri/`, `ios/` which don't exist yet. Mark as planned or remove.
+
+---
+
+### P1.5 — QA Findings (updated 2026-03-20)
+- [ ] **Add PROTECTED FILES section to ALL 9 active agent prompts (BUG-012)** — 4/9 done, 5 missing (01-ceo, 02-cto, 03-pm, 10-security, 13-hr). PM will batch-add.
+- [x] **QA-F002: `set -euo pipefail` in modules** — CLOSED as not-a-bug (sourced modules inherit shell options)
+
+---
+
+## DONE
+
+- [x] **2026-03-19** Fix HIGH-03 unquoted ownership — CS applied 23895de
+- [x] **2026-03-19** Fix HIGH-04 sed injection → awk — CS applied 23895de (bonus fix)
+- [x] **2026-03-19** Fix MEDIUM-01 .gitignore secrets — CS applied 23895de
+- [x] **2026-03-18** Fix QA prompt path (BUG-004) — PM fixed in cycle 4
+- [x] **2026-03-18** Fix Security prompt path (BUG-005) — PM fixed in cycle 4
+- [x] **2026-03-18** .gitignore update (MEDIUM-01) — Backend fixed in cycle 2 (regressed, re-fixed 23895de)
+- [x] **2026-03-18** Integrate core modules into auto-agent.sh — CS applied d130de7
+- [x] **2026-03-18** Fix eval injection (HIGH-01) — CS applied d130de7
+- [x] **2026-03-18** Fix PowerShell notify (MEDIUM-02) — CS applied d130de7
+- [x] **2026-03-18** Reconcile agents.conf (BUG-009) — CS applied d130de7
