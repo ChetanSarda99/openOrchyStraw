@@ -1,0 +1,362 @@
+# Memo Landing Page Developer Prompt
+## For Claude Code (Opus 4.6) — Landing Page & Marketing Site
+
+**Date:** March 20, 2026 — 05:25
+**Your Role:** Full-stack web developer building the Rekall/Memo landing page
+**Project Owner:** CS (solo developer)
+**Publisher:** Raytheon Operations
+**Objective:** Build a spectacular pre-launch landing page that captures emails and converts visitors to app downloads once live.
+
+---
+
+## Context
+
+**What is Rekall (working name, pending CS decision — currently "Memo" in code)?**
+ADHD-first universal note aggregator. One search bar for everything you've ever saved — Telegram, Notion, Instagram, Reddit, Twitter, voice memos, screenshots. AI categorizes across 5 dimensions. Built by someone with ADHD, for people with ADHD.
+
+**Name status:** "Memo" may rename to "Rekall" (see `docs/brand/NAME_CHANGE_PROPOSAL.md`). Build with easy name swapping in mind — use a config/constants file for app name, tagline, domain references.
+
+**Revenue model:** Free (3 sources, 50 notes/mo) / Pro $9.99/mo (unlimited + AI features)
+
+---
+
+## Tech Stack (DECIDED — Do NOT change)
+
+- **Framework:** Next.js 14+ (App Router)
+- **Styling:** Tailwind CSS
+- **UI Components:** Aceternity UI (aceternity.com/components)
+- **Animation:** Framer Motion
+- **Scroll animations:** GSAP ScrollTrigger (Apple-level scroll experiences)
+- **Hosting:** Vercel (free tier)
+- **Email capture:** Beehiiv embed (free <2,500 subs) OR simple Supabase table
+- **Analytics:** Plausible or Umami (privacy-first)
+- **Domain:** rekall.app (or memo equivalent — pending CS decision)
+
+---
+
+## Design Direction
+
+### Visual Identity (from `docs/brand/APP_BRANDING.md`)
+- **Primary:** Calming teal (#1A7A6D)
+- **Accent:** Warm coral (#E8734A)
+- **Background:** Off-white light (#FAFAF8) / Deep navy dark (#0D1B2A)
+- **Typography:** SF Pro (system) or Inter (web equivalent)
+- **Feel:** Linear.app meets Things 3 — clean, purposeful, calm
+
+### Design Inspirations
+- **Linear.app** — clean scroll animations, monochrome + accent pops
+- **Things 3 website** — calm hierarchy, whitespace
+- **Raycast.com** — dev tool marketing done right
+- **Arc browser site** — bold, personality-driven
+- **Notion.so** — feature sections with real screenshots
+
+### Anti-Slop Rules (CRITICAL)
+- NO generic SaaS templates or Bootstrap vibes
+- NO stock photography or placeholder content
+- NO gradient soup or generic hero blobs
+- NO "Trusted by 10,000+ users" when you have zero users
+- YES personality in copy (ADHD audience relates to authentic, not corporate)
+- YES dark mode as default (ADHD users prefer dark)
+- YES real app screenshots/mockups (use iOS simulator frames)
+- YES micro-interactions that feel intentional
+
+---
+
+## Page Structure
+
+### Section 1: Hero (Above the fold)
+```
+[Nav: Logo | Features | Pricing | Blog | Waitlist CTA]
+
+"Save everything.
+ Find anything."
+
+One search bar for your Telegram, Notion, Instagram saves,
+voice memos, and screenshots. Built for brains that save
+everything and find nothing.
+
+[Email input] [Join Waitlist →]
+
+[iPhone mockup showing the search screen — dark mode]
+```
+
+**Animation:** Hero text animates in with staggered fade-up. iPhone mockup floats with subtle parallax on scroll.
+
+### Section 2: The Problem (Empathy)
+```
+"Sound familiar?"
+
+[Animated visualization of content scattered across apps]
+- Telegram saved message from 3 months ago
+- Notion page you bookmarked but forgot
+- Instagram post you saved at 2am
+- Voice memo from the shower
+- Screenshot of something important
+
+"You saved it. Now where is it?"
+```
+
+**Animation:** Icons scatter on screen, then converge into one search bar (GSAP ScrollTrigger).
+
+### Section 3: The Solution (Product Demo)
+```
+"One search bar. Everything found."
+
+[Interactive demo or video showing:]
+1. Type a vague query → semantic search finds it
+2. Voice memo → transcribed and searchable
+3. Screenshot → OCR'd and categorized
+4. Everything → organized by 8 life areas
+```
+
+**Animation:** Typewriter effect on search bar, results animate in.
+
+### Section 4: How It Works (3 Steps)
+```
+1. Connect your sources (30 seconds)
+   [Icons: Telegram, Notion, Instagram, Reddit, Voice, Screenshot]
+
+2. AI organizes everything
+   [Visualization of categorization into 8 life areas]
+
+3. Search like you think
+   "That recipe Sarah sent me" → Found.
+```
+
+### Section 5: Features Grid
+```
+[Bento grid layout — Aceternity UI]
+
+- 🔍 Semantic Search — finds what you mean, not just what you type
+- 🎙️ Voice Capture — speak your ideas, search them later
+- 📸 Screenshot OCR — snap it, search it
+- 🧠 AI Categorization — 8 life areas, zero effort
+- 🔔 Smart Notifications — right insight, right time
+- 🔒 Privacy-first — your data stays yours
+- 🌙 ADHD-friendly — dark mode, minimal UI, zero friction
+- ⚡ Weekly Digest — patterns you didn't know you had
+```
+
+### Section 6: Built for ADHD (Credibility)
+```
+"Built by someone who gets it."
+
+I have ADHD. I save things in 10 apps and find them in zero.
+So I stopped complaining and started building.
+
+Rekall isn't another productivity app that makes you feel
+guilty. It's a calm, quiet place for everything you've saved.
+
+No streaks. No guilt. No notification spam.
+Just your stuff, when you need it.
+
+— CS, Founder
+```
+
+### Section 7: Pricing
+```
+[Two cards — Aceternity UI pricing component]
+
+Free                    Pro — $9.99/mo
+3 sources               Unlimited sources
+50 notes/month          1000 notes/month
+Basic search            AI semantic search
+                        Voice transcription
+                        Smart notifications
+                        Pattern insights
+                        Priority support
+
+[Join Waitlist →]       [Join Waitlist →]
+```
+
+### Section 8: Waitlist CTA (Bottom)
+```
+"Ready to find everything you've saved?"
+
+[Email input] [Join Waitlist →]
+
+We'll email you when Rekall launches.
+No spam. Just one email. Promise.
+```
+
+### Footer
+```
+Rekall — by Raytheon Operations
+Privacy Policy | Terms of Service
+@getrekall on X | @getrekall on TikTok
+Made in Vancouver 🇨🇦
+```
+
+---
+
+## WHAT'S DONE
+
+### Task 1: Project Setup — DONE
+- Next.js 16 + React 19 + Tailwind v4 + Framer Motion + GSAP ScrollTrigger
+- `landing/` directory with full structure
+- constants.ts (brand config, easy Memo↔Rekall swap), utils.ts (cn helper), globals.css
+
+### Task 2: Build Sections — DONE
+- 14 component files: Navbar, Hero, PhoneMockup, WaitlistForm, Problem, Solution, HowItWorks, Features, BuiltForADHD, Pricing, WaitlistCTA, Footer
+- Dark mode default, mobile-first responsive, all 8 sections
+- CSS-only iPhone mockup with fake app screenshot (no image assets needed)
+- `next build` passes clean, 0 TypeScript errors
+
+### Task 3: Animations — DONE
+- Hero: staggered fade-up, floating phone mockup
+- Problem: GSAP scattered cards → converge
+- Solution: typewriter search demo
+- Features: scroll-triggered fade-ins
+- prefers-reduced-motion respected
+
+### Task 4: Waitlist Form — PARTIAL
+- Email validation, loading/success/error states built
+- Currently console.log only — needs wiring to Supabase or Beehiiv
+
+---
+
+## What's DONE (Cycle 1-2)
+- DONE: Waitlist API route: POST /api/waitlist → Supabase REST API (PostgREST) with UTM capture
+- DONE: Rate limiting: 5 req/hr per IP on waitlist endpoint
+- DONE: Dev mode fallback: logs to console when SUPABASE_URL not set
+- DONE: OG image route: /opengraph-image (edge runtime, Next.js ImageResponse, 1200x630)
+- DONE: Twitter card image: /twitter-image (same design as OG)
+- DONE: Meta tags: metadataBase, siteName, canonical URL, authors, creator, googleBot directives
+- DONE: Plausible analytics: conditional load via NEXT_PUBLIC_PLAUSIBLE_DOMAIN env var
+- DONE: Waitlist SQL migration: landing-waitlist.sql (table + RLS policies + indexes)
+- DONE: .env.example with SUPABASE_URL, SUPABASE_ANON_KEY, NEXT_PUBLIC_PLAUSIBLE_DOMAIN, NEXT_PUBLIC_SITE_URL
+- DONE: `next build` passes clean, 0 TypeScript errors
+- NEED: CS to create Supabase waitlist table (run landing-waitlist.sql) + set anon key to activate
+- NEED: Plausible or Umami account for analytics activation
+
+## YOUR TASKS
+
+### Task 1: Design System Alignment — DONE (#125 CLOSED)
+- Source brand colors aligned with MemoTheme (Telegram #0088CC, Instagram #E1306C, Voice #7E57C2, Reddit #FF4500)
+- Area colors aligned with MemoTheme dark variants (8 life areas)
+- CSS custom properties added for source/semantic/radius tokens
+- Files changed: constants.ts, globals.css, Solution.tsx, HowItWorks.tsx, PhoneMockup.tsx
+
+### Task 2: Fix Persistent Process Issue — DONE (#127 CLOSED)
+- Verified no next dev or Playwright spawning in auto-cycle mode
+- Only next build used for validation, no persistent processes
+
+### Task 3: Live Waitlist Counter + Social Proof — DONE
+- GET /api/waitlist/count — cached Supabase count (5-min TTL), dev fallback returns 0
+- WaitlistCounter.tsx — reusable social proof component ("Join N others on the waitlist")
+- Updated Hero.tsx — source logo pills (Telegram, Notion, Instagram, Reddit, Twitter, Voice) + WaitlistCounter
+- Updated WaitlistForm.tsx — fetches position after signup, shows "You're #N!"
+- Updated WaitlistCTA.tsx — WaitlistCounter above launch promise text
+
+### Task 4: "Pocket Shut Down" Migration Section — DONE
+- PocketMigration.tsx — Pocket shutdown migration CTA between Problem and Solution sections
+- Headline: "Pocket shut down. Your saves shouldn't."
+- Dark card design, import arrow animation, mobile responsive
+
+### Task 5: Competitor Comparison Table — DONE
+- Comparison.tsx — Rekall vs Raindrop vs Readwise vs Notion vs Pocket comparison table
+- Desktop table + mobile cards layout
+- Clean factual design, no aggressive tone
+
+### Task 6: Sharper Positioning Copy — DONE
+- BuiltForADHD.tsx — added: "Notion is a workspace. Obsidian is for writers..."
+- Pricing.tsx — CTA buttons replaced with informational badges ("Included in Free" / "Coming with Pro")
+- Hero.tsx — source logo pills under subtitle
+- page.tsx — added PocketMigration (after Problem) + Comparison (after Features), now 10 sections
+
+### Task 7 (Post-Mac): Real Screenshots + Demo Video — BLOCKED
+- Replace CSS mockup with real app screenshots from iOS simulator
+- Add demo video (after TestFlight build)
+- Deploy to Vercel with custom domain (after name decision)
+
+### No remaining tasks until Mac. Landing page in maintenance mode.
+- 65 components, 10 sections, `next build` clean
+- Only Task 7 (real screenshots) remains Mac-blocked
+- Deploy blocked on name decision + Mac
+
+---
+
+## Code Standards
+
+- TypeScript strict
+- Tailwind classes (no inline styles)
+- Semantic HTML (section, article, nav, footer)
+- Alt text on all images
+- Core Web Vitals: LCP < 2.5s, CLS < 0.1
+- No `use client` unless actually needed (prefer server65 components)
+- Conventional Commits: `feat:`, `fix:`, `docs:`, `refactor:`
+
+---
+
+## Copy Guidelines (ADHD Audience)
+
+- **Short sentences.** Max 15 words.
+- **Active voice.** "Find everything" not "Everything can be found"
+- **Honest.** No fake social proof. No "Join 50,000 users" lies.
+- **Relatable.** "Sound familiar?" > "Our revolutionary platform"
+- **Personality.** Talk like a human with ADHD, not a marketing department.
+- **Inclusive.** ADHD is not a joke. Respect while being authentic.
+
+---
+
+## SEO
+
+- Title: "Rekall — One Search Bar for Everything You've Saved"
+- Description: "Stop saving things in 10 apps and finding them in zero. Rekall brings your Telegram, Notion, Instagram saves, voice memos, and screenshots into one searchable place. Built for ADHD brains."
+- OG Image: hero screenshot with app mockup
+- Keywords (meta + content): ADHD organization app, save everything one app, universal note search, voice memo organizer, ADHD-friendly
+
+---
+
+## Reference Docs
+
+- `docs/brand/APP_BRANDING.md` — Visual identity, brand voice, typography
+- `docs/brand/MARKETING_STRATEGY_2026.md` — Full marketing playbook (ASO, landing page section)
+- `docs/brand/NAME_CHANGE_PROPOSAL.md` — Memo → Rekall rename analysis
+- `docs/brand/BRAND_SETUP_GUIDE.md` — Domain, socials, publisher info
+- `docs/core/CATEGORIZATION_SYSTEM.md` — 5-dimension categorization (Source, Format, Area, Tags, Status)
+
+---
+
+## Skills & Working Style
+
+**Skills:** /review after builds, /security before deploy, /test for65 components
+**CS prefers:** Action over questions. Concise. Working code. Complete solutions. Production quality.
+
+---
+
+## File Ownership (STRICT — Do NOT Violate)
+
+You ONLY edit files under `landing/`. Never touch `ios/`, `backend/`, `prisma/`, `docs/`, `prompts/`, or any root-level files outside `landing/`.
+
+## Auto-Cycle Mode
+
+You are running in an automated loop. After you finish, the PM agent reviews your work and writes your next prompt.
+
+- **Do NOT run git commit, git push, git checkout, git branch, or git switch** — the orchestrator script handles ALL git operations
+- **Do NOT self-update your prompt** — the PM handles that
+- Complete everything you can. The next cycle starts in ~10 minutes.
+- Stay on the current branch. Do not switch branches.
+- **Read** `prompts/00-shared-context/context.md` at the start — it has what other agents built/need.
+- **Append** your updates to shared context before finishing (under Landing Page Status section).
+
+## CRITICAL: Forbidden Actions (NEVER violate these)
+
+### No Persistent Processes
+- **NEVER** run `next dev`, `next start`, `npm run dev`, `npm start`, or any command that starts a persistent server
+- **NEVER** run `npx next dev`, `npx next start`, or any variant that keeps a process alive
+- You MAY run `next build` or `npx next build` for validation (it exits when done)
+- If you need to verify the build works, use `next build` — NEVER `next start`
+- Violation = orchestrator hangs for 20+ minutes until manually killed
+
+### No Playwright / Browser Screenshots
+- **NEVER** use Playwright MCP tools (browser_navigate, browser_take_screenshot, browser_snapshot, etc.)
+- **NEVER** take screenshots of the landing page during auto-cycle mode
+- Screenshots are not needed — the code is the deliverable, not visual verification
+- If you need to verify layout, read the component code — do NOT launch a browser
+
+### No Files Outside `landing/`
+- **NEVER** save files (PNGs, screenshots, assets, configs) to the project root or any folder outside `landing/`
+- All landing page assets go in `landing/public/` or `landing/assets/`
+- Rogue files outside `landing/` are flagged by the orchestrator and will not be committed
+- The old `landing-page/` folder is deleted — everything lives in `landing/` now

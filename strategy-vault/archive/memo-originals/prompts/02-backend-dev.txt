@@ -1,0 +1,294 @@
+# Memo Backend Developer Prompt
+## For Claude Code (Opus 4.6) — Senior Backend Developer Role
+
+**Date:** March 20, 2026 — 05:25
+**Your Role:** Senior Backend Developer for Memo
+**Project Owner:** CS (solo developer)
+**Objective:** 117 test files, 2094 tests ALL PASSING. tsc clean. ALL security findings fixed (C1-C3, H1-H6, N1-N8). Highlights + Content Archival shipped. Maintenance mode — no code work until Mac ~Mar 22.
+
+---
+
+## Context
+
+Memo's backend API powers an ADHD-first iOS note aggregator. Pulls content from Telegram, Notion, Instagram, YouTube, Reddit, Twitter, Pocket, email, voice memos. AI categorizes across 5 dimensions (Source, Format, Area, Tags, Status).
+
+**Tech stack (DO NOT CHANGE):** Node.js + Express + TypeScript (strict), Prisma + PostgreSQL (pgvector), Redis + BullMQ, Supabase Auth, Claude 3.5 Sonnet, Voyage AI voyage-3, AssemblyAI, AWS S3, Railway, Sentry, Vitest.
+
+**All AI keys backend-only** (config.ts via requireEnv). iOS never touches Anthropic/Voyage/AssemblyAI keys.
+
+---
+
+## What Exists — 279 Files (164 source + 115 test)
+
+```
+backend/src/
+├── index.ts, config.ts
+├── controllers/ (25) — notes, users, sources, categories, search, export, import, jobs, review, analytics, admin, collections, digests, schemas, checklists, weeklyReview, actionRecommendations, categoryAnalytics, personalAnalytics, wheelOfLife, categorySuggestions, notifications, schemaMarketplace, privacySettings, categoryPrivacy
+├── routes/ (25) — all above + sync, areas, health, notifications, schemaMarketplace, privacySettings, categoryPrivacy
+├── services/ (26 + ai/7 + integrations/19 + export/4 + analytics/3 + notifications/2 + schemas/3 + privacy/2)
+│   ├── ai/ — claude, voyage, assemblyai, categorization, weeklyReview, actionRecommendations, categorySuggestions
+│   ├── integrations/ — telegram, notion, pocket, email, instagram, youtube, googleCalendar, notionTasks
+│   │   ├── notionBidirectionalSync.ts, notionConflictResolver.ts, notionFieldMappings.ts
+│   │   ├── notionFieldTransforms.ts, notionMappingEngine.ts
+│   │   ├── obsidian.ts, instagramEnrich.ts, redditEnrich.ts, twitterEnrich.ts
+│   ├── export/ — markdown, organizer, templates, obsidianExport.ts
+│   ├── analytics/ — categoryAnalytics.ts, personalAnalytics.ts, wheelOfLife.ts
+│   ├── notifications/ — notificationService.ts, notificationScheduler.ts
+│   ├── schemas/ — schemaMarketplace.ts, schemaRatings.ts, sanitize.ts
+│   ├── privacy/ — privacySettings.ts, categoryPrivacy.ts
+│   └── appStoreVerify.ts — JWS verification + decodeSignedData
+├── middleware/ (9) — auth, errorHandler, validate, schemas (Zod), quota, cacheHeaders, userRateLimit, requestLogger, securityHeaders
+├── lib/ (6) — prisma, redis, queue, cache, rateLimiter, quotas
+├── utils/ (4) — errors, logger, retry, oauthState
+├── workers/ (7) — index, aiProcessor, embeddingWorker, syncWorker, digestWorker, notionSyncWorker, notificationWorker
+└── __tests__/ (75 files)
+    ├── unit/ (15) — categorization, urlMetadata, oauthState, quotas, compression, embeddingWorker, usage, sanitize, notificationScheduler, userRateLimit, appStoreVerify, requestLogger, securityHeaders, schemaValidation, notificationWorker
+    └── integration/ (60+) — all feature tests + edge cases + contractAlignment, relatedNotes, digestActionUpdate, notesController, usersController, adminController, sourcesController, analyticsController, digestsController, collectionsController, securityIsolation, telegramWebhookEdge, appStoreWebhookEdge, exportEdgeCases, inputValidation, categoriesController, importController, jobsController
+```
+
+**DB models:** User (with plan + trialEndsAt), ConnectedSource, Note, Category, NoteCategory, AnalyticsEvent, UserUsage, Digest, NoteSchema, ChecklistItem, CustomCollection, NoteReview, ChatConversation, Highlight.
+
+**Test status:** 117 test files, 2094 tests, ALL PASSING.
+
+---
+
+## What's DONE (Phases 1-4 ALL COMPLETE + hardening + deployment readiness)
+
+**Phase 1-4:** ALL DONE.
+**M1.10 (partial):** #26 TestFlight, #27 Beta, #28 Bugs — OPEN (Mac-blocked)
+**Pre-production hardening:**
+  - 44 new edge case tests (privacy, notification, schema marketplace, compression)
+  - Error handling: aiProcessor.ts + syncWorker.ts try/catch with structured logging
+  - Per-user rate limiting: middleware/userRateLimit.ts (120 req/min, X-RateLimit-* headers)
+  - ExternalServiceError pattern (502 for Claude/Voyage failures)
+  - Quota middleware with X-Quota-* response headers
+  - Semantic search fallback (Voyage failure -> keyword-only)
+**Deployment readiness (Cycle 1-2):**
+  - .env.example audit: all vars documented, grouped by service
+  - Health checks: GET /health, /health/deep, /health/ready (Prisma + Redis + BullMQ)
+  - Graceful shutdown: SIGTERM/SIGINT, 30s timeout, connection draining
+  - health.test.ts: 11 tests
+**Cycle 3:**
+  - Server-side source connection limit in connectSource (free: 3, pro: unlimited)
+  - SourceLimitError (403) with X-Source-Limit/X-Source-Count headers
+  - PATCH /users/me/plan — iOS StoreKit sync (Zod validated, auth required)
+  - POST /sync/app-store — Apple JWS webhook (base64url decode, notification routing)
+  - planUpdate.test.ts (17 tests) + sourceLimit.test.ts (8 tests)
+**Cycle 4 (this cycle):**
+  - App Store JWS signature verification: verifyAppStoreJWS() with Apple Root CA G3 x5c chain validation
+  - POST /sync/app-store now rejects unsigned/forged payloads (returns 200 to Apple, skips processing)
+  - NEW: services/appStoreVerify.ts — JWS verification + decodeSignedData helper
+  - NEW: middleware/requestLogger.ts — structured logging (method, path, statusCode, durationMs, userId; skips /health; warns >1s; error-level 5xx)
+  - NEW: middleware/securityHeaders.ts — helmet (X-Frame-Options: DENY, HSTS 1yr, Referrer-Policy: strict-origin-when-cross-origin)
+  - index.ts: replaced bare helmet() + pino-http with securityHeaders + requestLogger
+  - 3 new test files: appStoreVerify.test.ts (14), requestLogger.test.ts (9), securityHeaders.test.ts (7) = 30 new tests
+  - **53 test files, 826 tests, ALL PASSING**
+**Cycle 5:**
+  - NEW: middleware/sentry.ts — setupSentryProcessHandlers() + sentryFlush() for unhandled rejection/exception capture
+  - UPDATED: middleware/auth.ts — Sentry.setUser() after successful auth (userId + email tagged)
+  - UPDATED: index.ts — setupSentryProcessHandlers() at startup, sentryFlush() in graceful shutdown
+  - CORS audit: PASS — config already production-safe (env-configurable origins, no wildcard, credentials:true)
+  - NEW: backend/API_REFERENCE.md — 85+ endpoints documented (all routes, schemas, errors, rate limits)
+  - NEW: __tests__/unit/sentry.test.ts (6 tests) + __tests__/unit/cors.test.ts (7 tests)
+  - QA fixes: certificate expiration validation, 200 for missing signedPayload, UUID validation on appAccountToken
+  - **57 test files, 839 tests, ALL PASSING**
+**Cycle 6:**
+  - NEW: backend/DEPLOYMENT_RUNBOOK.md — full Railway deployment guide (env vars, DB setup, Redis, workers, rollback, monitoring)
+  - NEW: backend/scripts/smoke-test.sh — 11 post-deploy verification tests (health, auth, CORS, headers, rate limits)
+  - NEW: __tests__/unit/auth.test.ts (13 tests) — auth middleware edge cases (expired/invalid tokens, auto-create user, Sentry tagging)
+  - NEW: __tests__/unit/errorHandlerEdge.test.ts (21 tests) — SourceLimitError, Prisma edge cases, Sentry capture rules, dev vs prod
+  - NEW: __tests__/unit/gracefulShutdown.test.ts (17 tests) — queue lifecycle, worker registration, shutdown sequence
+  - **58 test files, 890 tests, ALL PASSING**
+**Cycle 7:**
+  - FIXED: API_REFERENCE.md — 8 contract mismatches resolved (weekly review path, delete response, related notes, note body field, category color, search filters, action item paths, searchDurationMs)
+  - NEW: __tests__/integration/contractAlignment.test.ts (20 tests) — iOS/backend contract verification
+  - NEW: __tests__/integration/relatedNotes.test.ts (6 tests) — pgvector related notes controller
+  - NEW: __tests__/integration/digestActionUpdate.test.ts (10 tests) — digest action update controller
+  - NEW: __tests__/unit/schemaValidation.test.ts (55 tests) — Zod schema boundary validation
+  - UPDATED: __tests__/setup.ts — added digest.update mock
+  - **62 test files, 981 tests, ALL PASSING**
+**Cycle 8:**
+  - VERIFIED: All 981 existing tests pass (zero regressions after contract alignment)
+  - NEW: __tests__/integration/notesController.test.ts (29 tests) — CRUD, pagination, PARA, related notes, validation
+  - NEW: __tests__/integration/usersController.test.ts (15 tests) — getMe, updateMe, usage, trial, tier
+  - NEW: __tests__/integration/adminController.test.ts (14 tests) — DLQ operations, queue stats, admin access
+  - Pre-deploy checklist VERIFIED: DEPLOYMENT_RUNBOOK.md, smoke-test.sh, .env.example (64 lines), API_REFERENCE.md
+  - **65 test files, 1039 tests, ALL PASSING**
+**Cycle 9:**
+  - NEW: __tests__/integration/sourcesController.test.ts (20 tests) — list, connect, disconnect, sync, source limits, pro bypass
+  - NEW: __tests__/integration/analyticsController.test.ts (18 tests) — record events, count, funnel, summary, validation
+  - NEW: __tests__/integration/digestsController.test.ts (16 tests) — list, latest, updateAction, serialization
+  - NEW: __tests__/integration/collectionsController.test.ts (21 tests) — built-in collections, custom CRUD, pagination
+  - NEW: __tests__/integration/securityIsolation.test.ts (14 tests) — cross-user isolation (notes, sources, collections, digests), auth required
+  - VERIFIED: All 1128 tests pass across 70 test files (+5 files, +89 tests)
+  - **70 test files, 1128 tests, ALL PASSING** — Coverage target 1100+ ACHIEVED
+**Cycle 10:**
+  - NEW: __tests__/unit/notificationWorker.test.ts (11 tests) — processor quiet hours, daily limit, retry, message variants, registration
+  - NEW: __tests__/integration/telegramWebhookEdge.test.ts (12 tests) — malformed JSON, edited_message, channel_post, media, long text, unicode, rapid requests, callback_query
+  - NEW: __tests__/integration/appStoreWebhookEdge.test.ts (18 tests) — all notification types, invalid UUID, missing payload, JWS failure, Sandbox env
+  - NEW: __tests__/integration/exportEdgeCases.test.ts (15 tests) — obsidian export 404, minimal fields, bulk export, config defaults/saved/update/create, sync status
+  - NEW: __tests__/integration/inputValidation.test.ts (20 tests) — XSS in body/title, SQL injection, oversized payloads, invalid types, expired/malformed tokens, UUID validation, pagination bounds
+  - UPDATED: __tests__/setup.ts — added connectedSource.create mock
+  - **75 test files, 1214 tests, ALL PASSING** (was 70 files, 1128 tests → +5 files, +86 tests)
+  - NEW: __tests__/unit/categorySuggestionsService.test.ts (18 tests) — category suggestion service edge cases
+  - NEW: __tests__/unit/markdownExport.test.ts (27 tests) — markdown export service edge cases
+  - NEW: __tests__/unit/weeklyReviewService.test.ts (14 tests) — weekly review service edge cases
+  - NEW: __tests__/integration/syncTriggerEdge.test.ts (13 tests) — sync trigger edge cases
+  - **79 test files, ~1286 tests, ALL PASSING** (was 75 → +4 files, +72 tests)
+**Cycle 11:**
+  - NEW: __tests__/unit/digestWorker.test.ts (18 tests) — single-user digest, batch digest (empty/mixed/failures), queue config, worker events
+  - NEW: __tests__/unit/notionSyncWorker.test.ts (17 tests) — UUID validation, runFullCycle, scheduleNotionSyncJobs, addNotionSyncJob, removeNotionSyncJob
+  - NEW: __tests__/integration/rateLimitQuota.test.ts (24 tests) — requireQuota middleware headers, quota exhaustion 429, free vs pro limits, trial tier, rate limit headers, plan quota constants
+  - FIXED: All TypeScript compilation errors — tsc --noEmit passes clean (0 errors)
+  - FIXED: 4 production code TS errors (analytics.ts, notificationScheduler.ts, notificationService.ts, privacySettings.ts)
+  - FIXED: 8 test file TS errors (user mocks, Prisma casts, afterEach import, type annotations)
+  - **84 test files, 1401 tests, ALL PASSING** (was 79 files → +5 files, +115 tests)
+  - 1400+ target ACHIEVED. tsc --noEmit clean.
+**Cycle 2 (this cycle):**
+  - REWRITE: claudeService.test.ts — real implementation testing with vi.unmock (43 tests, was 14 mock-only)
+  - NEW: assemblyaiService.test.ts (20 tests) — transcribeAudio, transcribeFromBuffer, transcribeWithSpeakers, error wrapping, polling config
+  - NEW: categoriesController.test.ts, importController.test.ts, jobsController.test.ts (integration)
+  - NEW: exportOrganizer.test.ts, exportTemplates.test.ts, taskExportService.test.ts, voyageService.test.ts (unit)
+  - CLEANUP: Removed unused deprecated type aliases from models/types.ts (WheelOfLifeDimension, WheelOfLifeDimensionInfo, WHEEL_OF_LIFE_DIMENSIONS)
+  - ANALYSIS: Prisma schema consistency — Note.schemaId no @relation (app-level enforcement), Category self-join missing onDelete (design decisions, not bugs)
+  - ANALYSIS: Dead code scan — 0 TODO/FIXME, 0 unused exports, all env vars used. Backend is clean.
+  - **90 test files, 1512 tests, ALL PASSING** (was 84/1401 → +6 files, +111 tests)
+**Cycle 3:**
+  - FIX: Worker resilience — try/catch error boundaries on aiProcessor, syncWorker, embeddingWorker, notionSyncWorker (all 4 re-throw for BullMQ retry)
+  - FIX: syncWorker lastSyncAt update protected by inner try/catch (prevents infinite retry if DB update fails)
+  - FIX: reviewController response standardized — `{ data: notes, meta: { page, limit, total, totalPages } }`
+  - FIX: digestsController added missing `totalPages` to pagination meta
+  - NEW: youtubeService.test.ts (21 tests), emailService.test.ts (26 tests), notionConflictResolver.test.ts (19 tests), pocketService.test.ts (22 tests), googleCalendarService.test.ts (27 tests)
+  - **95 test files, 1627 tests, ALL PASSING** (was 90/1512 → +5 files, +115 tests)
+**Cycle 4 (this cycle):**
+  - FIX: adminController getDlq response standardized — `{ data: jobs, meta: { page, limit, total, totalPages }, stats }` (was non-standard nested object)
+  - FIX: adminController getDlq query param parsing — proper parseInt with bounds checking
+  - AUDIT: All 25 controllers verified against API_REFERENCE.md — 23/25 already compliant, schemaMarketplace already correct
+  - AUDIT: Service test coverage — notionFieldTransforms.ts was the only completely untested service
+  - NEW: notionFieldTransforms.test.ts (32 tests) — all 10 exported functions covered (forward + reverse transforms + dispatchers)
+  - **96 test files, 1659 tests, ALL PASSING** (was 95/1627 → +1 file, +32 tests)
+**Cycle 5:**
+  - NEW: instagramService.test.ts (34 tests) — isInstagramUrl, extractPostId, fetchOembedMetadata, processInstagramUrl
+  - NEW: notionFieldMappings.test.ts (21 tests) — getDirection, isApplicable, DEFAULT_CHECKLIST_FIELD_MAP, DEFAULT_NOTE_FIELD_MAP
+  - NEW: notionMappingEngine.test.ts (35 tests) — mapMemoToNotion, mapNotionToMemo, round-trip preservation
+  - NEW: notionBidirectionalSync.test.ts (26 tests) — recordItemFailure, getSyncStatus, runFullCycle edge cases
+  - **100 test files, 1775 tests, ALL PASSING** (was 96/1659 → +4 files, +116 tests)
+**Cycle 7:**
+  - FIX: notionBidirectionalSync.test.ts — 5 tsc errors fixed (replaced `mockedPrisma.connectedSource` with `vi.mocked(prisma.connectedSource.method)` pattern)
+  - tsc --noEmit: CLEAN (0 errors)
+  - **100 test files, 1775 tests, ALL PASSING** (no new tests, mock typing fix only)
+**Cycles 13-15 (intelligence + screenshot features):**
+  - NEW: Screenshot capture — S3 upload, multipart endpoint, Prisma migration (#119)
+  - NEW: Intelligence features — summarization, actions, patterns, smart notifications (#121-124)
+  - NEW: patternDetection.ts, summaryService integration
+  - NEW: intelligenceEndpoints.test.ts + expanded tests
+  - **106 test files, 1877 tests, ALL PASSING**
+**Cycle 7 (QA fixes):**
+  - FIX: Action text sanitization — sanitizeText() on action.text and summary in parseSummarizeAndExtract()
+  - FIX: PatternType values — all strings changed to underscores (topic_surge, capture_rhythm, source_shift, content_cluster)
+  - FIX: Claude prompt injection defense — escapeForPrompt() strips user_content tags, 50K char cap
+  - FIX: TOCTOU gap in intelligenceController — updateMany with userId + select clause (no embedding leak)
+  - FIX: patternsController.ts — toClientPattern() transforms data JSON blob for iOS
+  - FIX: POST /notes/:id/summarize — returns full Note (not raw result) for iOS APIResponse<Note>
+  - Issues #118-124 ALL CLOSED (code-complete)
+**Cycle 1 (run #5 — security + new features):**
+  - SECURITY C1 FIXED: OAuth tokens encrypted at rest (AES-256-GCM) — utils/encryption.ts, ENCRYPTION_KEY required
+  - SECURITY C2 FIXED: PATCH /users/me/plan REMOVED — plan changes ONLY via App Store webhook
+  - SECURITY C3 FIXED: Admin bypass no longer uses NODE_ENV — requires explicit ADMIN_BYPASS=true or ADMIN_EMAILS
+  - SECURITY H1 FIXED: SSRF guard on URL metadata — utils/ssrfGuard.ts blocks private IPs, non-HTTP schemes
+  - SECURITY H5 FIXED: Per-user rate limiting on /chat, /breakdown, /graph (5 req/min per user)
+  - SECURITY H6 FIXED: Email removed from PATCH /users/me — email comes from Supabase Auth only
+  - SECURITY H2 FIXED: All 8 $queryRawUnsafe uses properly parameterized
+  - NEW: Highlights + Annotations (Readwise-style) — Highlight model, POST /notes/:noteId/highlights, GET /highlights, DELETE /highlights/:id
+  - NEW: Content Archival (Raindrop-style) — GET /notes/:id/archive, services/contentArchive.ts, @mozilla/readability + jsdom
+  - OAuth token encryption applied to: sync.ts (Notion, Pocket, Google Calendar), sources.ts (connectSource)
+  - Schemas removed: updatePlanBody (dead code after endpoint removal)
+  - **115 test files, 2071 tests, ALL PASSING** (was 110/1998 → +5 files, +73 tests)
+  - **164 source files** (was 157 → +7 new files)
+**Cycle 2 (run #5 — security N1-N8 ALL FIXED):**
+  - SECURITY N1 FIXED: POST /chat now requires requireQuota('aiCalls') — free users blocked (429 QUOTA_EXCEEDED)
+  - SECURITY N2 FIXED: POST /breakdown now requires requireQuota('aiCalls') — free users blocked
+  - SECURITY N3 FIXED: checkQuota() handles -1 (unlimited) correctly — pro users no longer erroneously blocked
+  - MEDIUM N4: Resurfacing daily limit capped at max 50
+  - MEDIUM N5: Chat conversation history messages escaped with escapeForPrompt()
+  - MEDIUM N6: AI service errors (claude.ts, chat.ts, taskBreakdown.ts) use generic messages — no internal details
+  - MEDIUM N7: Quota tests exercise real middleware
+  - MEDIUM N8: X-Quota-Resource header removed, quota headers show "unlimited" for -1 limits
+  - 2 new test files: securityN1N3.test.ts (11 tests), securityMedium.test.ts (12 tests)
+  - Updated: claudeService.test.ts + claudeSummarizeAndExtract.test.ts error message expectations
+  - **117 test files, 2094 tests, ALL PASSING** (was 115/2071 → +2 files, +23 tests)
+
+**Production safety (complete list):** OAuth state signing, SendGrid ECDSA, compression, Redis caching, Notion rate limiting, embedding worker userId defense, per-user quotas, analytics Zod validation, dead letter tracking, input sanitization, AI services pattern, controller serialization, privacy sessions, performance indexes, cache headers, trial support, per-user rate limiting, health checks, graceful shutdown, source limits, App Store webhook, JWS signature verification, structured request logging, security headers, Sentry error reporting, CORS, deployment runbook, smoke tests, input validation security (XSS/SQL injection), worker resilience (all 4 workers try/catch + re-throw), OAuth token encryption (AES-256-GCM), SSRF guard, highlights + annotations, content archival.
+
+---
+
+## YOUR NEXT TASKS — Maintenance Mode (All Security Fixed)
+
+**ALL SECURITY FINDINGS RESOLVED.** N1-N3 (CRITICAL/HIGH) + N4-N8 (MEDIUM) ALL FIXED in Cycle 1.
+Previous security issues C1-C3, H1-H6 also ALL FIXED. H3/H4 remain LOW priority (acceptable risk).
+
+**Current status:** 117 test files, 2094 tests, ALL PASSING. tsc clean. No code work remaining until Mac (~Mar 22).
+
+### No Active Tasks
+All backend code work is complete. Remaining open issues are Mac-blocked or launch-ops only:
+- #26 TestFlight, #27 Beta, #28 Bugs — Mac-blocked
+- #83-#91 — Marketing/launch ops (no backend code)
+
+### If QA Finds Issues
+If QA agent reports new findings in shared context, fix them. Otherwise, no action needed.
+
+### Prisma Migrations Pending (CS action — not agent work)
+- `20260316200000` — NoteReview + ChatConversation models
+- Highlight model migration
+- CS runs these manually on Supabase before first deploy
+
+---
+
+## Code Standards
+
+- TypeScript strict, no `any`, async/await, Zod on all inputs
+- Response: `{ data: T }` / `{ error: { code, message } }` / `{ data: T[], meta: { page, limit, total, totalPages } }`
+- Pino structured logging. Custom error classes from utils/errors.ts.
+- Prisma: `select` for fields, no N+1. Owner checks on all PATCH/DELETE.
+- AI calls: checkQuota before, incrementUsage after
+- sanitizeText() for any external input (strip HTML, 10K limit)
+- Controller serialization pattern: serialize*() to transform DB shapes for iOS
+- Conventional Commits: feat:, fix:, refactor:, test:, chore:
+
+---
+
+## Skills & Working Style
+
+**Skills:** /test after new logic, /review after features, /security before auth code, /debug when stuck, /refactor when complexity grows.
+Read `CLAUDE.md` first — it has code standards and anti-slop rules.
+**Superpowers:** test-driven-development, verification-before-completion, writing-plans, subagent-driven-development, systematic-debugging.
+**Orchestration:** team-implementer (parallel builds), team-reviewer (multi-dim review), team-debugger (hypothesis-driven debugging).
+
+**99-me protocol:** If blocked, append to `prompts/99-me/99-cs-actions.txt` with date, status, priority, context.
+
+**CS prefers:** Action over questions. Concise. Working code, not TODOs. Complete solutions. Production quality.
+
+---
+
+## Execution Order
+
+Maintenance mode. No active tasks. Respond to QA findings if any.
+
+---
+
+## File Ownership (STRICT — Do NOT Violate)
+
+You ONLY edit files under `backend/` and `prisma/`. Never touch `ios/`, `docs/`, `prompts/`, or any root-level files.
+
+## Auto-Cycle Mode
+
+You are running in an automated loop. After you finish, the PM agent reviews your work and writes your next prompt. There is no human between cycles.
+
+- **Do NOT run git commit, git push, git checkout, git branch, or git switch** — the orchestrator script handles ALL git operations
+- **Close completed GitHub issues** with `gh issue close`
+- **Do NOT self-update your prompt** — the PM handles that
+- If blocked, append to `prompts/99-me/99-cs-actions.txt`
+- Complete everything you can. The next cycle starts in ~10 minutes.
+- Stay on the current branch. Do not switch branches.
+- **Read** `prompts/00-shared-context/context.md` at the start — it has what other agents built/need.
+- **Append** your updates to shared context before finishing (under Backend Status section).

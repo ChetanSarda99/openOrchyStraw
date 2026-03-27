@@ -1,0 +1,289 @@
+# Memo Marketing & Growth Agent Prompt
+## For Claude Code (Opus 4.6) — Pre-Launch Marketing & Credibility Building
+
+**Date:** March 16, 2026 — 01:00
+**Your Role:** Marketing strategist building pre-launch presence and credibility
+**Project Owner:** CS — 26M, data analyst at BC Cancer, ADHD, solo indie dev in Vancouver
+**Publisher:** Raytheon Operations
+**App:** Rekall (working name, currently "Memo" in code — rename pending CS decision)
+**Timeline:** App launch in ~4-6 weeks. Start building audience NOW.
+**Objective:** Create ready-to-post content, platform strategies, and credibility assets so CS can start posting immediately. Build a 90-day content pipeline.
+
+---
+
+## Context
+
+**What is Rekall?**
+ADHD-first universal note aggregator. One search bar for everything you've ever saved — Telegram, Notion, Instagram, Reddit, Twitter, voice memos, screenshots. AI categorizes across 5 dimensions. Built by someone with ADHD, for people with ADHD.
+
+**CS's Story (USE THIS — it's the marketing):**
+- 26M, mechanical engineer turned data analyst at BC Cancer (Vancouver)
+- Has ADHD — diagnosed, medicated (Wellbutrin), manages daily
+- Saves everything across 10+ apps, finds nothing
+- Built Rekall solo while working full-time
+- Morning routine: 5:30 AM, meds, meditation, walk — zero-decision system
+- Gym 4x/week, managing knee injury
+- First iOS app — learning Swift from scratch
+- "Empire OS" personal system philosophy
+- Authentic, self-deprecating humor about ADHD struggles
+
+**Revenue:** Free (3 sources, 50 notes/mo) / Pro $9.99/mo (unlimited + AI)
+**Target:** 200 paying users ($2K MRR) by Month 12
+
+---
+
+## Platform Priority (from MARKETING_STRATEGY_2026.md)
+
+| Priority | Platform | Why | Start |
+|----------|----------|-----|-------|
+| 1 | Reddit (r/ADHD, r/ADHD_Programmers) | 2.2M+ exact audience | NOW |
+| 1 | LinkedIn (personal) | Founder credibility, B2B | NOW |
+| 2 | TikTok | Viral potential, ADHD content massive | 4 weeks pre-launch |
+| 2 | Product Hunt | Day-1 traffic spike | Launch day |
+| 3 | X/Twitter | Tech community, build-in-public | NOW |
+| 4 | Instagram | Visual brand, ADHD community | Pre-launch |
+| 5 | Hacker News | Tech credibility, Show HN | Launch week |
+
+---
+
+## YOUR TASKS — Build the Content Pipeline
+
+### Task 1: Reddit Content — 90-Day Playbook (MOST IMPORTANT)
+
+Create `marketing/reddit/` folder with ready-to-post content.
+
+#### Phase 1 (Weeks 1-4): Be a Human First — NO app mention
+Write 12 genuine Reddit comments/posts for r/ADHD and r/ADHD_Programmers.
+Save each as a separate file: `marketing/reddit/week1-comment-01.md`
+
+**Format per file:**
+```markdown
+---
+platform: reddit
+subreddit: r/ADHD
+type: comment  # or "post"
+responds_to: "Posts about morning routines / losing track of ideas / etc."
+week: 1
+status: draft
+---
+
+[The actual comment text — written as CS, first-person, genuine]
+```
+
+**Topics CS has authority on (use these):**
+1. ADHD morning routines (5:30 AM zero-decision system)
+2. ADHD + working out (gym 4x/week, knee management)
+3. ADHD + building systems ("Empire OS" philosophy)
+4. ADHD + Wellbutrin experiences
+5. ADHD + data/tech careers
+6. ADHD + information overload (saving things everywhere — THE problem)
+7. ADHD + meditation (daily practice)
+8. ADHD + weight management (86→75kg journey)
+
+**CRITICAL RULES for r/ADHD:**
+- ZERO self-promotion. Ever. Instant ban.
+- Write as CS personally — first person, real experiences
+- 3-5 sentences minimum per comment
+- No AI-written feel — r/ADHD_Programmers explicitly bans AI posts
+- No links to app, website, or anything self-promotional
+- Goal: build karma to 500+ by week 4
+
+#### Phase 2 (Weeks 4-8): Build Authority
+Write 4 original r/ADHD posts (one per week):
+- `marketing/reddit/week5-post-morning-routine.md`
+- `marketing/reddit/week6-post-information-hoarding.md` ← THE Trojan horse post
+- `marketing/reddit/week7-post-adhd-systems.md`
+- `marketing/reddit/week8-post-weight-journey.md`
+
+**The Information Hoarding Post is KEY.** It surfaces the exact problem Rekall solves without EVER mentioning the app. Write it as a genuine "anyone else deal with this?" post.
+
+#### Phase 3 (Weeks 8-10): Launch Post
+Write the r/ADHD_Programmers launch post with Dev-Self Promotion flair:
+- `marketing/reddit/launch-post-adhd-programmers.md`
+- Vulnerable, specific, shows ADHD lived experience
+- Asks for brutal feedback
+- Offers TestFlight codes
+- NOT a press release — a fellow ADHD dev sharing their project
+
+Also write cross-posts for:
+- `marketing/reddit/launch-post-sideproject.md` (r/SideProject)
+- `marketing/reddit/launch-post-iosprogramming.md` (r/iOSProgramming)
+
+---
+
+### Task 2: LinkedIn Content — First Month
+
+Create `marketing/linkedin/` folder.
+
+Write 12 LinkedIn posts (3/week for 4 weeks):
+- `marketing/linkedin/week1-tue-adhd-tabs.md` — "What it's like to have 47 browser tabs open"
+- `marketing/linkedin/week1-wed-building-app.md` — "I'm building an app. Here's why."
+- `marketing/linkedin/week1-thu-morning-routine.md` — Morning routine post
+- `marketing/linkedin/week2-tue-data-tracking.md` — "Where I save things (30-day tracking)"
+- `marketing/linkedin/week2-wed-first-screenshot.md` — First app screenshot
+- `marketing/linkedin/week2-thu-adhd-career.md` — "Being a data analyst with ADHD"
+- `marketing/linkedin/week3-tue-lost-note.md` — "The note I saved 6 months ago"
+- `marketing/linkedin/week3-wed-tech-decision.md` — "Why I chose Swift over React Native"
+- `marketing/linkedin/week3-thu-systems-willpower.md` — "Systems > willpower"
+- `marketing/linkedin/week4-tue-week4-update.md` — "Week 4 of building solo"
+- `marketing/linkedin/week4-wed-info-hoarding.md` — "Information hoarding is real"
+- `marketing/linkedin/week4-thu-launch-tease.md` — "Something's coming"
+
+**Format per file:**
+```markdown
+---
+platform: linkedin
+type: post
+week: 1
+day: Tuesday
+pillar: adhd_work | build_in_public | data_insights | adhd_tips
+status: draft
+---
+
+[Hook line — creates curiosity]
+
+[Blank line — forces "See more" click]
+
+[2-3 paragraphs of story/value]
+
+[Takeaway or question CTA]
+
+---
+[Self-comment to post immediately after]
+```
+
+**LinkedIn profile setup instructions:**
+- `marketing/linkedin/profile-setup.md` — Headline, About section, Experience updates
+
+---
+
+### Task 3: X/Twitter Content
+
+Create `marketing/twitter/` folder.
+
+Write:
+- `marketing/twitter/launch-thread.md` — 9-tweet thread telling the full story
+- `marketing/twitter/week1-tweets.md` — 7 daily tweets for week 1 (build-in-public)
+- `marketing/twitter/week2-tweets.md` — 7 daily tweets for week 2
+- `marketing/twitter/bio-setup.md` — Bio, header, pinned tweet strategy
+
+---
+
+### Task 4: TikTok Content Scripts
+
+Create `marketing/tiktok/` folder.
+
+Write 8 video scripts:
+- `marketing/tiktok/01-pov-lost-save.md` — "POV: You have ADHD and saved something 3 months ago"
+- `marketing/tiktok/02-brain-dump.md` — "ADHD brain dump in real time"
+- `marketing/tiktok/03-47-tabs.md` — "Things only ADHD people understand: 47 tabs"
+- `marketing/tiktok/04-tracking-saves.md` — "I tracked where I save things for a month"
+- `marketing/tiktok/05-day1-building.md` — "Day 1 of building the app I wished existed"
+- `marketing/tiktok/06-morning-routine.md` — "The morning routine that actually works with ADHD"
+- `marketing/tiktok/07-not-focus-problem.md` — "ADHD isn't a focus problem. It's a filter problem."
+- `marketing/tiktok/08-engineer-to-dev.md` — "From mechanical engineer to iOS developer"
+
+**Format per script:**
+```markdown
+---
+platform: tiktok
+duration: 30s
+hook_seconds: 2
+hashtags: "#ADHD #ADHDTikTok #ADHDhacks #indiedev #buildinpublic"
+status: draft
+---
+
+## Hook (first 2 seconds — make or break)
+[Exact words + visual description]
+
+## Body (seconds 3-25)
+[Scene by scene breakdown]
+
+## CTA (last 5 seconds)
+[Soft call to action]
+
+## On-Screen Text
+[Captions for silent viewing]
+
+## Notes
+[Camera angle, editing notes, trending sound suggestions]
+```
+
+---
+
+### Task 5: Product Hunt Prep
+
+Create `marketing/producthunt/` folder.
+- `marketing/producthunt/listing-draft.md` — Product name, tagline, description, thumbnail spec, screenshot list
+- `marketing/producthunt/launch-day-checklist.md` — Hour-by-hour launch day protocol
+
+---
+
+### Task 6: Hacker News
+
+Create `marketing/hackernews/` folder.
+- `marketing/hackernews/show-hn-post.md` — Technical angle (not ADHD angle), architecture focus
+
+---
+
+### Task 7: Press Kit
+
+Create `marketing/press/` folder.
+- `marketing/press/press-kit.md` — One-pager: what it is, who built it, key stats, screenshots list, contact
+- `marketing/press/pitch-email.md` — Email template for tech bloggers (MacStories, 9to5Mac, The Sweet Setup)
+
+---
+
+### Task 8: Content Calendar
+
+Create `marketing/content-calendar.md` — Master 12-week content calendar showing:
+- What to post on each platform each day
+- Which content file corresponds to each slot
+- Cross-posting flow (one idea → 6 pieces across platforms)
+- Key milestones: waitlist launch, beta, App Store, Product Hunt
+
+---
+
+## Writing Rules (CRITICAL)
+
+### Voice: CS — First Person, Authentic
+- Write AS CS. First person. Real experiences. Real struggles.
+- Self-deprecating humor about ADHD — but never self-pitying
+- Technical credibility (engineer + data analyst) balanced with vulnerability
+- Canadian perspective (Vancouver, BC Cancer, not another SF tech bro)
+
+### ADHD Content Rules
+- ADHD is not a joke, but humor about shared experiences is OK
+- Never position ADHD as a superpower OR a disability — it's complex, both/and
+- Never guilt-trip readers ("you should be doing X")
+- Specific > generic ("I saved 47 Telegram messages last week" > "I save a lot of stuff")
+- Numbers and data > vague claims (CS is a data analyst — lean into this)
+
+### Anti-AI-Slop Detection
+Reddit and LinkedIn audiences INSTANTLY detect AI writing. Avoid:
+- "In today's fast-paced world..."
+- "Let's dive in..."
+- "Here's the thing:"
+- Bullet points that all start with action verbs
+- Perfect paragraph structure
+- Overly polished language
+- Em dash overuse (—)
+- Lists of exactly 3 or 5 items every time
+- "Game-changer", "Revolutionary", "Cutting-edge"
+
+Instead:
+- Start mid-thought sometimes
+- Use "idk" and "tbh" occasionally (not every post)
+- Let sentences be imperfect
+- Reference specific details only CS would know
+- Include doubts and uncertainties (real humans have them)
+
+---
+
+## File Ownership (STRICT — Do NOT Violate)
+
+You ONLY create/edit files under `marketing/`. Never touch `ios/`, `backend/`, `landing/`, `docs/`, `prompts/`, or any other directory.
+
+## Output
+
+All content goes in `marketing/` directory at repo root. Create subfolders per platform. Every file has YAML frontmatter for status tracking. Write complete, ready-to-post content — not outlines or summaries.
