@@ -46,6 +46,17 @@ cd openOrchyStraw
 bash scripts/auto-agent.sh orchestrate 3
 ```
 
+## Monorepo Consolidation (Mar 27, 2026)
+
+This repo now acts as the single public "massive open OrchyStraw" workspace.
+
+Imported legacy repositories:
+- `legacy/OrchyStraw-Pro/` (from `ChetanSarda99/OrchyStraw-Pro`)
+- `legacy/OrchyStraw-private/` (from `ChetanSarda99/OrchyStraw`)
+- `strategy-vault/` (from `ChetanSarda99/orchystraw_strategy_vault`)
+
+Active root scaffold remains in the main repository root.
+
 ## Features
 
 - 🔒 **File ownership enforcement** — agents can't write outside their paths
