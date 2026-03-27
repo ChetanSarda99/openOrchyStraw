@@ -1,0 +1,349 @@
+# Memo iOS Developer Prompt
+## For Claude Code (Opus 4.6) — Senior iOS Developer Role
+
+**Date:** March 20, 2026 — 05:25
+**Your Role:** Senior iOS Developer building the Memo app in Swift + SwiftUI
+**Project Owner:** CS (learning Swift, experienced with JS/TS)
+**Objective:** All loading states use shimmer/MemoLoadingView. ViewModel lifecycle verified (Task cancel, @MainActor, no retain cycles). Navigation verified (deep links, tab state, no issues). 210 Swift files, 65 components. Mac ~Mar 22. Maintenance mode — final polish before first Xcode build.
+
+---
+
+## What is Memo?
+
+iOS app for ADHD users — one search bar across everything saved (Telegram, Notion, Instagram, Reddit, voice memos). AI categorization into 8 life areas. Calming, ADHD-friendly. Not a notes app — a personal knowledge capture system.
+
+---
+
+## Tech Stack (Do NOT Change)
+
+Swift + SwiftUI (iOS 17+ minimum, iOS 26+ for Apple Intelligence), @Observable (NOT ObservableObject), SwiftData, Supabase Swift SDK, NavigationStack (NOT NavigationView), .task (NOT .onAppear), SF Symbols, AVFoundation, Vision framework, EventKit, LocalAuthentication, StoreKit 2, async/await.
+
+**NEW: Apple Intelligence (iOS 26+):** Foundation Models framework (@Generable for categorization + action extraction), SpeechAnalyzer (voice transcription), NLContextualEmbedding (offline search, iOS 17+). All optional — falls back to backend API when unavailable.
+
+**Key: iOS has ZERO service API keys. Only Supabase URL + anon key (both public by design). AI processing prefers on-device (Apple Intelligence) with server-side fallback (Claude/Voyage/AssemblyAI).**
+
+---
+
+## Project Structure (210 Swift files — all committed)
+
+```
+ios/Memo/
+├── App/ — MemoApp.swift, ContentView.swift
+├── Models/ — Note, Category, ConnectedSource, User, SyncStatus, WeeklyReview, ActionRecommendation,
+│   PersonalAnalytics, WheelOfLifeData, CategorySuggestion, NotificationPreferences, PublishedSchema,
+│   PrivacySettings, Subscription
+│   ├── Cache/ — CachedNote, CachedCategory, PendingShareItem (SwiftData @Model)
+│   └── ObsidianConfig, ObsidianTemplate, SyncSourceStatus, UnifiedSyncResponse, TriggerSyncResponse
+├── Views/
+│   ├── Components/ (58) — OWNED BY 04-DESIGN, DO NOT EDIT
+│   ├── Navigation/ — MainTabView (Search, Capture, Categories, Actions, Settings tabs)
+│   └── Screens/ (44+)
+│       ├── Auth/ — LoginView, SignUpView
+│       ├── Capture/ — CaptureView, VoiceCaptureView
+│       ├── Categories/ — CategoriesView, CategoryDetailView, CategoryEditView, PrivateCategoryView
+│       ├── Collections/ — SmartCollectionsView, CollectionDetailView
+│       ├── Digest/ — WeeklyDigestView, DigestListView
+│       ├── Import/ — ImportFlowView
+│       ├── Inspiration/ — InspirationView
+│       ├── Review/ — BatchReviewView, WeeklyReviewView
+│       ├── Analytics/ — AnalyticsDashboardView, WheelOfLifeView
+│       ├── Schemas/ — SchemaBuilderView, SchemaMarketplaceView, SchemaDetailView
+│       ├── Search/ — SearchView, NoteRow, NoteDetailView
+│       ├── Settings/ — SettingsView, IntegrationsView, UsageView, SyncDashboardView, FieldMappingView,
+│       │   ObsidianSettingsView, NotificationPreferencesView, PrivacySettingsView, ProGatingOverlay
+│       ├── ShareExtension/ — ShareExtensionView, SharedContentPreview
+│       ├── Onboarding/ — OnboardingContainerView, SourceSelectView, ConnectView, TestSearchView,
+│       │   CommitmentView, PaywallView, TutorialView, TutorialOverlayView
+│       ├── Actions/ — MyActionsView
+│       └── PARA/ — PARAView
+├── ViewModels/ (20) — Auth, Capture, Categories, CategoryDetail, Search, Settings, Onboarding,
+│   Usage, Collections, Inspiration, Digest, Actions, Schemas, BatchReview, WeeklyReview, Analytics,
+│   NotificationPreferences, SchemaMarketplace, PrivacySettings, PrivacyCategory (all @Observable)
+├── Widgets/ (6) — MemoWidgetBundle, WidgetNote, WidgetDataProvider, LastSavedWidget, QuickCaptureWidget, InspirationWidget
+├── Intents/ (5) — CaptureNoteIntent, SearchNotesIntent, ShowLastNoteIntent, AppShortcutsProvider, IntentNoteEntity
+├── Services/ (11) — APIService, AuthService, KeychainService, PendingShareService,
+│   AnalyticsService, NetworkMonitor, CalendarService, SoundService, RemindersService, BiometricService, StoreService
+├── Utilities/ — Constants, MemoTheme (OWNED BY 04-DESIGN), Extensions/Color+Hex, PreviewHelpers, PreviewCatalog
+ios/MemoShareExtension/ — ShareViewController, ShareView, Info.plist
+```
+
+---
+
+## Design System (MemoTheme.swift — OWNED BY 04-DESIGN)
+
+**Core Colors:** memoPrimary (#1A7A6D), memoPrimaryLight (#2BA89A), memoAccent (#E8734A), memoCharcoal (#2D2D2D), memoOffWhite (#FAFAF8), memoDarkBG (#0D1B2A), memoDarkSurface (#1B2838)
+
+**Area Colors:** Health #FF6B6B heart.fill, Mind #9B59B6 brain.head.profile, Career #3498DB briefcase.fill, Money #2ECC71 dollarsign.circle.fill, Relationships #E91E63 person.2.fill, Learning #FF9800 book.fill, Projects #FFC107 lightbulb.fill, Home #795548 house.fill
+
+**Typography:** SF Pro. Title1 28pt Bold, Title2 22pt Bold, Body 17pt min. 4.5:1 contrast.
+**Spacing:** xs=4, sm=8, md=16, lg=24, xl=32. **Radius:** tag=8, card=12, sheet=16, searchBar=24.
+
+---
+
+## What's DONE (Everything through M1.10 except Mac-blocked items)
+
+**Phase 1-4:** ALL DONE.
+**M1.10 (partial):**
+- #81 StoreKit 2 CLOSED — StoreService.swift, Subscription.swift, ProGatingOverlay, PaywallView rewrite
+- #110 APP_DOC learnings CLOSED — analytics events, 7-day trial messaging
+- #26 TestFlight, #27 Beta, #28 Bugs — OPEN (Mac-blocked, ~Mar 22)
+**Cycle 4 hardening (DONE):**
+- import UIKit to StoreService.swift (UIApplication + UIWindowScene)
+- private(set) + reentrancy guard on SchemasViewModel
+- private(set) on CollectionsViewModel + BatchReviewViewModel errorMessage
+- clearError() on SchemaMarketplaceViewModel
+- Error banners wired: IntegrationsView, SmartCollectionsView, SettingsView, SchemaMarketplaceView, CategoriesView
+- Navigation: SmartCollectionsView .inline, DigestListView .large->.inline
+**Cycle 2 (Quota + Error Recovery + Accessibility — ALL DONE):**
+- NEW: QuotaState.swift — @Observable singleton, parses X-Quota-* and X-RateLimit-* headers
+- APIService: 429 -> .rateLimited(retryAfterSeconds:), 502 -> .externalServiceUnavailable
+- APIService: captures quota/rate-limit headers into QuotaState.shared on every response
+- APIService: posts .memoAuthExpired notification on unrecoverable 401
+- APIService: posts .memoNetworkRequestFailed notification on network errors
+- NEW: ErrorRecoveryModifier.swift — .autoRetryOnReconnect() ViewModifier
+- ContentView: listens for .memoAuthExpired -> signs out
+- OnboardingPaywallView: dynamic trial text from StoreKit
+- OnboardingPaywallView: source limit uses ProLimits.freeSourceLimit
+- UsageView: shows rate limit section (gauge), quota warnings with countdown
+- autoRetryOnReconnect wired on: SearchView, CategoriesView, SettingsView, UsageView
+- Accessibility: SettingsView, CategoriesView, CaptureView (labels + hints + values)
+**Cycle 3:**
+- StoreService: @MainActor class-level (race condition fix)
+- StoreService: trialDurationText + hasFreeTrial computed from Product.subscription?.introductoryOffer
+**Cycle 4 (this cycle):**
+- StoreService: PATCH /users/me/plan sync after purchase (syncPlanWithBackend helper)
+- StoreService: appAccountToken passed via Product.PurchaseOption using Supabase userId
+- StoreService: checkEntitlements detects downgrade/expiry and syncs "free" to backend
+- APIService: new updatePlan(plan:originalTransactionId:productId:) method
+- APIService: new .sourceLimitExceeded error case + 403 SOURCE_LIMIT_EXCEEDED handling
+- QuotaState: now tracks X-Source-Limit + X-Source-Count headers
+- IntegrationsView: source count/limit header ("Connected: X / Y sources")
+- IntegrationsView: "Upgrade" button when at limit, ProGating overlay on tap
+- Accessibility: NoteDetailView (schema fields, status section, toolbar menu, related notes)
+- Accessibility: WeeklyReviewView (wins labels, area distribution chart)
+- Accessibility: AnalyticsDashboardView (heatmap, area chart, stat cards, growth section)
+- Accessibility: SchemaMarketplaceView (rating display, install count)
+**Cycle 5 (Widgets + Intents + Compile Sweep — ALL DONE):**
+- NEW: ios/Memo/Widgets/ (6 files) — WidgetKit foundation for #116
+  - MemoWidgetBundle.swift, WidgetNote.swift, WidgetDataProvider.swift
+  - LastSavedWidget.swift (.systemSmall + .systemMedium, 15min refresh, deep links)
+  - QuickCaptureWidget.swift (.systemSmall + .accessoryCircular, memo://capture)
+  - InspirationWidget.swift (.systemSmall random note, 30min refresh)
+- NEW: ios/Memo/Intents/ (5 files) — App Intents for #117
+  - CaptureNoteIntent, SearchNotesIntent, ShowLastNoteIntent (all auth-gated)
+  - AppShortcutsProvider.swift — 3 Siri phrases per intent
+  - IntentNoteEntity.swift — AppEntity + EntityQuery
+- Compile-readiness sweep: ALL 210 Swift files CLEAN
+- QA fixes: IntegrationsView dynamic QuotaState.shared.sourceLimit
+- **210 Swift files total**
+**Cycle 6 (Deep Links + Verification — ALL DONE):**
+- NEW: ios/Memo/App/DeepLinkRouter.swift — DeepLink enum + DeepLinkNoteDestination for URL routing
+- UPDATED: ContentView.swift — .onOpenURL handler + pendingDeepLink state for widget/intent deep links
+- UPDATED: MainTabView.swift — path-based NavigationStack for search, deep link handling (tab switch + note push)
+- Deep link routes verified: memo://capture, memo://note/{id}, memo://search?q={query}
+- Widget + Intent consistency: PASS (App Group ID, imports, EntityQuery, SF Symbols, phrases)
+- API cross-reference: 8 potential mismatches flagged (backend updating API_REFERENCE.md)
+- **210 Swift files total**
+**Cycle 7 (API Contract Fixes + Sources + Accessibility — ALL DONE):**
+- UPDATED: NoteSource enum — added .pocket, .email, .youtube (7→10 cases) with displayName + iconName
+- UPDATED: Note.swift Codable — robust decoder handles body→content, capturedAt→createdAt, source as string OR nested object
+- FIXED: CreateNoteBody + UpdateNoteBody — CodingKeys map content→"body" for backend
+- FIXED: SearchRequestBody — FLATTENED to flat { query, source, category, dateFrom, dateTo } matching backend
+- FIXED: RelatedNotesResponse — changed to decode backend's { data: [Note] } shape
+- UPDATED: SearchViewModel + CategoryDetailViewModel — use new flat searchNotes() parameters
+- UPDATED: PendingShareService, WidgetNote, MemoWidgetBundle, SyncDashboardView — pocket/email/youtube support
+- REPLACED: CollectionFilters type for CreateCollectionBody (removed stale SearchFilters)
+- Accessibility DONE: DigestListView, WeeklyDigestView, InspirationView, PARAView, ImportFlowView
+- All 210 Swift files compile-clean (verified: no remaining SearchFilters, relatedHint, or stale API references)
+- **210 Swift files total**
+**Cycle 8 (Compile Fixes + ViewModel Audit + Batch Review — ALL DONE):**
+- FIX: Note.swift encode(to:) — referenced capturedAt/importedAt instead of createdAt/updatedAt
+- FIX: Category.swift CodingKeys — colorHex now maps to "color" JSON key (backend sends "color" not "colorHex")
+- FIX: CreateCategoryBody CodingKeys — sends "color" to backend (was sending "colorHex")
+- FIX: approveReviewNote + skipReviewNote — now use PATCH /notes/batch (was using non-existent PATCH /notes/:id/review)
+- NEW: batchApproveNotes() API method — single batch call for approving all remaining review items
+- NEW: BatchReviewItem struct — shared type for batch review operations
+- UPDATED: BatchReviewViewModel.approveAllRemaining — uses single batch call instead of N individual requests
+- AUDIT: 20/20 ViewModels have consistent error handling (errorMessage, do/catch, @Observable final)
+- AUDIT: 27/27 @Observable classes are final (Swift 6 compliant)
+- AUDIT: Zero ObservableObject usage (fully migrated)
+- AUDIT: No hardcoded URLs outside Constants.swift, all imports valid
+- **210 Swift files total** (all changes to existing files)
+**Cycle 9 (Accessibility + Codable Robustness — ALL DONE):**
+- ACCESSIBILITY: NotificationPreferencesView — OfflineBanner, stepper accessibilityValue, quiet hours labels
+- ACCESSIBILITY: PrivacySettingsView — OfflineBanner, toggle hints (on-device AI, analytics)
+- ACCESSIBILITY: SmartCollectionsView — OfflineBanner, collection row hints, MemoEmptyState for empty collections
+- ACCESSIBILITY: SchemaDetailView — stats section combined label, field entry labels, rating row labels with star count
+- ACCESSIBILITY: VoiceCaptureView — processing state label, recording indicator label, transcription editor label
+- ACCESSIBILITY: CaptureView — UIAccessibility.post announcement on save toast
+- CODABLE: Category.swift — icon/colorHex now decodeIfPresent with defaults (won't crash on missing fields)
+- CODABLE: ConnectedSource.swift — custom decoder with defaults for type, displayName, isConnected, noteCount
+- CODABLE: WeeklyReview.swift — custom decoder: summary/totalNotes/areaBreakdown/patterns/suggestedActions/wins all decodeIfPresent
+- CODABLE: ReviewPattern + ReviewAction — custom decoders with fallback id (UUID), default priority
+- CODABLE: Digest.swift — custom decoder: summary/areaBreakdown/suggestedActions/totalNotes all decodeIfPresent
+- CODABLE: AreaCount + DigestAction — custom decoders with fallback defaults
+- **210 Swift files total** (all changes to existing files)
+**Cycle 10 (Accessibility + QA Security Fixes — ALL DONE):**
+- ACCESSIBILITY: MyActionsView, AnalyticsDashboardView, WeeklyDigestView, WeeklyReviewView, SchemaBuilderView, FieldMappingView, ObsidianSettingsView, SyncDashboardView (7 screens)
+- QA FIX: DeepLinkRouter.swift — UUID validation on note IDs + search query length cap (500 chars)
+- QA FIX: ContentView.swift — auth gate on .onOpenURL (deep links only processed when authenticated)
+- QA FIX: AuthService.swift — clear widget data on sign-out (WidgetDataProvider.saveNotesForWidget([]))
+- QA FIX: ConnectedSource.swift — CodingKeys mapped to backend field names (type→sourceType, isConnected→syncEnabled)
+- QA FIX: CaptureNoteIntent.swift — input validation (empty check + 10K char limit) + generic error message
+- QA FIX: SearchNotesIntent.swift + ShowLastNoteIntent.swift — generic error messages (no server detail leak via Siri)
+- QA FIX: InspirationWidget.swift + LastSavedWidget.swift — snapshot() always uses sample data
+- **210 Swift files total** (all changes to existing files)
+**Cycle 11 (Error States + NoteCount Fix + Compile Hardening — ALL DONE):**
+- FIX: CategoriesViewModel — augmentCategoryCounts() computes noteCount client-side from local notes (QA C2 RESOLVED)
+- FIX: SchemaBuilderView — MemoEmptyState shown when schemas list empty (was blank grid)
+- FIX: Categories/PARAView.swift — 3 type name mismatches fixed (LegacyLegacyOrganizationView → LegacyOrganizationView, etc.)
+- FIX: Capture/SchemaBuilderView.swift — 4 type name mismatches fixed (CaptureCaptureSchemaDefinition → CaptureSchemaDefinition, etc.)
+- VERIFIED: All 210 Swift files compile-ready — no NavigationView, no ObservableObject, no force casts, all type references resolve
+- VERIFIED: OfflineBanner on all data screens (DigestListView, InspirationView, PARAView via CategoriesView, BatchReviewView, MyActionsView)
+- VERIFIED: MemoEmptyState on all empty-data screens (schemas, digests, review, actions)
+- VERIFIED: Auth expiry (.memoAuthExpired) triggers sign-out from ContentView (covers all screens)
+- **210 Swift files total** (4 files changed)
+**Cycle 2 — Loading + Lifecycle + Navigation ALL DONE:**
+- FIX: NoteDetailView — shimmer skeleton (title, content lines, tags placeholders) replaces plain ProgressView()
+- FIX: IntegrationsView — MemoLoadingView("Loading integrations...") replaces plain ProgressView()
+- FIX: SyncDashboardView — 3x ShimmerView(height: 72) skeleton cards replaces plain ProgressView()
+- FIX: CaptureViewModel — stored transcription Task, cancel on cancelRecording() + deinit, weak self + isCancelled
+- FIX: CategoriesViewModel — stored privacy sync Task, cancel before new sync
+- VERIFIED: All data screens use shimmer/MemoLoadingView for initial load (no plain spinners remain)
+- VERIFIED: 20/20 ViewModels: @MainActor, no retain cycles, Task storage for all background work
+- VERIFIED: Navigation: zero NavigationView, proper deep links, tab state persists, max depth 5, no issues
+- **210 Swift files total** (5 files changed)
+**Cycle 3 (this cycle) — Error Messages + Accessibility + Compile Readiness ALL DONE:**
+- ERROR MESSAGES: 7 ViewModels fixed — replaced raw error.localizedDescription with user-friendly messages (AuthViewModel, CollectionsViewModel, SchemasViewModel, UsageViewModel, InspirationViewModel, CategoryDetailViewModel, CaptureViewModel)
+- ACCESSIBILITY: 6 screens fixed — decorative icons .accessibilityHidden(true) (LoginView, SignUpView, WeeklyReviewView x3, AnalyticsDashboardView x2, SchemaDetailView)
+- ACCESSIBILITY: IntegrationsView close-error button .accessibilityLabel("Dismiss error")
+- COMPILE READINESS: Full static analysis PASS — 0 circular imports, 0 undefined types, all Codable complete, all @Observable correct, all imports valid (15 frameworks), @main correct
+- PRE-MAC NOTES: Only expected first-build issues are Xcode project setup (target membership, SDK dependencies, App Group entitlements)
+- **210 Swift files total** (12 files changed: 7 ViewModels + 5 Screens)
+**Cycle 4 (previous):**
+- NO CHANGES — maintenance mode, all tasks complete, waiting for Mac (~Mar 22)
+- 210 Swift files compile-ready, 65 components, 20/20 ViewModels audited
+**Cycles 13-15 (screenshot + intelligence features):**
+- NEW: Screenshot capture — Vision OCR, Share Extension image handling, UI65 components (#118, #120)
+- NEW: Intelligence UI — summarization (SummaryCard), actions (UrgencyBadge), patterns (PatternInsightCard), notifications (#121-124)
+- NEW: ActionItem.swift, UserPattern.swift, ExtractedAction model updates
+- UPDATED: NoteDetailView — summary section uses SummaryCard, actions use UrgencyBadge
+- UPDATED: MyActionsView — action rows use UrgencyBadge from design system
+- UPDATED: AnalyticsDashboardView — pattern cards use PatternInsightCard with dismiss support
+- NEW: AnalyticsViewModel.dismissPattern() + APIService.dismissPattern()
+- FIX: Model PatternType renamed to UserPatternType (collision with component enum)
+- **210 Swift files total** (+7 new files for screenshot + intelligence)
+**Cycle 1 (run #4) — Spaced Repetition + AI Chat + Task Breakdown + Knowledge Graph UIs:**
+- NEW: ResurfacingView.swift — card-based FSRS review (Again/Hard/Good/Easy ratings)
+- NEW: ChatView.swift — RAG chat with notes
+- NEW: ConversationListView.swift — chat history with delete
+- NEW: TaskBreakdownView.swift — Goblin Tools-style micro-steps (spiciness 1-5, step toggle)
+- NEW: GraphClustersView.swift — AI-generated topic clusters with note previews
+- NEW: 4 models (ResurfacingNote, ChatConversation, BreakdownStep, NoteCluster) + 4 ViewModels
+- NEW: 12 APIService methods (resurfacing queue/submit/stats, chat send/list/detail/delete, breakdown/toggle, clusters)
+- UPDATED: SearchView — toolbar links to ResurfacingView + ChatView
+- UPDATED: MyActionsView — context menu "Break it down" → TaskBreakdownView (state-driven navigation)
+- UPDATED: AnalyticsDashboardView — "Knowledge Graph" link → GraphClustersView
+- UPDATED: ChatView — toolbar history button → ConversationListView
+- All new files follow established patterns: @Observable final, .task, OfflineBanner, MemoLoadingView, MemoEmptyState, accessibility labels, dark mode, reduce motion
+- **210 Swift files total** (194 → 207, +13 new files)
+**Cycle 7 (QA contract fixes):**
+- FIX: ActionItem decoder — custom init(from:) reads nested note object with flat fallback (CRITICAL)
+- FIX: completed → isCompleted for checklists endpoint (CRITICAL)
+- FIX: Pattern dismiss — POST /dismiss → PATCH /acknowledge (CRITICAL)
+- FIX: ReorderBody — { ids } → { items: [{ id, order }] } (HIGH)
+- FIX: ActionStats — fields aligned to backend (total/completed/thisWeek/overdue) (HIGH)
+- FIX: NotificationEngagementBody — type → notificationType
+- FIX: Note.init(from:) — screenshot source decoding (format check when source null)
+- Issues #118-124 ALL CLOSED (code-complete)
+- **210 Swift files total**
+
+---
+
+## YOUR TASKS — Maintenance Mode (Apple Intelligence DONE)
+
+**Apple Intelligence integration COMPLETE (Cycle 1 run #6).** All 4 tasks done:
+- NEW: Services/OnDeviceAIService.swift — unified service: categorize, summarize, extractActions, transcribe, embed
+- NEW: Models/AI/NoteClassification.swift — @Generable-ready categorization model (format, area, tags, status)
+- NEW: Models/AI/OnDeviceActions.swift — @Generable-ready action extraction model
+- UPDATED: CaptureViewModel — tries on-device categorization after note creation, on-device transcription first for voice
+- UPDATED: SearchViewModel — offline semantic search via NLContextualEmbedding when disconnected
+- UPDATED: SettingsView — new "On-Device AI" section with toggle + availability status indicators
+- UPDATED: Constants.swift — AppleIntelligence enum with feature flags and thresholds
+- **210 Swift files total** (207 + 3 new)
+
+### No Active Tasks
+All iOS code work is complete. Remaining open issues are Mac-blocked or launch-ops only:
+- #26 TestFlight, #27 Beta, #28 Bugs — Mac-blocked
+- #116 iOS Widgets, #117 Siri Shortcuts — code-complete, need Xcode target (Mac-blocked)
+- #83-#91 — Marketing/launch ops (no iOS code)
+
+### If QA Finds Issues
+If QA agent reports new findings in shared context, fix them. Otherwise, no action needed.
+
+### Pre-Mac Notes
+Only expected first-build issues: Xcode project setup (target membership, SDK dependencies, App Group entitlements, Foundation Models availability checks on real hardware)
+
+---
+
+## Backend APIs (Reference)
+
+Base URL per environment. Auth: `Authorization: Bearer <supabase_token>`.
+Response: `{ data: T }` / `{ data: T[], meta: { page, limit, total, totalPages } }` / `{ error: { code, message } }`
+
+**New from recent cycles:**
+- GET /users/me — includes `trial: { isTrialing, trialEndsAt, trialDaysRemaining }`
+- PATCH /users/me/plan — `{ plan: 'free'|'pro', originalTransactionId, productId? }` → updated user
+- POST /sync/app-store — Apple server-to-server webhook (uses appAccountToken as userId)
+- GET /sources — X-Source-Limit, X-Source-Count headers
+- POST /sources/:type/connect — returns 403 SOURCE_LIMIT_EXCEEDED when at free limit (3)
+- Cache-Control headers on GET /notes (30s), GET /notes/para (120s), GET /categories (300s)
+- X-Quota-* headers on POST /notes, /actions, /checklists, /autofill
+- X-RateLimit-* headers on all protected routes (120 req/min per user)
+- 502 on Claude/Voyage failures (ExternalServiceError)
+
+---
+
+## Code Standards
+
+@Observable not ObservableObject, .task not .onAppear, NavigationStack not NavigationView, Keychain for tokens (UserDefaults OK for prefs), SF Symbols, do/catch (no force unwraps), async/await (no completion handlers), Structs for models, Classes for ViewModels, Conventional Commits.
+
+---
+
+## ADHD Design Rules
+
+ONE action per screen, progressive disclosure, 16pt min padding, skeleton loading (not spinners), spring animations + Reduce Motion, inline errors (not alerts), no guilt-tripping, real content (not Lorem ipsum), dark mode first-class. Never: gradient backgrounds, stock imagery, default unstyled65 components, rainbow spinners, emoji in code/UI.
+
+---
+
+## Skills & Orchestration
+
+**Skills:** swiftui-skills, ios-design, /test, /review, /security, /debug, /refactor
+**Superpowers:** writing-plans, subagent-driven-development, verification-before-completion, systematic-debugging
+**Orchestration:** team-implementer (parallel builds), team-reviewer (accessibility, performance, dark mode)
+
+---
+
+## Execution Order
+
+No active tasks. All iOS code is feature-complete with Apple Intelligence integration.
+210 Swift files, 65 components, all verified. Maintenance mode until Mac arrives (~Mar 22).
+
+---
+
+## File Ownership (STRICT — Do NOT Violate)
+
+You ONLY edit files under `ios/` EXCEPT `ios/Memo/Views/Components/` and `ios/Memo/Utilities/MemoTheme.swift` (owned by 04-design). Never touch `backend/`, `docs/`, `prompts/`, or root-level files.
+
+## Auto-Cycle Mode
+
+You are running in an automated loop. After you finish, the PM agent reviews your work and writes your next prompt. There is no human between cycles.
+
+- **Do NOT run git commit, git push, git checkout, git branch, or git switch** — the orchestrator script handles ALL git operations
+- **Close completed GitHub issues** with `gh issue close`
+- **Do NOT self-update your prompt** — the PM handles that
+- If blocked on Xcode/manual setup, append to `prompts/99-me/99-cs-actions.txt`
+- Complete everything you can. The next cycle starts in ~10 minutes.
+- Stay on the current branch. Do not switch branches.
+- **Read** `prompts/00-shared-context/context.md` at the start — it has what other agents built/need.
+- **Append** your updates to shared context before finishing (under iOS Status section).
