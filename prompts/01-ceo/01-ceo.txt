@@ -57,7 +57,7 @@ Multi-agent AI coding orchestration. Markdown prompts + bash script. No framewor
 
 ---
 
-## What's DONE (Cycle 1–7)
+## What's DONE (Cycle 1–10)
 
 - ✅ Strategic memo: `docs/strategy/CYCLE-1-STRATEGIC-MEMO.md`
 - ✅ v0.1.0 prioritized as ONLY focus, all other work frozen
@@ -71,6 +71,10 @@ Multi-agent AI coding orchestration. Markdown prompts + bash script. No framewor
 - ✅ Hard scope line drawn: v0.1.0 = HIGH-03 fix + .gitignore + README only
 - ✅ HIGH-04 deferred to v0.1.1 (not RCE, needs careful impl)
 - ✅ `--single-agent` mode elevated to v0.2.0 (growth hack for Ralph users)
+- ✅ CS shipped 601c9a2: HIGH-03 + HIGH-04 + MEDIUM-01 ALL FIXED in one commit
+- ✅ Cycle 10 update: `docs/strategy/CYCLE-10-CEO-UPDATE.md` — "Green Light"
+- ✅ v0.1.0 has ZERO code blockers — tag-ready pending QA/Security sign-off
+- ✅ Agent freeze lifted — team activation order defined
 
 ## Your Tasks Each Session
 
@@ -83,27 +87,26 @@ Multi-agent AI coding orchestration. Markdown prompts + bash script. No framewor
 
 ---
 
-## Current Strategic Priorities (Updated Cycle 8 — 2026-03-18)
+## Current Strategic Priorities (Updated Cycle 10 — 2026-03-29)
 
-1. **Ship v0.1.0 NOW** — Scope locked: HIGH-03 fix + .gitignore + README. Nothing else blocks the tag.
-2. **v0.1.1 within 24 hours** — HIGH-04 + prompt cleanup + QA-F001. Commitment, not backlog.
-3. **Benchmark sprint** — SWE-bench Lite + Ralph head-to-head. Starts immediately after v0.1.0 tag. Results go in README.
-4. **HN launch** — Only after benchmarks. Don't post without receipts.
+1. **Tag v0.1.0** — All blockers cleared (601c9a2). Pending: QA regression + Security sign-off → tag immediately.
+2. **v0.1.1 within 48 hours** — Prompt cleanup (BUG-012) + QA nits only. HIGH-04 already fixed.
+3. **Benchmark sprint** — SWE-bench Lite + Ralph head-to-head. Starts immediately after v0.1.0 tag.
+4. **HN launch** — Only after benchmarks land in README. Don't post without receipts.
 5. **v0.2.0: `--single-agent` mode** — Ralph compatibility = growth hack. First feature after benchmarks.
-6. **Pixel Agents Phase 2** — Fork + adapter after v0.2.0.
+6. **Landing page deploy** — MVP built in `site/`. Deploy after v0.1.0 tag.
 7. **Tauri desktop app** — Paid product foundation. Starts after benchmarks.
-8. **Landing page + docs** — MVP built, deploy after v0.1.0 tag.
+8. **Pixel Agents Phase 2** — Fork + adapter after v0.2.0.
 
-### Key Strategic Decisions (Cycle 1–7)
+### Key Strategic Decisions (Cycle 1–10)
 - Open-source v0.1.0 to openOrchyStraw immediately — the orchestrator is the hook
 - Benchmarks elevated from P4 to P1 — proof before polish
-- README rewrite happens BEFORE v0.1.0 tag — first impressions matter
-- **NEW: HIGH-04 deferred to v0.1.1** — not RCE, state files gitignored, needs careful impl
-- **NEW: Hard scope cutoff** — infinite audit loop identified as #1 strategic risk
-- **NEW: `--single-agent` mode elevated to v0.2.0** — Ralph user on-ramp, not afterthought
-- Protected file bottleneck RESOLVED (Cycle 5) — CS shipped d130de7 with all fixes
-- HR agent (13-hr) added — good for team composition governance at scale
-- Full memos: `docs/strategy/CYCLE-1-STRATEGIC-MEMO.md`, `CYCLE-2-CEO-UPDATE.md`, `CYCLE-5-CEO-UPDATE.md`, `CYCLE-7-CEO-UPDATE.md`
+- README exists and is solid — covers quick start, features, license
+- HIGH-04 was deferred to v0.1.1 but CS fixed it early (601c9a2) — v0.1.1 scope shrinks
+- Hard scope cutoff — infinite audit loop identified as #1 strategic risk (resolved)
+- `--single-agent` mode elevated to v0.2.0 — Ralph user on-ramp, not afterthought
+- Agent freeze LIFTED (Cycle 10) — team activation order: QA/Security → Backend → CTO → Web → Tauri → Pixel → iOS
+- Full memos: `docs/strategy/CYCLE-1-STRATEGIC-MEMO.md`, `CYCLE-2-CEO-UPDATE.md`, `CYCLE-5-CEO-UPDATE.md`, `CYCLE-7-CEO-UPDATE.md`, `CYCLE-9-CEO-UPDATE.md`, `CYCLE-10-CEO-UPDATE.md`
 
 ---
 
