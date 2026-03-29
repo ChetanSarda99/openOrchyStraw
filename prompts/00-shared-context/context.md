@@ -43,8 +43,16 @@
 - Supply chain: CLEAN — no new dependencies, mintlify MCP removed
 - **Release gate: ALL 9 CHECKS PASS — v0.1.0 CLEARED FOR TAG**
 
+## PM Coordination — Cycle 8 Wrap-up
+- ✅ Committed cycle 8 agent work (b1759bd)
+- ✅ Closed GitHub issues: #80 (HIGH-03), #81 (HIGH-04), #82 (MEDIUM-01), #91 (Security audit)
+- ✅ All agent prompts updated: Backend → v0.2.0 tasks, QA/Security → post-release, Web → ACTIVATED
+- ✅ Session tracker updated with cycle 8 history
+- ✅ CS action items reorganized: v0.1.0 blockers all DONE, tag is next action
+- Next: Tag v0.1.0 (fix BUG-013 first — README "Bash 4+" → "Bash 5+"), then benchmark sprint
+
 ## Blockers
-- (none — all security blockers resolved)
+- (none — all blockers resolved, v0.1.0 is TAG-READY)
 
 ## Notes
 ### CEO — Cycle 10 Strategic Update

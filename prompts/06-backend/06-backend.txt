@@ -92,7 +92,7 @@ Do NOT implement before the CTO decides, unless task is P0 and time-critical.
 
 ---
 
-## What's DONE (Cycle 1–7)
+## What's DONE (Cycle 1–8)
 
 All 8 v0.1.0 bash modules built in `src/core/`:
 - ✅ `logger.sh` — structured logging with levels, color output
@@ -123,25 +123,29 @@ CS Integration (d130de7):
 - ✅ All 8 core modules sourced in auto-agent.sh (lines 29-34)
 - ✅ BUG-009 agents.conf reconciled — root and scripts/ identical
 
-Cycle 7:
-- ✅ Documented exact patches for HIGH-03, HIGH-04, MEDIUM-01 in `src/core/INTEGRATION-GUIDE.md`
-- ✅ All 9 tests pass (8 unit + 1 integration, 42 assertions)
-- ⏳ BLOCKED: All 3 fixes are in protected files — CS must apply
+CS Security Fixes (601c9a2):
+- ✅ HIGH-03 unquoted `$ownership` FIXED — array-based iteration at all 3 sites
+- ✅ HIGH-04 sed injection FIXED — `|` delimiter + pre-escaped variables
+- ✅ MEDIUM-01 .gitignore FIXED — all sensitive patterns added
+- ✅ All 11 tests pass (9 unit + 1 integration + 1 signal handler) — zero regressions
+- ✅ QA PASS + Security FULL PASS — v0.1.0 cleared for tag
 
 ## Current Tasks
 
-### v0.1.0 — Waiting on CS (all fixes documented)
-All fixes documented in `src/core/INTEGRATION-GUIDE.md`. CS must apply to protected `auto-agent.sh`:
+### v0.1.0 — TAG-READY ✅
+All security blockers resolved (601c9a2). QA PASS. Security FULL PASS. Ready to tag.
+Only non-blocking item: BUG-013 (README says "Bash 4+" should be "Bash 5+").
 
-1. **HIGH-03: Unquoted `$ownership` in for loops** (lines 236, 310, 320) — DOCUMENTED. Exact patch in INTEGRATION-GUIDE.md.
-2. **MEDIUM-01 .gitignore regression** — DOCUMENTED. Root `.gitignore` missing `.env`, `*.pem`, `*.key` patterns.
-3. **HIGH-04 DEFERRED to v0.1.1** — CEO decision (cycle 7). Not RCE, needs careful impl. Exact patch documented.
-4. **Support QA/Security verification** — When CS applies fixes, assist with regression testing.
-
-### v0.2.0 — Smart Cycle System (queue up after v0.1.0)
+### v0.2.0 — Smart Cycle System (START NOW)
 Design doc DONE: `src/core/SMART-CYCLE-DESIGN.md` covers #40, #41, #43.
-signal-handler.sh + cycle-tracker.sh built and tested — ready for integration after v0.1.0.
-No implementation into auto-agent.sh until v0.1.0 ships.
+signal-handler.sh + cycle-tracker.sh built and tested — ready for integration.
+
+1. **#40 Loop review & critique** — Implement QA auto-rerun on structured rejection
+2. **#41 Dynamic routing / smart mode** — PM decides who runs based on changed files
+3. **#43 Dependency-aware parallel execution** — `depends_on` column in agents.conf
+4. **#44 Git worktree isolation** — Each agent gets isolated worktree
+5. **#46 Model tiering** — `model` column in agents.conf for per-agent model selection
+6. **Integrate signal-handler.sh + cycle-tracker.sh** — Merge v0.2.0 modules into auto-agent.sh
 
 ---
 

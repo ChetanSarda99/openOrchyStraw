@@ -183,9 +183,8 @@ Use the **Edit tool** to modify ONLY:
 
 ## Current Milestones
 
-### v0.1.0 — Hardened Release (P0) — 13 open / 0 closed
-**All modules integrated (d130de7). Original P0 blockers RESOLVED.**
-**Cycle 7 update:** CEO scope cut — v0.1.0 = HIGH-03 + .gitignore + README only. HIGH-04 deferred to v0.1.1.
+### v0.1.0 — Hardened Release (P0) — TAG-READY ✅
+**All security blockers resolved (601c9a2). QA PASS. Security FULL PASS.**
 - [x] #13 Error handling — module built + tested + INTEGRATED
 - [x] #14 Signal trapping — module built + tested + INTEGRATED
 - [x] #19 Config validation — module built + tested + INTEGRATED
@@ -194,11 +193,11 @@ Use the **Edit tool** to modify ONLY:
 - [x] #16 Agent timeout — module built + tested + INTEGRATED
 - [x] #18 Structured logging — module built + tested + INTEGRATED
 - [x] #17 Dry-run mode — module built + tested + INTEGRATED
-- [~] #22 Security audit — CONDITIONAL PASS: HIGH-03 partially fixed, HIGH-04 deferred to v0.1.1
-- [~] #21 QA audit — cycle 6 NOT READY, awaiting CS for HIGH-03 + .gitignore
-- [x] #23 CTO ADRs — 7 ADRs written, all P0s confirmed resolved
+- [x] #22 Security audit — FULL PASS (cycle 8): all 9 gates pass, #91 CLOSED
+- [x] #21 QA audit — PASS (cycle 8): 11/11 tests, all security fixes verified
+- [x] #23 CTO ADRs — 7 ADRs written, 601c9a2 architecture compliance confirmed
 - [x] #24 CEO open-source boundary — decision made, documented in strategic memos
-- [ ] #25 Release tag — BLOCKED: CS must fix HIGH-03 + MEDIUM-01 .gitignore + write README
+- [ ] #25 Release tag — READY TO TAG. BUG-013 (README Bash version) is non-blocking.
 
 ### v0.2.0 — Smart Cycle System (self-improvement sprint)
 - [~] #40 Loop review & critique — design doc written (SMART-CYCLE-DESIGN.md)

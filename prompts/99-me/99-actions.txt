@@ -7,45 +7,45 @@
 
 ## PENDING — Work through by priority
 
-### P0 — Blocks v0.1.0 Release (CEO scope locked — only these 3 items)
+### P0 — Tag v0.1.0 (ALL BLOCKERS RESOLVED)
 - [x] **Integrate core modules into auto-agent.sh** — DONE (d130de7, lines 29-34)
 - [x] **Fix eval injection (HIGH-01)** — DONE (d130de7, array-based pathspec)
 - [x] **Fix PowerShell notify (MEDIUM-02)** — DONE (d130de7, env var + XML escaping)
 - [x] **Reconcile agents.conf (BUG-009)** — DONE (d130de7, root + scripts/ identical)
-- [ ] **Fix HIGH-03: Unquoted `$ownership` in for loops** — auto-agent.sh lines 236, 310, 320. Use `IFS=' ' read -ra arr <<< "$ownership"` + iterate `"${arr[@]}"`. Exact patch in `src/core/INTEGRATION-GUIDE.md`. ~5 min.
-- [ ] **Fix MEDIUM-01 .gitignore regression** — Root `.gitignore` missing `.env`, `*.pem`, `*.key`, `*.p12`, `*.pfx`, `credentials.json`, `service-account*.json`, `*secret*.json`, `.orchystraw/`. ~2 min.
-- [ ] **README rewrite** — CEO says must happen before v0.1.0 tag. First impressions matter.
+- [x] **Fix HIGH-03: Unquoted `$ownership` in for loops** — DONE (601c9a2)
+- [x] **Fix MEDIUM-01 .gitignore regression** — DONE (601c9a2)
+- [x] **README rewrite** — DONE (exists and is solid per QA)
+- [ ] **Fix BUG-013: README says "Bash 4+" → should be "Bash 5+"** — 30-second fix. Non-blocking but recommended before tag.
+- [ ] **Tag v0.1.0** — QA PASS + Security FULL PASS. Ready to tag immediately.
 
-### P0.5 — v0.1.1 (ship within 24 hours of v0.1.0)
-- [ ] **Fix HIGH-04: Sed injection in prompt updates** — auto-agent.sh lines 785-791. Use `|` delimiter + escape `/` and `&` chars. Exact patch in `src/core/INTEGRATION-GUIDE.md`. DEFERRED from v0.1.0 per CEO (not RCE).
+### P0.5 — v0.1.1 (ship within 48 hours of v0.1.0)
+- [x] **Fix HIGH-04: Sed injection** — DONE (601c9a2, was deferred but CS fixed it early)
 - [ ] **Add `set -e` to auto-agent.sh** — CTO requests at line 23. Prevents silent failures (QA-F001).
+- [ ] **BUG-012: Add PROTECTED FILES to 3 remaining prompts** — 01-ceo, 03-pm, 10-security still missing it.
 
-### P1 — Before v0.1.0 Tag
-- [ ] **Update CLAUDE.md** — QA found it lists 11 agents and paths (src-tauri/, ios/) that don't exist yet. Align with reality.
-- [x] **Fix QA prompt path reference** — FIXED by PM (cycle 4): `prompts/07-qa/` → `prompts/09-qa/` in actual prompt file
-- [x] **Fix Security prompt path reference** — FIXED by PM (cycle 4): `prompts/08-security/` → `prompts/10-security/` in actual prompt file
+### P1 — After v0.1.0 Tag
+- [ ] **Update CLAUDE.md** — Lists 11 agents and paths (src-tauri/, ios/) that don't exist yet. Align with reality.
 - [ ] **Logo/branding assets** — Web agent needs logo in `assets/branding/` (currently text-only)
-- [x] **Update .gitignore (MEDIUM-01)** — FIXED by backend (cycle 2): `.env`, `*.pem`, `*.key`, `credentials.json` added
-- [ ] **README rewrite** — CEO says this must happen before v0.1.0 tag
+- [ ] **Deploy landing page** — Set up Vercel or GitHub Pages for `site/`. Web agent is ACTIVATED and ready.
 
-### P2 — After v0.1.0
-- [ ] **Deploy landing page** — Set up Vercel or GitHub Pages for `site/`
+### P2 — After Benchmarks
 - [ ] **Remove orphaned `prompts/01-pm/` directory (BUG-008)** — Old directory from before PM moved to 03-pm
-- [ ] **Update CLAUDE.md agent count** — Lists 11 agents but agents.conf only has 8. Align after BUG-009 fix.
-- [ ] **Update CLAUDE.md file paths** — References `src-tauri/`, `ios/` which don't exist yet. Mark as planned or remove.
-
----
-
-### P1.5 — QA Findings (Cycle 3)
-- [ ] **Add PROTECTED FILES section to 9 agent prompts (BUG-012)** — QA found only 06, 08, 09, 11 have it. Add to: 01, 02, 03, 04, 05, 07, 10, 12, 13. PM can do this next cycle.
+- [ ] **Update CLAUDE.md agent count** — Lists 11 agents but agents.conf only has 8-9.
+- [ ] **Update CLAUDE.md file paths** — References `src-tauri/`, `ios/` which don't exist yet.
 
 ---
 
 ## DONE
 
+- [x] **2026-03-29** Fix HIGH-03 unquoted $ownership — CS applied 601c9a2
+- [x] **2026-03-29** Fix HIGH-04 sed injection — CS applied 601c9a2 (was deferred, fixed early)
+- [x] **2026-03-29** Fix MEDIUM-01 .gitignore — CS applied 601c9a2
+- [x] **2026-03-29** Security audit FULL PASS — all 9 gates pass (cycle 8)
+- [x] **2026-03-29** QA PASS — 11/11 tests, all fixes verified (cycle 8)
+- [x] **2026-03-29** GitHub issues closed: #80, #81, #82, #91
 - [x] **2026-03-18** Fix QA prompt path (BUG-004) — PM fixed in cycle 4
 - [x] **2026-03-18** Fix Security prompt path (BUG-005) — PM fixed in cycle 4
-- [x] **2026-03-18** .gitignore update (MEDIUM-01) — Backend fixed in cycle 2 (**NOTE: regressed, not in root .gitignore**)
+- [x] **2026-03-18** .gitignore update (MEDIUM-01) — Backend fixed in cycle 2 (regressed, re-fixed in 601c9a2)
 - [x] **2026-03-18** Integrate core modules into auto-agent.sh — CS applied d130de7
 - [x] **2026-03-18** Fix eval injection (HIGH-01) — CS applied d130de7
 - [x] **2026-03-18** Fix PowerShell notify (MEDIUM-02) — CS applied d130de7

@@ -122,9 +122,14 @@ For now: maintain registry here, PM will propose migration when 2nd project star
 3. **Shebang inconsistency** — auto-agent.sh uses `#!/bin/bash`, core modules use `#!/usr/bin/env bash`.
 
 ### Next CTO Tasks:
-4. **v0.2.0 architecture planning** — Smart cycle system (#40-#46). Dependency graph, execution model.
+4. **v0.2.0 architecture planning** — Smart cycle system (#40-#46). Write ADRs for:
+   - Dependency graph execution model (#43)
+   - Git worktree isolation per agent (#44)
+   - Model tiering architecture (#46)
+   - Loop review & critique protocol (#40)
 5. **BUG-012 review** — Verify PROTECTED FILES sections added to all agent prompts
 6. **Consolidate agents.conf** — P2, move to single file at root (v0.2)
+7. **Benchmark architecture** — Review SWE-bench scaffold design when backend builds it
 
 ---
 

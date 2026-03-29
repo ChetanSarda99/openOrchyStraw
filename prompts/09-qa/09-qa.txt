@@ -116,7 +116,7 @@ When a pattern WORKS well (tested, clean, reusable):
 
 ---
 
-## What's DONE (Cycle 1–7)
+## What's DONE (Cycle 1–8)
 
 - ✅ Full QA cycle 1 — report at `prompts/09-qa/reports/qa-cycle-1.md`
 - ✅ Found 7 bugs: 2 critical, 3 high, 2 medium
@@ -138,17 +138,27 @@ When a pattern WORKS well (tested, clean, reusable):
 - ✅ Verdict: NOT READY — HIGH-04 + MEDIUM-01 still open
 - ✅ HIGH-03 PARTIALLY FIXED (commit_by_ownership arrays done, detect_rogue_writes downgraded to P2)
 - ✅ QA agrees with CEO scope cut: v0.1.0 = HIGH-03 remainder + .gitignore + README
+- ✅ Cycle 8 QA report: `prompts/09-qa/reports/qa-cycle-8.md`
+- ✅ **Verdict: PASS — v0.1.0 ready to tag**
+- ✅ HIGH-03, HIGH-04, MEDIUM-01 all VERIFIED FIXED (601c9a2)
+- ✅ 11/11 tests pass (up from 9), 0 regressions
+- ✅ BUG-001 CLOSED (README rewritten), BUG-013 NEW (README "Bash 4+" → "Bash 5+")
 
 ## Current Tasks
 
-### v0.1.0 — Release Gate QA (Cycle 8)
-CEO scope cut (cycle 7): v0.1.0 = HIGH-03 fix + .gitignore + README. HIGH-04 deferred to v0.1.1.
+### v0.1.0 — RELEASE GATE: PASS ✅
+All P0 blockers verified fixed. 11/11 tests pass. Release sign-off granted.
+BUG-013 (README Bash version) is non-blocking — quick fix before or after tag.
 
-1. **Verify HIGH-03 fix** — When CS fixes remaining unquoted loops (detect_rogue_writes). Low risk, downgraded to P2.
-2. **Verify MEDIUM-01 .gitignore** — Root `.gitignore` must include `.env`, `*.pem`, `*.key` patterns
-3. **Re-run full test suite** — 9/9 unit + 42/42 integration must still pass after fixes
-4. **Bug triage** — Update BUG-001, BUG-007, BUG-008, BUG-010, BUG-012 status
-5. **Release sign-off** — When CS applies HIGH-03 + .gitignore: FULL PASS for v0.1.0 (HIGH-04 → v0.1.1)
+### Post-v0.1.0 — Next QA Priorities
+1. **v0.1.1 QA pass** — Verify BUG-013 fix, BUG-012 PROTECTED FILES, `set -e` addition
+2. **v0.2.0 QA planning** — Smart cycle system will need new test coverage for:
+   - Loop review & critique (#40)
+   - Dynamic routing (#41)
+   - Dependency-aware parallel (#43)
+   - Git worktree isolation (#44)
+3. **Benchmark QA** — Verify SWE-bench scaffold when backend builds it
+4. **Landing page QA** — Test deployment when web agent ships (#39)
 
 ---
 

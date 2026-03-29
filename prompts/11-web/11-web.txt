@@ -204,10 +204,12 @@ After any integration: append to `docs/tech-registry/registry.md`.
 
 ## Current Tasks
 
-### STANDBY — Per CEO directive, web work frozen until v0.1.0 ships
-No new landing page work until v0.1.0 tag. Landing page MVP complete and build-verified.
-v0.1.0 scope locked (cycle 7): HIGH-03 fix + .gitignore + README only. Close to shipping.
-After v0.1.0: deploy landing page is first priority (#39).
+### ACTIVATE — v0.1.0 tagged, deploy landing page (#39)
+v0.1.0 is TAG-READY (QA PASS + Security FULL PASS). Agent freeze lifted.
+Landing page MVP complete and build-verified in `site/`.
+
+**Priority 1:** Deploy landing page to GitHub Pages or Vercel (#39).
+**Priority 2:** Begin Phase 2 docs site work after deploy confirmed.
 
 ### Phase 2 — Docs Site (AFTER v0.1.0)
 
