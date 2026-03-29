@@ -1,0 +1,421 @@
+#!/usr/bin/env bash
+# dynamic-router.sh — Dynamic agent routing with dependency-aware parallel groups
+# v0.2.0 Phase 1: #41 (dynamic routing), #43 (dependency-aware parallel execution)
+#
+# Parses agents.conf (v1 5-col or v2 8-col), builds a dependency graph,
+# resolves execution groups via topological sort, and decides which agents
+# run each cycle based on interval, outcome history, and PM overrides.
+#
+# Provides:
+#   orch_router_init           — parse config, build dependency graph
+#   orch_router_eligible       — return agents eligible to run this cycle
+#   orch_router_groups         — return execution groups (topo-sorted)
+#   orch_router_has_cycle      — detect circular dependencies
+#   orch_router_update         — adjust state after cycle completes
+#   orch_router_load_state     — load persisted router state from file
+#   orch_router_save_state     — persist router state to file
+#   orch_router_dump           — debug: print parsed config
+
+[[ -n "${_ORCH_DYNAMIC_ROUTER_LOADED:-}" ]] && return 0
+_ORCH_DYNAMIC_ROUTER_LOADED=1
+
+# ── State ──
+declare -g -a _ORCH_ROUTER_AGENTS=()        # ordered list of agent IDs
+declare -g -A _ORCH_ROUTER_PRIORITY=()       # agent_id -> priority (int)
+declare -g -A _ORCH_ROUTER_DEPENDS=()        # agent_id -> "dep1,dep2" or "none"
+declare -g -A _ORCH_ROUTER_INTERVAL=()       # agent_id -> base interval
+declare -g -A _ORCH_ROUTER_EFF_INTERVAL=()   # agent_id -> effective (adjusted) interval
+declare -g -A _ORCH_ROUTER_LAST_RUN=()       # agent_id -> cycle number of last run
+declare -g -A _ORCH_ROUTER_LAST_OUTCOME=()   # agent_id -> success|fail|skip|timeout
+declare -g -A _ORCH_ROUTER_CONSEC_EMPTY=()   # agent_id -> consecutive cycles with no changes
+declare -g -A _ORCH_ROUTER_PM_FORCE=()       # agent_id -> 1 if PM forced this cycle
+declare -g -a _ORCH_ROUTER_GROUPS=()         # group strings: "agent1,agent2" per group
+declare -g _ORCH_ROUTER_LOADED=false
+
+# ── Helpers ──
+
+_orch_router_trim() {
+    local s="$1"
+    s="${s#"${s%%[![:space:]]*}"}"
+    s="${s%"${s##*[![:space:]]}"}"
+    printf '%s' "$s"
+}
+
+_orch_router_log() {
+    if [[ "$(type -t orch_log)" == "function" ]]; then
+        orch_log "$1" "router" "$2"
+    fi
+}
+
+# ── Public API ──
+
+# orch_router_init <conf_file>
+#   Parse agents.conf (5 or 8 columns), populate internal state.
+#   Backward compatible: missing cols 6-8 get defaults.
+orch_router_init() {
+    local conf_file="${1:?orch_router_init: conf_file required}"
+
+    if [[ ! -f "$conf_file" ]]; then
+        _orch_router_log ERROR "Config file not found: $conf_file"
+        return 1
+    fi
+
+    _ORCH_ROUTER_AGENTS=()
+    _ORCH_ROUTER_PRIORITY=()
+    _ORCH_ROUTER_DEPENDS=()
+    _ORCH_ROUTER_INTERVAL=()
+    _ORCH_ROUTER_EFF_INTERVAL=()
+    _ORCH_ROUTER_LAST_RUN=()
+    _ORCH_ROUTER_LAST_OUTCOME=()
+    _ORCH_ROUTER_CONSEC_EMPTY=()
+    _ORCH_ROUTER_PM_FORCE=()
+    _ORCH_ROUTER_GROUPS=()
+
+    while IFS= read -r raw_line; do
+        [[ -z "${raw_line// /}" ]] && continue
+        local trimmed
+        trimmed=$(_orch_router_trim "$raw_line")
+        [[ "$trimmed" == \#* ]] && continue
+
+        # Split on pipe
+        IFS='|' read -r f_id f_prompt f_ownership f_interval f_label f_priority f_depends f_reviews <<< "$raw_line"
+
+        f_id=$(_orch_router_trim "$f_id")
+        f_interval=$(_orch_router_trim "$f_interval")
+        f_priority=$(_orch_router_trim "${f_priority:-}")
+        f_depends=$(_orch_router_trim "${f_depends:-}")
+
+        [[ -z "$f_id" ]] && continue
+
+        # Defaults for missing v2 columns
+        [[ -z "$f_priority" || "$f_priority" == "none" ]] && f_priority=5
+        [[ -z "$f_depends" ]] && f_depends="none"
+        [[ ! "$f_interval" =~ ^[0-9]+$ ]] && f_interval=1
+
+        _ORCH_ROUTER_AGENTS+=("$f_id")
+        _ORCH_ROUTER_INTERVAL["$f_id"]="$f_interval"
+        _ORCH_ROUTER_EFF_INTERVAL["$f_id"]="$f_interval"
+        _ORCH_ROUTER_PRIORITY["$f_id"]="$f_priority"
+        _ORCH_ROUTER_DEPENDS["$f_id"]="$f_depends"
+        _ORCH_ROUTER_LAST_RUN["$f_id"]=0
+        _ORCH_ROUTER_LAST_OUTCOME["$f_id"]="none"
+        _ORCH_ROUTER_CONSEC_EMPTY["$f_id"]=0
+        _ORCH_ROUTER_PM_FORCE["$f_id"]=0
+    done < "$conf_file"
+
+    _ORCH_ROUTER_LOADED=true
+    _orch_router_log INFO "Router initialized with ${#_ORCH_ROUTER_AGENTS[@]} agents"
+    return 0
+}
+
+# orch_router_has_cycle
+#   Detect circular dependencies. Returns 0 if cycle found, 1 if DAG is clean.
+orch_router_has_cycle() {
+    [[ "$_ORCH_ROUTER_LOADED" != "true" ]] && return 1
+
+    # Kahn's algorithm: count in-degrees, peel zero-degree nodes
+    declare -A in_degree=()
+    declare -A adj=()
+
+    for id in "${_ORCH_ROUTER_AGENTS[@]}"; do
+        in_degree["$id"]=0
+        adj["$id"]=""
+    done
+
+    for id in "${_ORCH_ROUTER_AGENTS[@]}"; do
+        local deps="${_ORCH_ROUTER_DEPENDS[$id]}"
+        [[ "$deps" == "none" ]] && continue
+        if [[ "$deps" == "all" ]]; then
+            for other in "${_ORCH_ROUTER_AGENTS[@]}"; do
+                [[ "$other" == "$id" ]] && continue
+                adj["$other"]+="$id,"
+                in_degree["$id"]=$(( ${in_degree[$id]} + 1 ))
+            done
+        else
+            IFS=',' read -ra dep_list <<< "$deps"
+            for dep in "${dep_list[@]}"; do
+                dep=$(_orch_router_trim "$dep")
+                [[ -z "$dep" ]] && continue
+                # Only count if dep is a known agent
+                if [[ -n "${in_degree[$dep]+x}" ]]; then
+                    adj["$dep"]+="$id,"
+                    in_degree["$id"]=$(( ${in_degree[$id]} + 1 ))
+                fi
+            done
+        fi
+    done
+
+    # BFS: start with zero in-degree nodes
+    local -a queue=()
+    for id in "${_ORCH_ROUTER_AGENTS[@]}"; do
+        [[ "${in_degree[$id]}" -eq 0 ]] && queue+=("$id")
+    done
+
+    local processed=0
+    local qi=0
+    while [[ $qi -lt ${#queue[@]} ]]; do
+        local node="${queue[$qi]}"
+        qi=$((qi + 1))
+        processed=$((processed + 1))
+
+        local neighbors="${adj[$node]}"
+        [[ -z "$neighbors" ]] && continue
+        IFS=',' read -ra nbr_list <<< "$neighbors"
+        for nbr in "${nbr_list[@]}"; do
+            [[ -z "$nbr" ]] && continue
+            in_degree["$nbr"]=$(( ${in_degree[$nbr]} - 1 ))
+            [[ "${in_degree[$nbr]}" -eq 0 ]] && queue+=("$nbr")
+        done
+    done
+
+    # If we couldn't process all nodes, there's a cycle
+    if [[ $processed -lt ${#_ORCH_ROUTER_AGENTS[@]} ]]; then
+        _orch_router_log ERROR "Circular dependency detected in agents.conf"
+        return 0  # cycle FOUND
+    fi
+    return 1  # no cycle
+}
+
+# orch_router_groups
+#   Topological sort into execution groups. Agents within a group can run in parallel.
+#   Prints groups as newline-separated strings, each group is comma-separated agent IDs.
+#   Groups are ordered: group 0 first (no deps), then group 1, etc.
+orch_router_groups() {
+    [[ "$_ORCH_ROUTER_LOADED" != "true" ]] && return 1
+
+    # Compute group level for each agent via BFS topological layering
+    declare -A in_degree=()
+    declare -A adj=()
+    declare -A group_of=()
+
+    for id in "${_ORCH_ROUTER_AGENTS[@]}"; do
+        in_degree["$id"]=0
+        adj["$id"]=""
+    done
+
+    for id in "${_ORCH_ROUTER_AGENTS[@]}"; do
+        local deps="${_ORCH_ROUTER_DEPENDS[$id]}"
+        [[ "$deps" == "none" ]] && continue
+        if [[ "$deps" == "all" ]]; then
+            for other in "${_ORCH_ROUTER_AGENTS[@]}"; do
+                [[ "$other" == "$id" ]] && continue
+                adj["$other"]+="$id,"
+                in_degree["$id"]=$(( ${in_degree[$id]} + 1 ))
+            done
+        else
+            IFS=',' read -ra dep_list <<< "$deps"
+            for dep in "${dep_list[@]}"; do
+                dep=$(_orch_router_trim "$dep")
+                [[ -z "$dep" ]] && continue
+                if [[ -n "${in_degree[$dep]+x}" ]]; then
+                    adj["$dep"]+="$id,"
+                    in_degree["$id"]=$(( ${in_degree[$id]} + 1 ))
+                fi
+            done
+        fi
+    done
+
+    # BFS layering: nodes with in_degree=0 are group 0, their successors are group 1, etc.
+    local -a current_layer=()
+    for id in "${_ORCH_ROUTER_AGENTS[@]}"; do
+        if [[ "${in_degree[$id]}" -eq 0 ]]; then
+            current_layer+=("$id")
+            group_of["$id"]=0
+        fi
+    done
+
+    local group_num=0
+    local -a all_groups=()
+
+    while [[ ${#current_layer[@]} -gt 0 ]]; do
+        # Sort current layer by priority (descending) for deterministic ordering
+        local sorted_layer
+        sorted_layer=$(for id in "${current_layer[@]}"; do
+            printf '%s %s\n' "${_ORCH_ROUTER_PRIORITY[$id]:-5}" "$id"
+        done | sort -rn -k1 | awk '{print $2}')
+
+        local group_str=""
+        while IFS= read -r id; do
+            [[ -z "$id" ]] && continue
+            if [[ -n "$group_str" ]]; then
+                group_str+=","
+            fi
+            group_str+="$id"
+        done <<< "$sorted_layer"
+
+        all_groups+=("$group_str")
+
+        # Find next layer
+        local -a next_layer=()
+        for node in "${current_layer[@]}"; do
+            local neighbors="${adj[$node]}"
+            [[ -z "$neighbors" ]] && continue
+            IFS=',' read -ra nbr_list <<< "$neighbors"
+            for nbr in "${nbr_list[@]}"; do
+                [[ -z "$nbr" ]] && continue
+                in_degree["$nbr"]=$(( ${in_degree[$nbr]} - 1 ))
+                if [[ "${in_degree[$nbr]}" -eq 0 ]]; then
+                    next_layer+=("$nbr")
+                    group_of["$nbr"]=$(( group_num + 1 ))
+                fi
+            done
+        done
+
+        current_layer=("${next_layer[@]+"${next_layer[@]}"}")
+        group_num=$((group_num + 1))
+    done
+
+    _ORCH_ROUTER_GROUPS=("${all_groups[@]}")
+
+    for g in "${all_groups[@]}"; do
+        printf '%s\n' "$g"
+    done
+}
+
+# orch_router_force_agent <agent_id>
+#   PM override: force an agent to run next cycle regardless of interval.
+orch_router_force_agent() {
+    local agent_id="${1:?orch_router_force_agent: agent_id required}"
+    _ORCH_ROUTER_PM_FORCE["$agent_id"]=1
+}
+
+# orch_router_eligible <cycle_num>
+#   Return agents eligible for this cycle (one per line), respecting intervals,
+#   outcome adjustments, and PM overrides.
+#   Coordinator (interval=0) is always excluded — it runs separately as LAST.
+orch_router_eligible() {
+    local cycle_num="${1:?orch_router_eligible: cycle_num required}"
+    [[ "$_ORCH_ROUTER_LOADED" != "true" ]] && return 1
+
+    for id in "${_ORCH_ROUTER_AGENTS[@]}"; do
+        local base_interval="${_ORCH_ROUTER_INTERVAL[$id]}"
+
+        # Skip coordinator (interval=0) — always runs last, not through router
+        [[ "$base_interval" -eq 0 ]] && continue
+
+        # PM force override
+        if [[ "${_ORCH_ROUTER_PM_FORCE[$id]:-0}" == "1" ]]; then
+            printf '%s\n' "$id"
+            continue
+        fi
+
+        local eff_interval="${_ORCH_ROUTER_EFF_INTERVAL[$id]}"
+        local last_run="${_ORCH_ROUTER_LAST_RUN[$id]:-0}"
+
+        # Never run before — always eligible
+        if [[ "$last_run" -eq 0 ]]; then
+            printf '%s\n' "$id"
+            continue
+        fi
+
+        # Check if enough cycles have passed
+        local cycles_since=$(( cycle_num - last_run ))
+        if [[ $cycles_since -ge $eff_interval ]]; then
+            printf '%s\n' "$id"
+        fi
+    done
+}
+
+# orch_router_update <agent_id> <outcome>
+#   Update router state after an agent completes. Adjusts effective interval.
+#   outcome: success | fail | skip | timeout
+orch_router_update() {
+    local agent_id="${1:?orch_router_update: agent_id required}"
+    local outcome="${2:?orch_router_update: outcome required}"
+    local cycle_num="${3:-0}"
+
+    _ORCH_ROUTER_LAST_OUTCOME["$agent_id"]="$outcome"
+    _ORCH_ROUTER_LAST_RUN["$agent_id"]="$cycle_num"
+    _ORCH_ROUTER_PM_FORCE["$agent_id"]=0  # clear force flag
+
+    local base="${_ORCH_ROUTER_INTERVAL[$agent_id]}"
+    [[ "$base" -eq 0 ]] && return 0  # coordinator — no adjustment
+
+    case "$outcome" in
+        fail|timeout)
+            # Retry sooner: halve interval (min 1)
+            local new_eff=$(( base / 2 ))
+            [[ $new_eff -lt 1 ]] && new_eff=1
+            _ORCH_ROUTER_EFF_INTERVAL["$agent_id"]="$new_eff"
+            _ORCH_ROUTER_CONSEC_EMPTY["$agent_id"]=0
+            ;;
+        success)
+            # Reset to base interval, clear empty streak
+            _ORCH_ROUTER_EFF_INTERVAL["$agent_id"]="$base"
+            _ORCH_ROUTER_CONSEC_EMPTY["$agent_id"]=0
+            ;;
+        skip)
+            # No changes produced — increment empty counter
+            local empty=$(( ${_ORCH_ROUTER_CONSEC_EMPTY[$agent_id]:-0} + 1 ))
+            _ORCH_ROUTER_CONSEC_EMPTY["$agent_id"]="$empty"
+            # Back off after 3+ empty cycles: double interval (cap at base * 4)
+            if [[ $empty -ge 3 ]]; then
+                local new_eff=$(( base * 2 ))
+                local max_eff=$(( base * 4 ))
+                [[ $new_eff -gt $max_eff ]] && new_eff=$max_eff
+                _ORCH_ROUTER_EFF_INTERVAL["$agent_id"]="$new_eff"
+            fi
+            ;;
+    esac
+}
+
+# orch_router_save_state <state_file>
+#   Persist router state to a simple key=value file.
+orch_router_save_state() {
+    local state_file="${1:?orch_router_save_state: state_file required}"
+
+    mkdir -p "$(dirname "$state_file")"
+
+    {
+        printf '# dynamic-router state — %s\n' "$(date '+%Y-%m-%d %H:%M:%S')"
+        for id in "${_ORCH_ROUTER_AGENTS[@]}"; do
+            printf '%s|%s|%s|%s|%s\n' \
+                "$id" \
+                "${_ORCH_ROUTER_LAST_RUN[$id]:-0}" \
+                "${_ORCH_ROUTER_LAST_OUTCOME[$id]:-none}" \
+                "${_ORCH_ROUTER_EFF_INTERVAL[$id]:-${_ORCH_ROUTER_INTERVAL[$id]:-1}}" \
+                "${_ORCH_ROUTER_CONSEC_EMPTY[$id]:-0}"
+        done
+    } > "$state_file"
+}
+
+# orch_router_load_state <state_file>
+#   Restore router state from file. Call AFTER orch_router_init.
+orch_router_load_state() {
+    local state_file="${1:?orch_router_load_state: state_file required}"
+
+    [[ ! -f "$state_file" ]] && return 0  # no state yet — use defaults
+
+    while IFS= read -r line; do
+        [[ -z "$line" || "$line" == \#* ]] && continue
+
+        IFS='|' read -r id last_run last_outcome eff_interval consec_empty <<< "$line"
+        id=$(_orch_router_trim "$id")
+
+        # Only restore state for agents we know about
+        [[ -z "${_ORCH_ROUTER_INTERVAL[$id]+x}" ]] && continue
+
+        _ORCH_ROUTER_LAST_RUN["$id"]="$last_run"
+        _ORCH_ROUTER_LAST_OUTCOME["$id"]="$last_outcome"
+        _ORCH_ROUTER_EFF_INTERVAL["$id"]="$eff_interval"
+        _ORCH_ROUTER_CONSEC_EMPTY["$id"]="$consec_empty"
+    done < "$state_file"
+}
+
+# orch_router_dump
+#   Debug: print all router state.
+orch_router_dump() {
+    printf 'dynamic-router state (%d agents):\n' "${#_ORCH_ROUTER_AGENTS[@]}"
+    printf '%-12s %-4s %-5s %-8s %-8s %-5s %s\n' \
+        "AGENT" "PRI" "INTV" "EFF_INTV" "LAST_OUT" "EMPTY" "DEPENDS"
+    for id in "${_ORCH_ROUTER_AGENTS[@]}"; do
+        printf '%-12s %-4s %-5s %-8s %-8s %-5s %s\n' \
+            "$id" \
+            "${_ORCH_ROUTER_PRIORITY[$id]:-5}" \
+            "${_ORCH_ROUTER_INTERVAL[$id]:-1}" \
+            "${_ORCH_ROUTER_EFF_INTERVAL[$id]:-1}" \
+            "${_ORCH_ROUTER_LAST_OUTCOME[$id]:-none}" \
+            "${_ORCH_ROUTER_CONSEC_EMPTY[$id]:-0}" \
+            "${_ORCH_ROUTER_DEPENDS[$id]:-none}"
+    done
+}

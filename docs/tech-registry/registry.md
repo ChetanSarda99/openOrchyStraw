@@ -1,6 +1,6 @@
 # Tech Stack Registry — OrchyStraw
 
-_Last updated: 2026-03-29_
+_Last updated: 2026-03-29 (cycle 2)_
 _Maintained by: CTO (02-cto)_
 _See docs/KNOWLEDGE-REPOSITORIES.md for full system documentation._
 
@@ -45,6 +45,10 @@ _See docs/KNOWLEDGE-REPOSITORIES.md for full system documentation._
 | Docs site | **LOCKED** | DOCS-001 | Mintlify |
 | Design system | **LOCKED** | STYLE-001 | Shared dark theme, tokens |
 | File ownership | **APPROVED** | OWN-001 | Boundaries, overlap rules, protected file policy |
+| Dependency execution | **APPROVED** | EXEC-001 | DAG-based groups, dynamic routing, agents.conf v2 |
+| Loop review | **APPROVED** | REVIEW-001 | Advisory review phase, post-commit critiques |
+| Agent isolation | **APPROVED** | WORKTREE-001 | Git worktree per agent (deferred to v0.2 Phase 2+) |
+| Model tiering | **APPROVED** | MODEL-001 | Per-agent model assignment, 40-60% cost savings |
 | Benchmark runner | Pending | — | Custom vs existing SWE-bench harness |
 | v0.5 CLI language | Pending | — | Python (recommended in PLATFORM-COMPATIBILITY.md) |
 | Notifications | Pending | — | Desktop toast (WSL), Telegram, Slack |

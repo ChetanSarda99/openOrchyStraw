@@ -116,11 +116,16 @@ All findings resolved. All 9 gates pass. No open HIGH or MEDIUM findings. v0.1.0
 
 ### Post-v0.1.0 — Next Security Priorities
 1. **v0.1.1 audit** — Verify `set -e` addition doesn't introduce new failure modes
-2. **v0.2.0 threat model update** — Smart cycle system introduces new attack surface:
+2. **v0.2.0 security review — dynamic-router.sh** — Backend built `src/core/dynamic-router.sh`. Review for:
+   - State file injection (`.orchystraw/router-state.json` — is state trusted?)
+   - `depends_on` field parsing — can malformed agents.conf cause code execution?
+   - Force-agent override — can PM force-run be abused?
+   - Interval manipulation via state persistence
+3. **v0.2.0 threat model update** — Smart cycle system Phase 2 attack surface:
    - Git worktree isolation (#44) — verify agents can't escape worktree
-   - Dynamic routing (#41) — verify PM agent can't be tricked into running wrong agents
-   - Dependency-aware parallel (#43) — race condition analysis
-3. **Benchmark security review** — Ensure SWE-bench scaffold doesn't execute untrusted code
+   - Review phase (#40) — verify QA rejection can't inject into re-run
+   - Model tiering (#46) — no security surface expected
+4. **Benchmark security review** — Ensure SWE-bench scaffold doesn't execute untrusted code
 
 ---
 
