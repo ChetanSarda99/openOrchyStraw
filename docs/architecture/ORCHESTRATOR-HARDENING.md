@@ -329,6 +329,31 @@ Cosmetic note: `node_modules/` appears twice in root .gitignore (lines 16 and 21
 | **P2** | .gitignore duplicate `node_modules/` | CS | Cosmetic — lines 16 and 21 both ignore node_modules |
 | **P2** | BUG-012: PROTECTED FILES missing from 8 prompts | PM | 01-ceo, 03-pm, 04-tauri-rust, 05-tauri-ui, 07-ios, 10-security, 12-brand, 13-hr |
 
+## v0.2 Module Review (Cycle 4 — 2026-03-29 16:10)
+
+### dynamic-router.sh — APPROVED
+
+36 tests pass. EXEC-001 and MODEL-001 compliant. Two medium issues:
+- **DR-01:** State file load lacks numeric validation — corrupted `eff_interval` coerces to 0
+- **DR-02:** `mkdir -p` on state dir has no error check — silent failure loses state
+
+Fix before v0.2 tag.
+
+### review-phase.sh — HOLD (BUG-017 Critical)
+
+24 tests pass, but `orch_review_context()` has zero test coverage and contains a critical bug:
+- **BUG-017 (CRITICAL):** `printf '- [BLOCKING]...'` fails — printf treats leading dash as option flag. Fix: `printf -- '- ...'`
+- **RP-01 (HIGH):** No verdict validation — accepts any string, should enforce {approve, request-changes, comment}
+- **RP-02 (HIGH):** Missing `## Summary` field per REVIEW-001 spec
+- **RP-03 (HIGH):** No I/O error checking on mkdir and file write
+- **RP-04 (MEDIUM):** Path traversal vulnerability in agent IDs
+
+Not ready for integration until BUG-017 and RP-01 fixed.
+
+### config-validator.sh v2+ — APPROVED
+
+10 tests pass. Full backward compatibility v1→v2→v2+ confirmed. MODEL-001 model validation correct (warn on unknown, don't fail). Production-ready.
+
 ## v0.1 Release Status
 
 **ALL SECURITY BLOCKERS RESOLVED.** CS applied HIGH-03, HIGH-04, MEDIUM-01 fixes in commit `601c9a2`. CTO review: PASS on all three.
