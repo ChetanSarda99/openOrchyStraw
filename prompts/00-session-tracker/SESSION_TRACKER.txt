@@ -12,6 +12,55 @@
 | 5 | 2026-03-18 | 01,02,09,10,13,03 | CS UNBLOCKED (d130de7), QA CONDITIONAL PASS, Security HIGH-03/HIGH-04 NEW, HR team docs, CEO "The Unblock" |
 | 6 | 2026-03-18 | 06,09,10,03 | Backend docs HIGH-03/04/MEDIUM-01 patches, QA cycle 5 NOT READY, Security cycle 5 NO CHANGE |
 | 7 | 2026-03-18 | 01,13,06,09,10,03 | CEO "Cut the Tail" scope lock, QA cycle 6 NOT READY, Security cycle 6 NO CHANGE, all blocked on CS |
+| 8 | 2026-03-29 | 01,02,09,10,13,03 | CS shipped 601c9a2 (HIGH-03+HIGH-04+MEDIUM-01). QA PASS. Security FULL PASS. v0.1.0 TAG-READY. |
+
+---
+
+## WHAT SHIPPED — Cycle 8 (2026-03-29 15:29–15:45)
+
+### CS (human — 601c9a2)
+- HIGH-03 unquoted `$ownership` FIXED — array-based iteration at all 3 sites
+- HIGH-04 sed injection FIXED — `|` delimiter + pre-escaped variables
+- MEDIUM-01 .gitignore FIXED — all sensitive patterns added
+- All 11 tests pass, zero regressions
+
+### 01-CEO
+- Strategic update: `docs/strategy/CYCLE-10-CEO-UPDATE.md` — "Green Light"
+- v0.1.0 has ZERO code blockers — tag-ready
+- Agent freeze LIFTED — team activation order defined
+- Post-v0.1.0: benchmarks → HN launch → v0.2.0 `--single-agent` mode
+
+### 02-CTO
+- Full architecture review of 601c9a2 — all 3 fixes PASS compliance
+- Hardening spec updated: all security blockers resolved, v0.1 release gate clear
+- v0.1.1 backlog confirmed: `set -e`, shebang, backend ownership exclusions
+
+### 09-QA
+- Cycle 8 QA report: `prompts/09-qa/reports/qa-cycle-8.md`
+- **Verdict: PASS** — v0.1.0 ready to tag
+- 11/11 tests pass (up from 9), 0 regressions
+- BUG-001 CLOSED, BUG-013 NEW (README "Bash 4+" → "Bash 5+")
+- HIGH-03, HIGH-04, MEDIUM-01 all VERIFIED FIXED
+
+### 10-Security
+- Cycle 8 audit: `prompts/10-security/reports/security-cycle-8.md`
+- **Verdict: FULL PASS — all 9 release gates pass**
+- Secrets scan: CLEAN. Supply chain: CLEAN.
+- v0.1.0 CLEARED FOR TAG
+
+### 13-HR
+- Team health update: all v0.1.0 blockers resolved, multi-cycle CS bottleneck OVER
+- All 9 agents performing well, no underperformers
+- BUG-012: 6/9 active prompts have PROTECTED FILES
+- Staffing confirmed through benchmark sprint
+- HR concurs: TAG-READY
+
+### 03-PM (this cycle)
+- Committed cycle 8 agent work (QA + Security reports, CTO + CEO + HR updates)
+- Closed GitHub issues: #80 (HIGH-03), #81 (HIGH-04), #82 (MEDIUM-01), #91 (Security audit)
+- Updated all agent prompts: backend → v0.2.0, QA/Security → post-release, web → activate
+- Session tracker updated
+- CS action items updated
 
 ---
 
@@ -229,22 +278,24 @@
 ## MILESTONE DASHBOARD
 | Milestone | Open | Closed | Status |
 |-----------|------|--------|--------|
-| v0.1.0 | 13 | 0 | CEO scope locked: HIGH-03 + .gitignore + README only. HIGH-04 → v0.1.1. Blocked on CS. |
+| v0.1.0 | 0 blockers | #80,#81,#82,#91 closed | TAG-READY. QA PASS + Security FULL PASS. Only #25 (tag itself) remains. |
+| v0.1.1 | 3 items | 0 | BUG-013 (README Bash version), BUG-012 (PROTECTED FILES), `set -e` flag |
+| v0.2.0 | 6 items | 0 | Smart cycle system: #40, #41, #43, #44, #46 + signal-handler/cycle-tracker integration |
 
 ## CODEBASE SIZE
 - `src/core/` modules: 11 bash files (8 v0.1.0 + 2 v0.2.0 + design doc)
 - `src/pixel/` files: 3 (emitter + test + integration guide)
-- `tests/core/` files: 10 (8 unit tests + runner + integration test)
+- `tests/core/` files: 11 (9 unit tests + runner + integration test)
 - `site/` files: ~16,122 TS/TSX/JS (Next.js project)
 - Backend scripts: 11 shell files
 - Agent prompts: 9 active in agents.conf
 
 ## NEXT CYCLE PRIORITIES
-1. **CS (BLOCKER):** Fix HIGH-03 — unquoted `$ownership` in for loops (auto-agent.sh lines 236, 310, 320). ~5 min.
-2. **CS (BLOCKER):** Fix MEDIUM-01 — root `.gitignore` missing `.env`, `*.pem`, `*.key` patterns. ~2 min.
-3. **CS (P1):** README rewrite before v0.1.0 tag
-4. After CS fixes: QA regression + Security final sign-off → tag v0.1.0
-5. **v0.1.1 (within 24 hours):** HIGH-04 sed injection + QA-F001 `set -e` + prompt cleanup
-6. After v0.1.0: Benchmark sprint (SWE-bench + Ralph comparison)
+1. **Tag v0.1.0** — All blockers cleared. Fix BUG-013 (README "Bash 4+" → "Bash 5+"), then tag.
+2. **v0.1.1 (within 48 hours):** BUG-012 PROTECTED FILES + `set -e` + prompt cleanup
+3. **06-backend:** Start v0.2.0 Smart Cycle System (#40 loop review, #41 dynamic routing, #43 parallel)
+4. **02-cto:** Write v0.2.0 architecture ADRs (#43 dependency graph, #44 worktree, #46 model tiering)
+5. **11-web:** Deploy landing page (#39) — MVP built, just needs deploy
+6. **Benchmark sprint:** SWE-bench + Ralph comparison — starts immediately after v0.1.0 tag
 7. After benchmarks: HN launch (only with receipts), v0.2.0 `--single-agent` mode
-8. Post-v0.2.0: Pixel Phase 2, Tauri scaffold, landing page deploy
+8. Post-benchmarks: Activate 04-tauri-rust + 05-tauri-ui, Pixel Phase 2 after v0.2.0

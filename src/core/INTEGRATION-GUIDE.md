@@ -172,7 +172,23 @@ orch_failure_report "$cycle_num"
 
 ---
 
-## Security Fixes for CS to Apply
+## Security Fixes — Status
+
+All v0.1.0 security fixes have been applied by CS.
+
+| Issue | Status | Commit |
+|-------|--------|--------|
+| HIGH-01 | ✅ APPLIED | d130de7 — array-based pathspec, no eval |
+| HIGH-03 | ✅ APPLIED | 601c9a2 — IFS+read -ra for ownership loops |
+| HIGH-04 | ✅ APPLIED | 601c9a2 — \| delimiter + & escaping in sed |
+| MEDIUM-01 | ✅ APPLIED | 601c9a2 — .gitignore secrets patterns |
+| MEDIUM-02 | ✅ APPLIED | d130de7 — env var for PowerShell notify |
+
+All 11 tests pass (10 unit + 1 integration, 42+ assertions). No regressions.
+
+---
+
+## Security Fix Reference (for audit trail)
 
 ### [HIGH-01] Fix eval injection in commit_by_ownership()
 

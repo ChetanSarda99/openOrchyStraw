@@ -1,8 +1,8 @@
 # Orchestrator Hardening — Priority Issues
 
-_Date: March 18, 2026 (updated cycle 4)_
-_Status: PARTIAL — CS applied P0 fixes in cycle 4, remaining P1s open_
-_Reviewed by: CTO cycle 4 — verified CS fixes, updated priority table_
+_Date: March 18, 2026 (updated 2026-03-29)_
+_Status: ALL SECURITY BLOCKERS RESOLVED — v0.1 release gate clear_
+_Reviewed by: CTO 2026-03-29 — verified 601c9a2 fixes (HIGH-03, HIGH-04, MEDIUM-01)_
 
 ---
 
@@ -260,7 +260,54 @@ Root `.gitignore` has 7 patterns, missing all secret/credential patterns. The `s
 
 ---
 
-## Priority Summary (Updated Cycle 5+)
+## CTO Review — 2026-03-29 (CS Commit 601c9a2)
+
+CS applied all three v0.1 security blockers in a single commit. CTO review follows.
+
+### HIGH-03: Unquoted `$ownership` glob expansion — VERIFIED FIXED
+
+All 3 locations converted from bare `$ownership` iteration to array-based:
+
+1. **Line 244** (`commit_by_ownership`): `IFS=' ' read -ra _ownership_arr <<< "$ownership"` → `for path in "${_ownership_arr[@]}"` ✓
+2. **Lines 319-320** (`detect_rogue_writes`, inner loop): `IFS=' ' read -ra _own_arr <<< "$ownership"` → `for path in "${_own_arr[@]}"` ✓
+3. **Lines 315, 330** (`detect_rogue_writes`, `$all_owned`): Converted from string concat (`all_owned+=" $path"`) to proper array (`local -a all_owned_arr=()` + `all_owned_arr+=("$path")`) → `for path in "${all_owned_arr[@]}"` ✓
+
+Fix exactly matches the CTO-approved pattern. Glob expansion suppressed because quoted array expansion `"${arr[@]}"` preserves elements as-is. `IFS=' '` is scoped to the `read` builtin — doesn't leak to outer scope.
+
+**Architecture verdict: PASS.**
+
+### HIGH-04: Sed injection in prompt updates — VERIFIED FIXED
+
+The fix applies two layers of defense:
+
+1. **Delimiter change:** All 5 sed commands switched from `/` to `|` ✓
+2. **Input escaping:** All 8 variables pre-escaped via `sed 's/[|&]/\\&/g'` before interpolation ✓
+
+Escaping correctly handles `|` (delimiter) and `&` (sed backreference). Variables are escaped into `_safe_*` locals, then those locals are used in the sed commands.
+
+Note: `\` in replacement strings is not escaped, but no current or foreseeable value source (date, integer counts) can produce backslashes. Acceptable for v0.1.
+
+LHS regex patterns verified: none contain `|`, so delimiter change is safe.
+
+**Architecture verdict: PASS.** Defense-in-depth beyond what's strictly needed — good practice for a public repo.
+
+### MEDIUM-01: .gitignore secrets patterns — VERIFIED FIXED
+
+Security-critical patterns added:
+- `.env`, `.env.*` — all dotenv variants ✓
+- `*.pem`, `*.key` — private keys ✓
+- `*.p12`, `*.pfx` — certificate stores (bonus beyond spec) ✓
+- `credentials.json`, `service-account*.json`, `*secret*.json` — cloud credentials ✓
+
+Missing P2 items (not blocking): `dist/`, `build/`, `.vscode/`, `.idea/`, `*.swp`, `coverage/`. These are cosmetic — `site/.gitignore` already covers Next.js build output.
+
+Cosmetic note: `node_modules/` appears twice in root .gitignore (lines 16 and 21). Harmless.
+
+**Architecture verdict: PASS.**
+
+---
+
+## Priority Summary (Updated 2026-03-29)
 
 | Priority | Issue | Owner | Status |
 |----------|-------|-------|--------|
@@ -268,29 +315,30 @@ Root `.gitignore` has 7 patterns, missing all secret/credential patterns. The `s
 | ~~**P0**~~ | ~~eval injection (HIGH-01)~~ | ~~CS~~ | **FIXED** (cycle 4, d130de7) |
 | ~~**P0**~~ | ~~Bash 5.0 version guard~~ | ~~CS~~ | **FIXED** (cycle 4, sourced at startup) |
 | ~~**P1**~~ | ~~MEDIUM-02 notify injection~~ | ~~CS~~ | **FIXED** (cycle 4, d130de7) |
-| **P1** | HIGH-03: Unquoted `$ownership` glob | CS (protected) | **NEW** — 3 locations, array fix |
-| **P1** | HIGH-04: Sed delimiter injection | CS (protected) | **NEW** — switch to `\|` delimiter |
-| **P1** | MEDIUM-01: .gitignore secrets | CS (protected) | **REGRESSED** — add patterns |
-| **P1** | Add `set -e` to auto-agent.sh | CS (protected) | OPEN — still `set -uo pipefail` |
+| ~~**P1**~~ | ~~HIGH-03: Unquoted `$ownership` glob~~ | ~~CS~~ | **FIXED** (601c9a2, CTO verified) |
+| ~~**P1**~~ | ~~HIGH-04: Sed delimiter injection~~ | ~~CS~~ | **FIXED** (601c9a2, CTO verified) |
+| ~~**P1**~~ | ~~MEDIUM-01: .gitignore secrets~~ | ~~CS~~ | **FIXED** (601c9a2, CTO verified) |
+| **P1** | Add `set -e` to auto-agent.sh | CS (protected) | OPEN — still `set -uo pipefail` (line 23) |
 | **P1** | Backend ownership exclusions | CS (agents.conf) | OPEN — 06-backend still owns `scripts/` |
-| **P1** | Shebang standardization | CS (protected) | OPEN — auto-agent.sh still `#!/bin/bash` |
+| **P1** | Shebang standardization | CS (protected) | OPEN — auto-agent.sh still `#!/bin/bash` (line 1) |
 | **P1** | Signal handling | 06-backend | SPEC (cycle 1) |
 | **P1** | Empty cycle detection | 06-backend | SPEC (cycle 1) |
 | **P2** | Progress checkpoint fix | 06-backend | SPEC (cycle 1) |
 | **P2** | src/ overlap detection | 06-backend | FUTURE (v0.5) |
 | **P2** | Consolidate to single agents.conf | CS | Deferred — both synced, low priority |
+| **P2** | .gitignore duplicate `node_modules/` | CS | Cosmetic — lines 16 and 21 both ignore node_modules |
 
 ## v0.1 Release Status
 
-**Original P0 blockers are RESOLVED.** Three new P1 issues (HIGH-03, HIGH-04, MEDIUM-01) block release.
+**ALL SECURITY BLOCKERS RESOLVED.** CS applied HIGH-03, HIGH-04, MEDIUM-01 fixes in commit `601c9a2`. CTO review: PASS on all three.
 
-All three are in `auto-agent.sh` (protected file) — **CS must apply the fixes.**
-
-v0.1 path:
-1. CS fixes HIGH-03 (array-based iteration, 3 locations)
-2. CS fixes HIGH-04 (sed `|` delimiter)
-3. CS fixes MEDIUM-01 (.gitignore patterns)
-4. QA full regression
-5. Security final sign-off
-6. README rewrite
+Remaining v0.1 path:
+1. ~~CS fixes HIGH-03~~ ✅ VERIFIED
+2. ~~CS fixes HIGH-04~~ ✅ VERIFIED
+3. ~~CS fixes MEDIUM-01~~ ✅ VERIFIED
+4. QA full regression — **NEXT**
+5. Security final sign-off — **NEXT**
+6. README rewrite — CS (P1)
 7. Tag v0.1.0
+
+v0.1.1 backlog: `set -e`, shebang standardization, backend ownership exclusions
