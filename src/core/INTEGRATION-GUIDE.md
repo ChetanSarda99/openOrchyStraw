@@ -17,6 +17,9 @@
 | lock-file | `lock-file.sh` | Prevent concurrent orchestrators | None |
 | signal-handler | `signal-handler.sh` | Graceful shutdown with SHUTTING_DOWN flag | None (optional: logger) |
 | cycle-tracker | `cycle-tracker.sh` | Smart empty cycle detection | None |
+| dynamic-router | `dynamic-router.sh` | Dynamic routing + dependency groups + model tiering | config-validator, cycle-tracker |
+| review-phase | `review-phase.sh` | QA auto-rerun with cost guard | logger, config-validator |
+| worktree | `worktree.sh` | Git worktree isolation per agent (WORKTREE-001) | None (optional: logger) |
 
 All modules are independently sourceable. No module depends on another.
 
@@ -169,6 +172,89 @@ At cycle end, print the failure report:
 ```bash
 orch_failure_report "$cycle_num"
 ```
+
+---
+
+## Step 8: Source v0.2.0 modules
+
+Add after the v0.1.0 sources in Step 1:
+
+```bash
+# ── v0.2.0 modules ──────────────────────────────────────────────────────
+source "$SCRIPT_DIR/../src/core/signal-handler.sh"
+source "$SCRIPT_DIR/../src/core/cycle-tracker.sh"
+source "$SCRIPT_DIR/../src/core/dynamic-router.sh"
+source "$SCRIPT_DIR/../src/core/review-phase.sh"
+source "$SCRIPT_DIR/../src/core/worktree.sh"
+```
+
+## Step 9: Initialize worktree mode (opt-in)
+
+Parse `--worktree` CLI flag and initialize:
+
+```bash
+# Parse CLI flag
+ORCH_WORKTREE=false
+for arg in "$@"; do
+    [[ "$arg" == "--worktree" ]] && ORCH_WORKTREE=true
+done
+export ORCH_WORKTREE
+
+# Initialize if enabled
+if orch_worktree_enabled; then
+    orch_worktree_init "$PROJECT_ROOT" || exit 1
+fi
+```
+
+## Step 10: Use worktrees in the execution loop
+
+Replace the shared-tree agent loop with worktree-aware execution:
+
+```bash
+if orch_worktree_enabled; then
+    # Per execution group (from dynamic-router):
+    for group in $(orch_router_groups); do
+        IFS=',' read -ra agents <<< "$group"
+
+        # 1. Create worktrees for all agents in group
+        declare -A agent_wt_paths=()
+        for id in "${agents[@]}"; do
+            agent_wt_paths["$id"]=$(orch_worktree_create "$id" "$cycle_num")
+        done
+
+        # 2. Run agents in parallel (each in its own worktree)
+        for id in "${agents[@]}"; do
+            PROJECT_ROOT="${agent_wt_paths[$id]}" run_agent "$id" &
+        done
+        wait
+
+        # 3. Merge back sequentially (order matters for conflict detection)
+        for id in "${agents[@]}"; do
+            if ! orch_worktree_merge "$id" "$cycle_num"; then
+                orch_log WARN orchestrator "Merge conflict for $id — flagging for PM"
+            fi
+        done
+    done
+else
+    # v0.1 shared-tree execution (existing code)
+    ...
+fi
+```
+
+**IMPORTANT (DR-SEC-02):** When passing `orch_router_model` output to claude CLI,
+always quote it: `--model "$(orch_router_model "$id")"`. Unquoted model output could
+allow injection if the model field in agents.conf is tampered with.
+
+## Step 11: Register worktree cleanup with signal handler
+
+```bash
+# In the cleanup/shutdown handler:
+if orch_worktree_enabled; then
+    orch_worktree_cleanup "$cycle_num"
+fi
+```
+
+This ensures worktrees are removed on SIGTERM/SIGINT (crash recovery).
 
 ---
 
