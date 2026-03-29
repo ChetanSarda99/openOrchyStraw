@@ -89,7 +89,7 @@ For now: maintain registry here, PM will propose migration when 2nd project star
 
 ---
 
-## What's DONE (Cycle 1–7)
+## What's DONE (Cycle 1–8)
 
 - ✅ 5 ADRs from cycle 1: UI-001, WEB-001, DOCS-001, STYLE-001, DB-001
 - ✅ BASH-001 ADR: Minimum bash 5.0, portable shebang (cycle 2)
@@ -102,36 +102,29 @@ For now: maintain registry here, PM will propose migration when 2nd project star
 - ✅ Confirmed BUG-009: dual agents.conf divergence (root vs scripts/) — upgraded to P0
 - ✅ Hardening spec updated with cycle 3 findings and revised priority table
 - ✅ Cycle 4: Full architecture review of CS fix commit (d130de7) — all fixes PASS
-- ✅ Hardening spec updated with cycle 4 review (all P0s closed, priority table revised)
-- ✅ Confirmed v0.1 path UNBLOCKED — QA regression + Security sign-off next
-- ✅ Cycle 7: No new CTO work needed — waiting on CS for protected file fixes
+- ✅ Cycle 8 (2026-03-29): Full review of CS commit 601c9a2 — HIGH-03, HIGH-04, MEDIUM-01 all PASS
+- ✅ Hardening spec updated: all security blockers resolved, v0.1 release gate clear
+- ✅ v0.1 security path FULLY UNBLOCKED — QA regression + Security sign-off are the only remaining gates
 
 ## Current Technical Priorities
 
-### RESOLVED P0s (cycle 5 — CS applied d130de7):
-- ~~BUG-009 dual agents.conf~~ — FIXED, both synced
-- ~~HIGH-01 eval injection~~ — FIXED, array-based pathspec
-- ~~MEDIUM-02 notify injection~~ — FIXED, env var + single-quoted PS
-- ~~Core module sourcing~~ — FIXED, explicit ordered source at startup
-- CTO reviewed all fixes — architecture compliance PASS
+### ALL SECURITY BLOCKERS RESOLVED:
+- ~~BUG-009 dual agents.conf~~ — FIXED (d130de7)
+- ~~HIGH-01 eval injection~~ — FIXED (d130de7)
+- ~~MEDIUM-02 notify injection~~ — FIXED (d130de7)
+- ~~HIGH-03 glob expansion~~ — FIXED (601c9a2), CTO verified
+- ~~HIGH-04 sed injection~~ — FIXED (601c9a2), CTO verified
+- ~~MEDIUM-01 .gitignore~~ — FIXED (601c9a2), CTO verified
 
-### NEW Blockers (Security cycle 5):
-1. **HIGH-03: Unquoted `$ownership` in for loops** (lines 236, 310, 320) — glob expansion risk. Must use arrays.
-2. **HIGH-04: Sed injection in prompt updates** (lines 785-791) — `/` and `&` chars break sed. Must use safe delimiter.
-3. **MEDIUM-01 REGRESSION: .gitignore** — Root `.gitignore` missing `.env`, `*.pem`, `*.key` patterns.
-
-### Remaining P1s:
-4. **`set -e` missing** — auto-agent.sh line 23 still `set -uo pipefail`. Silent failures possible.
-5. **Backend ownership exclusions** — 06-backend owns `scripts/` but protected files live there.
-6. **Shebang inconsistency** — auto-agent.sh uses `#!/bin/bash`, core modules use `#!/usr/bin/env bash`.
+### v0.1.1 P1s (not blocking release):
+1. **`set -e` missing** — auto-agent.sh line 23 still `set -uo pipefail`. Silent failures possible.
+2. **Backend ownership exclusions** — 06-backend owns `scripts/` but protected files live there.
+3. **Shebang inconsistency** — auto-agent.sh uses `#!/bin/bash`, core modules use `#!/usr/bin/env bash`.
 
 ### Next CTO Tasks:
-7. **Review HIGH-03 fix** when CS applies it — verify array-based iteration is correct
-8. **Review MEDIUM-01 .gitignore fix** — verify all sensitive patterns covered
-9. **v0.2.0 architecture planning** — Smart cycle system (#40-#46). Dependency graph, execution model.
-10. **HIGH-04 architecture review** — deferred to v0.1.1. Review sed injection fix approach when ready.
-11. **BUG-012 review** — Verify PROTECTED FILES sections added to all agent prompts
-12. **Consolidate agents.conf** — P2, move to single file at root (v0.2)
+4. **v0.2.0 architecture planning** — Smart cycle system (#40-#46). Dependency graph, execution model.
+5. **BUG-012 review** — Verify PROTECTED FILES sections added to all agent prompts
+6. **Consolidate agents.conf** — P2, move to single file at root (v0.2)
 
 ---
 

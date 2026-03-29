@@ -1,6 +1,6 @@
 # Tech Stack Registry — OrchyStraw
 
-_Last updated: 2026-03-18_
+_Last updated: 2026-03-29_
 _Maintained by: CTO (02-cto)_
 _See docs/KNOWLEDGE-REPOSITORIES.md for full system documentation._
 
