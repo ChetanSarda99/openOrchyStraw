@@ -154,6 +154,6 @@ CS needs to decide:
 
 ## References
 
-- Domain availability research: `~/.openclaw/workspace/empire-os/research/brand-setup-guide.md`
-- Full marketing strategy: `~/.openclaw/workspace/empire-os/research/app-marketing-strategy.md`
+- Domain availability research: `~/Projects/archives/OpenClaw_Archive_Backup/workspace/empire-os/research/brand-setup-guide.md`
+- Full marketing strategy: `~/Projects/archives/OpenClaw_Archive_Backup/workspace/empire-os/research/app-marketing-strategy.md`
 - WHOIS/DNS checks performed: March 15, 2026

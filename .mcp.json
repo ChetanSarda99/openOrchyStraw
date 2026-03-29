@@ -3,10 +3,6 @@
     "shadcn": {
       "command": "npx",
       "args": ["shadcn@latest", "mcp"]
-    },
-    "mintlify": {
-      "command": "npx",
-      "args": ["mintlify@latest", "mcp"]
     }
   }
 }
