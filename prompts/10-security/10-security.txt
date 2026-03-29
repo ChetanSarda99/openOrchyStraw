@@ -90,7 +90,7 @@ You NEVER modify source code, scripts, configs, or other agent prompts.
 
 ---
 
-## What's DONE (Cycle 1–8)
+## What's DONE (Cycle 1–10)
 
 - ✅ Full security audit cycle 1 — report at `prompts/10-security/reports/security-cycle-1.md`
 - ✅ Cycle 2 audit: CONDITIONAL PASS — `prompts/10-security/reports/security-cycle-2.md`
@@ -114,18 +114,22 @@ You NEVER modify source code, scripts, configs, or other agent prompts.
 ### v0.1.0 — RELEASE GATE: FULL PASS ✅
 All findings resolved. All 9 gates pass. No open HIGH or MEDIUM findings. v0.1.0 cleared for release.
 
-### Post-v0.1.0 — Next Security Priorities
-1. **v0.1.1 audit** — Verify `set -e` addition doesn't introduce new failure modes
-2. **v0.2.0 security review — dynamic-router.sh** — Backend built `src/core/dynamic-router.sh`. Review for:
+### Next Security Priorities
+1. **v0.2.0 security review — dynamic-router.sh + model tiering** — Now includes #46 model functions. Review for:
    - State file injection (`.orchystraw/router-state.json` — is state trusted?)
    - `depends_on` field parsing — can malformed agents.conf cause code execution?
    - Force-agent override — can PM force-run be abused?
    - Interval manipulation via state persistence
-3. **v0.2.0 threat model update** — Smart cycle system Phase 2 attack surface:
-   - Git worktree isolation (#44) — verify agents can't escape worktree
-   - Review phase (#40) — verify QA rejection can't inject into re-run
-   - Model tiering (#46) — no security surface expected
-4. **Benchmark security review** — Ensure SWE-bench scaffold doesn't execute untrusted code
+   - Model override env vars (ORCH_MODEL_OVERRIDE_*, ORCH_MODEL_CLI_OVERRIDE) — injection risk?
+2. **v0.2.0 security review — review-phase.sh (NEW)** — Backend built `src/core/review-phase.sh`. Review for:
+   - Review record injection — can crafted QA output inject into re-run prompts?
+   - Cost guard bypass — can the 50% threshold be circumvented?
+   - File path traversal in review directory operations
+3. **v0.2.0 security review — config-validator.sh updates** — Now parses 9-column format. Review for:
+   - Model column parsing — can model field cause injection?
+   - Backward compat paths — do v1/v2/v2+ parsing branches all validate safely?
+4. **v0.1.1 audit** — Verify `set -e` addition doesn't introduce new failure modes
+5. **Benchmark security review** — Ensure SWE-bench scaffold doesn't execute untrusted code
 
 ---
 
