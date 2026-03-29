@@ -57,7 +57,7 @@ Multi-agent AI coding orchestration. Markdown prompts + bash script. No framewor
 
 ---
 
-## What's DONE (Cycle 1–12)
+## What's DONE (Cycle 1–13)
 
 - ✅ Strategic memo: `docs/strategy/CYCLE-1-STRATEGIC-MEMO.md`
 - ✅ v0.1.0 prioritized as ONLY focus, all other work frozen
@@ -80,6 +80,10 @@ Multi-agent AI coding orchestration. Markdown prompts + bash script. No framewor
 - ✅ CTO shipped 4 v0.2.0 ADRs (EXEC-001, REVIEW-001, WORKTREE-001, MODEL-001)
 - ✅ GitHub Pages deploy workflow configured by 11-Web
 - ✅ Cycle 12 update: `docs/strategy/CYCLE-12-CEO-UPDATE.md` — "Momentum Without a Tag"
+- ✅ ALL CTO findings on v0.2.0 fixed: BUG-017, RP-01/02/03/04, DR-01/DR-02
+- ✅ Security cycle 9: CONDITIONAL PASS on new modules (no blockers)
+- ✅ 77 v0.2.0 tests + 13 v0.1.0 suite = 90 tests, zero failures
+- ✅ Cycle 13 update: `docs/strategy/CYCLE-13-CEO-UPDATE.md` — "Ship the Damn Thing"
 
 ## Your Tasks Each Session
 
@@ -92,19 +96,20 @@ Multi-agent AI coding orchestration. Markdown prompts + bash script. No framewor
 
 ---
 
-## Current Strategic Priorities (Updated Cycle 12 — 2026-03-29)
+## Current Strategic Priorities (Updated Cycle 13 — 2026-03-29)
 
-1. **TAG v0.1.0 NOW** — QA PASS + Security FULL PASS. Zero blockers. Tag is the #1 strategic risk.
-2. **v0.1.1 (same day as tag)** — BUG-013 (README "Bash 4+" → "Bash 5+"), BUG-012 (PROTECTED FILES in prompts).
-3. **Benchmark sprint (days 1-3 post-tag)** — SWE-bench Lite + Ralph head-to-head. Results in README.
-4. **v0.2.0 Phase 2 NEARLY COMPLETE** — ALL CTO findings fixed (cycle 12): BUG-017, RP-01/02/03/04, DR-01/DR-02. review-phase 36 tests, dynamic-router 41 tests. CTO re-review pending — expected APPROVED. CS integrates v0.2.0 modules into auto-agent.sh.
-5. **HN launch** — Only after benchmarks land in README. Demo GIF required.
-6. **Landing page deploy** — SEO meta tags + CTA fixes landed. Deploy triggers on merge to main.
-7. **v0.2.0: `--single-agent` mode** — Ralph compatibility = growth hack.
-8. **Tauri desktop app** — Paid product foundation. Starts after HN launch reception.
-9. **Pixel Agents Phase 2** — Fork + adapter after v0.2.0.
+1. **TAG v0.1.0 NOW** — Tag-ready for 6+ cycles. This is the #1 strategic risk. Two commands: `git tag v0.1.0 && git push --tags`.
+2. **CTO re-review review-phase.sh** — All 7 findings fixed. Expected: APPROVED.
+3. **CS integrates v0.2.0 modules** — dynamic-router, review-phase, signal-handler, cycle-tracker into auto-agent.sh. Quote `orch_router_model` per DR-SEC-02.
+4. **Tag v0.2.0 same week** — Two releases = stronger HN narrative.
+5. **Benchmark sprint (days 1-3 post-tag)** — SWE-bench Lite + Ralph head-to-head. Results in README.
+6. **HN launch** — Two releases + benchmarks + demo GIF. "Show HN."
+7. **Landing page deploy** — Triggers on main merge. Verify GitHub Pages.
+8. **v0.2.0: `--single-agent` mode** — Ralph compatibility = growth hack.
+9. **Tauri desktop app** — Paid product foundation. Starts post-HN.
+10. **Pixel Agents Phase 2** — Fork + adapter after v0.2.0.
 
-### Key Strategic Decisions (Cycle 1–12)
+### Key Strategic Decisions (Cycle 1–13)
 - Open-source v0.1.0 to openOrchyStraw immediately — the orchestrator is the hook
 - Benchmarks elevated from P4 to P1 — proof before polish
 - README exists and is solid — covers quick start, features, license
@@ -113,7 +118,8 @@ Multi-agent AI coding orchestration. Markdown prompts + bash script. No framewor
 - `--single-agent` mode elevated to v0.2.0 — Ralph user on-ramp, not afterthought
 - Agent freeze LIFTED (Cycle 10) — team activation order: QA/Security → Backend → CTO → Web → Tauri → Pixel → iOS
 - v0.1.0 tag should NOT include v0.2.0 Phase 1 — ship what's validated, Phase 1 goes in v0.2.0
-- Full memos: `docs/strategy/CYCLE-1-STRATEGIC-MEMO.md`, `CYCLE-2-CEO-UPDATE.md`, `CYCLE-5-CEO-UPDATE.md`, `CYCLE-7-CEO-UPDATE.md`, `CYCLE-9-CEO-UPDATE.md`, `CYCLE-10-CEO-UPDATE.md`, `CYCLE-12-CEO-UPDATE.md`
+- NEW (Cycle 13): Collapse release gap — tag v0.1.0 and v0.2.0 same week for stronger launch narrative
+- Full memos: `docs/strategy/CYCLE-1-STRATEGIC-MEMO.md`, `CYCLE-2-CEO-UPDATE.md`, `CYCLE-5-CEO-UPDATE.md`, `CYCLE-7-CEO-UPDATE.md`, `CYCLE-9-CEO-UPDATE.md`, `CYCLE-10-CEO-UPDATE.md`, `CYCLE-12-CEO-UPDATE.md`, `CYCLE-13-CEO-UPDATE.md`
 
 ---
 
