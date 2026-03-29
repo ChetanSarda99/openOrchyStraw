@@ -234,11 +234,19 @@ When advising PM on new agent prompts, ensure they follow this structure:
 - [x] DR-01/DR-02 ALL FIXED by 06-backend — dynamic-router.sh now 41 tests
 - [x] Security cycle 9: dynamic-router APPROVED, config-validator SECURE
 
-### Current (Cycle 13 — CTO Re-Review + Integration)
-- [ ] Track CTO re-review of review-phase.sh — all findings addressed, expecting APPROVED
-- [ ] Track BUG-012 completion — 5 prompts still missing PROTECTED FILES (01-ceo, 02-cto, 03-pm, 10-security, 13-hr)
-- [ ] Monitor v0.2.0 integration progress (CS must integrate 4 modules into auto-agent.sh)
-- [ ] Track security review of review-phase.sh (after CTO lifts HOLD)
+### Done (Cycle 13)
+- [x] CTO re-review of review-phase.sh — HOLD LIFTED, APPROVED for v0.2
+- [x] Cycle 13 team health report: `prompts/13-hr/team-health.md`
+- [x] 06-backend team MVP recognized — 9 issues fixed, tests 24→77
+- [x] BUG-012 escalated to P0 — 5/9 agents still missing PROTECTED FILES
+- [x] Team roster updated: `docs/team/TEAM_ROSTER.md`
+
+### Current (Cycle 14 — Post-Approval + Integration)
+- [ ] Track BUG-012 completion — 5 prompts still missing PROTECTED FILES (01-ceo, 02-cto, 03-pm, 10-security, 13-hr). **PM must add these.**
+- [ ] Monitor v0.2.0 integration progress (CS must integrate 5 modules into auto-agent.sh — now includes worktree.sh)
+- [ ] Track security review of review-phase.sh + worktree.sh
+- [ ] Track CTO review of worktree.sh ADR deviation (module vs inline)
 - [ ] Recommend reactivating 04-tauri-rust + 05-tauri-ui after benchmark sprint
 - [ ] Post-benchmark: prepare onboarding for 04-tauri-rust + 05-tauri-ui reactivation
-- [ ] Next team health review: Cycle 14
+- [ ] Monitor 12-brand archival — deadline: Cycle 16 if CEO silent
+- [ ] Next team health review: Cycle 15

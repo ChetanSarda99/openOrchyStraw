@@ -134,9 +134,10 @@ For now: maintain registry here, PM will propose migration when 2nd project star
 6. ~~**Review dynamic-router.sh + model tiering**~~ — DONE. APPROVED. 41 tests (BUG-014/015/016 + DR-01/DR-02 fixed).
 7. ~~**Review review-phase.sh**~~ — DONE. HOLD. BUG-017 + RP-01/02/03/04 logged.
 8. ~~**Review config-validator.sh v2+ updates**~~ — DONE. APPROVED. Production-ready.
-9. ~~**RE-REVIEW review-phase.sh**~~ — DONE (cycle 6). HOLD LIFTED. All 5 findings verified. 36 tests PASS. APPROVED for v0.2.
-10. **Consolidate agents.conf** — P2, move to single file at root (v0.2)
-11. **Benchmark architecture** — Review SWE-bench scaffold design when backend builds it
+9. ~~**RE-REVIEW review-phase.sh**~~ — DONE (cycle 13). HOLD LIFTED. All 5 findings verified. 36 tests PASS. APPROVED for v0.2.
+10. **Review worktree.sh** — New module built by 06-backend (48 tests). **ADR DEVIATION:** WORKTREE-001 said "inline in auto-agent.sh" but backend built as a standalone module. Review and decide: accept module approach or require inline?
+11. **Consolidate agents.conf** — P2, move to single file at root (v0.2)
+12. **Benchmark architecture** — Review SWE-bench scaffold design when backend builds it
 
 ---
 

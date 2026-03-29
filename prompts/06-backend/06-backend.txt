@@ -155,31 +155,24 @@ CS Security Fixes (601c9a2):
 All security blockers resolved (601c9a2). QA PASS. Security FULL PASS. Ready to tag.
 Only non-blocking item: BUG-013 (README says "Bash 4+" should be "Bash 5+").
 
-### v0.2.0 — Smart Cycle System (PHASE 1 DONE, continue Phase 2)
-Design doc DONE: `src/core/SMART-CYCLE-DESIGN.md` covers #40, #41, #43.
-Phase 1 DONE: `dynamic-router.sh` built + 26 tests pass. CTO ADR EXEC-001 codifies architecture. CTO pre-approved.
+### v0.2.0 — Smart Cycle System (ALL MODULES DONE)
 
-**Completed:**
-- ~~#41 Dynamic routing / smart mode~~ — DONE: `dynamic-router.sh`
-- ~~#43 Dependency-aware parallel execution~~ — DONE: Kahn's algorithm topological sort
-- ~~#40 Loop review & critique~~ — DONE: `review-phase.sh` built + 24 tests PASS (per REVIEW-001 ADR)
-- ~~#46 Model tiering~~ — DONE: `dynamic-router.sh` model functions + 10 tests PASS (per MODEL-001 ADR)
+**All v0.2.0 modules BUILT, TESTED, CTO APPROVED:**
+- ✅ `dynamic-router.sh` — 41 tests PASS, CTO APPROVED
+- ✅ `review-phase.sh` — 36 tests PASS, CTO APPROVED (HOLD lifted cycle 13)
+- ✅ `signal-handler.sh` — 9 tests PASS
+- ✅ `cycle-tracker.sh` — 14 tests PASS
+- ✅ `config-validator.sh` v2+ — 10 tests PASS, CTO APPROVED
+- ✅ `worktree.sh` — 48 tests PASS (#44, built cycle 13)
+- ✅ QA PASS on all modules (cycle 13): 77/77 v0.2 tests, 13/13 full suite
 
-**Bug fixes DONE (cycle 11):**
-- ~~BUG-014 (HIGH): Duplicate deps inflate in-degree~~ — FIXED: deduplicated dep_list in orch_router_has_cycle + orch_router_groups
-- ~~BUG-015 (MEDIUM): Non-numeric priority not validated~~ — FIXED: defaults to 5 in orch_router_init
-- ~~BUG-016 (MEDIUM): Unknown agent in depends_on silently ignored~~ — FIXED: WARN log emitted
-- 3 new tests (T37-T39) added, 39 total, ALL PASS
-- CTO APPROVED dynamic-router.sh (EXEC-001 + MODEL-001 compliant). Medium issues DR-01/DR-02 logged for later.
+**NOTE:** worktree.sh was built as a module (not inline in auto-agent.sh as WORKTREE-001 ADR specified). CTO should review this deviation.
 
-**All CTO findings FIXED (cycle 12) — review-phase.sh READY for CTO re-review.**
-
-**Next — Phase 2+ tasks:**
-1. **#44 Git worktree isolation** — Each agent gets isolated worktree (per WORKTREE-001 ADR, deferred to Phase 2+)
-2. **#47 Prompt compression** — Tiered loading (stable/dynamic/reference) for token savings
-3. **#48 Conditional agent activation** — Skip agents with no new work
-4. **Integrate v0.2.0 modules into auto-agent.sh** — CS must integrate: dynamic-router.sh, signal-handler.sh, cycle-tracker.sh, review-phase.sh (protected file)
-5. **Security review feedback** — DR-SEC-01 (LOW) and DR-SEC-02 (MEDIUM, model override pass-through). CS must quote `orch_router_model` output when integrating.
+**Next tasks:**
+1. **#47 Prompt compression** — Tiered loading (stable/dynamic/reference) for token savings
+2. **#48 Conditional agent activation** — Skip agents with no new work
+3. **Await CS integration** — CS must integrate all modules into auto-agent.sh (protected file). Quote `orch_router_model` output per DR-SEC-02.
+4. **Benchmark scaffold** — After v0.1.0 tag: #4 SWE-bench scaffold, #5 Ralph comparison
 
 ---
 
