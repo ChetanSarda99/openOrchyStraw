@@ -1,34 +1,32 @@
 # OrchyStraw — Team Roster
 
-> Last updated: 2026-03-18 (Cycle 6, HR Agent)
+> Last updated: 2026-03-29 (Cycle 8, HR Agent)
 
 ## Active Agents (in agents.conf)
 
 | ID | Role | Ownership | Interval | Status |
 |----|------|-----------|----------|--------|
-| 01-ceo | CEO — Vision & Strategy | `docs/strategy/` | Every 3rd cycle | Active |
-| 02-cto | CTO — Architecture & Standards | `docs/architecture/` | Every 2nd cycle | Active |
+| 01-ceo | CEO — Vision & Strategy | `docs/strategy/` | Every 3rd cycle | STANDBY |
+| 02-cto | CTO — Architecture & Standards | `docs/architecture/` | Every 2nd cycle | STANDBY |
 | 03-pm | PM — Coordination & Tasks | `prompts/` `docs/` | Coordinator (runs LAST) | Active |
-| 06-backend | Backend Developer | `scripts/` `src/core/` `src/lib/` `benchmarks/` | Every cycle | Active — integration landed (d130de7) |
+| 06-backend | Backend Developer | `scripts/` `src/core/` `src/lib/` `benchmarks/` | Every cycle | Active |
 | 08-pixel | Pixel Agents Visualization | `src/pixel/` `pixel-agents/` | Every 2nd cycle | STANDBY |
-| 09-qa | QA Engineer | `tests/` `reports/` | Every 3rd cycle | Active |
-| 10-security | Security Auditor | `reports/` | Every 5th cycle | Active (read-only) |
-| 11-web | Web Developer — Landing & Docs | `site/` | Every cycle | STANDBY |
+| 09-qa | QA Engineer | `tests/` `reports/` | Every 3rd cycle | Active — ready for final regression |
+| 10-security | Security Auditor | `reports/` | Every 5th cycle | Active — ready for final sign-off |
+| 11-web | Web Developer — Landing & Docs | `site/` | Every cycle | Active |
 | 13-hr | HR & Team Culture | `docs/team/` `prompts/13-hr/` | Every 3rd cycle | Active |
 
 **Total active: 9 agents**
 
 ## Inactive / Not in agents.conf
 
-These prompt directories exist but have NO entry in `agents.conf`:
-
 | Directory | Likely Role | Status | Notes |
 |-----------|-------------|--------|-------|
 | `prompts/01-pm/` | Old PM location | Orphaned | PM moved to 03-pm. Safe to archive. |
-| `prompts/04-tauri-rust/` | Tauri Rust Backend | Not deployed | Listed in CLAUDE.md but not in agents.conf |
-| `prompts/05-tauri-ui/` | Tauri UI Frontend | Not deployed | Listed in CLAUDE.md but not in agents.conf |
-| `prompts/07-ios/` | iOS Companion App | Not deployed | Listed in CLAUDE.md but not in agents.conf |
-| `prompts/12-brand/` | Brand/Design | Not deployed | Not in CLAUDE.md agent list either |
+| `prompts/04-tauri-rust/` | Tauri Rust Backend | Planned | Activate after benchmark sprint (Phase 2) |
+| `prompts/05-tauri-ui/` | Tauri UI Frontend | Planned | Activate after benchmark sprint (Phase 2) |
+| `prompts/07-ios/` | iOS Companion App | Planned | Activate after Tauri scaffold stable (Phase 3) |
+| `prompts/12-brand/` | Brand/Design | Unresolved | Not in CLAUDE.md agent list. CEO has not commented. |
 
 ## Ownership Overlap Analysis
 
@@ -40,11 +38,9 @@ These prompt directories exist but have NO entry in `agents.conf`:
 
 2. **`docs/`** — PM owns `prompts/` and `docs/` broadly; CTO owns `docs/architecture/`; CEO owns `docs/strategy/`; HR owns `docs/team/`
    - Risk: LOW — subdirectory ownership is clear, PM's broad ownership acts as fallback
-   - Recommendation: PM ownership should be `prompts/ docs/` with explicit exclusions for CTO/CEO/HR subdirs if the orchestrator supports it
 
 3. **`prompts/`** — PM owns all of `prompts/`, HR owns `prompts/13-hr/`
-   - Risk: LOW — HR only writes to own subdirectory, PM updates all agent task sections
-   - This is by design (PM is coordinator)
+   - Risk: LOW — HR only writes to own subdirectory, PM is coordinator by design
 
 ### No Overlaps (Clean)
 - `scripts/`, `src/core/`, `src/lib/` — Backend only
