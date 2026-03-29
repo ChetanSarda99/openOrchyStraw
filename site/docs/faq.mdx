@@ -1,0 +1,50 @@
+---
+title: "FAQ"
+description: "Frequently asked questions about OrchyStraw."
+---
+
+<AccordionGroup>
+  <Accordion title="What is OrchyStraw?">
+    Multi-agent AI coding orchestration using markdown prompts and a bash script. You define agents, write their prompts, and the orchestrator runs them in parallel on your codebase. No framework, no dependencies.
+  </Accordion>
+
+  <Accordion title="Do I need to install anything?">
+    No package installs. You need **bash 5.0+** and **git**. macOS ships with bash 3.2, so you'll need `brew install bash` on Mac. Linux and WSL have bash 5.0+ by default. Then install your AI coding tool of choice (Claude Code, Codex, Gemini CLI, etc.).
+  </Accordion>
+
+  <Accordion title="How much does it cost?">
+    OrchyStraw itself is **free and open source** (MIT license). You pay for the AI tools you use — Claude Code, Codex, Gemini, etc. Token costs depend on your team size and cycle count. A typical 3-agent setup uses ~50K tokens per cycle.
+  </Accordion>
+
+  <Accordion title="Which AI models work?">
+    Any tool that accepts piped stdin. Tested with: Claude Code, Codex, Gemini CLI, Aider, Windsurf, Cursor, and ChatGPT. You can even mix models — use Claude for backend, Gemini for UI, Codex for code review.
+  </Accordion>
+
+  <Accordion title="How is this different from AutoGen, CrewAI, or MetaGPT?">
+    Three key differences:
+
+    1. **No dependencies** — OrchyStraw is bash + markdown. No Python runtime, no packages to install or break.
+    2. **Real coding agents** — OrchyStraw orchestrates actual coding tools (Claude Code, Codex) that can read files, run commands, and write code. AutoGen/CrewAI orchestrate chat LLMs.
+    3. **Parallel execution** — Workers run simultaneously, not sequentially. A 3-agent team is 3x faster than a sequential chain.
+  </Accordion>
+
+  <Accordion title="Can I add custom agents?">
+    Yes. Add a line to `agents.conf` with the agent's ID, prompt path, CLI command, file ownership, and run interval. Create a markdown prompt file. That's it — the orchestrator picks it up on the next cycle.
+  </Accordion>
+
+  <Accordion title="How do agents communicate?">
+    Via a shared markdown file (`context.md`). Agents read it at the start and append their status before finishing. This costs ~100 tokens per coordination — compared to ~5000 for agent-to-agent chat. See [Shared Context](/shared-context).
+  </Accordion>
+
+  <Accordion title="What if an agent writes to the wrong files?">
+    The orchestrator has **rogue write detection**. After agents finish, it scans all changes against ownership boundaries. Files outside an agent's ownership are discarded via `git checkout`. Protected files (the orchestrator itself, config, CLAUDE.md) are auto-restored.
+  </Accordion>
+
+  <Accordion title="Can I use this on an existing project?">
+    Yes. OrchyStraw doesn't impose any project structure on your source code. You add `scripts/`, `prompts/`, and `agents.conf` alongside your existing project. Agents work within the file boundaries you define.
+  </Accordion>
+
+  <Accordion title="What's the difference between OrchyStraw and openOrchyStraw?">
+    **openOrchyStraw** is the public open-source repo (MIT) — the coordination scaffold that anyone can use. **OrchyStraw** (private) adds the Tauri desktop app, Pixel Agents visualization, benchmarks, and proprietary improvements. The orchestrator core is the same in both.
+  </Accordion>
+</AccordionGroup>

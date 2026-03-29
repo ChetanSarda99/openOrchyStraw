@@ -1,0 +1,125 @@
+---
+title: "Shared Context"
+description: "How agents communicate without talking to each other."
+---
+
+## The problem
+
+Multi-agent systems need agents to communicate. The typical approach — agent-to-agent chat — is expensive (~5000 tokens per debate) and slow (sequential turn-taking).
+
+## The solution
+
+OrchyStraw uses a **shared markdown file** as a bulletin board. Agents read it at the start of their work, and append their status before finishing. Cost: ~100 tokens per coordination.
+
+```
+Backend appends: "Added POST /api/users endpoint"
+    ↓
+Frontend reads it → uses the endpoint
+    ↓
+QA reads it → tests the endpoint
+```
+
+No debate. No back-and-forth. Just facts on a board.
+
+## How it works
+
+### The file
+
+`prompts/00-shared-context/context.md` is reset at the start of each cycle with section headers:
+
+```markdown
+# Shared Context — Cycle 5
+> Agents: read before starting, append before finishing.
+
+## Usage
+- claude=0, codex=0, gemini=0
+
+## Backend Status
+- (fresh cycle)
+
+## Frontend Status
+- (fresh cycle)
+
+## QA Findings
+- (fresh cycle)
+
+## Blockers
+- (none)
+
+## Notes
+- (none)
+```
+
+### Agent workflow
+
+<Steps>
+  <Step title="Read at start">
+    Every agent reads shared context before doing any work. This tells them what other agents built or need.
+  </Step>
+  <Step title="Do work">
+    The agent completes its tasks, informed by what others have done.
+  </Step>
+  <Step title="Append before finishing">
+    The agent adds bullet points under the appropriate section describing what it built, changed, or needs.
+  </Step>
+</Steps>
+
+### Example entries
+
+```markdown
+## Backend Status
+- Added POST /api/notes/batch endpoint (accepts array of note IDs)
+- BREAKING: Changed API response format for /users — now wraps in `{ data: [...] }`
+- NEED: Frontend to update UserList component for new response format
+
+## Frontend Status
+- Updated UserList to use new /users response format
+- Added loading states to all API calls
+- NEED: GET /api/search endpoint from backend
+
+## QA Findings
+- BUG: POST /api/notes returns 500 when body is empty (no validation)
+- All 42 backend tests passing
+- Frontend build clean, no TypeScript errors
+```
+
+## Cross-cycle history
+
+The shared context resets every cycle, but nothing is lost. The orchestrator:
+
+1. **Archives** the old context as `context-cycle-N.md`
+2. **Injects progress trends** from `progress.json` into the fresh reset
+3. **Session tracker** (`SESSION_TRACKER.txt`) keeps a permanent changelog across all cycles
+
+Agents also receive the last 150 lines of the session tracker as part of their input, so they know what shipped in previous cycles.
+
+## Token-efficient filtering
+
+<Note>
+  Added in v0.2.0 — conditional activation and prompt compression reduce token waste.
+</Note>
+
+The orchestrator filters shared context before piping it to agents:
+
+- **Conditional activation** — agents only receive context sections relevant to their role
+- **Prompt compression** — redundant or stale information is trimmed
+- **Smart scheduling** — agents that don't need to run every cycle are skipped based on their interval setting
+
+This keeps per-agent token costs low even as the team grows.
+
+## The 99-me escalation file
+
+When an agent is blocked on something only a human can do, it appends to `prompts/99-me/99-actions.txt`:
+
+```markdown
+### P0: Enable GitHub Pages (blocking deploy)
+**From:** 11-web | **Added:** 2026-03-18
+
+1. Go to repo Settings → Pages
+2. Set Source to "GitHub Actions"
+3. Save
+
+**Why:** Agent cannot access repo settings.
+```
+
+The PM reviews this file each cycle and includes pending human actions in its coordination.
