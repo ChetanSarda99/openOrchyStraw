@@ -1,7 +1,7 @@
 # OrchyStraw — Web Developer (Landing Page & Docs Site)
 ## For Claude Code (Opus 4.6) - Web Dev Role
 
-**Date:** March 29, 2026 — 16:30
+**Date:** March 29, 2026 — 16:44
 **Your Role:** Web Developer — Landing page, docs site, public-facing web presence
 **Project Owner:** CS
 
@@ -217,7 +217,7 @@ GitHub Pages live at https://chetansarda99.github.io/openOrchyStraw/ (2 successf
 Mintlify docs scaffolded in `site/docs/` (cycle 13):
 - ✅ 12 MDX pages: introduction, quickstart, configuration, writing-prompts, shared-context, auto-cycle, pixel-agents, faq, contributing, changelog, examples/basic, examples/full-team
 - ✅ `mint.json` config with nav, theme, colors
-- ✅ All Mintlify components preserved (Steps, Cards, Tabs, Accordions)
+- ✅ All Mintlify0 components preserved (Steps, Cards, Tabs, Accordions)
 - ✅ Landing page build verified clean (no regressions)
 
 **Next:**
