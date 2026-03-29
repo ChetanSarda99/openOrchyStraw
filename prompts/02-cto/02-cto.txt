@@ -89,7 +89,7 @@ For now: maintain registry here, PM will propose migration when 2nd project star
 
 ---
 
-## What's DONE (Cycle 1–10)
+## What's DONE (Cycle 1–12)
 
 - ✅ 5 ADRs from cycle 1: UI-001, WEB-001, DOCS-001, STYLE-001, DB-001
 - ✅ BASH-001 ADR: Minimum bash 5.0, portable shebang (cycle 2)
@@ -108,9 +108,9 @@ For now: maintain registry here, PM will propose migration when 2nd project star
 - ✅ v0.2.0 ADRs: EXEC-001 (dependency execution + dynamic routing), REVIEW-001 (loop review), WORKTREE-001 (agent isolation), MODEL-001 (model tiering)
 - ✅ SMART-CYCLE-DESIGN.md reviewed and approved (3 open questions answered)
 - ✅ BUG-012 audit: expanded scope from 3 to 8 missing prompts
-- ✅ Cycle 4: Full review of dynamic-router.sh (36 tests) — APPROVED. EXEC-001 + MODEL-001 compliant.
-- ✅ Cycle 4: Full review of review-phase.sh (24 tests) — HOLD. BUG-017 critical (printf dash), RP-01 (verdict validation).
-- ✅ Cycle 4: Full review of config-validator.sh v2+ (10 tests) — APPROVED. v1→v2→v2+ backward compat confirmed.
+- ✅ Cycle 11: Full review of dynamic-router.sh (39 tests) — APPROVED. EXEC-001 + MODEL-001 compliant.
+- ✅ Cycle 11: Full review of review-phase.sh (24 tests) — HOLD. BUG-017 critical (printf dash), RP-01/02/03/04.
+- ✅ Cycle 11: Full review of config-validator.sh v2+ (10 tests) — APPROVED. v1→v2→v2+ backward compat confirmed.
 - ✅ Hardening spec updated with v0.2 module findings (7 new issues: BUG-017, DR-01/02, RP-01/02/03/04)
 
 ## Current Technical Priorities
@@ -131,10 +131,19 @@ For now: maintain registry here, PM will propose migration when 2nd project star
 ### Next CTO Tasks:
 4. ~~**v0.2.0 architecture planning**~~ — DONE. 4 ADRs written: EXEC-001, REVIEW-001, WORKTREE-001, MODEL-001
 5. ~~**BUG-012 review**~~ — DONE. Expanded: 8 prompts missing PROTECTED FILES (not 3)
-6. ~~**Review dynamic-router.sh + model tiering**~~ — DONE. APPROVED. 39 tests (BUG-014/015/016 fixed). DR-01/DR-02 medium issues logged.
-7. ~~**Review review-phase.sh**~~ — DONE. HOLD. BUG-017 critical (printf dash), RP-01 (verdict validation), RP-02 (missing Summary), RP-03 (no I/O checks), RP-04 (path traversal).
-8. ~~**Review config-validator.sh v2+ updates**~~ — DONE. APPROVED. v1→v2→v2+ backward compat confirmed. Production-ready.
-9. **Re-review review-phase.sh after backend fixes BUG-017 + RP-01** — Backend has these as next tasks. Re-review once fixed.
+6. ~~**Review dynamic-router.sh + model tiering**~~ — DONE. APPROVED. 41 tests (BUG-014/015/016 + DR-01/DR-02 fixed).
+7. ~~**Review review-phase.sh**~~ — DONE. HOLD. BUG-017 + RP-01/02/03/04 logged.
+8. ~~**Review config-validator.sh v2+ updates**~~ — DONE. APPROVED. Production-ready.
+9. **RE-REVIEW review-phase.sh — ALL CTO FINDINGS FIXED (cycle 12):**
+   - BUG-017 FIXED: printf leading-dash — added `--` to format strings
+   - RP-01 FIXED: verdict validation (only approve|request-changes|comment)
+   - RP-02 FIXED: `**Summary:**` field now output
+   - RP-03 FIXED: I/O error checks on mkdir + file writes
+   - RP-04 FIXED: path traversal rejection (rejects `..` in agent IDs)
+   - DR-01 FIXED: state file numeric validation (corrupted rows skipped)
+   - DR-02 FIXED: mkdir return code + file write error checks
+   - Tests: review-phase 36 (was 24), dynamic-router 41 (was 39). Full suite 13/13 PASS.
+   - **ACTION: Re-read src/core/review-phase.sh and lift HOLD if satisfied.**
 10. **Consolidate agents.conf** — P2, move to single file at root (v0.2)
 11. **Benchmark architecture** — Review SWE-bench scaffold design when backend builds it
 

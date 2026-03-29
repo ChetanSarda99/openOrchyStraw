@@ -214,6 +214,84 @@ reviewers_output=$(orch_review_get_reviewers)
 assert "T24: reviewers includes 09-qa" '[[ "$reviewers_output" == *"09-qa"* ]]'
 
 # ══════════════════════════════════════
+# Test 25: BUG-017 — printf with leading-dash format strings
+# ══════════════════════════════════════
+
+# orch_review_context should not fail when generating review template
+create_review_conf
+orch_review_init "$TMPDIR_TEST/agents-review.conf" "$TMPDIR_TEST/output"
+context_output=$(orch_review_context "09-qa" "06-backend" "$TMPDIR_TEST" 2>/dev/null || true)
+assert "T25: context output contains BLOCKING template" '[[ "$context_output" == *"[BLOCKING]"* ]]'
+
+# ══════════════════════════════════════
+# Test 26-27: RP-01 — Verdict validation
+# ══════════════════════════════════════
+
+_ORCH_REVIEW_CYCLE=5
+if orch_review_record "09-qa" "06-backend" "invalid-verdict" "" 2>/dev/null; then
+    echo "FAIL: T26 invalid verdict should be rejected"
+    (( FAIL++ )) || true
+else
+    (( PASS++ )) || true
+fi
+
+# Valid verdicts should still work
+orch_review_record "09-qa" "06-backend" "approve" "" 2>/dev/null
+assert "T27a: approve accepted" '[[ "${_ORCH_REVIEW_VERDICTS[09-qa|06-backend]}" == "approve" ]]'
+orch_review_record "09-qa" "06-backend" "request-changes" "" 2>/dev/null
+assert "T27b: request-changes accepted" '[[ "${_ORCH_REVIEW_VERDICTS[09-qa|06-backend]}" == "request-changes" ]]'
+orch_review_record "09-qa" "06-backend" "comment" "" 2>/dev/null
+assert "T27c: comment accepted" '[[ "${_ORCH_REVIEW_VERDICTS[09-qa|06-backend]}" == "comment" ]]'
+
+# ══════════════════════════════════════
+# Test 28: RP-02 — Summary field present
+# ══════════════════════════════════════
+
+_ORCH_REVIEW_VERDICTS=()
+orch_review_record "09-qa" "06-backend" "approve" ""
+summary_with_field=$(orch_review_summary || true)
+assert "T28a: summary contains Summary field" '[[ "$summary_with_field" == *"**Summary:**"* ]]'
+assert "T28b: all-approve shows ALL CLEAR" '[[ "$summary_with_field" == *"ALL CLEAR"* ]]'
+
+_ORCH_REVIEW_VERDICTS=()
+orch_review_record "09-qa" "06-backend" "request-changes" ""
+summary_attention=$(orch_review_summary || true)
+assert "T28c: request-changes shows NEEDS ATTENTION" '[[ "$summary_attention" == *"NEEDS ATTENTION"* ]]'
+
+_ORCH_REVIEW_VERDICTS=()
+summary_empty=$(orch_review_summary || true)
+assert "T28d: no reviews shows summary" '[[ "$summary_empty" == *"**Summary:**"* ]]'
+
+# ══════════════════════════════════════
+# Test 29-30: RP-04 — Path traversal rejected
+# ══════════════════════════════════════
+
+if orch_review_record "../evil" "06-backend" "approve" "" 2>/dev/null; then
+    echo "FAIL: T29 path traversal in reviewer should be rejected"
+    (( FAIL++ )) || true
+else
+    (( PASS++ )) || true
+fi
+
+if orch_review_record "09-qa" "../../etc" "approve" "" 2>/dev/null; then
+    echo "FAIL: T30 path traversal in target should be rejected"
+    (( FAIL++ )) || true
+else
+    (( PASS++ )) || true
+fi
+
+# ══════════════════════════════════════
+# Test 31: RP-04 — Path traversal rejected in orch_review_context
+# ══════════════════════════════════════
+
+if orch_review_context "../evil" "06-backend" "$TMPDIR_TEST" >/dev/null 2>&1; then
+    echo "FAIL: T31 path traversal in context reviewer should be rejected"
+    (( FAIL++ )) || true
+else
+    (( PASS++ )) || true
+fi
+
+# ══════════════════════════════════════
 # Results
 # ══════════════════════════════════════
 echo ""

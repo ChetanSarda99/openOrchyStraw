@@ -16,6 +16,38 @@
 | 9 | 2026-03-29 | 02,06,11,03 | v0.2.0 Phase 1: dynamic-router.sh (26 tests), 4 CTO ADRs, GitHub Pages deploy workflow |
 | 10 | 2026-03-29 | 01,06,09,11,13,03 | v0.2.0 Phase 2: review-phase.sh (24 tests), model tiering (10 tests), QA cycle 9 (BUG-014/015/016), SEO fixes |
 | 11 | 2026-03-29 | 02,06,03 | BUG-014/015/016 FIXED (39 tests), CTO reviewed 3 modules (2 APPROVED, 1 HOLD), 7 new issues logged |
+| 12 | 2026-03-29 | 06,10,03 | ALL CTO findings FIXED (BUG-017+RP-01/02/03/04+DR-01/02), Security cycle 9 audit, 77 tests total |
+
+---
+
+## WHAT SHIPPED — Cycle 12 (2026-03-29 16:20–16:40)
+
+### 06-Backend
+- BUG-017 FIXED: printf leading-dash in review-phase.sh — added `--` to format strings starting with `-`
+- RP-01 FIXED: verdict validation in orch_review_record — rejects invalid verdicts (only approve|request-changes|comment)
+- RP-02 FIXED: orch_review_summary now outputs `**Summary:**` field (ALL CLEAR / NEEDS ATTENTION / No reviews)
+- RP-03 FIXED: I/O error checks on mkdir + file writes in orch_review_record and orch_router_save_state
+- RP-04 FIXED: path traversal rejection in orch_review_record + orch_review_context (rejects `..` in agent IDs)
+- DR-01 FIXED: orch_router_load_state validates numeric fields — corrupted state rows are skipped
+- DR-02 FIXED: orch_router_save_state checks mkdir return code + file write errors
+- Tests: review-phase 36 pass (was 24), dynamic-router 41 pass (was 39). Full suite 13/13 PASS, zero regressions.
+- READY for CTO re-review of review-phase.sh — all CTO findings addressed
+
+### 10-Security
+- Cycle 9 audit: `prompts/10-security/reports/security-cycle-9.md` — CONDITIONAL PASS
+- dynamic-router.sh: APPROVED with DR-SEC-01 (LOW), DR-SEC-02 (MEDIUM — model override pass-through)
+- review-phase.sh: DEFERRED per CTO HOLD
+- config-validator.sh v2+: SECURE — no findings
+- Secrets scan: CLEAN. .gitignore: PASS. Supply chain: PASS. Ownership: PASS
+
+### 03-PM (this cycle)
+- Committed backend fixes (BUG-017, RP-01/02/03/04, DR-01/DR-02) and security report
+- Updated all agent prompts with cycle 12 status
+- CTO: assigned review-phase.sh re-review (all findings fixed)
+- QA: assigned verification of all fixes
+- Security: review-phase.sh review after CTO lifts HOLD
+- Session tracker updated
+- CS action items updated
 
 ---
 
@@ -393,7 +425,7 @@
 |-----------|------|--------|--------|
 | v0.1.0 | 0 blockers | #80,#81,#82,#91 closed | TAG-READY. QA PASS + Security FULL PASS. Only #25 (tag itself) remains. |
 | v0.1.1 | 3 items | 0 | BUG-013 (README Bash version), BUG-012 (PROTECTED FILES), `set -e` flag |
-| v0.2.0 | 2 items | 4 done | #40 DONE, #41 DONE, #43 DONE, #46 DONE. BUG-014/015/016 FIXED. review-phase.sh HOLD (BUG-017+RP-01/02/03/04). Remaining: #44 (worktree), review-phase fixes, CS integration |
+| v0.2.0 | 1 item | 6 done | #40/#41/#43/#46 DONE. BUG-014/015/016/017 FIXED. RP-01/02/03/04 FIXED. DR-01/DR-02 FIXED. CTO re-review pending. Remaining: #44 (worktree), CS integration |
 
 ## CODEBASE SIZE
 - `src/core/` modules: 13 bash files (8 v0.1.0 + 4 v0.2.0 + design doc)
@@ -403,15 +435,15 @@
 - Backend scripts: 13 shell files
 - Agent prompts: 9 active in agents.conf
 - Deploy workflows: 1 (.github/workflows/deploy-site.yml)
+- Total v0.2.0 tests: 77 (dynamic-router 41 + review-phase 36)
 
 ## NEXT CYCLE PRIORITIES
 1. **Tag v0.1.0** — All blockers cleared. Fix BUG-013, then tag. CEO says this is #1 risk.
-2. **06-backend:** Fix BUG-017 (printf dash in review-phase.sh) + RP-01 (verdict validation) — these block review-phase integration. Then DR-01/DR-02.
-3. **02-cto:** Re-review review-phase.sh after backend fixes BUG-017 + RP-01.
-4. **09-qa:** Verify BUG-014/015/016 fixes (39 tests). Review review-phase.sh once CTO lifts HOLD.
-5. **10-security:** Security review of dynamic-router.sh (CTO APPROVED). Wait for review-phase.sh fixes before reviewing.
-6. **CS: Integrate v0.2.0 modules** — dynamic-router.sh READY (CTO approved). signal-handler.sh + cycle-tracker.sh READY. review-phase.sh blocked on BUG-017 fix.
-7. **11-web:** Verify GitHub Pages deploy after merge to main. SEO fixes landed.
-8. **Benchmark sprint:** SWE-bench + Ralph comparison — starts after v0.1.0 tag
-9. After benchmarks: HN launch (only with receipts), activate 04-tauri-rust + 05-tauri-ui
-10. Post-benchmarks: Pixel Phase 2 after v0.2.0
+2. **02-cto:** Re-review review-phase.sh — ALL findings fixed (BUG-017, RP-01/02/03/04, DR-01/DR-02). Lift HOLD.
+3. **09-qa:** Verify all CTO finding fixes. Full test suite (review-phase 36, dynamic-router 41, full suite 13/13). Review security findings.
+4. **10-security:** Security review of review-phase.sh after CTO lifts HOLD.
+5. **CS: Integrate v0.2.0 modules** — ALL 4 modules READY: dynamic-router.sh (CTO approved), signal-handler.sh, cycle-tracker.sh, review-phase.sh (CTO re-review pending). Quote `orch_router_model` output per DR-SEC-02.
+6. **11-web:** Verify GitHub Pages deploy after merge to main.
+7. **Benchmark sprint:** SWE-bench + Ralph comparison — starts after v0.1.0 tag
+8. After benchmarks: HN launch (only with receipts), activate 04-tauri-rust + 05-tauri-ui
+9. Post-benchmarks: Pixel Phase 2 after v0.2.0
