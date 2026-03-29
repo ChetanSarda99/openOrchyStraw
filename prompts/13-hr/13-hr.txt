@@ -229,11 +229,16 @@ When advising PM on new agent prompts, ensure they follow this structure:
 - [x] BUG-014/015/016 ALL FIXED by 06-backend (cycle 11) — 39 tests pass
 - [x] CTO review complete: dynamic-router.sh APPROVED, review-phase.sh HOLD (BUG-017), config-validator APPROVED
 
-### Current (Cycle 12 — review-phase.sh Fixes + Integration)
-- [ ] Track BUG-017 + RP-01/02/03/04 fixes by 06-backend (review-phase.sh)
-- [ ] Track DR-01/DR-02 fixes by 06-backend (dynamic-router.sh)
+### Done (Cycle 12)
+- [x] BUG-017 + RP-01/02/03/04 ALL FIXED by 06-backend — review-phase.sh now 36 tests
+- [x] DR-01/DR-02 ALL FIXED by 06-backend — dynamic-router.sh now 41 tests
+- [x] Security cycle 9: dynamic-router APPROVED, config-validator SECURE
+
+### Current (Cycle 13 — CTO Re-Review + Integration)
+- [ ] Track CTO re-review of review-phase.sh — all findings addressed, expecting APPROVED
 - [ ] Track BUG-012 completion — 5 prompts still missing PROTECTED FILES (01-ceo, 02-cto, 03-pm, 10-security, 13-hr)
 - [ ] Monitor v0.2.0 integration progress (CS must integrate 4 modules into auto-agent.sh)
+- [ ] Track security review of review-phase.sh (after CTO lifts HOLD)
 - [ ] Recommend reactivating 04-tauri-rust + 05-tauri-ui after benchmark sprint
 - [ ] Post-benchmark: prepare onboarding for 04-tauri-rust + 05-tauri-ui reactivation
-- [ ] Next team health review: Cycle 13
+- [ ] Next team health review: Cycle 14
