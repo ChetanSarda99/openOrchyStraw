@@ -395,7 +395,10 @@ orch_router_update() {
 orch_router_save_state() {
     local state_file="${1:?orch_router_save_state: state_file required}"
 
-    mkdir -p "$(dirname "$state_file")"
+    if ! mkdir -p "$(dirname "$state_file")"; then
+        _orch_router_log ERROR "Failed to create state directory for: $state_file"
+        return 1
+    fi
 
     {
         printf '# dynamic-router state — %s\n' "$(date '+%Y-%m-%d %H:%M:%S')"
@@ -407,7 +410,10 @@ orch_router_save_state() {
                 "${_ORCH_ROUTER_EFF_INTERVAL[$id]:-${_ORCH_ROUTER_INTERVAL[$id]:-1}}" \
                 "${_ORCH_ROUTER_CONSEC_EMPTY[$id]:-0}"
         done
-    } > "$state_file"
+    } > "$state_file" || {
+        _orch_router_log ERROR "Failed to write state file: $state_file"
+        return 1
+    }
 }
 
 # orch_router_load_state <state_file>
@@ -425,6 +431,11 @@ orch_router_load_state() {
 
         # Only restore state for agents we know about
         [[ -z "${_ORCH_ROUTER_INTERVAL[$id]+x}" ]] && continue
+
+        # DR-01: validate numeric fields before restoring
+        [[ ! "$last_run" =~ ^[0-9]+$ ]] && continue
+        [[ ! "$eff_interval" =~ ^[0-9]+$ ]] && continue
+        [[ ! "$consec_empty" =~ ^[0-9]+$ ]] && continue
 
         _ORCH_ROUTER_LAST_RUN["$id"]="$last_run"
         _ORCH_ROUTER_LAST_OUTCOME["$id"]="$last_outcome"

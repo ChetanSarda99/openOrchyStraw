@@ -339,4 +339,35 @@ unk_group0=$(echo "$groups_unk" | head -1)
 unk_group1=$(echo "$groups_unk" | sed -n '2p')
 [[ "$unk_group1" == "09-qa" ]] || { echo "FAIL: T39c group1 should be qa, got '$unk_group1'"; exit 1; }
 
-echo "test-dynamic-router.sh: ALL PASS (39 tests)"
+# ══════════════════════════════════════
+# Test 40: DR-01 — Corrupted state file fields are skipped
+# ══════════════════════════════════════
+create_v2_conf
+orch_router_init "$TMPDIR_TEST/agents-v2.conf"
+cat > "$TMPDIR_TEST/router-corrupt.txt" << 'EOF'
+# corrupted state
+06-backend|abc|success|1|0
+09-qa|3|success|xyz|0
+08-pixel|2|success|2|not-a-number
+02-cto|1|success|2|0
+EOF
+orch_router_load_state "$TMPDIR_TEST/router-corrupt.txt"
+# 06-backend has non-numeric last_run → skipped, should still be default 0
+[[ "${_ORCH_ROUTER_LAST_RUN[06-backend]}" == "0" ]] || { echo "FAIL: T40a corrupted last_run should be skipped, got '${_ORCH_ROUTER_LAST_RUN[06-backend]}'"; exit 1; }
+# 09-qa has non-numeric eff_interval → skipped
+[[ "${_ORCH_ROUTER_EFF_INTERVAL[09-qa]}" == "3" ]] || { echo "FAIL: T40b corrupted eff_interval should be skipped"; exit 1; }
+# 08-pixel has non-numeric consec_empty → skipped
+[[ "${_ORCH_ROUTER_CONSEC_EMPTY[08-pixel]}" == "0" ]] || { echo "FAIL: T40c corrupted consec_empty should be skipped"; exit 1; }
+# 02-cto has valid data → should be restored
+[[ "${_ORCH_ROUTER_LAST_RUN[02-cto]}" == "1" ]] || { echo "FAIL: T40d valid entry should be restored"; exit 1; }
+
+# ══════════════════════════════════════
+# Test 41: DR-02 — Save state write succeeds
+# ══════════════════════════════════════
+create_v2_conf
+orch_router_init "$TMPDIR_TEST/agents-v2.conf"
+orch_router_update "06-backend" "success" 5
+orch_router_save_state "$TMPDIR_TEST/dr02-state/nested/state.txt"
+[[ -f "$TMPDIR_TEST/dr02-state/nested/state.txt" ]] || { echo "FAIL: T41 nested state file not created"; exit 1; }
+
+echo "test-dynamic-router.sh: ALL PASS (41 tests)"
