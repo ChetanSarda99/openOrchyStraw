@@ -17,6 +17,60 @@
 | 10 | 2026-03-29 | 01,06,09,11,13,03 | v0.2.0 Phase 2: review-phase.sh (24 tests), model tiering (10 tests), QA cycle 9 (BUG-014/015/016), SEO fixes |
 | 11 | 2026-03-29 | 02,06,03 | BUG-014/015/016 FIXED (39 tests), CTO reviewed 3 modules (2 APPROVED, 1 HOLD), 7 new issues logged |
 | 12 | 2026-03-29 | 06,10,03 | ALL CTO findings FIXED (BUG-017+RP-01/02/03/04+DR-01/02), Security cycle 9 audit, 77 tests total |
+| 13 | 2026-03-29 | 01,02,06,09,11,13,03 | worktree.sh (48 tests), CTO HOLD LIFTED, QA PASS, Mintlify docs (12 pages), CEO "Ship the Damn Thing", 148 total v0.2 tests |
+
+---
+
+## WHAT SHIPPED — Cycle 13 (2026-03-29 16:40–17:00)
+
+### 06-Backend
+- `src/core/worktree.sh` — Git worktree isolation per agent (#44, WORKTREE-001 ADR)
+  - 8 public functions: init, enabled, create, path, branch, merge, cleanup, list
+  - Path traversal validation, stale worktree recovery, merge conflict detection
+  - Opt-in via `ORCH_WORKTREE=true` + `--worktree` flag (backward compatible)
+- `tests/core/test-worktree.sh` — 48 tests using real temp git repos, ALL PASS
+- `INTEGRATION-GUIDE.md` updated with Steps 8-11 for v0.2.0 module integration
+- NOTE: ADR deviation — WORKTREE-001 said inline, backend built as module. CTO review needed.
+
+### 01-CEO
+- Cycle 13 strategic update: `docs/strategy/CYCLE-13-CEO-UPDATE.md` — "Ship the Damn Thing"
+- Decision: Tag v0.1.0 AND v0.2.0 same week for stronger HN launch narrative
+- 90 total tests, zero failures. Competitive window narrowing.
+- 🚨 FOUNDER ACTION: `git tag v0.1.0 && git push --tags`
+
+### 02-CTO
+- RE-REVIEWED review-phase.sh — HOLD LIFTED. All 5 findings verified fixed. 36 tests PASS. APPROVED for v0.2.
+- Hardening spec updated — both v0.2 modules now APPROVED
+- Full test suite: 13/13 PASS (77 v0.2 tests)
+- All v0.2 modules ready for CS integration
+
+### 11-Web
+- Mintlify docs site scaffolded — `site/docs/` with 12 MDX pages + `mint.json`
+  - Pages: introduction, quickstart, configuration, writing-prompts, shared-context, auto-cycle, pixel-agents, faq, contributing, changelog, examples/basic, examples/full-team
+  - All Mintlify components preserved (Steps, Cards, Tabs, Accordions)
+- Landing page build verified clean (no regressions)
+- GitHub Pages deploy CONFIRMED LIVE at https://chetansarda99.github.io/openOrchyStraw/
+
+### 09-QA
+- Cycle 10 QA report: `prompts/09-qa/reports/qa-cycle-10.md` — **PASS**
+- All CTO findings verified fixed (BUG-017, RP-01/02/03/04, DR-01/DR-02)
+- 77/77 tests pass, 13/13 test files PASS, 0 regressions
+- review-phase.sh CTO HOLD LIFTED confirmed, QA PASS granted
+- BUG-013 STILL OPEN (non-blocking)
+
+### 13-HR
+- Cycle 13 team health report: `prompts/13-hr/team-health.md`
+- 06-backend: team MVP — 9 issues fixed in cycles 11-12, tests 24→77
+- BUG-012 escalated to P0: 5/9 agents missing PROTECTED FILES
+- Team roster updated: `docs/team/TEAM_ROSTER.md`
+
+### 03-PM (this cycle)
+- Committed backend worktree module (worktree.sh + 48 tests + integration guide)
+- Committed QA cycle 10 report
+- Committed shared context + CEO/CTO prompt updates
+- Updated all 8 agent prompts with cycle 13 status
+- Session tracker updated
+- CS action items updated
 
 ---
 
@@ -425,25 +479,26 @@
 |-----------|------|--------|--------|
 | v0.1.0 | 0 blockers | #80,#81,#82,#91 closed | TAG-READY. QA PASS + Security FULL PASS. Only #25 (tag itself) remains. |
 | v0.1.1 | 3 items | 0 | BUG-013 (README Bash version), BUG-012 (PROTECTED FILES), `set -e` flag |
-| v0.2.0 | 1 item | 6 done | #40/#41/#43/#46 DONE. BUG-014/015/016/017 FIXED. RP-01/02/03/04 FIXED. DR-01/DR-02 FIXED. CTO re-review pending. Remaining: #44 (worktree), CS integration |
+| v0.2.0 | 0 code items | 7 done | ALL modules DONE: #40/#41/#43/#44/#46. ALL bugs FIXED. CTO APPROVED all. Remaining: security review (review-phase + worktree), CS integration of 5 modules |
 
 ## CODEBASE SIZE
-- `src/core/` modules: 13 bash files (8 v0.1.0 + 4 v0.2.0 + design doc)
+- `src/core/` modules: 14 bash files (8 v0.1.0 + 5 v0.2.0 + design doc)
 - `src/pixel/` files: 3 (emitter + test + integration guide)
-- `tests/core/` files: 13 (11 unit tests + runner + integration test)
-- `site/` files: ~16,122 TS/TSX/JS (Next.js project)
-- Backend scripts: 13 shell files
+- `tests/core/` files: 14 (12 unit tests + runner + integration test)
+- `site/` files: ~16,122 TS/TSX/JS (Next.js project) + 13 MDX docs pages
+- Backend scripts: 14 shell files
 - Agent prompts: 9 active in agents.conf
 - Deploy workflows: 1 (.github/workflows/deploy-site.yml)
-- Total v0.2.0 tests: 77 (dynamic-router 41 + review-phase 36)
+- Total v0.2.0 tests: 148 (dynamic-router 41 + review-phase 36 + worktree 48 + signal 9 + cycle-tracker 14)
 
 ## NEXT CYCLE PRIORITIES
-1. **Tag v0.1.0** — All blockers cleared. Fix BUG-013, then tag. CEO says this is #1 risk.
-2. **02-cto:** Re-review review-phase.sh — ALL findings fixed (BUG-017, RP-01/02/03/04, DR-01/DR-02). Lift HOLD.
-3. **09-qa:** Verify all CTO finding fixes. Full test suite (review-phase 36, dynamic-router 41, full suite 13/13). Review security findings.
-4. **10-security:** Security review of review-phase.sh after CTO lifts HOLD.
-5. **CS: Integrate v0.2.0 modules** — ALL 4 modules READY: dynamic-router.sh (CTO approved), signal-handler.sh, cycle-tracker.sh, review-phase.sh (CTO re-review pending). Quote `orch_router_model` output per DR-SEC-02.
-6. **11-web:** Verify GitHub Pages deploy after merge to main.
-7. **Benchmark sprint:** SWE-bench + Ralph comparison — starts after v0.1.0 tag
-8. After benchmarks: HN launch (only with receipts), activate 04-tauri-rust + 05-tauri-ui
-9. Post-benchmarks: Pixel Phase 2 after v0.2.0
+1. **Tag v0.1.0** — All blockers cleared for 7+ cycles. Fix BUG-013, then tag. CEO says this is #1 strategic risk.
+2. **02-cto:** Review worktree.sh — ADR deviation (module vs inline). Accept or require change.
+3. **10-security:** Security review of review-phase.sh (CTO HOLD now lifted) + worktree.sh (new module).
+4. **09-qa:** QA review of worktree.sh (48 tests). Post-integration regression test.
+5. **CS: Integrate v0.2.0 modules** — ALL 5 modules READY: dynamic-router.sh, signal-handler.sh, cycle-tracker.sh, review-phase.sh, worktree.sh. Quote `orch_router_model` output per DR-SEC-02.
+6. **CS: Connect Mintlify to GitHub** — for auto-deploy of docs site from `site/docs/`
+7. **06-backend:** Start #47 prompt compression + #48 conditional activation
+8. **Benchmark sprint:** SWE-bench + Ralph comparison — starts after v0.1.0 tag
+9. After benchmarks: HN launch (only with receipts), activate 04-tauri-rust + 05-tauri-ui
+10. Post-benchmarks: Pixel Phase 2 after v0.2.0

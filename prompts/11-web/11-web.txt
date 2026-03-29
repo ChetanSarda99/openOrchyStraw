@@ -210,18 +210,21 @@ After any integration: append to `docs/tech-registry/registry.md`.
 
 ## Current Tasks
 
-### Deploy is READY — awaiting merge to main (#39)
-GitHub Pages workflow configured. Deploy will auto-trigger when cycle merges to main.
-After deploy confirms, verify the live site at https://chetansarda99.github.io/openOrchyStraw/.
+### Deploy CONFIRMED LIVE ✅
+GitHub Pages live at https://chetansarda99.github.io/openOrchyStraw/ (2 successful runs).
 
-**Priority 1:** Verify deploy succeeded after merge. Fix any build issues if deploy fails.
-**Priority 2:** Begin Phase 2 docs site work after deploy confirmed.
+### Phase 2 — Docs Site (Mintlify) — IN PROGRESS
+Mintlify docs scaffolded in `site/docs/` (cycle 13):
+- ✅ 12 MDX pages: introduction, quickstart, configuration, writing-prompts, shared-context, auto-cycle, pixel-agents, faq, contributing, changelog, examples/basic, examples/full-team
+- ✅ `mint.json` config with nav, theme, colors
+- ✅ All Mintlify components preserved (Steps, Cards, Tabs, Accordions)
+- ✅ Landing page build verified clean (no regressions)
 
-### Phase 2 — Docs Site
-1. Set up docs layout with sidebar nav
-2. Port content from openOrchyStraw docs
-3. Add search (Pagefind or similar)
-4. Add code copy buttons
+**Next:**
+1. **CS needs to connect Mintlify to GitHub** for auto-deploy from `site/docs/`
+2. Polish MDX content — ensure all code examples are current with v0.1.0
+3. Add search integration via Mintlify built-in
+4. Add logo/branding when assets are ready
 
 ### Phase 3 — Polish
 1. Terminal animation in hero (asciinema or CSS)

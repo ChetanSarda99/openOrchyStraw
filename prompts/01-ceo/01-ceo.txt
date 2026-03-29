@@ -85,6 +85,13 @@ Multi-agent AI coding orchestration. Markdown prompts + bash script. No framewor
 - ✅ 77 v0.2.0 tests + 13 v0.1.0 suite = 90 tests, zero failures
 - ✅ Cycle 13 update: `docs/strategy/CYCLE-13-CEO-UPDATE.md` — "Ship the Damn Thing"
 
+## What's DONE (Cycle 13)
+
+- ✅ Cycle 13 update: `docs/strategy/CYCLE-13-CEO-UPDATE.md` — "Ship the Damn Thing"
+- ✅ Decision: Tag v0.1.0 AND v0.2.0 same week for stronger HN launch narrative
+- ✅ 90 total tests (77 v0.2.0 + 13 v0.1.0), zero failures
+- ✅ Competitive window narrowing identified as key risk
+
 ## Your Tasks Each Session
 
 1. Read `prompts/00-shared-context/context.md` for team status

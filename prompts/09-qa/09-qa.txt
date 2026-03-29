@@ -156,21 +156,21 @@ When a pattern WORKS well (tested, clean, reusable):
 All P0 blockers verified fixed. 11/11 tests pass. Release sign-off granted.
 BUG-013 (README Bash version) is non-blocking — quick fix before or after tag.
 
+### v0.2.0 — QA PASS ✅ (Cycle 13)
+- ✅ All CTO findings verified fixed: BUG-017, RP-01/02/03/04, DR-01/DR-02
+- ✅ 77/77 tests pass (dynamic-router 41, review-phase 36)
+- ✅ 13/13 test files PASS, 0 regressions
+- ✅ All 12 modules pass `bash -n` syntax check
+- ✅ review-phase.sh CTO HOLD LIFTED, QA PASS granted
+- ✅ Security findings DR-SEC-02 acceptable
+- Report: `prompts/09-qa/reports/qa-cycle-10.md`
+
 ### Next QA Priorities
-1. **v0.2.0 QA — verify ALL CTO findings fixed (cycle 12)** — Backend fixed BUG-017, RP-01/02/03/04, DR-01/DR-02. Run full suite:
-   - review-phase.sh: 36 tests (was 24) — verify new tests cover CTO findings
-   - dynamic-router.sh: 41 tests (was 39) — verify state validation + error checks
-   - Full suite 13/13 — confirm zero regressions
-   - Specifically test: verdict validation rejects bad input, path traversal blocked, I/O errors handled, printf dash fixed
-2. **v0.2.0 QA — review-phase.sh deep review** — CTO will re-review and (hopefully) lift HOLD. Once APPROVED, do full QA:
-   - Cost guard at 50% threshold correctness
-   - Review record persistence + edge cases
-   - Summary output format
-   - Integration with existing modules
-3. **v0.2.0 QA — security findings** — Security cycle 9 found DR-SEC-01 (LOW) and DR-SEC-02 (MEDIUM, model override pass-through). Verify these are acceptable.
-4. **v0.1.1 QA pass** — Verify BUG-013 fix, BUG-012 PROTECTED FILES, `set -e` addition
-5. **Landing page QA** — Verify live site after merge to main.
-6. **Benchmark QA** — Verify SWE-bench scaffold when backend builds it
+1. **worktree.sh QA review** — New module (48 tests). Verify test coverage, review deviation from WORKTREE-001 ADR (module vs inline).
+2. **v0.1.1 QA pass** — Verify BUG-013 fix, BUG-012 PROTECTED FILES, `set -e` addition
+3. **Landing page QA** — Verify live site after merge to main + Mintlify docs site review
+4. **Benchmark QA** — Verify SWE-bench scaffold when backend builds it
+5. **Post-integration QA** — After CS integrates v0.2.0 modules into auto-agent.sh, full regression test
 
 ---
 
