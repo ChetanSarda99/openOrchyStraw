@@ -27,12 +27,14 @@
 - [ ] **Integrate dynamic-router.sh into auto-agent.sh** — 41 tests pass, **CTO APPROVED**. DR-01/DR-02 FIXED. READY. Also needs columns 6-9 parsing + --model flag per CTO. **Quote `orch_router_model` output per DR-SEC-02.**
 - [ ] **Integrate signal-handler.sh into auto-agent.sh** — Built + tested (9 tests). Replace existing signal handling. READY.
 - [ ] **Integrate cycle-tracker.sh into auto-agent.sh** — Built + tested (14 tests). Smart empty cycle detection. READY.
-- [ ] **Integrate review-phase.sh into auto-agent.sh** — Built + tested (36 tests). ALL CTO findings FIXED (BUG-017, RP-01/02/03/04). CTO re-review pending — expected APPROVED. NEARLY READY.
+- [ ] **Integrate review-phase.sh into auto-agent.sh** — Built + tested (36 tests). ALL CTO findings FIXED. **CTO APPROVED** (HOLD lifted cycle 13). READY.
+- [ ] **Integrate worktree.sh into auto-agent.sh** — Built + tested (48 tests). See INTEGRATION-GUIDE.md Steps 8-11. CTO review of ADR deviation pending but module is functionally ready.
 
 ### P1 — After v0.1.0 Tag
+- [ ] **Connect Mintlify to GitHub** — 11-Web scaffolded docs site in `site/docs/` (12 MDX pages + mint.json). CS needs to connect Mintlify for auto-deploy.
 - [ ] **Update CLAUDE.md** — Lists 11 agents and paths (src-tauri/, ios/) that don't exist yet. Align with reality.
 - [ ] **Logo/branding assets** — Web agent needs logo in `assets/branding/` (currently text-only)
-- [ ] **Verify GitHub Pages deploy** — Workflow configured at `.github/workflows/deploy-site.yml`. Deploy auto-triggers on push to main touching `site/`. Check https://chetansarda99.github.io/openOrchyStraw/ after merge.
+- [x] **Verify GitHub Pages deploy** — CONFIRMED LIVE at https://chetansarda99.github.io/openOrchyStraw/ (2 successful runs)
 
 ### P2 — After Benchmarks
 - [ ] **Remove orphaned `prompts/01-pm/` directory (BUG-008)** — Old directory from before PM moved to 03-pm
