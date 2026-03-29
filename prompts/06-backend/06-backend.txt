@@ -153,12 +153,23 @@ Phase 1 DONE: `dynamic-router.sh` built + 26 tests pass. CTO ADR EXEC-001 codifi
 - ~~#40 Loop review & critique~~ — DONE: `review-phase.sh` built + 24 tests PASS (per REVIEW-001 ADR)
 - ~~#46 Model tiering~~ — DONE: `dynamic-router.sh` model functions + 10 tests PASS (per MODEL-001 ADR)
 
-**Next — Fix QA-reported bugs, then Phase 2+:**
-1. **BUG-014 (HIGH): Duplicate dependencies inflate in-degree** — Deduplicate `depends_on` after parsing in `orch_router_has_cycle` and `orch_router_groups`. Add test case.
-2. **BUG-015 (MEDIUM): Non-numeric priority not validated** — Default non-numeric priority to 5 in `orch_router_init`. Add test case.
-3. **BUG-016 (MEDIUM): Unknown agent in depends_on silently ignored** — Emit `_orch_router_log WARN` when dep not found. Add test case.
-4. **#44 Git worktree isolation** — Each agent gets isolated worktree (per WORKTREE-001 ADR, deferred to Phase 2+)
-5. **Integrate v0.2.0 modules into auto-agent.sh** — CS must integrate: dynamic-router.sh, signal-handler.sh, cycle-tracker.sh, review-phase.sh (protected file)
+**Bug fixes DONE (cycle 11):**
+- ~~BUG-014 (HIGH): Duplicate deps inflate in-degree~~ — FIXED: deduplicated dep_list in orch_router_has_cycle + orch_router_groups
+- ~~BUG-015 (MEDIUM): Non-numeric priority not validated~~ — FIXED: defaults to 5 in orch_router_init
+- ~~BUG-016 (MEDIUM): Unknown agent in depends_on silently ignored~~ — FIXED: WARN log emitted
+- 3 new tests (T37-T39) added, 39 total, ALL PASS
+- CTO APPROVED dynamic-router.sh (EXEC-001 + MODEL-001 compliant). Medium issues DR-01/DR-02 logged for later.
+
+**Next — Fix review-phase.sh CTO findings, then Phase 2+:**
+1. **BUG-017 CRITICAL: printf leading-dash breaks orch_review_context()** — CTO found. `printf "$verdict"` fails if verdict starts with `-`. Fix with `printf '%s' "$verdict"` or `printf -- "$verdict"`.
+2. **RP-01: No verdict validation** — orch_review_record accepts any string. Validate against allowed values (PASS/FAIL/RETRY).
+3. **RP-02: Missing Summary field** — orch_review_summary doesn't output a summary line. Add one.
+4. **RP-03: No I/O error checks** — File write failures silently ignored. Add error checks.
+5. **RP-04: Path traversal** — Review directory operations don't validate paths. Sanitize.
+6. **DR-01: State validation** — dynamic-router.sh doesn't validate loaded state file. Add checks before v0.2 tag.
+7. **DR-02: mkdir error check** — mkdir -p in dynamic-router.sh doesn't check return code.
+8. **#44 Git worktree isolation** — Each agent gets isolated worktree (per WORKTREE-001 ADR, deferred to Phase 2+)
+9. **Integrate v0.2.0 modules into auto-agent.sh** — CS must integrate: dynamic-router.sh, signal-handler.sh, cycle-tracker.sh, review-phase.sh (protected file)
 
 ---
 
