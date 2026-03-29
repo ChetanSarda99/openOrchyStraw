@@ -25,8 +25,14 @@ readonly _ORCH_CONFIG_VALIDATOR_LOADED=1
 # Accumulates error messages across the current validation run.
 declare -a _ORCH_CONFIG_ERRORS=()
 
+# Warning messages (non-fatal, e.g. unknown model names).
+declare -a _ORCH_CONFIG_WARNINGS=()
+
 # Minimum prompt length enforced by auto-agent.sh run_agent().
 readonly _ORCH_MIN_PROMPT_LINES=30
+
+# Valid model names per MODEL-001 ADR.
+readonly -a _ORCH_VALID_MODEL_NAMES=(opus sonnet haiku)
 
 # ---------------------------------------------------------------------------
 # Internal helpers
@@ -40,10 +46,19 @@ _orch_cv_error() {
     printf '[config-validator] ERROR: %s\n' "$msg" >&2
 }
 
+# _orch_cv_warn <message>
+#   Append a warning message and print to stderr. Warnings don't fail validation.
+_orch_cv_warn() {
+    local msg="$1"
+    _ORCH_CONFIG_WARNINGS+=("$msg")
+    printf '[config-validator] WARN: %s\n' "$msg" >&2
+}
+
 # _orch_cv_reset
-#   Clear the error array before a new validation run.
+#   Clear the error and warning arrays before a new validation run.
 _orch_cv_reset() {
     _ORCH_CONFIG_ERRORS=()
+    _ORCH_CONFIG_WARNINGS=()
 }
 
 # _orch_cv_trim <string>
@@ -102,12 +117,13 @@ orch_validate_prompt() {
 #
 # Full validation of an agents.conf file. Checks in order:
 #   1. File exists and is readable
-#   2. Each non-comment line has exactly 5 pipe-separated fields
+#   2. Each non-comment line has 5, 8, or 9 pipe-separated fields
 #   3. Agent IDs are non-empty and unique
 #   4. Prompt paths point to existing files
 #   5. Interval is a non-negative integer
 #   6. Exactly one coordinator (interval=0)
 #   7. No empty labels
+#   8. Model values (col 9) are valid names (warn-only per MODEL-001)
 #
 # Returns 0 if all checks pass, 1 if any errors were found.
 # All errors are collected in _ORCH_CONFIG_ERRORS and printed to stderr.
@@ -151,26 +167,26 @@ orch_validate_config() {
         trimmed_line=$(_orch_cv_trim "$raw_line")
         [[ "$trimmed_line" == \#* ]] && continue
 
-        # ── Check 2: exactly 5 pipe-separated fields ─────────────────────────
-        # Count the number of pipe characters; 4 pipes = 5 fields.
+        # ── Check 2: 5, 8, or 9 pipe-separated fields (v1, v2, v2+model) ──
         local pipe_count
         pipe_count=$(printf '%s' "$raw_line" | tr -cd '|' | wc -c)
         pipe_count=$(_orch_cv_trim "$pipe_count")
 
-        if [[ "$pipe_count" -ne 4 ]]; then
-            _orch_cv_error "line $lineno: expected 5 pipe-separated fields, found $(( pipe_count + 1 )) — '$trimmed_line'"
+        if [[ "$pipe_count" -ne 4 && "$pipe_count" -ne 7 && "$pipe_count" -ne 8 ]]; then
+            _orch_cv_error "line $lineno: expected 5, 8, or 9 pipe-separated fields, found $(( pipe_count + 1 )) — '$trimmed_line'"
             continue
         fi
 
-        # Split into fields using IFS='|' read
-        local f_id f_prompt f_ownership f_interval f_label
-        IFS='|' read -r f_id f_prompt f_ownership f_interval f_label <<< "$raw_line"
+        # Split into fields (up to 9 columns)
+        local f_id f_prompt f_ownership f_interval f_label f_priority f_depends f_reviews f_model
+        IFS='|' read -r f_id f_prompt f_ownership f_interval f_label f_priority f_depends f_reviews f_model <<< "$raw_line"
 
         f_id=$(_orch_cv_trim "$f_id")
         f_prompt=$(_orch_cv_trim "$f_prompt")
         f_ownership=$(_orch_cv_trim "$f_ownership")
         f_interval=$(_orch_cv_trim "$f_interval")
         f_label=$(_orch_cv_trim "$f_label")
+        f_model=$(_orch_cv_trim "${f_model:-}")
 
         # ── Check 3: non-empty agent ID ──────────────────────────────────────
         if [[ -z "$f_id" ]]; then
@@ -224,6 +240,20 @@ orch_validate_config() {
             _orch_cv_error "line $lineno [$f_id]: label is empty"
         fi
 
+        # ── Check 8: model value (warn-only per MODEL-001) ───────────────────
+        if [[ -n "$f_model" && "$f_model" != "none" ]]; then
+            local model_valid=false
+            for valid_model in "${_ORCH_VALID_MODEL_NAMES[@]}"; do
+                if [[ "$f_model" == "$valid_model" ]]; then
+                    model_valid=true
+                    break
+                fi
+            done
+            if [[ "$model_valid" == "false" ]]; then
+                _orch_cv_warn "line $lineno [$f_id]: unknown model '$f_model' (expected: opus, sonnet, haiku)"
+            fi
+        fi
+
     done < "$conf_file"
 
     # ── Check 6: exactly one coordinator ────────────────────────────────────
@@ -247,4 +277,13 @@ orch_validate_config() {
 # ---------------------------------------------------------------------------
 orch_config_error_count() {
     printf '%s\n' "${#_ORCH_CONFIG_ERRORS[@]}"
+}
+
+# ---------------------------------------------------------------------------
+# orch_config_warning_count
+#
+# Print the number of warnings recorded by the most recent validation run.
+# ---------------------------------------------------------------------------
+orch_config_warning_count() {
+    printf '%s\n' "${#_ORCH_CONFIG_WARNINGS[@]}"
 }
