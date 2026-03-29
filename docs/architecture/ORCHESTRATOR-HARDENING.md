@@ -327,6 +327,7 @@ Cosmetic note: `node_modules/` appears twice in root .gitignore (lines 16 and 21
 | **P2** | src/ overlap detection | 06-backend | FUTURE (v0.5) |
 | **P2** | Consolidate to single agents.conf | CS | Deferred — both synced, low priority |
 | **P2** | .gitignore duplicate `node_modules/` | CS | Cosmetic — lines 16 and 21 both ignore node_modules |
+| **P2** | BUG-012: PROTECTED FILES missing from 8 prompts | PM | 01-ceo, 03-pm, 04-tauri-rust, 05-tauri-ui, 07-ios, 10-security, 12-brand, 13-hr |
 
 ## v0.1 Release Status
 
