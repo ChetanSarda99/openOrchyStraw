@@ -200,15 +200,16 @@ Use the **Edit tool** to modify ONLY:
 - [ ] #25 Release tag — READY TO TAG. BUG-013 (README Bash version) is non-blocking.
 
 ### v0.2.0 — Smart Cycle System (self-improvement sprint)
-- [~] #40 Loop review & critique — design doc written, implementation next (review-phase.sh)
-- [x] #41 Dynamic routing / smart mode — `dynamic-router.sh` BUILT + 26 tests PASS. CTO pre-approved. Needs CS integration.
-- [x] #43 Dependency-aware parallel execution — `dynamic-router.sh` implements Kahn's algorithm topological sort. BUILT + tested.
+- [x] #40 Loop review & critique — `review-phase.sh` BUILT + 24 tests PASS. QA cost guard at 50%.
+- [x] #41 Dynamic routing / smart mode — `dynamic-router.sh` BUILT + 36 tests PASS. CTO pre-approved.
+- [x] #43 Dependency-aware parallel execution — Kahn's algorithm topological sort. BUILT + tested.
+- [x] #46 Model tiering per agent — BUILT in dynamic-router.sh + 10 tests. Config-validator updated for 9-col format.
 - [ ] #44 Git worktree isolation — Phase 2+ (per WORKTREE-001 ADR)
-- [ ] #46 Model tiering per agent — Can ship independently (per MODEL-001 ADR)
 - [ ] #47 Prompt compression
 - [ ] #48 Conditional agent activation
 - [ ] #51 Output budgets
-- v0.2.0 modules built: signal-handler.sh (9 tests), cycle-tracker.sh (14 tests), dynamic-router.sh (26 tests) — all need CS integration
+- **QA BUG-014/015/016:** 3 edge case bugs in dynamic-router.sh found by QA cycle 9 — assigned to 06-backend
+- v0.2.0 modules built: signal-handler.sh (9 tests), cycle-tracker.sh (14 tests), dynamic-router.sh (36 tests), review-phase.sh (24 tests) — all need CS integration
 - 4 CTO ADRs approved: EXEC-001, REVIEW-001, WORKTREE-001, MODEL-001
 
 ### v0.3.0 — Token Optimization + Smart Provisioning

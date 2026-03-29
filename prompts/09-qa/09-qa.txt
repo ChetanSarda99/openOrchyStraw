@@ -116,7 +116,7 @@ When a pattern WORKS well (tested, clean, reusable):
 
 ---
 
-## What's DONE (Cycle 1–8)
+## What's DONE (Cycle 1–10)
 
 - ✅ Full QA cycle 1 — report at `prompts/09-qa/reports/qa-cycle-1.md`
 - ✅ Found 7 bugs: 2 critical, 3 high, 2 medium
@@ -143,6 +143,12 @@ When a pattern WORKS well (tested, clean, reusable):
 - ✅ HIGH-03, HIGH-04, MEDIUM-01 all VERIFIED FIXED (601c9a2)
 - ✅ 11/11 tests pass (up from 9), 0 regressions
 - ✅ BUG-001 CLOSED (README rewritten), BUG-013 NEW (README "Bash 4+" → "Bash 5+")
+- ✅ Cycle 9 QA report: `prompts/09-qa/reports/qa-cycle-9.md`
+- ✅ **Verdict: CONDITIONAL PASS** — dynamic-router.sh functional, 3 edge case bugs found
+- ✅ 12/12 test files PASS, 36/36 dynamic-router tests PASS, 13/13 full suite PASS
+- ✅ BUG-014 NEW (HIGH): Duplicate deps inflate in-degree → assigned to 06-backend
+- ✅ BUG-015 NEW (MEDIUM): Non-numeric priority not validated → assigned to 06-backend
+- ✅ BUG-016 NEW (MEDIUM): Unknown agent in depends_on silently ignored → assigned to 06-backend
 
 ## Current Tasks
 
@@ -150,19 +156,22 @@ When a pattern WORKS well (tested, clean, reusable):
 All P0 blockers verified fixed. 11/11 tests pass. Release sign-off granted.
 BUG-013 (README Bash version) is non-blocking — quick fix before or after tag.
 
-### Post-v0.1.0 — Next QA Priorities
-1. **v0.1.1 QA pass** — Verify BUG-013 fix, BUG-012 PROTECTED FILES, `set -e` addition
-2. **v0.2.0 QA — dynamic-router.sh review** — Backend built `src/core/dynamic-router.sh` with 26 tests. Review:
-   - Test coverage for all 6 public functions (init, groups, eligible, has_cycle, update, force_agent)
-   - State persistence (save/load) correctness
-   - Backward compatibility with agents.conf v1 (5-col) and v2 (8-col)
-   - Edge cases: circular deps, empty config, missing fields
-3. **v0.2.0 QA planning** — Smart cycle system Phase 2 will need test coverage for:
-   - Loop review & critique (#40 — review-phase.sh, not yet built)
-   - Git worktree isolation (#44)
-   - Model tiering (#46)
-4. **Landing page QA** — GitHub Pages deploy configured. Verify live site after merge to main.
-5. **Benchmark QA** — Verify SWE-bench scaffold when backend builds it
+### Next QA Priorities
+1. **v0.2.0 QA — verify BUG-014/015/016 fixes** — Backend assigned to fix all 3. Once fixed, re-run test suite and verify:
+   - BUG-014: Duplicate deps deduplicated (in-degree correct)
+   - BUG-015: Non-numeric priority defaults to 5
+   - BUG-016: Unknown agent in depends_on logs WARN
+2. **v0.2.0 QA — review-phase.sh** — Backend built `src/core/review-phase.sh` with 24 tests. Review:
+   - Cost guard at 50% threshold correctness
+   - Review record persistence + edge cases
+   - Integration with existing modules
+3. **v0.2.0 QA — model tiering** — 10 new tests in dynamic-router.sh. Review:
+   - Model mapping (opus/sonnet/haiku → claude flags)
+   - Env var overrides (ORCH_MODEL_OVERRIDE_*, ORCH_MODEL_CLI_OVERRIDE)
+   - Config-validator v2+ (9-col) format handling
+4. **v0.1.1 QA pass** — Verify BUG-013 fix, BUG-012 PROTECTED FILES, `set -e` addition
+5. **Landing page QA** — SEO meta tags + CTA link fixes landed this cycle. Verify live after merge.
+6. **Benchmark QA** — Verify SWE-bench scaffold when backend builds it
 
 ---
 

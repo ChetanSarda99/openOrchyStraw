@@ -89,7 +89,7 @@ For now: maintain registry here, PM will propose migration when 2nd project star
 
 ---
 
-## What's DONE (Cycle 1–9)
+## What's DONE (Cycle 1–10)
 
 - ✅ 5 ADRs from cycle 1: UI-001, WEB-001, DOCS-001, STYLE-001, DB-001
 - ✅ BASH-001 ADR: Minimum bash 5.0, portable shebang (cycle 2)
@@ -127,11 +127,11 @@ For now: maintain registry here, PM will propose migration when 2nd project star
 ### Next CTO Tasks:
 4. ~~**v0.2.0 architecture planning**~~ — DONE. 4 ADRs written: EXEC-001, REVIEW-001, WORKTREE-001, MODEL-001
 5. ~~**BUG-012 review**~~ — DONE. Expanded: 8 prompts missing PROTECTED FILES (not 3)
-6. **Review dynamic-router.sh** — BUILT by 06-backend (26 tests pass). Verify against EXEC-001 spec. Pre-approved in shared context but formal review needed.
-7. **Consolidate agents.conf** — P2, move to single file at root (v0.2)
-8. **Benchmark architecture** — Review SWE-bench scaffold design when backend builds it
-9. **Review review-phase.sh** — When 06-backend builds it per REVIEW-001 spec
-10. **agents.conf v2 format validation** — Verify backward compat when backend adds columns 6-9
+6. **Review dynamic-router.sh + model tiering** — Now 36 tests (26 routing + 10 model). Verify model tiering against MODEL-001 spec. QA found BUG-014/015/016 — verify fixes once backend applies them.
+7. **Review review-phase.sh** — BUILT by 06-backend (24 tests pass). Verify against REVIEW-001 spec: cost guard at 50%, review record format, should_run logic.
+8. **Review config-validator.sh v2+ updates** — Now supports 9-column format with model field. Verify backward compat v1→v2→v2+.
+9. **Consolidate agents.conf** — P2, move to single file at root (v0.2)
+10. **Benchmark architecture** — Review SWE-bench scaffold design when backend builds it
 
 ---
 

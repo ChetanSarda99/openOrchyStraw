@@ -92,7 +92,7 @@ Do NOT implement before the CTO decides, unless task is P0 and time-critical.
 
 ---
 
-## What's DONE (Cycle 1–9)
+## What's DONE (Cycle 1–10)
 
 All 8 v0.1.0 bash modules built in `src/core/`:
 - ✅ `logger.sh` — structured logging with levels, color output
@@ -104,15 +104,19 @@ All 8 v0.1.0 bash modules built in `src/core/`:
 - ✅ `lock-file.sh` — prevent concurrent orchestrators
 - ✅ `bash-version.sh` — exits if bash < 5.0, with install instructions
 
-v0.2.0 modules (cycle 5–9):
+v0.2.0 modules (cycle 5–10):
 - ✅ `signal-handler.sh` — graceful shutdown with SHUTTING_DOWN flag, SIGTERM→SIGKILL, PID tracking
 - ✅ `cycle-tracker.sh` — smart empty cycle detection, tracks agent outcomes vs commits separately
 - ✅ `SMART-CYCLE-DESIGN.md` — v0.2.0 design doc (#40 review, #41 dynamic routing, #43 dependency-aware parallel)
 - ✅ `tests/core/test-signal-handler.sh` — 9 tests
 - ✅ `tests/core/test-cycle-tracker.sh` — 14 tests
-- ✅ `dynamic-router.sh` — v0.2.0 EXEC-001 implementation: dynamic agent routing + dependency-aware parallel groups (Kahn's algorithm topological sort, interval-based eligibility, fail-retry/empty-backoff, state persistence)
-- ✅ `tests/core/test-dynamic-router.sh` — 26 tests, ALL PASS
-- ✅ Full test suite: 12/12 pass (11 existing + 1 new), zero regressions
+- ✅ `dynamic-router.sh` — EXEC-001 + MODEL-001: dynamic routing + dependency groups + model tiering (orch_router_model, env overrides)
+- ✅ `tests/core/test-dynamic-router.sh` — 36 tests (26 routing + 10 model tiering), ALL PASS
+- ✅ `review-phase.sh` — #40 REVIEW-001: QA auto-rerun with cost guard at 50% (init, plan, context, record, summary, should_run)
+- ✅ `tests/core/test-review-phase.sh` — 24 tests, ALL PASS
+- ✅ `config-validator.sh` — updated: v1 (5-col), v2 (8-col), v2+ (9-col) agents.conf; model validation (warn-only per MODEL-001)
+- ✅ `tests/core/test-config-validator.sh` — 10 tests (5 original + 5 new v2/v9 format), ALL PASS
+- ✅ Full test suite: 13/13 pass, zero regressions
 
 Test & integration:
 - ✅ `tests/core/` — 11 unit test files + runner, all 12 pass (11 unit + 1 integration)
@@ -144,14 +148,17 @@ Design doc DONE: `src/core/SMART-CYCLE-DESIGN.md` covers #40, #41, #43.
 Phase 1 DONE: `dynamic-router.sh` built + 26 tests pass. CTO ADR EXEC-001 codifies architecture. CTO pre-approved.
 
 **Completed:**
-- ~~#41 Dynamic routing / smart mode~~ — DONE: `dynamic-router.sh` implements dynamic routing with interval eligibility, fail-retry, empty-backoff
-- ~~#43 Dependency-aware parallel execution~~ — DONE: `dynamic-router.sh` implements Kahn's algorithm topological sort into execution groups
+- ~~#41 Dynamic routing / smart mode~~ — DONE: `dynamic-router.sh`
+- ~~#43 Dependency-aware parallel execution~~ — DONE: Kahn's algorithm topological sort
+- ~~#40 Loop review & critique~~ — DONE: `review-phase.sh` built + 24 tests PASS (per REVIEW-001 ADR)
+- ~~#46 Model tiering~~ — DONE: `dynamic-router.sh` model functions + 10 tests PASS (per MODEL-001 ADR)
 
-**Next (Phase 2):**
-1. **#40 Loop review & critique** — Implement `review-phase.sh`: QA auto-rerun on structured rejection (per REVIEW-001 ADR)
-2. **#44 Git worktree isolation** — Each agent gets isolated worktree (per WORKTREE-001 ADR, deferred to Phase 2+)
-3. **#46 Model tiering** — `model` column in agents.conf for per-agent model selection (per MODEL-001 ADR, can ship independently)
-4. **Integrate v0.2.0 modules into auto-agent.sh** — CS must integrate: dynamic-router.sh, signal-handler.sh, cycle-tracker.sh (protected file)
+**Next — Fix QA-reported bugs, then Phase 2+:**
+1. **BUG-014 (HIGH): Duplicate dependencies inflate in-degree** — Deduplicate `depends_on` after parsing in `orch_router_has_cycle` and `orch_router_groups`. Add test case.
+2. **BUG-015 (MEDIUM): Non-numeric priority not validated** — Default non-numeric priority to 5 in `orch_router_init`. Add test case.
+3. **BUG-016 (MEDIUM): Unknown agent in depends_on silently ignored** — Emit `_orch_router_log WARN` when dep not found. Add test case.
+4. **#44 Git worktree isolation** — Each agent gets isolated worktree (per WORKTREE-001 ADR, deferred to Phase 2+)
+5. **Integrate v0.2.0 modules into auto-agent.sh** — CS must integrate: dynamic-router.sh, signal-handler.sh, cycle-tracker.sh, review-phase.sh (protected file)
 
 ---
 
