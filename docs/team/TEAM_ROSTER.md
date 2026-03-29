@@ -1,19 +1,19 @@
 # OrchyStraw — Team Roster
 
-> Last updated: 2026-03-29 (Cycle 8, HR Agent)
+> Last updated: 2026-03-29 (Cycle 10, HR Agent)
 
 ## Active Agents (in agents.conf)
 
 | ID | Role | Ownership | Interval | Status |
 |----|------|-----------|----------|--------|
 | 01-ceo | CEO — Vision & Strategy | `docs/strategy/` | Every 3rd cycle | STANDBY |
-| 02-cto | CTO — Architecture & Standards | `docs/architecture/` | Every 2nd cycle | STANDBY |
+| 02-cto | CTO — Architecture & Standards | `docs/architecture/` | Every 2nd cycle | Active — 4 v0.2.0 ADRs shipped |
 | 03-pm | PM — Coordination & Tasks | `prompts/` `docs/` | Coordinator (runs LAST) | Active |
-| 06-backend | Backend Developer | `scripts/` `src/core/` `src/lib/` `benchmarks/` | Every cycle | Active |
+| 06-backend | Backend Developer | `scripts/` `src/core/` `src/lib/` `benchmarks/` | Every cycle | Active — 3 v0.2.0 modules shipped |
 | 08-pixel | Pixel Agents Visualization | `src/pixel/` `pixel-agents/` | Every 2nd cycle | STANDBY |
-| 09-qa | QA Engineer | `tests/` `reports/` | Every 3rd cycle | Active — ready for final regression |
-| 10-security | Security Auditor | `reports/` | Every 5th cycle | Active — ready for final sign-off |
-| 11-web | Web Developer — Landing & Docs | `site/` | Every cycle | Active |
+| 09-qa | QA Engineer | `tests/` `reports/` | Every 3rd cycle | STANDBY — awaiting Phase 2 review |
+| 10-security | Security Auditor | `reports/` | Every 5th cycle | STANDBY — dynamic-router.sh review queued |
+| 11-web | Web Developer — Landing & Docs | `site/` | Every cycle | Active — GitHub Pages deploy shipped |
 | 13-hr | HR & Team Culture | `docs/team/` `prompts/13-hr/` | Every 3rd cycle | Active |
 
 **Total active: 9 agents**

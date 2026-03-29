@@ -24,9 +24,10 @@
 - [ ] **BUG-012: Add PROTECTED FILES to 3 remaining prompts** — 01-ceo, 03-pm, 10-security still missing it.
 
 ### P0.5 — v0.2.0 Integration (protected file — CS only)
-- [ ] **Integrate dynamic-router.sh into auto-agent.sh** — Backend built `src/core/dynamic-router.sh` (26 tests pass, CTO pre-approved). Source it alongside the 8 existing modules.
+- [ ] **Integrate dynamic-router.sh into auto-agent.sh** — Built (36 tests pass, CTO pre-approved). Source alongside existing modules. Wait for BUG-014/015/016 fixes first.
 - [ ] **Integrate signal-handler.sh into auto-agent.sh** — Built + tested (9 tests). Replace existing signal handling.
 - [ ] **Integrate cycle-tracker.sh into auto-agent.sh** — Built + tested (14 tests). Smart empty cycle detection.
+- [ ] **Integrate review-phase.sh into auto-agent.sh** — NEW: Built + tested (24 tests, REVIEW-001 ADR). QA auto-rerun with cost guard.
 
 ### P1 — After v0.1.0 Tag
 - [ ] **Update CLAUDE.md** — Lists 11 agents and paths (src-tauri/, ios/) that don't exist yet. Align with reality.

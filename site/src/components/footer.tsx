@@ -21,7 +21,7 @@ export function Footer() {
             Docs
           </a>
           <a
-            href="https://github.com/ChetanSarda99/OrchyStraw"
+            href="https://github.com/ChetanSarda99/openOrchyStraw"
             target="_blank"
             rel="noopener noreferrer"
             className="flex items-center gap-1.5 text-sm text-muted transition-colors hover:text-foreground"

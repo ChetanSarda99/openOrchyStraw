@@ -46,7 +46,7 @@ export function Hero() {
         {/* CTAs */}
         <div className="mt-10 flex flex-col items-center gap-4 sm:flex-row sm:justify-center">
           <a
-            href="https://github.com/ChetanSarda99/OrchyStraw"
+            href="https://github.com/ChetanSarda99/openOrchyStraw"
             target="_blank"
             rel="noopener noreferrer"
             className="inline-flex items-center gap-2 rounded-lg bg-accent px-6 py-3 text-sm font-semibold text-accent-foreground transition-colors hover:bg-accent/90"
@@ -54,7 +54,7 @@ export function Hero() {
             Get Started
           </a>
           <a
-            href="https://github.com/ChetanSarda99/OrchyStraw"
+            href="https://github.com/ChetanSarda99/openOrchyStraw"
             target="_blank"
             rel="noopener noreferrer"
             className="inline-flex items-center gap-2 rounded-lg border border-card-border bg-card px-6 py-3 text-sm font-semibold text-foreground transition-colors hover:bg-card-border/30"
