@@ -89,11 +89,11 @@ For now: maintain registry here, PM will propose migration when 2nd project star
 
 ---
 
-## What's DONE (Cycle 1–8)
+## What's DONE (Cycle 1–9)
 
 - ✅ 5 ADRs from cycle 1: UI-001, WEB-001, DOCS-001, STYLE-001, DB-001
 - ✅ BASH-001 ADR: Minimum bash 5.0, portable shebang (cycle 2)
-- ✅ Tech registry updated: 6 domain decisions (5 LOCKED + 1 APPROVED)
+- ✅ Tech registry updated: 10 domain decisions (5 LOCKED + 5 APPROVED)
 - ✅ Orchestrator hardening spec: updated with 5 new issues from deep audit (cycle 2)
 - ✅ Confirmed Security HIGH-02 as accepted risk for v0.1
 - ✅ Deep code review of all src/core/*.sh modules — architecture compliant
@@ -105,6 +105,9 @@ For now: maintain registry here, PM will propose migration when 2nd project star
 - ✅ Cycle 8 (2026-03-29): Full review of CS commit 601c9a2 — HIGH-03, HIGH-04, MEDIUM-01 all PASS
 - ✅ Hardening spec updated: all security blockers resolved, v0.1 release gate clear
 - ✅ v0.1 security path FULLY UNBLOCKED — QA regression + Security sign-off are the only remaining gates
+- ✅ v0.2.0 ADRs: EXEC-001 (dependency execution + dynamic routing), REVIEW-001 (loop review), WORKTREE-001 (agent isolation), MODEL-001 (model tiering)
+- ✅ SMART-CYCLE-DESIGN.md reviewed and approved (3 open questions answered)
+- ✅ BUG-012 audit: expanded scope from 3 to 8 missing prompts
 
 ## Current Technical Priorities
 
@@ -122,14 +125,12 @@ For now: maintain registry here, PM will propose migration when 2nd project star
 3. **Shebang inconsistency** — auto-agent.sh uses `#!/bin/bash`, core modules use `#!/usr/bin/env bash`.
 
 ### Next CTO Tasks:
-4. **v0.2.0 architecture planning** — Smart cycle system (#40-#46). Write ADRs for:
-   - Dependency graph execution model (#43)
-   - Git worktree isolation per agent (#44)
-   - Model tiering architecture (#46)
-   - Loop review & critique protocol (#40)
-5. **BUG-012 review** — Verify PROTECTED FILES sections added to all agent prompts
+4. ~~**v0.2.0 architecture planning**~~ — DONE. 4 ADRs written: EXEC-001, REVIEW-001, WORKTREE-001, MODEL-001
+5. ~~**BUG-012 review**~~ — DONE. Expanded: 8 prompts missing PROTECTED FILES (not 3)
 6. **Consolidate agents.conf** — P2, move to single file at root (v0.2)
 7. **Benchmark architecture** — Review SWE-bench scaffold design when backend builds it
+8. **Review dynamic-router.sh** — When 06-backend builds it per EXEC-001 spec
+9. **Review review-phase.sh** — When 06-backend builds it per REVIEW-001 spec
 
 ---
 
