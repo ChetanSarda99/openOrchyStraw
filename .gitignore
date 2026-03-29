@@ -19,3 +19,14 @@ prompts/*/logs/
 prompts/00-backup/
 .orchystraw/
 node_modules/
+
+# Secrets & credentials
+.env
+.env.*
+*.pem
+*.key
+*.p12
+*.pfx
+credentials.json
+service-account*.json
+*secret*.json

@@ -241,7 +241,8 @@ commit_by_ownership() {
     local -a include_args=()
     local -a exclude_args=()
 
-    for path in $ownership; do
+    IFS=' ' read -ra _ownership_arr <<< "$ownership"
+    for path in "${_ownership_arr[@]}"; do
         if [[ "$path" == !* ]]; then
             exclude_args+=(":(exclude)${path#!}")
         else
@@ -311,13 +312,14 @@ detect_rogue_writes() {
     [ -z "$all_changes" ] && return 0
 
     # ── Pass 2: Rogue writes (outside all ownership boundaries) ──
-    local all_owned=""
+    local -a all_owned_arr=()
     for id in "${AGENT_IDS[@]}"; do
         local ownership="${AGENT_OWNERSHIP[$id]}"
         [ "$ownership" = "none" ] && continue
-        for path in $ownership; do
+        IFS=' ' read -ra _own_arr <<< "$ownership"
+        for path in "${_own_arr[@]}"; do
             [[ "$path" == !* ]] && continue
-            all_owned+=" $path"
+            all_owned_arr+=("$path")
         done
     done
 
@@ -325,7 +327,7 @@ detect_rogue_writes() {
     while IFS= read -r file; do
         [ -z "$file" ] && continue
         local is_owned=false
-        for path in $all_owned; do
+        for path in "${all_owned_arr[@]}"; do
             if [[ "$file" == ${path}* ]]; then
                 is_owned=true
                 break
@@ -787,18 +789,27 @@ PEOF
             current_date=$(date '+%B %d, %Y')
             current_time=$(date '+%H:%M')
 
+            # Escape sed special chars in variables
+            local _safe_date _safe_time _safe_bsrc _safe_tc _safe_ts _safe_sw _safe_comp _safe_total
+            _safe_date=$(printf '%s\n' "$current_date" | sed 's/[|&]/\\&/g')
+            _safe_time=$(printf '%s\n' "$current_time" | sed 's/[|&]/\\&/g')
+            _safe_bsrc=$(printf '%s\n' "$backend_src" | sed 's/[|&]/\\&/g')
+            _safe_tc=$(printf '%s\n' "$test_count" | sed 's/[|&]/\\&/g')
+            _safe_ts=$(printf '%s\n' "$ts_count" | sed 's/[|&]/\\&/g')
+            _safe_sw=$(printf '%s\n' "$swift_count" | sed 's/[|&]/\\&/g')
+            _safe_comp=$(printf '%s\n' "$component_count" | sed 's/[|&]/\\&/g')
+            _safe_total=$(printf '%s\n' "$total" | sed 's/[|&]/\\&/g')
+
             for id in "${AGENT_IDS[@]}"; do
                 pf="$PROJECT_ROOT/${AGENT_PROMPTS[$id]}"
                 [ ! -f "$pf" ] && continue
 
-                # Update Date: header timestamp
-                sed -i "s/\*\*Date:\*\* .*/\*\*Date:\*\* $(date '+%B %d, %Y') — ${current_time}/" "$pf" 2>/dev/null
-
-                # Update file counts (patterns vary per prompt)
-                sed -i "s/[0-9]* TypeScript source + [0-9]* test files = [0-9]* total/${backend_src} TypeScript source + ${test_count} test files = ${ts_count} total/" "$pf" 2>/dev/null
-                sed -i "s/[0-9]* Swift files/${swift_count} Swift files/" "$pf" 2>/dev/null
-                sed -i "s/[0-9]* components/${component_count} components/" "$pf" 2>/dev/null
-                sed -i "s/Total:.*source files/Total: $total source files/" "$pf" 2>/dev/null
+                # Use | delimiter to avoid / conflicts in date strings
+                sed -i "s|\*\*Date:\*\* .*|\*\*Date:\*\* ${_safe_date} — ${_safe_time}|" "$pf" 2>/dev/null
+                sed -i "s|[0-9]* TypeScript source + [0-9]* test files = [0-9]* total|${_safe_bsrc} TypeScript source + ${_safe_tc} test files = ${_safe_ts} total|" "$pf" 2>/dev/null
+                sed -i "s|[0-9]* Swift files|${_safe_sw} Swift files|" "$pf" 2>/dev/null
+                sed -i "s|[0-9]* components|${_safe_comp} components|" "$pf" 2>/dev/null
+                sed -i "s|Total:.*source files|Total: ${_safe_total} source files|" "$pf" 2>/dev/null
             done
 
             git add prompts/ 2>/dev/null
