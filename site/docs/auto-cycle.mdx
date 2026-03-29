@@ -1,0 +1,108 @@
+---
+title: "Auto-Cycle Mode"
+description: "Run multiple cycles unattended with safety guardrails."
+---
+
+## What is auto-cycle mode?
+
+Auto-cycle mode runs the orchestrator for N cycles without human intervention. The PM agent coordinates between cycles — reviewing work, updating tasks, and planning the next round.
+
+```bash
+# Run 5 cycles automatically
+./scripts/auto-agent.sh --cycles 5
+```
+
+## Cycle flow
+
+Each cycle follows the same pattern:
+
+<Steps>
+  <Step title="Usage check">
+    `check-usage.sh` probes API rate limits. If usage is ≥70%, the orchestrator pauses and re-checks every 60 seconds.
+  </Step>
+  <Step title="Branch creation">
+    Creates `auto/cycle-N-MMDD-HHMM` from main.
+  </Step>
+  <Step title="Context reset">
+    Archives old shared context. Resets with fresh section headers. Injects progress trends.
+  </Step>
+  <Step title="Parallel workers">
+    All eligible workers run simultaneously. Each reads shared context, does work, appends status.
+  </Step>
+  <Step title="Commit by ownership">
+    Script scans all changes. Files matching an agent's ownership get committed. Rogue writes are discarded.
+  </Step>
+  <Step title="PM coordination">
+    PM runs last — reads shared context, reviews git log, updates worker prompts for the next cycle, updates session tracker.
+  </Step>
+  <Step title="Merge and push">
+    Merges to main. Validates prompts (restores from backup if corrupted). Pushes to origin.
+  </Step>
+</Steps>
+
+## Safety guardrails
+
+Auto-cycle mode includes multiple safety layers:
+
+### Usage limits
+The orchestrator checks API usage before each cycle. If any model's usage exceeds 70%, it pauses automatically.
+
+### Prompt validation
+After each cycle, the script checks all prompt files. If any prompt drops below 50 lines (likely corrupted by an agent), it's restored from the backup directory.
+
+### Rogue write detection
+Files changed by agents outside their ownership boundaries are discarded before commit. This prevents agents from stepping on each other's work.
+
+### Regression detection
+If more than 5 files are lost between cycles, the orchestrator logs a regression warning.
+
+### Empty cycle detection
+If 3 consecutive cycles produce no changes, the orchestrator stops automatically — something is likely wrong.
+
+### Protected files
+The orchestrator, config, and project instructions are restored if any agent modifies them.
+
+## Dry run
+
+Preview what the orchestrator would do without actually running agents:
+
+```bash
+./scripts/auto-agent.sh --dry-run
+```
+
+This shows:
+- Which agents are eligible to run
+- What the assembled prompts look like
+- Which files would be committed to which agent
+
+## Monitoring
+
+Watch cycle progress in real-time:
+
+```bash
+# Tail the log
+tail -f logs/auto-agent.log
+
+# Check cycle status
+cat prompts/00-shared-context/context.md
+
+# Review what shipped
+cat prompts/00-session-tracker/SESSION_TRACKER.txt
+```
+
+## Tips
+
+<AccordionGroup>
+  <Accordion title="Start with 1-2 cycles, then scale up">
+    Run a single cycle first. Review the output. If agents are producing good work, increase to 3-5 cycles. The OrchyStraw team routinely runs 10+ cycle sessions.
+  </Accordion>
+  <Accordion title="Use intervals for expensive agents">
+    QA and security audits don't need to run every cycle. Set their interval to 3 — they'll run every 3rd cycle, saving API costs.
+  </Accordion>
+  <Accordion title="Check 99-me after a session">
+    Agents escalate blockers to `prompts/99-me/99-actions.txt`. Review this after a multi-cycle session to unblock the team.
+  </Accordion>
+  <Accordion title="The PM is the quality gate">
+    The PM agent reviews all work and updates task lists. If PM prompts are well-written, multi-cycle sessions stay on track without human intervention.
+  </Accordion>
+</AccordionGroup>

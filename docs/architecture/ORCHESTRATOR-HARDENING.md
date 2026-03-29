@@ -333,22 +333,20 @@ Cosmetic note: `node_modules/` appears twice in root .gitignore (lines 16 and 21
 
 ### dynamic-router.sh — APPROVED
 
-36 tests pass. EXEC-001 and MODEL-001 compliant. Two medium issues:
-- **DR-01:** State file load lacks numeric validation — corrupted `eff_interval` coerces to 0
-- **DR-02:** `mkdir -p` on state dir has no error check — silent failure loses state
+41 tests pass (was 36). EXEC-001 and MODEL-001 compliant. Both medium issues fixed:
+- ~~**DR-01:**~~ State file numeric validation — corrupted rows skipped ✅
+- ~~**DR-02:**~~ `mkdir` return code + file write error checks ✅
 
-Fix before v0.2 tag.
+### review-phase.sh — APPROVED (HOLD lifted cycle 6)
 
-### review-phase.sh — HOLD (BUG-017 Critical)
+36 tests pass (was 24). All 5 CTO findings fixed and verified:
+- ~~**BUG-017 (CRITICAL):**~~ `printf --` added to all leading-dash format strings ✅
+- ~~**RP-01 (HIGH):**~~ Verdict validation via `case` — rejects invalid, accepts {approve, request-changes, comment} ✅
+- ~~**RP-02 (HIGH):**~~ `**Summary:**` field output in 3 variants (empty, all-clear, needs-attention) ✅
+- ~~**RP-03 (HIGH):**~~ I/O error checks on `mkdir -p` and file write with logging + return 1 ✅
+- ~~**RP-04 (MEDIUM):**~~ Path traversal rejection (`*".."*`) in both `orch_review_context` and `orch_review_record` ✅
 
-24 tests pass, but `orch_review_context()` has zero test coverage and contains a critical bug:
-- **BUG-017 (CRITICAL):** `printf '- [BLOCKING]...'` fails — printf treats leading dash as option flag. Fix: `printf -- '- ...'`
-- **RP-01 (HIGH):** No verdict validation — accepts any string, should enforce {approve, request-changes, comment}
-- **RP-02 (HIGH):** Missing `## Summary` field per REVIEW-001 spec
-- **RP-03 (HIGH):** No I/O error checking on mkdir and file write
-- **RP-04 (MEDIUM):** Path traversal vulnerability in agent IDs
-
-Not ready for integration until BUG-017 and RP-01 fixed.
+REVIEW-001 ADR compliant. Ready for v0.2 integration.
 
 ### config-validator.sh v2+ — APPROVED
 

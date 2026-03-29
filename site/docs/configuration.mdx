@@ -1,0 +1,139 @@
+---
+title: "Configuration"
+description: "Define your agent team in agents.conf."
+---
+
+## agents.conf
+
+The `agents.conf` file defines your entire agent team. Each non-comment line configures one agent.
+
+### Format
+
+```ini
+# id | prompt_path | cli_command | ownership | interval
+```
+
+| Field | Description | Example |
+|-------|-------------|---------|
+| `id` | Unique agent identifier | `02-backend` |
+| `prompt_path` | Path to the agent's prompt file | `prompts/02-backend/02-backend.txt` |
+| `cli_command` | AI tool command to run | `claude`, `codex exec`, `gemini -p` |
+| `ownership` | Directories this agent can write to | `src/ scripts/` |
+| `interval` | How often the agent runs | `1` (every cycle), `3` (every 3rd), `PM` |
+
+### Example
+
+```ini
+# Workers (run in parallel)
+02-backend  | prompts/02-backend/02-backend.txt  | claude    | src/core/ scripts/   | 1
+03-frontend | prompts/03-frontend/03-frontend.txt | gemini -p | src/components/ src/styles/ | 1
+04-design   | prompts/04-design/04-design.txt     | gemini -p | src/components/ui/   | 2
+05-qa       | prompts/05-qa/05-qa.txt             | codex exec | tests/ reports/     | 3
+
+# Coordinator (runs last)
+01-pm       | prompts/01-pm/01-pm.txt             | claude    | prompts/             | PM
+```
+
+### Intervals
+
+| Value | Meaning |
+|-------|---------|
+| `1` | Runs every cycle |
+| `2` | Runs every 2nd cycle |
+| `3` | Runs every 3rd cycle |
+| `PM` | Runs last, after all workers finish |
+
+Use higher intervals for agents that don't need to run every cycle — QA, security audits, strategic reviews.
+
+## File ownership
+
+Each agent has strict directory ownership. The orchestrator enforces this:
+
+1. **Before commit** — the script scans all changed files
+2. **Ownership check** — each file is matched against all agents' ownership patterns
+3. **Rogue detection** — files not matching any agent's ownership are discarded via `git checkout`
+
+### Ownership patterns
+
+```ini
+# Simple directory ownership
+src/core/ scripts/
+
+# Multiple directories
+src/components/ src/styles/ public/
+
+# Exclusions (carve out subdirectories)
+src/ !src/components/ui/
+
+# Read-only (no write access)
+none
+```
+
+<Warning>
+  Never give two agents overlapping ownership. If both `03-frontend` and `04-design` own `src/components/`, they will overwrite each other's work. Use exclusions to carve boundaries.
+</Warning>
+
+### Ownership examples
+
+```ini
+# Frontend owns src/ except UI components
+03-frontend | ... | src/ !src/components/ui/ | 1
+
+# Design owns only UI components
+04-design   | ... | src/components/ui/       | 2
+
+# QA owns tests and reports (read-only for source)
+05-qa       | ... | tests/ reports/          | 3
+
+# Security is read-only everywhere
+06-security | ... | none                     | 3
+```
+
+## CLI commands
+
+Any AI tool that accepts piped input works:
+
+| Tool | Command | Notes |
+|------|---------|-------|
+| Claude Code | `claude` | Default, best for complex work |
+| Codex | `codex exec` | Good for code review, research |
+| Gemini CLI | `gemini -p` | Good for UI work, design |
+| Aider | `aider --message` | Pair programming style |
+| Custom | Any command | Must accept stdin |
+
+The orchestrator pipes the assembled prompt (shared context + cross-cycle history + agent prompt) to the CLI command's stdin.
+
+## Protected files
+
+The orchestrator protects certain files from agent modification:
+
+- `scripts/auto-agent.sh` — the orchestrator itself
+- `scripts/agents.conf` — agent configuration
+- `scripts/check-usage.sh` — usage checker
+- `CLAUDE.md` — project instructions
+
+If an agent modifies a protected file, the orchestrator restores it automatically.
+
+## Directory structure
+
+```
+your-project/
+├── scripts/
+│   ├── auto-agent.sh          # The orchestrator
+│   ├── agents.conf            # Agent configuration
+│   └── check-usage.sh         # Usage tracking
+├── prompts/
+│   ├── 00-shared-context/
+│   │   └── context.md         # Cross-agent communication
+│   ├── 00-session-tracker/
+│   │   └── SESSION_TRACKER.txt # Long-lived changelog
+│   ├── 00-backup/             # Auto-backups (7-day rotation)
+│   ├── 01-pm/
+│   │   └── 01-pm.txt          # PM prompt
+│   ├── 02-backend/
+│   │   └── 02-backend.txt     # Backend prompt
+│   ├── ...                    # More agent prompts
+│   └── 99-me/
+│       └── 99-actions.txt     # Human escalation file
+└── CLAUDE.md                  # Project instructions (auto-loaded)
+```

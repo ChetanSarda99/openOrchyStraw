@@ -121,14 +121,18 @@ All findings resolved. All 9 gates pass. No open HIGH or MEDIUM findings. v0.1.0
 ### Next Security Priorities
 1. ~~**v0.2.0 security review — dynamic-router.sh**~~ — DONE (cycle 9 audit). APPROVED with DR-SEC-01 (LOW), DR-SEC-02 (MEDIUM).
 2. ~~**v0.2.0 security review — config-validator.sh v2+**~~ — DONE (cycle 9 audit). SECURE — no findings.
-3. **v0.2.0 security review — review-phase.sh** — Backend FIXED all CTO findings (BUG-017, RP-01/02/03/04). Now 36 tests. CTO re-review pending. **Once CTO lifts HOLD, do security review.** Review for:
+3. **v0.2.0 security review — review-phase.sh** — CTO HOLD LIFTED (cycle 13). All findings fixed (BUG-017, RP-01/02/03/04). 36 tests PASS. QA PASS. **DO SECURITY REVIEW NOW.** Review for:
    - Review record injection — can crafted QA output inject into re-run prompts?
    - Cost guard bypass — can the 50% threshold be circumvented?
    - RP-04 fix verification — path traversal rejection (rejects `..` in agent IDs)
    - RP-03 fix verification — I/O error handling
-4. **DR-SEC-02 integration note** — CS must quote `orch_router_model` output when integrating into auto-agent.sh. Verify this during integration review.
-5. **v0.1.1 audit** — Verify `set -e` addition doesn't introduce new failure modes
-6. **Benchmark security review** — Ensure SWE-bench scaffold doesn't execute untrusted code
+4. **v0.2.0 security review — worktree.sh** — New module (48 tests). Review for:
+   - Path traversal in worktree paths
+   - Stale worktree recovery safety
+   - Merge conflict handling
+5. **DR-SEC-02 integration note** — CS must quote `orch_router_model` output when integrating into auto-agent.sh. Verify this during integration review.
+6. **v0.1.1 audit** — Verify `set -e` addition doesn't introduce new failure modes
+7. **Benchmark security review** — Ensure SWE-bench scaffold doesn't execute untrusted code
 
 ---
 

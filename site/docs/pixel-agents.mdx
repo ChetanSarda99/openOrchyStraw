@@ -1,0 +1,69 @@
+---
+title: "Pixel Agents"
+description: "Visualize your AI agents working in a pixel art office."
+---
+
+## What is Pixel Agents?
+
+Pixel Agents is an optional visualization layer that shows your AI agents working in a pixel art office. Each agent has a character — sitting at a desk, typing, reading, talking — synchronized with real orchestrator events.
+
+<Note>
+  Pixel Agents is currently in development. The JSONL emitter and adapter are built; the visual fork is in progress.
+</Note>
+
+## How it works
+
+<Steps>
+  <Step title="Orchestrator emits events">
+    `auto-agent.sh` writes JSONL events to a file as agents start, work, and finish.
+  </Step>
+  <Step title="Adapter translates events">
+    The OrchyStraw adapter converts orchestrator events into the pixel-agents-standalone format.
+  </Step>
+  <Step title="Visualization renders">
+    The pixel art office shows characters moving, coding, and communicating in real time.
+  </Step>
+</Steps>
+
+## Event format
+
+The orchestrator emits events as JSONL (one JSON object per line):
+
+```json
+{"ts":"2026-03-20T10:45:00Z","agent":"06-backend","event":"start","detail":"Starting cycle 5"}
+{"ts":"2026-03-20T10:45:30Z","agent":"06-backend","event":"coding","detail":"Writing src/core/logger.sh"}
+{"ts":"2026-03-20T10:46:00Z","agent":"05-ui","event":"start","detail":"Starting cycle 5"}
+{"ts":"2026-03-20T10:47:00Z","agent":"06-backend","event":"done","detail":"3 files changed"}
+{"ts":"2026-03-20T10:47:30Z","agent":"03-pm","event":"start","detail":"Coordinating cycle 5"}
+```
+
+## Character mapping
+
+Each agent maps to a pixel art character with distinct appearance and behavior:
+
+| Agent | Character | Idle animation | Active animation |
+|-------|-----------|---------------|-----------------|
+| CEO | Suit, corner office | Reading reports | Presenting |
+| CTO | Glasses, whiteboard | Thinking | Drawing diagrams |
+| PM | Clipboard | Checking list | Walking between desks |
+| Backend | Hoodie, terminal | Coffee | Typing fast |
+| Frontend | Headphones | Sketching | Coding |
+| QA | Magnifying glass | Scanning | Flagging issues |
+| Security | Lock icon | Monitoring | Investigating |
+
+## Integration
+
+Pixel Agents can be embedded in:
+
+- **Tauri desktop app** — live dashboard panel
+- **Landing page** — demo animation
+- **Terminal** — ASCII art fallback (future)
+
+## Technical details
+
+The integration is based on [pixel-agents-standalone](https://github.com/rolandal/pixel-agents-standalone), adapted for OrchyStraw's event format. The adapter lives in `src/pixel/` and handles:
+
+- Event file watching (tail -f on JSONL output)
+- Character state management
+- Animation timing and transitions
+- Fallback states when no events are flowing
