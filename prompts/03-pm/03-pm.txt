@@ -200,17 +200,20 @@ Use the **Edit tool** to modify ONLY:
 - [ ] #25 Release tag — READY TO TAG. BUG-013 (README Bash version) is non-blocking.
 
 ### v0.2.0 — Smart Cycle System (self-improvement sprint)
-- [x] #40 Loop review & critique — `review-phase.sh` BUILT + 24 tests PASS. QA cost guard at 50%.
-- [x] #41 Dynamic routing / smart mode — `dynamic-router.sh` BUILT + 36 tests PASS. CTO pre-approved.
-- [x] #43 Dependency-aware parallel execution — Kahn's algorithm topological sort. BUILT + tested.
-- [x] #46 Model tiering per agent — BUILT in dynamic-router.sh + 10 tests. Config-validator updated for 9-col format.
+- [x] #40 Loop review & critique — `review-phase.sh` BUILT + 24 tests PASS. QA cost guard at 50%. **CTO HOLD** — BUG-017 + RP-01/02/03/04 found.
+- [x] #41 Dynamic routing / smart mode — `dynamic-router.sh` BUILT + 39 tests PASS. **CTO APPROVED**.
+- [x] #43 Dependency-aware parallel execution — Kahn's algorithm topological sort. BUILT + tested. **CTO APPROVED**.
+- [x] #46 Model tiering per agent — BUILT in dynamic-router.sh + 10 tests. Config-validator updated for 9-col format. **CTO APPROVED**.
+- [x] BUG-014/015/016 FIXED (cycle 11) — 3 new tests (T37-T39), 39 total pass.
+- [ ] BUG-017 + RP-01/02/03/04 — review-phase.sh CTO findings. Assigned to 06-backend.
+- [ ] DR-01/DR-02 — dynamic-router.sh medium issues. Assigned to 06-backend.
 - [ ] #44 Git worktree isolation — Phase 2+ (per WORKTREE-001 ADR)
 - [ ] #47 Prompt compression
 - [ ] #48 Conditional agent activation
 - [ ] #51 Output budgets
-- **QA BUG-014/015/016:** 3 edge case bugs in dynamic-router.sh found by QA cycle 9 — assigned to 06-backend
-- v0.2.0 modules built: signal-handler.sh (9 tests), cycle-tracker.sh (14 tests), dynamic-router.sh (36 tests), review-phase.sh (24 tests) — all need CS integration
+- v0.2.0 modules built: signal-handler.sh (9 tests), cycle-tracker.sh (14 tests), dynamic-router.sh (39 tests), review-phase.sh (24 tests) — all need CS integration
 - 4 CTO ADRs approved: EXEC-001, REVIEW-001, WORKTREE-001, MODEL-001
+- CTO code reviews: dynamic-router.sh APPROVED, config-validator v2+ APPROVED, review-phase.sh HOLD
 
 ### v0.3.0 — Token Optimization + Smart Provisioning
 - [ ] #49 Differential context

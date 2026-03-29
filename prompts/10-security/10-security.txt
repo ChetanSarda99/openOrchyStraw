@@ -115,13 +115,13 @@ You NEVER modify source code, scripts, configs, or other agent prompts.
 All findings resolved. All 9 gates pass. No open HIGH or MEDIUM findings. v0.1.0 cleared for release.
 
 ### Next Security Priorities
-1. **v0.2.0 security review — dynamic-router.sh + model tiering** — Now includes #46 model functions. Review for:
+1. **v0.2.0 security review — dynamic-router.sh + model tiering** — CTO APPROVED (cycle 11). BUG-014/015/016 FIXED. DR-01/DR-02 medium issues logged. Review for:
    - State file injection (`.orchystraw/router-state.json` — is state trusted?)
    - `depends_on` field parsing — can malformed agents.conf cause code execution?
    - Force-agent override — can PM force-run be abused?
    - Interval manipulation via state persistence
    - Model override env vars (ORCH_MODEL_OVERRIDE_*, ORCH_MODEL_CLI_OVERRIDE) — injection risk?
-2. **v0.2.0 security review — review-phase.sh (NEW)** — Backend built `src/core/review-phase.sh`. Review for:
+2. **v0.2.0 security review — review-phase.sh (CTO HOLD — BUG-017 critical)** — Backend built `src/core/review-phase.sh`. CTO found BUG-017 (printf dash injection) + RP-01/02/03/04. Wait for backend fixes before security review. Review for:
    - Review record injection — can crafted QA output inject into re-run prompts?
    - Cost guard bypass — can the 50% threshold be circumvented?
    - File path traversal in review directory operations

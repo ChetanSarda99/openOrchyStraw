@@ -134,8 +134,9 @@ For now: maintain registry here, PM will propose migration when 2nd project star
 6. ~~**Review dynamic-router.sh + model tiering**~~ — DONE. APPROVED. 39 tests (BUG-014/015/016 fixed). DR-01/DR-02 medium issues logged.
 7. ~~**Review review-phase.sh**~~ — DONE. HOLD. BUG-017 critical (printf dash), RP-01 (verdict validation), RP-02 (missing Summary), RP-03 (no I/O checks), RP-04 (path traversal).
 8. ~~**Review config-validator.sh v2+ updates**~~ — DONE. APPROVED. v1→v2→v2+ backward compat confirmed. Production-ready.
-9. **Consolidate agents.conf** — P2, move to single file at root (v0.2)
-10. **Benchmark architecture** — Review SWE-bench scaffold design when backend builds it
+9. **Re-review review-phase.sh after backend fixes BUG-017 + RP-01** — Backend has these as next tasks. Re-review once fixed.
+10. **Consolidate agents.conf** — P2, move to single file at root (v0.2)
+11. **Benchmark architecture** — Review SWE-bench scaffold design when backend builds it
 
 ---
 
