@@ -1,10 +1,10 @@
 #!/usr/bin/env bash
 # dynamic-router.sh — Dynamic agent routing with dependency-aware parallel groups
-# v0.2.0 Phase 1: #41 (dynamic routing), #43 (dependency-aware parallel execution)
+# v0.2.0: #41 (dynamic routing), #43 (dependency-aware parallel), #46 (model tiering)
 #
-# Parses agents.conf (v1 5-col or v2 8-col), builds a dependency graph,
-# resolves execution groups via topological sort, and decides which agents
-# run each cycle based on interval, outcome history, and PM overrides.
+# Parses agents.conf (v1 5-col, v2 8-col, or v2+ 9-col with model), builds a
+# dependency graph, resolves execution groups via topological sort, and decides
+# which agents run each cycle based on interval, outcome history, and PM overrides.
 #
 # Provides:
 #   orch_router_init           — parse config, build dependency graph
@@ -14,6 +14,7 @@
 #   orch_router_update         — adjust state after cycle completes
 #   orch_router_load_state     — load persisted router state from file
 #   orch_router_save_state     — persist router state to file
+#   orch_router_model          — get resolved model for an agent (#46)
 #   orch_router_dump           — debug: print parsed config
 
 [[ -n "${_ORCH_DYNAMIC_ROUTER_LOADED:-}" ]] && return 0
@@ -29,8 +30,18 @@ declare -g -A _ORCH_ROUTER_LAST_RUN=()       # agent_id -> cycle number of last 
 declare -g -A _ORCH_ROUTER_LAST_OUTCOME=()   # agent_id -> success|fail|skip|timeout
 declare -g -A _ORCH_ROUTER_CONSEC_EMPTY=()   # agent_id -> consecutive cycles with no changes
 declare -g -A _ORCH_ROUTER_PM_FORCE=()       # agent_id -> 1 if PM forced this cycle
+declare -g -A _ORCH_ROUTER_MODEL=()          # agent_id -> model (opus|sonnet|haiku)
 declare -g -a _ORCH_ROUTER_GROUPS=()         # group strings: "agent1,agent2" per group
 declare -g _ORCH_ROUTER_LOADED=false
+
+# Model tiering (#46 MODEL-001)
+declare -g _ORCH_DEFAULT_MODEL="${ORCH_DEFAULT_MODEL:-opus}"
+declare -g -A _ORCH_MODEL_FLAGS=(
+    [opus]="claude-opus-4-6"
+    [sonnet]="claude-sonnet-4-6"
+    [haiku]="claude-haiku-4-5"
+)
+declare -g -a _ORCH_VALID_MODELS=(opus sonnet haiku)
 
 # ── Helpers ──
 
@@ -68,6 +79,7 @@ orch_router_init() {
     _ORCH_ROUTER_LAST_RUN=()
     _ORCH_ROUTER_LAST_OUTCOME=()
     _ORCH_ROUTER_CONSEC_EMPTY=()
+    _ORCH_ROUTER_MODEL=()
     _ORCH_ROUTER_PM_FORCE=()
     _ORCH_ROUTER_GROUPS=()
 
@@ -77,13 +89,14 @@ orch_router_init() {
         trimmed=$(_orch_router_trim "$raw_line")
         [[ "$trimmed" == \#* ]] && continue
 
-        # Split on pipe
-        IFS='|' read -r f_id f_prompt f_ownership f_interval f_label f_priority f_depends f_reviews <<< "$raw_line"
+        # Split on pipe (up to 9 columns)
+        IFS='|' read -r f_id f_prompt f_ownership f_interval f_label f_priority f_depends f_reviews f_model <<< "$raw_line"
 
         f_id=$(_orch_router_trim "$f_id")
         f_interval=$(_orch_router_trim "$f_interval")
         f_priority=$(_orch_router_trim "${f_priority:-}")
         f_depends=$(_orch_router_trim "${f_depends:-}")
+        f_model=$(_orch_router_trim "${f_model:-}")
 
         [[ -z "$f_id" ]] && continue
 
@@ -91,12 +104,15 @@ orch_router_init() {
         [[ -z "$f_priority" || "$f_priority" == "none" ]] && f_priority=5
         [[ -z "$f_depends" ]] && f_depends="none"
         [[ ! "$f_interval" =~ ^[0-9]+$ ]] && f_interval=1
+        # Model defaults to ORCH_DEFAULT_MODEL if missing/empty
+        [[ -z "$f_model" || "$f_model" == "none" ]] && f_model="$_ORCH_DEFAULT_MODEL"
 
         _ORCH_ROUTER_AGENTS+=("$f_id")
         _ORCH_ROUTER_INTERVAL["$f_id"]="$f_interval"
         _ORCH_ROUTER_EFF_INTERVAL["$f_id"]="$f_interval"
         _ORCH_ROUTER_PRIORITY["$f_id"]="$f_priority"
         _ORCH_ROUTER_DEPENDS["$f_id"]="$f_depends"
+        _ORCH_ROUTER_MODEL["$f_id"]="$f_model"
         _ORCH_ROUTER_LAST_RUN["$f_id"]=0
         _ORCH_ROUTER_LAST_OUTCOME["$f_id"]="none"
         _ORCH_ROUTER_CONSEC_EMPTY["$f_id"]=0
@@ -402,20 +418,83 @@ orch_router_load_state() {
     done < "$state_file"
 }
 
+# orch_router_model <agent_id>
+#   Get the resolved model for an agent. Respects overrides:
+#   1. ORCH_MODEL_OVERRIDE_<ID> env var (highest priority)
+#   2. --model CLI override (caller sets ORCH_MODEL_CLI_OVERRIDE)
+#   3. agents.conf column 9
+#   4. ORCH_DEFAULT_MODEL env var / "opus" fallback
+#   Prints the model flag (e.g., "claude-opus-4-6") to stdout.
+orch_router_model() {
+    local agent_id="${1:?orch_router_model: agent_id required}"
+
+    # Normalize agent ID for env var lookup: 06-backend -> 06_BACKEND
+    local env_key="${agent_id//-/_}"
+    env_key="${env_key^^}"
+    local override_var="ORCH_MODEL_OVERRIDE_${env_key}"
+
+    local model=""
+
+    # Priority 1: per-agent env var override
+    if [[ -n "${!override_var:-}" ]]; then
+        model="${!override_var}"
+    # Priority 2: CLI override (global)
+    elif [[ -n "${ORCH_MODEL_CLI_OVERRIDE:-}" ]]; then
+        model="$ORCH_MODEL_CLI_OVERRIDE"
+    # Priority 3: agents.conf value
+    elif [[ -n "${_ORCH_ROUTER_MODEL[$agent_id]+x}" ]]; then
+        model="${_ORCH_ROUTER_MODEL[$agent_id]}"
+    # Priority 4: default
+    else
+        model="$_ORCH_DEFAULT_MODEL"
+    fi
+
+    # Map abstract name to flag
+    if [[ -n "${_ORCH_MODEL_FLAGS[$model]+x}" ]]; then
+        printf '%s\n' "${_ORCH_MODEL_FLAGS[$model]}"
+    else
+        # Unknown model name — pass through as-is (forward compat)
+        _orch_router_log WARN "Unknown model '$model' for agent $agent_id — passing through"
+        printf '%s\n' "$model"
+    fi
+}
+
+# orch_router_model_name <agent_id>
+#   Like orch_router_model but returns the abstract name (opus/sonnet/haiku)
+#   instead of the flag. Useful for logging and display.
+orch_router_model_name() {
+    local agent_id="${1:?orch_router_model_name: agent_id required}"
+
+    local env_key="${agent_id//-/_}"
+    env_key="${env_key^^}"
+    local override_var="ORCH_MODEL_OVERRIDE_${env_key}"
+
+    if [[ -n "${!override_var:-}" ]]; then
+        printf '%s\n' "${!override_var}"
+    elif [[ -n "${ORCH_MODEL_CLI_OVERRIDE:-}" ]]; then
+        printf '%s\n' "$ORCH_MODEL_CLI_OVERRIDE"
+    elif [[ -n "${_ORCH_ROUTER_MODEL[$agent_id]+x}" ]]; then
+        printf '%s\n' "${_ORCH_ROUTER_MODEL[$agent_id]}"
+    else
+        printf '%s\n' "$_ORCH_DEFAULT_MODEL"
+    fi
+}
+
 # orch_router_dump
 #   Debug: print all router state.
 orch_router_dump() {
     printf 'dynamic-router state (%d agents):\n' "${#_ORCH_ROUTER_AGENTS[@]}"
-    printf '%-12s %-4s %-5s %-8s %-8s %-5s %s\n' \
-        "AGENT" "PRI" "INTV" "EFF_INTV" "LAST_OUT" "EMPTY" "DEPENDS"
+    printf '%-12s %-4s %-5s %-8s %-8s %-5s %-7s %s\n' \
+        "AGENT" "PRI" "INTV" "EFF_INTV" "LAST_OUT" "EMPTY" "MODEL" "DEPENDS"
     for id in "${_ORCH_ROUTER_AGENTS[@]}"; do
-        printf '%-12s %-4s %-5s %-8s %-8s %-5s %s\n' \
+        printf '%-12s %-4s %-5s %-8s %-8s %-5s %-7s %s\n' \
             "$id" \
             "${_ORCH_ROUTER_PRIORITY[$id]:-5}" \
             "${_ORCH_ROUTER_INTERVAL[$id]:-1}" \
             "${_ORCH_ROUTER_EFF_INTERVAL[$id]:-1}" \
             "${_ORCH_ROUTER_LAST_OUTCOME[$id]:-none}" \
             "${_ORCH_ROUTER_CONSEC_EMPTY[$id]:-0}" \
+            "${_ORCH_ROUTER_MODEL[$id]:-$_ORCH_DEFAULT_MODEL}" \
             "${_ORCH_ROUTER_DEPENDS[$id]:-none}"
     done
 }

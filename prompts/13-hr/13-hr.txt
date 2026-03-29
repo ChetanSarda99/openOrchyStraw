@@ -218,10 +218,17 @@ When advising PM on new agent prompts, ensure they follow this structure:
 - [x] BUG-012 tracked: 6/9 active prompts have PROTECTED FILES (3 remaining: 01-ceo, 03-pm, 10-security)
 - [x] Staffing confirmed: team correctly sized through v0.1.0 + benchmark sprint
 
-### Current (Cycle 10 — v0.2.0 Development)
-- [ ] Track v0.2.0 progress: dynamic-router.sh shipped (26 tests), Phase 2 starting
-- [ ] Track BUG-012 completion — 3 prompts still missing PROTECTED FILES (01-ceo, 03-pm, 10-security)
-- [ ] Monitor team health during v0.2.0 smart cycle system development
-- [ ] Evaluate backend workload — Phase 2 has 3 modules (#40, #44, #46) plus integration
+### Done (Cycle 10)
+- [x] Cycle 10 team health: 9 agents active, all performing well
+- [x] 06-backend recognized as team MVP: dynamic-router.sh (421 lines, 36 tests) + review-phase.sh (24 tests)
+- [x] BUG-012 CORRECTED: 5/9 missing PROTECTED FILES (01-ceo, 02-cto, 03-pm, 10-security, 13-hr)
+- [x] Backend workload assessed: 3 QA bugs (BUG-014/015/016) + #44 worktree — manageable
+- [x] Tauri reactivation: NOT YET — benchmarks first. Prompts ready, agents.conf entries pending
+
+### Current (Cycle 11 — v0.2.0 Bug Fixes + Integration)
+- [ ] Track BUG-014/015/016 fixes by 06-backend
+- [ ] Track BUG-012 completion — 5 prompts still missing PROTECTED FILES (01-ceo, 02-cto, 03-pm, 10-security, 13-hr)
+- [ ] Monitor v0.2.0 integration progress (CS must integrate 4 modules into auto-agent.sh)
 - [ ] Recommend reactivating 04-tauri-rust + 05-tauri-ui after benchmark sprint
 - [ ] Post-benchmark: prepare onboarding for 04-tauri-rust + 05-tauri-ui reactivation
+- [ ] Next team health review: Cycle 13

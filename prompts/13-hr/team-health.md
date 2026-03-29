@@ -1,6 +1,6 @@
-# Team Health Report — Cycle 8 (2026-03-29)
+# Team Health Report — Cycle 10 (2026-03-29)
 
-> Third HR assessment. Major milestone: ALL security blockers resolved by CS (601c9a2).
+> Fourth HR assessment. v0.2.0 Phase 1 shipped. v0.1.0 TAG-READY. Preparing for Tauri reactivation.
 
 ---
 
@@ -8,133 +8,147 @@
 
 | Agent | Total Cycles | This Cycle | Output Quality | Notes |
 |-------|-------------|------------|----------------|-------|
-| 01-ceo | 8 | STANDBY | Good | Strategic memos clear; scope-cut decision (C7) proved correct |
-| 02-cto | 8 | STANDBY | Good | ADRs + hardening spec complete; all identified fixes now landed |
-| 03-pm | 8 | Active | Good | Reliable coordination; prompt updates ongoing |
-| 06-backend | 8 | Active | Good | All modules in production; tests stable at 9/9 + 42 integration |
-| 08-pixel | 8 | STANDBY | Good | Phase 1 complete, correctly frozen per CEO |
-| 09-qa | 8 | Active | Good | Thorough cycle-over-cycle tracking; ready for final regression |
-| 10-security | 8 | Active | Good | Audit methodology sound; Option A/B framework was well-structured |
-| 11-web | 8 | Active | Good | Landing page MVP shipped and build-verified |
-| 13-hr | 3 | Active | Good | Third cycle output |
+| 01-ceo | 10 | STANDBY | Good | No action needed — strategic direction holding |
+| 02-cto | 10 | Active | Excellent | 4 v0.2.0 ADRs shipped (EXEC-001, plus 3 more) |
+| 03-pm | 10 | Active | Good | v0.2.0 Phase 1 coordination landed |
+| 06-backend | 10 | Active | Excellent | dynamic-router.sh (421 lines, 26 tests) + signal-handler.sh + cycle-tracker.sh |
+| 08-pixel | 10 | STANDBY | Good | Phase 1 complete, correctly frozen |
+| 09-qa | 10 | STANDBY | Good | Awaiting v0.2.0 Phase 2 for review tasks |
+| 10-security | 10 | STANDBY | Good | Awaiting dynamic-router.sh security review |
+| 11-web | 10 | Active | Good | GitHub Pages deploy workflow shipped |
+| 13-hr | 4 | Active | Good | Fourth cycle output |
 
 ## Key Findings
 
-### 1. CS SECURITY FIXES LANDED — ALL v0.1.0 BLOCKERS RESOLVED (601c9a2)
+### 1. v0.2.0 PHASE 1 SHIPPED — STRONG MOMENTUM
 
-**This is the biggest unblock since the original d130de7 integration.**
+Three core modules delivered in Cycles 9–10:
 
-Commit `601c9a2` (2026-03-29) fixed all three remaining security blockers:
-- **HIGH-03 FIXED:** Array-based iteration for `$ownership` in for loops (commit_by_ownership + detect_rogue_writes)
-- **HIGH-04 FIXED:** `|` delimiter in sed + `&` char escaping to prevent injection in prompt auto-update
-- **MEDIUM-01 FIXED:** Root `.gitignore` now has `.env`, `*.pem`, `*.key`, `credentials.json`, and all other sensitive patterns
+| Module | Lines | Tests | Status |
+|--------|-------|-------|--------|
+| `dynamic-router.sh` | 421 | 26 pass | SHIPPED — topological sort, depends_on |
+| `signal-handler.sh` | — | Has tests | SHIPPED |
+| `cycle-tracker.sh` | — | 14 tests | SHIPPED |
 
-**Impact:** The multi-cycle CS bottleneck is fully resolved. v0.1.0 is now unblocked pending QA regression + Security final sign-off + README fix (BUG-001).
+**06-backend** is the standout this cycle. Three modules shipped with full test coverage. The dynamic-router.sh is the most complex module yet — topological sort for agent dependency ordering. CTO pre-approved via EXEC-001 ADR.
 
-**Timeline recap:**
-- Cycles 1–4: Blocked on CS for HIGH-01/MEDIUM-01/MEDIUM-02
-- Cycle 5 (d130de7): CS applied first round of fixes → new HIGH-03/04 emerged
-- Cycle 7: CEO scope-cut decision (HIGH-04 → v0.1.1)
-- Cycle 8 (601c9a2): CS fixed ALL three remaining issues — including HIGH-04 which was originally deferred
+**v0.2.0 Phase 2 backlog:**
+- `#40` review-phase.sh (QA auto-rerun / loop feedback)
+- `#44` Git worktree isolation per agent
+- `#46` Model tiering per agent (agents.conf column)
 
-CEO's scope-cut to v0.1.1 for HIGH-04 was made moot — CS fixed it anyway. Clean outcome.
+### 2. v0.1.0 — STILL TAG-READY, AWAITING CS ACTION
 
-### 2. BUG-012 Progress: 6/9 active agents have PROTECTED FILES
+Status unchanged from Cycle 8: QA PASS, Security FULL PASS, all blockers resolved.
+- Only remaining action: BUG-013 (README "Bash 4+" → "Bash 5+") then tag
+- This is a CS action item — no agent can tag
 
-| Has PROTECTED FILES | Missing PROTECTED FILES |
+### 3. BUG-012: CORRECTED COUNT — 5/9 MISSING
+
+**Previous HR reports overcounted.** Verified via grep for `🚫 PROTECTED FILES` section:
+
+| Has PROTECTED FILES section | Missing PROTECTED FILES section |
 |---|---|
-| 02-cto | 01-ceo |
-| 06-backend | 03-pm |
-| 08-pixel | 10-security |
-| 09-qa | |
-| 11-web | |
-| 13-hr | |
+| 06-backend | **01-ceo** |
+| 08-pixel | **02-cto** |
+| 09-qa | **03-pm** |
+| 11-web | **10-security** |
+| | **13-hr** |
 
-**6 of 9 active agents have the section. 3 still missing.**
-- Progress from Cycle 6: 13-hr gained the section (+1).
-- Remaining: 01-ceo, 03-pm, 10-security.
-- Inactive agents (04/05/07): N/A — fix at activation time.
+**Only 4 of 9 active agents have the section. 5 still missing.**
+- Prior HR reports incorrectly counted agents with basic `MUST NOT WRITE` as having the PROTECTED FILES section. Those are not equivalent — the PROTECTED FILES section explicitly lists `auto-agent.sh`, `agents.conf`, and other CS-only files that no agent should ever modify.
+- QA Cycle 9 report counted 4 missing (01-ceo, 02-cto, 03-pm, 13-hr) — missed 10-security.
+- **Recommendation:** PM adds PROTECTED FILES section to all 5 remaining agents. Escalating to P1 — this has been open since Cycle 3.
 
-**Recommendation:** PM should add PROTECTED FILES to 01-ceo, 03-pm, 10-security. Not a v0.1.0 blocker but needed for team standards compliance.
+### 4. BACKEND WORKLOAD EVALUATION — PHASE 2
 
-### 3. Path to v0.1.0 — CLEAR
+**06-backend has 3 modules queued for v0.2.0 Phase 2:**
 
-With all security fixes landed, the release path is now:
+| Issue | Module | Complexity | Dependencies |
+|-------|--------|-----------|--------------|
+| #40 | review-phase.sh | MEDIUM | Needs QA agent rerun logic |
+| #44 | Git worktree isolation | HIGH | Needs CS integration into auto-agent.sh (protected) |
+| #46 | Model tiering | LOW | agents.conf column addition |
 
-1. **QA regression** — re-verify HIGH-03/HIGH-04/MEDIUM-01 fixes against auto-agent.sh + .gitignore
-2. **Security final sign-off** — confirm FULL PASS (all gates should pass now)
-3. **BUG-001** — CS fixes README agent count (says "10", agents.conf has 9)
-4. **Tag v0.1.0**
+**Assessment:** Manageable for a single agent. Backend has delivered 11+ modules solo already. #44 (worktree isolation) is the heaviest — it involves git operations that may need CS involvement for protected file integration.
 
-Estimated: 1 cycle for QA + Security, CS fixes README, tag.
+**Recommendation:** No need for a second backend agent. 06-backend can handle Phase 2 at ~1 module per cycle pace. Keep current staffing.
 
-### 4. Orphaned directories — carry forward
+### 5. TAURI REACTIVATION PLAN — NOT YET, BENCHMARKS FIRST
 
-Still 5 orphaned prompt directories. Status unchanged since Cycle 1:
-- `01-pm` — safe to archive
-- `04-tauri-rust`, `05-tauri-ui`, `07-ios` — deferred to post-v0.1.0 activation
-- `12-brand` — unresolved; CEO has not commented
+**Current roadmap (from CEO/PM):**
+1. Tag v0.1.0 ← awaiting CS
+2. Benchmark sprint (SWE-bench + Ralph) ← 06-backend leads
+3. HN launch ← only with benchmark receipts
+4. **THEN activate 04-tauri-rust + 05-tauri-ui** ← we are NOT here yet
 
-**Recommendation:** Not blocking. Clean up post-v0.1.0.
+**Pre-activation readiness check for 04/05:**
 
-### 5. Ownership overlap: `reports/` — unchanged
+| Checklist Item | 04-tauri-rust | 05-tauri-ui |
+|----------------|--------------|-------------|
+| Prompt file exists | ✅ `prompts/04-tauri-rust/` | ✅ `prompts/05-tauri-ui/` |
+| File ownership defined | ✅ `src-tauri/` | ✅ `src/` (Tauri UI) |
+| No overlap with active agents | ✅ Clean | ✅ Clean |
+| Reference doc exists | ✅ `docs/references/TAURI-STACK.md` | ✅ `docs/references/TAURI-STACK.md` |
+| agents.conf entry | ❌ Not yet | ❌ Not yet |
+| PROTECTED FILES section | ❌ Check at activation | ❌ Check at activation |
+| Test run completed | ❌ At activation | ❌ At activation |
 
-Both `09-qa` and `10-security` still list `reports/` in agents.conf. Low actual risk.
+**When to activate:**
+- TRIGGER: v0.1.0 tagged AND benchmark sprint complete AND CS approves
+- PM adds to agents.conf with interval `1` (every cycle)
+- HR verifies prompt standards compliance on first run
+- CTO reviews Tauri architecture decisions
 
-**Recommendation:** Fix when CS next edits agents.conf.
+### 6. TEAM PERFORMANCE — CYCLE 9/10 SUMMARY
 
-### 6. Team Performance Summary (across all cycles)
-
-**Standout performers:**
-- **06-backend:** Shipped 11 bash modules, full test suite (51 assertions), integration guide — backbone of v0.1.0
-- **09-qa:** 7 QA reports, caught every real issue, disciplined regression tracking
-- **03-pm:** Ran every cycle without fail, kept prompts + tracker + context current
-- **10-security:** Thorough audits, threat model, Option A/B framework gave CS clear choices
+**High output:**
+- **06-backend:** 3 modules shipped with tests — team MVP this sprint
+- **02-cto:** 4 ADRs approved — architecture foundations for v0.2.0
+- **11-web:** GitHub Pages deploy workflow — unblocks site publishing
+- **03-pm:** Clean coordination across Phase 1 deliverables
 
 **Correctly on STANDBY:**
-- 01-ceo, 02-cto, 08-pixel, 11-web — all delivered their Phase 1 work and correctly froze per CEO directive
+- 01-ceo — strategic direction clear, no decisions needed
+- 08-pixel — Phase 1 complete, waiting for v0.2.0+
+- 09-qa — awaiting Phase 2 modules to review
+- 10-security — dynamic-router.sh review queued but not yet triggered
 
-**No underperformers. No agent idle without reason.**
+**No underperformers. No idle agents without reason.**
 
-### 7. Post-v0.1.0 Staffing Plan
+### 7. OPEN ITEMS CARRIED FORWARD
 
-Now that security fixes are landed and v0.1.0 tag is imminent, here's the staffing plan:
-
-**Phase 1 — Immediately after v0.1.0 tag:**
-- **06-backend** leads benchmark sprint (SWE-bench + Ralph comparison)
-- **09-qa** runs final regression then shifts to benchmark validation
-- **No new agent needed** for benchmarks — 06-backend has the domain knowledge
-
-**Phase 2 — After benchmarks / HN launch:**
-- **ACTIVATE 04-tauri-rust** — Desktop app Rust backend (prompt exists, needs agents.conf entry)
-- **ACTIVATE 05-tauri-ui** — Desktop app React frontend (prompt exists, needs agents.conf entry)
-- **02-cto** resumes for Tauri architecture decisions
-- **11-web** shifts to docs site build
-
-**Phase 3 — After Tauri scaffold stable:**
-- **ACTIVATE 07-ios** — iOS companion app
-- **08-pixel** Phase 2 resumes (fork + adapter)
-
-**Benchmark agent evaluation:** NOT RECOMMENDED. Benchmarks are time-bound (2-3 cycles max), 06-backend already owns `benchmarks/` directory, and the work is scripting + analysis — not a distinct skill domain. Creating a dedicated agent would be over-staffing.
+| Item | Status | Priority | Owner |
+|------|--------|----------|-------|
+| BUG-012 (PROTECTED FILES) | 4/9 done, **5 remaining** (corrected) | P2 → **escalating to P1** | PM |
+| Orphaned `01-pm/` | Safe to archive | P3 | CS |
+| Orphaned `12-brand/` | Unresolved — CEO silent | P3 | CEO |
+| `reports/` overlap | Low risk, mitigated | P3 | CS (agents.conf edit) |
+| BUG-013 (README Bash version) | CS action | P1 | CS |
 
 ## Staffing Recommendations (updated)
 
-| Action | Agent | Justification | Priority | Change from C6 |
+| Action | Agent | Justification | Priority | Change from C8 |
 |--------|-------|---------------|----------|-----------------|
-| KEEP | All 9 active | Correctly staffed through v0.1.0 tag | — | No change |
-| ACTIVATE after benchmarks | 04-tauri-rust | Desktop app Rust backend | P2 | Timing refined |
-| ACTIVATE after benchmarks | 05-tauri-ui | Desktop app React frontend | P2 | Timing refined |
+| KEEP | All 9 active | Correctly staffed through v0.2.0 Phase 2 | — | No change |
+| ACTIVATE post-benchmarks | 04-tauri-rust | Desktop app Rust backend — prompts ready | P2 | No change |
+| ACTIVATE post-benchmarks | 05-tauri-ui | Desktop app React frontend — prompts ready | P2 | No change |
 | ACTIVATE post-Tauri | 07-ios | iOS companion app | P3 | No change |
-| DO NOT CREATE | benchmark agent | 06-backend covers this; not enough work for dedicated agent | — | NEW decision |
-| INVESTIGATE | 12-brand | Still unresolved. Not in CLAUDE.md. | P3 | No change |
+| DO NOT CREATE | benchmark agent | 06-backend covers this | — | No change |
+| DO NOT CREATE | 2nd backend agent | Phase 2 workload manageable for single agent | — | NEW assessment |
+| INVESTIGATE | 12-brand | Still unresolved. CEO has not commented in 10 cycles. | P3 | No change |
 | ARCHIVE | 01-pm | Orphaned old PM directory | P3 | No change |
 
 ## Next Review
 
-- Next HR cycle: Cycle 11 (every 3rd cycle)
-- Will track: v0.1.0 tag confirmation, benchmark sprint staffing, 04/05 activation readiness, BUG-012 completion
+- Next HR cycle: Cycle 13 (every 3rd cycle)
+- Will track: v0.1.0 tag status, benchmark sprint progress, BUG-012 completion, 04/05 activation timing
 
 ---
+
+## Archived: Cycle 8 Report
+
+> Third HR assessment. ALL security blockers resolved (601c9a2). v0.1.0 TAG-READY. BUG-012 at 6/9. Staffing plan: benchmarks first, then Tauri activation. See git history for full text.
 
 ## Archived: Cycle 6 Report
 

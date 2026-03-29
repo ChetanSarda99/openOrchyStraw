@@ -203,4 +203,92 @@ v1_group_count=$(_orch_router_trim "$v1_group_count")
 # Test 26: Dump doesn't crash
 orch_router_dump > /dev/null 2>&1 || { echo "FAIL: T26 dump should not crash"; exit 1; }
 
-echo "test-dynamic-router.sh: ALL PASS (26 tests)"
+# ══════════════════════════════════════
+# Test 27-36: Model tiering (#46 MODEL-001)
+# ══════════════════════════════════════
+
+# ── Helper: v2+ config with model column (9 cols) ──
+create_v2_model_conf() {
+    cat > "$TMPDIR_TEST/agents-model.conf" << 'EOF'
+# 9-col format: id | prompt | ownership | interval | label | priority | depends_on | reviews | model
+06-backend   | prompts/06-backend/06-backend.txt | src/core/       | 1 | Backend | 10 | none | none | sonnet
+09-qa        | prompts/09-qa/09-qa.txt           | tests/          | 3 | QA      | 5  | 06-backend | 06-backend | opus
+01-ceo       | prompts/01-ceo/01-ceo.txt         | docs/strategy/  | 3 | CEO     | 3  | none | none | opus
+03-pm        | prompts/03-pm/03-pm.txt           | prompts/        | 0 | PM      | 0  | all | none | sonnet
+13-hr        | prompts/13-hr/13-hr.txt           | docs/team/      | 3 | HR      | 2  | none | none | haiku
+EOF
+}
+
+# Test 27: v2+ config parses model column
+create_v2_model_conf
+orch_router_init "$TMPDIR_TEST/agents-model.conf"
+[[ "${_ORCH_ROUTER_MODEL[06-backend]}" == "sonnet" ]] || { echo "FAIL: T27 backend model not sonnet, got '${_ORCH_ROUTER_MODEL[06-backend]}'"; exit 1; }
+[[ "${_ORCH_ROUTER_MODEL[09-qa]}" == "opus" ]] || { echo "FAIL: T27 qa model not opus"; exit 1; }
+[[ "${_ORCH_ROUTER_MODEL[13-hr]}" == "haiku" ]] || { echo "FAIL: T27 hr model not haiku"; exit 1; }
+
+# Test 28: orch_router_model returns correct flag
+model_flag=$(orch_router_model "06-backend")
+[[ "$model_flag" == "claude-sonnet-4-6" ]] || { echo "FAIL: T28 backend flag wrong: $model_flag"; exit 1; }
+
+model_flag_qa=$(orch_router_model "09-qa")
+[[ "$model_flag_qa" == "claude-opus-4-6" ]] || { echo "FAIL: T28 qa flag wrong: $model_flag_qa"; exit 1; }
+
+model_flag_hr=$(orch_router_model "13-hr")
+[[ "$model_flag_hr" == "claude-haiku-4-5" ]] || { echo "FAIL: T28 hr flag wrong: $model_flag_hr"; exit 1; }
+
+# Test 29: orch_router_model_name returns abstract name
+model_name=$(orch_router_model_name "06-backend")
+[[ "$model_name" == "sonnet" ]] || { echo "FAIL: T29 backend model name wrong: $model_name"; exit 1; }
+
+# Test 30: v2 (8-col, no model) defaults to ORCH_DEFAULT_MODEL
+create_v2_conf
+orch_router_init "$TMPDIR_TEST/agents-v2.conf"
+[[ "${_ORCH_ROUTER_MODEL[06-backend]}" == "opus" ]] || { echo "FAIL: T30 default model not opus: ${_ORCH_ROUTER_MODEL[06-backend]}"; exit 1; }
+
+# Test 31: v1 (5-col) also defaults
+create_v1_conf
+orch_router_init "$TMPDIR_TEST/agents-v1.conf"
+[[ "${_ORCH_ROUTER_MODEL[06-backend]}" == "opus" ]] || { echo "FAIL: T31 v1 default model not opus"; exit 1; }
+
+# Test 32: CLI override takes precedence
+create_v2_model_conf
+orch_router_init "$TMPDIR_TEST/agents-model.conf"
+ORCH_MODEL_CLI_OVERRIDE=haiku
+resolved=$(orch_router_model "06-backend")
+[[ "$resolved" == "claude-haiku-4-5" ]] || { echo "FAIL: T32 CLI override not applied: $resolved"; exit 1; }
+unset ORCH_MODEL_CLI_OVERRIDE
+
+# Test 33: Per-agent env var override beats CLI
+create_v2_model_conf
+orch_router_init "$TMPDIR_TEST/agents-model.conf"
+ORCH_MODEL_CLI_OVERRIDE=haiku
+ORCH_MODEL_OVERRIDE_06_BACKEND=opus
+resolved=$(orch_router_model "06-backend")
+[[ "$resolved" == "claude-opus-4-6" ]] || { echo "FAIL: T33 per-agent override not applied: $resolved"; exit 1; }
+unset ORCH_MODEL_CLI_OVERRIDE
+unset ORCH_MODEL_OVERRIDE_06_BACKEND
+
+# Test 34: Unknown model passes through (forward compat)
+cat > "$TMPDIR_TEST/agents-future.conf" << 'EOF'
+06-backend | p.txt | src/ | 1 | Backend | 10 | none | none | gemini-pro
+EOF
+orch_router_init "$TMPDIR_TEST/agents-future.conf"
+resolved=$(orch_router_model "06-backend" 2>/dev/null)
+[[ "$resolved" == "gemini-pro" ]] || { echo "FAIL: T34 unknown model not passed through: $resolved"; exit 1; }
+
+# Test 35: model_name with env override
+create_v2_model_conf
+orch_router_init "$TMPDIR_TEST/agents-model.conf"
+ORCH_MODEL_OVERRIDE_09_QA=sonnet
+resolved_name=$(orch_router_model_name "09-qa")
+[[ "$resolved_name" == "sonnet" ]] || { echo "FAIL: T35 override model_name wrong: $resolved_name"; exit 1; }
+unset ORCH_MODEL_OVERRIDE_09_QA
+
+# Test 36: Dump includes model column
+create_v2_model_conf
+orch_router_init "$TMPDIR_TEST/agents-model.conf"
+dump_output=$(orch_router_dump)
+[[ "$dump_output" == *"MODEL"* ]] || { echo "FAIL: T36 dump missing MODEL header"; exit 1; }
+[[ "$dump_output" == *"sonnet"* ]] || { echo "FAIL: T36 dump missing sonnet value"; exit 1; }
+
+echo "test-dynamic-router.sh: ALL PASS (36 tests)"
