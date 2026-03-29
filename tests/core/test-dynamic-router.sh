@@ -291,4 +291,52 @@ dump_output=$(orch_router_dump)
 [[ "$dump_output" == *"MODEL"* ]] || { echo "FAIL: T36 dump missing MODEL header"; exit 1; }
 [[ "$dump_output" == *"sonnet"* ]] || { echo "FAIL: T36 dump missing sonnet value"; exit 1; }
 
-echo "test-dynamic-router.sh: ALL PASS (36 tests)"
+# ══════════════════════════════════════
+# Test 37: BUG-014 — Duplicate deps don't inflate in-degree
+# ══════════════════════════════════════
+cat > "$TMPDIR_TEST/agents-dup-deps.conf" << 'EOF'
+06-backend | p.txt | src/ | 1 | Backend | 10 | none | none
+09-qa      | p.txt | tests/ | 3 | QA | 5 | 06-backend,06-backend,06-backend | none
+03-pm      | p.txt | prompts/ | 0 | PM | 0 | all | none
+EOF
+orch_router_init "$TMPDIR_TEST/agents-dup-deps.conf"
+# Should NOT detect a cycle — deduplication keeps graph clean
+! orch_router_has_cycle || { echo "FAIL: T37a dup deps should not cause cycle"; exit 1; }
+# Groups should still be correct: {backend}, {qa}, {pm}
+dup_groups=$(orch_router_groups)
+dup_group0=$(echo "$dup_groups" | head -1)
+[[ "$dup_group0" == *"06-backend"* ]] || { echo "FAIL: T37b group0 should have backend"; exit 1; }
+dup_group1=$(echo "$dup_groups" | sed -n '2p')
+[[ "$dup_group1" == *"09-qa"* ]] || { echo "FAIL: T37c group1 should have qa, got '$dup_group1'"; exit 1; }
+
+# ══════════════════════════════════════
+# Test 38: BUG-015 — Non-numeric priority defaults to 5
+# ══════════════════════════════════════
+cat > "$TMPDIR_TEST/agents-bad-pri.conf" << 'EOF'
+06-backend | p.txt | src/ | 1 | Backend | high | none | none
+09-qa      | p.txt | tests/ | 3 | QA | abc | none | none
+01-ceo     | p.txt | docs/ | 3 | CEO | 10 | none | none
+EOF
+orch_router_init "$TMPDIR_TEST/agents-bad-pri.conf"
+[[ "${_ORCH_ROUTER_PRIORITY[06-backend]}" == "5" ]] || { echo "FAIL: T38a 'high' should default to 5, got '${_ORCH_ROUTER_PRIORITY[06-backend]}'"; exit 1; }
+[[ "${_ORCH_ROUTER_PRIORITY[09-qa]}" == "5" ]] || { echo "FAIL: T38b 'abc' should default to 5, got '${_ORCH_ROUTER_PRIORITY[09-qa]}'"; exit 1; }
+[[ "${_ORCH_ROUTER_PRIORITY[01-ceo]}" == "10" ]] || { echo "FAIL: T38c numeric 10 should stay 10"; exit 1; }
+
+# ══════════════════════════════════════
+# Test 39: BUG-016 — Unknown dep emits warning (doesn't crash)
+# ══════════════════════════════════════
+cat > "$TMPDIR_TEST/agents-unknown-dep.conf" << 'EOF'
+06-backend | p.txt | src/ | 1 | Backend | 10 | none | none
+09-qa      | p.txt | tests/ | 3 | QA | 5 | 06-backend,ghost-agent | none
+EOF
+orch_router_init "$TMPDIR_TEST/agents-unknown-dep.conf"
+# Should not crash, should not detect cycle
+! orch_router_has_cycle || { echo "FAIL: T39a unknown dep should not cause cycle"; exit 1; }
+# QA should still depend on backend (unknown dep ignored for graph)
+groups_unk=$(orch_router_groups)
+unk_group0=$(echo "$groups_unk" | head -1)
+[[ "$unk_group0" == "06-backend" ]] || { echo "FAIL: T39b group0 should be backend only, got '$unk_group0'"; exit 1; }
+unk_group1=$(echo "$groups_unk" | sed -n '2p')
+[[ "$unk_group1" == "09-qa" ]] || { echo "FAIL: T39c group1 should be qa, got '$unk_group1'"; exit 1; }
+
+echo "test-dynamic-router.sh: ALL PASS (39 tests)"
