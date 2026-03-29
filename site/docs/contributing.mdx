@@ -1,0 +1,51 @@
+---
+title: "Contributing"
+description: "How to contribute to OrchyStraw."
+---
+
+## Getting started
+
+OrchyStraw is open source under the MIT license. Contributions are welcome.
+
+```bash
+# Fork and clone
+git clone https://github.com/YOUR_USERNAME/openOrchyStraw.git
+cd openOrchyStraw
+
+# Make the orchestrator executable
+chmod +x scripts/auto-agent.sh
+```
+
+## What to contribute
+
+<CardGroup cols={2}>
+  <Card title="Bug reports" icon="bug">
+    Found a bug? Open an issue with steps to reproduce, expected behavior, and actual behavior.
+  </Card>
+  <Card title="Agent prompts" icon="pen">
+    Share prompt templates for specific roles or workflows. Good prompts are the core of OrchyStraw.
+  </Card>
+  <Card title="Documentation" icon="book">
+    Improve docs, add examples, fix typos. Every improvement helps new users get started faster.
+  </Card>
+  <Card title="CLI integrations" icon="terminal">
+    Test OrchyStraw with new AI tools and document the setup. The more tools supported, the better.
+  </Card>
+</CardGroup>
+
+## Guidelines
+
+- **Keep it simple** — OrchyStraw's strength is zero dependencies. Don't add package managers, build tools, or runtimes.
+- **Bash only** — Core orchestrator code must be bash. No Python, no Node.js, no compiled languages.
+- **Test your changes** — Run `./scripts/auto-agent.sh --dry-run` to verify config changes work.
+- **One PR per change** — Small, focused PRs are reviewed faster than large bundles.
+
+## Reporting issues
+
+Open issues on the [openOrchyStraw GitHub repo](https://github.com/ChetanSarda99/openOrchyStraw/issues). Include:
+
+1. OrchyStraw version (or commit hash)
+2. Bash version (`bash --version`)
+3. OS and AI tool being used
+4. Steps to reproduce
+5. Error output or logs

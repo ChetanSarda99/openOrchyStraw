@@ -1,0 +1,106 @@
+---
+title: "Full Team Setup"
+description: "A 10-agent configuration for large projects with QA, security, and strategic agents."
+---
+
+## Overview
+
+This example shows a full OrchyStraw team with 10 agents across engineering, QA, security, and strategy roles. This is the configuration OrchyStraw uses to build itself.
+
+## agents.conf
+
+```ini
+# Strategic agents (run every 3rd cycle)
+01-ceo      | prompts/01-ceo/01-ceo.txt           | claude     | docs/strategy/          | 3
+02-cto      | prompts/02-cto/02-cto.txt           | claude     | docs/architecture/ docs/tech-registry/ | 2
+
+# Engineering agents (run every cycle)
+04-rust     | prompts/04-tauri-rust/04-tauri-rust.txt | claude  | src-tauri/              | 1
+05-ui       | prompts/05-tauri-ui/05-tauri-ui.txt  | gemini -p  | src/                    | 1
+06-backend  | prompts/06-backend/06-backend.txt    | claude     | src/core/ scripts/ tests/ | 1
+07-ios      | prompts/07-ios/07-ios.txt            | claude     | ios/                    | 1
+
+# Specialists (run every 2nd-3rd cycle)
+08-pixel    | prompts/08-pixel/08-pixel.txt        | gemini -p  | src/pixel/ pixel-agents/ | 2
+09-qa       | prompts/09-qa/09-qa.txt              | codex exec | tests/ reports/ none    | 3
+10-security | prompts/10-security/10-security.txt  | claude     | none                    | 3
+11-web      | prompts/11-web/11-web.txt            | gemini -p  | site/                   | 2
+
+# Coordinator (always runs last)
+03-pm       | prompts/03-pm/03-pm.txt              | claude     | prompts/                | PM
+```
+
+## Model routing
+
+Different agents use different AI tools based on their strengths:
+
+| AI Tool | Best for | Agents |
+|---------|----------|--------|
+| `claude` | Architecture, complex logic, systems code | CEO, CTO, PM, Backend, Rust, iOS, Security |
+| `gemini -p` | UI design, layouts, visual work | Tauri UI, Pixel, Web |
+| `codex exec` | Code review, research, testing | QA |
+
+## Agent roles
+
+<AccordionGroup>
+  <Accordion title="01-CEO — Vision & strategy">
+    Reviews project direction, market positioning, and priorities. Writes strategic memos. Runs every 3rd cycle to save tokens.
+  </Accordion>
+  <Accordion title="02-CTO — Architecture & standards">
+    Reviews code quality, writes ADRs (Architecture Decision Records), maintains the tech registry. Runs every 2nd cycle.
+  </Accordion>
+  <Accordion title="03-PM — Coordination">
+    Runs LAST every cycle. Reads shared context, reviews git log, updates all worker prompts with new tasks, maintains the session tracker.
+  </Accordion>
+  <Accordion title="04-Rust — Desktop backend">
+    Builds Tauri Rust backend: IPC commands, state management, SQLite database.
+  </Accordion>
+  <Accordion title="05-UI — Desktop frontend">
+    Builds React frontend for the Tauri desktop app: dashboard, log viewer, config editor.
+  </Accordion>
+  <Accordion title="06-Backend — Core orchestrator">
+    Builds and hardens the bash orchestrator: modules, error handling, tests.
+  </Accordion>
+  <Accordion title="07-iOS — Mobile companion">
+    Builds the native iOS companion app for monitoring cycles.
+  </Accordion>
+  <Accordion title="08-Pixel — Visualization">
+    Builds the pixel art agent visualization: character mapping, JSONL events, overlay.
+  </Accordion>
+  <Accordion title="09-QA — Quality gates">
+    Tests, code review, regression checks. Read-only access to source code.
+  </Accordion>
+  <Accordion title="10-Security — Threat modeling">
+    Security audits, vulnerability scanning, threat modeling. Fully read-only.
+  </Accordion>
+  <Accordion title="11-Web — Public website">
+    Landing page and docs site. Separate from the desktop app frontend.
+  </Accordion>
+</AccordionGroup>
+
+## Cycle scheduling
+
+Not every agent runs every cycle. Here's what a 6-cycle session looks like:
+
+| Cycle | Workers running |
+|-------|----------------|
+| 1 | Backend, Rust, UI, iOS |
+| 2 | Backend, Rust, UI, iOS, CTO, Pixel, Web |
+| 3 | Backend, Rust, UI, iOS, CEO, QA, Security |
+| 4 | Backend, Rust, UI, iOS, CTO, Pixel, Web |
+| 5 | Backend, Rust, UI, iOS |
+| 6 | Backend, Rust, UI, iOS, CTO, CEO, Pixel, Web, QA, Security |
+
+The PM runs at the end of every cycle regardless of scheduling.
+
+## Key patterns
+
+<Note>
+  This configuration has been refined over 10+ cycles of real usage. The patterns below come from production experience.
+</Note>
+
+- **Strategic agents (CEO/CTO) run infrequently** — they set direction, not write code
+- **QA and Security are read-only** — they flag issues, other agents fix them
+- **PM never writes code** — only coordinates and updates prompts
+- **File ownership has zero overlap** — use exclusions where directories are close
+- **Different AI tools for different strengths** — route UI work to Gemini, systems work to Claude
