@@ -152,13 +152,17 @@ BUG-013 (README Bash version) is non-blocking — quick fix before or after tag.
 
 ### Post-v0.1.0 — Next QA Priorities
 1. **v0.1.1 QA pass** — Verify BUG-013 fix, BUG-012 PROTECTED FILES, `set -e` addition
-2. **v0.2.0 QA planning** — Smart cycle system will need new test coverage for:
-   - Loop review & critique (#40)
-   - Dynamic routing (#41)
-   - Dependency-aware parallel (#43)
+2. **v0.2.0 QA — dynamic-router.sh review** — Backend built `src/core/dynamic-router.sh` with 26 tests. Review:
+   - Test coverage for all 6 public functions (init, groups, eligible, has_cycle, update, force_agent)
+   - State persistence (save/load) correctness
+   - Backward compatibility with agents.conf v1 (5-col) and v2 (8-col)
+   - Edge cases: circular deps, empty config, missing fields
+3. **v0.2.0 QA planning** — Smart cycle system Phase 2 will need test coverage for:
+   - Loop review & critique (#40 — review-phase.sh, not yet built)
    - Git worktree isolation (#44)
-3. **Benchmark QA** — Verify SWE-bench scaffold when backend builds it
-4. **Landing page QA** — Test deployment when web agent ships (#39)
+   - Model tiering (#46)
+4. **Landing page QA** — GitHub Pages deploy configured. Verify live site after merge to main.
+5. **Benchmark QA** — Verify SWE-bench scaffold when backend builds it
 
 ---
 

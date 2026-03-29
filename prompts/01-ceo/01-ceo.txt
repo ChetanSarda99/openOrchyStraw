@@ -87,14 +87,14 @@ Multi-agent AI coding orchestration. Markdown prompts + bash script. No framewor
 
 ---
 
-## Current Strategic Priorities (Updated Cycle 10 — 2026-03-29)
+## Current Strategic Priorities (Updated Cycle 11 — 2026-03-29)
 
-1. **Tag v0.1.0** — All blockers cleared (601c9a2). Pending: QA regression + Security sign-off → tag immediately.
-2. **v0.1.1 within 48 hours** — Prompt cleanup (BUG-012) + QA nits only. HIGH-04 already fixed.
-3. **Benchmark sprint** — SWE-bench Lite + Ralph head-to-head. Starts immediately after v0.1.0 tag.
-4. **HN launch** — Only after benchmarks land in README. Don't post without receipts.
-5. **v0.2.0: `--single-agent` mode** — Ralph compatibility = growth hack. First feature after benchmarks.
-6. **Landing page deploy** — MVP built in `site/`. Deploy after v0.1.0 tag.
+1. **Tag v0.1.0** — All blockers cleared (601c9a2). QA PASS + Security FULL PASS. Tag immediately.
+2. **v0.2.0 Smart Cycle System** — Phase 1 SHIPPED (dynamic-router.sh, 26 tests). Phase 2: review-phase.sh (#40), worktree isolation (#44), model tiering (#46).
+3. **Landing page deploy** — GitHub Pages workflow configured, deploy triggers on merge to main. Verify after v0.1.0 tag merge.
+4. **Benchmark sprint** — SWE-bench Lite + Ralph head-to-head. Starts after v0.1.0 tag.
+5. **HN launch** — Only after benchmarks land in README. Don't post without receipts.
+6. **v0.2.0: `--single-agent` mode** — Ralph compatibility = growth hack.
 7. **Tauri desktop app** — Paid product foundation. Starts after benchmarks.
 8. **Pixel Agents Phase 2** — Fork + adapter after v0.2.0.
 

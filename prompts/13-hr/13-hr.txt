@@ -218,9 +218,10 @@ When advising PM on new agent prompts, ensure they follow this structure:
 - [x] BUG-012 tracked: 6/9 active prompts have PROTECTED FILES (3 remaining: 01-ceo, 03-pm, 10-security)
 - [x] Staffing confirmed: team correctly sized through v0.1.0 + benchmark sprint
 
-### Current (Cycle 9 — Post-v0.1.0)
-- [ ] Recommend reactivating 04-tauri-rust + 05-tauri-ui after benchmark sprint
-- [ ] Evaluate if benchmark sprint needs a dedicated agent (HR says no — 06-backend owns benchmarks/)
-- [ ] Track BUG-012 completion — 3 prompts still missing PROTECTED FILES
-- [ ] Post-benchmark: prepare onboarding for 04-tauri-rust + 05-tauri-ui reactivation
+### Current (Cycle 10 — v0.2.0 Development)
+- [ ] Track v0.2.0 progress: dynamic-router.sh shipped (26 tests), Phase 2 starting
+- [ ] Track BUG-012 completion — 3 prompts still missing PROTECTED FILES (01-ceo, 03-pm, 10-security)
 - [ ] Monitor team health during v0.2.0 smart cycle system development
+- [ ] Evaluate backend workload — Phase 2 has 3 modules (#40, #44, #46) plus integration
+- [ ] Recommend reactivating 04-tauri-rust + 05-tauri-ui after benchmark sprint
+- [ ] Post-benchmark: prepare onboarding for 04-tauri-rust + 05-tauri-ui reactivation
