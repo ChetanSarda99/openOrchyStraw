@@ -13,6 +13,49 @@
 | 6 | 2026-03-18 | 06,09,10,03 | Backend docs HIGH-03/04/MEDIUM-01 patches, QA cycle 5 NOT READY, Security cycle 5 NO CHANGE |
 | 7 | 2026-03-18 | 01,13,06,09,10,03 | CEO "Cut the Tail" scope lock, QA cycle 6 NOT READY, Security cycle 6 NO CHANGE, all blocked on CS |
 | 8 | 2026-03-29 | 01,02,09,10,13,03 | CS shipped 601c9a2 (HIGH-03+HIGH-04+MEDIUM-01). QA PASS. Security FULL PASS. v0.1.0 TAG-READY. |
+| 9 | 2026-03-29 | 02,06,11,03 | v0.2.0 Phase 1: dynamic-router.sh (26 tests), 4 CTO ADRs, GitHub Pages deploy workflow |
+
+---
+
+## WHAT SHIPPED — Cycle 9 (2026-03-29 15:40–15:55)
+
+### 06-Backend
+- `src/core/dynamic-router.sh` — v0.2.0 EXEC-001 implementation
+  - Dynamic agent routing + dependency-aware parallel groups (Kahn's algorithm)
+  - `orch_router_init` — parses agents.conf v1 (5-col) and v2 (8-col) with backward compat
+  - `orch_router_groups` — topological sort into execution groups
+  - `orch_router_eligible` — interval-based eligibility with fail-retry + empty-backoff
+  - `orch_router_has_cycle` — circular dependency detection
+  - `orch_router_update` — adjusts effective intervals based on agent outcome
+  - `orch_router_force_agent` — PM override to force-run any agent
+  - State persistence: save/load router state across cycles
+- `tests/core/test-dynamic-router.sh` — 26 tests, ALL PASS
+- Full suite: 12/12 pass (11 existing + 1 new), zero regressions
+
+### 02-CTO
+- 4 v0.2.0 ADRs written and approved:
+  - EXEC-001: Dependency graph execution + dynamic routing (#41, #43)
+  - REVIEW-001: Loop review & critique phase (#40)
+  - WORKTREE-001: Git worktree isolation per agent (#44, deferred to Phase 2+)
+  - MODEL-001: Model tiering per agent (#46, 40-60% cost savings)
+- SMART-CYCLE-DESIGN.md reviewed and APPROVED (3 open questions answered)
+- Tech registry updated: 10 domain decisions total (5 LOCKED + 5 APPROVED)
+- BUG-012 expanded: 8 prompts missing PROTECTED FILES (was 3)
+
+### 11-Web
+- GitHub Pages deployment configured: `.github/workflows/deploy-site.yml`
+- `basePath: "/openOrchyStraw"` added to `next.config.ts`
+- Pages URL: https://chetansarda99.github.io/openOrchyStraw/
+- Deploy triggers on push to main touching `site/`
+
+### 08-Pixel
+- STANDBY — Phase 1 complete, waiting for v0.2.0 activation
+
+### 03-PM (this cycle)
+- Committed cycle 2 agent work: backend (dynamic-router.sh), web (.github/), CTO (registry)
+- Updated all agent prompts: backend → Phase 2, CTO → review router, web → verify deploy, QA/Security → review router
+- Session tracker updated
+- CS action items updated with v0.2.0 integration tasks
 
 ---
 
@@ -280,22 +323,25 @@
 |-----------|------|--------|--------|
 | v0.1.0 | 0 blockers | #80,#81,#82,#91 closed | TAG-READY. QA PASS + Security FULL PASS. Only #25 (tag itself) remains. |
 | v0.1.1 | 3 items | 0 | BUG-013 (README Bash version), BUG-012 (PROTECTED FILES), `set -e` flag |
-| v0.2.0 | 6 items | 0 | Smart cycle system: #40, #41, #43, #44, #46 + signal-handler/cycle-tracker integration |
+| v0.2.0 | 4 items | 2 done | #41 DONE, #43 DONE (dynamic-router.sh). Remaining: #40, #44, #46 + CS integration of 3 modules |
 
 ## CODEBASE SIZE
-- `src/core/` modules: 11 bash files (8 v0.1.0 + 2 v0.2.0 + design doc)
+- `src/core/` modules: 12 bash files (8 v0.1.0 + 3 v0.2.0 + design doc)
 - `src/pixel/` files: 3 (emitter + test + integration guide)
-- `tests/core/` files: 11 (9 unit tests + runner + integration test)
+- `tests/core/` files: 12 (10 unit tests + runner + integration test)
 - `site/` files: ~16,122 TS/TSX/JS (Next.js project)
-- Backend scripts: 11 shell files
+- Backend scripts: 12 shell files
 - Agent prompts: 9 active in agents.conf
+- Deploy workflows: 1 (.github/workflows/deploy-site.yml)
 
 ## NEXT CYCLE PRIORITIES
 1. **Tag v0.1.0** — All blockers cleared. Fix BUG-013 (README "Bash 4+" → "Bash 5+"), then tag.
-2. **v0.1.1 (within 48 hours):** BUG-012 PROTECTED FILES + `set -e` + prompt cleanup
-3. **06-backend:** Start v0.2.0 Smart Cycle System (#40 loop review, #41 dynamic routing, #43 parallel)
-4. **02-cto:** Write v0.2.0 architecture ADRs (#43 dependency graph, #44 worktree, #46 model tiering)
-5. **11-web:** Deploy landing page (#39) — MVP built, just needs deploy
-6. **Benchmark sprint:** SWE-bench + Ralph comparison — starts immediately after v0.1.0 tag
-7. After benchmarks: HN launch (only with receipts), v0.2.0 `--single-agent` mode
-8. Post-benchmarks: Activate 04-tauri-rust + 05-tauri-ui, Pixel Phase 2 after v0.2.0
+2. **CS: Integrate v0.2.0 modules** — dynamic-router.sh, signal-handler.sh, cycle-tracker.sh into auto-agent.sh (protected file)
+3. **06-backend:** v0.2.0 Phase 2 — #40 review-phase.sh (QA auto-rerun), #46 model tiering
+4. **02-cto:** Review dynamic-router.sh against EXEC-001 spec (pre-approved, formal review needed)
+5. **11-web:** Verify GitHub Pages deploy after merge to main
+6. **09-qa:** Review dynamic-router.sh test coverage + backward compat
+7. **10-security:** Security review of dynamic-router.sh (state injection, depends_on parsing)
+8. **Benchmark sprint:** SWE-bench + Ralph comparison — starts after v0.1.0 tag
+9. After benchmarks: HN launch (only with receipts), activate 04-tauri-rust + 05-tauri-ui
+10. Post-benchmarks: Pixel Phase 2 after v0.2.0

@@ -23,10 +23,15 @@
 - [ ] **Add `set -e` to auto-agent.sh** — CTO requests at line 23. Prevents silent failures (QA-F001).
 - [ ] **BUG-012: Add PROTECTED FILES to 3 remaining prompts** — 01-ceo, 03-pm, 10-security still missing it.
 
+### P0.5 — v0.2.0 Integration (protected file — CS only)
+- [ ] **Integrate dynamic-router.sh into auto-agent.sh** — Backend built `src/core/dynamic-router.sh` (26 tests pass, CTO pre-approved). Source it alongside the 8 existing modules.
+- [ ] **Integrate signal-handler.sh into auto-agent.sh** — Built + tested (9 tests). Replace existing signal handling.
+- [ ] **Integrate cycle-tracker.sh into auto-agent.sh** — Built + tested (14 tests). Smart empty cycle detection.
+
 ### P1 — After v0.1.0 Tag
 - [ ] **Update CLAUDE.md** — Lists 11 agents and paths (src-tauri/, ios/) that don't exist yet. Align with reality.
 - [ ] **Logo/branding assets** — Web agent needs logo in `assets/branding/` (currently text-only)
-- [ ] **Deploy landing page** — Set up Vercel or GitHub Pages for `site/`. Web agent is ACTIVATED and ready.
+- [ ] **Verify GitHub Pages deploy** — Workflow configured at `.github/workflows/deploy-site.yml`. Deploy auto-triggers on push to main touching `site/`. Check https://chetansarda99.github.io/openOrchyStraw/ after merge.
 
 ### P2 — After Benchmarks
 - [ ] **Remove orphaned `prompts/01-pm/` directory (BUG-008)** — Old directory from before PM moved to 03-pm
