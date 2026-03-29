@@ -194,21 +194,24 @@ After any integration: append to `docs/tech-registry/registry.md`.
 
 ---
 
-## What's DONE (Cycle 1 + Cycle 2)
+## What's DONE (Cycle 1–3)
 
 - ✅ Landing page MVP complete in `site/` — Next.js 16 + Tailwind v4 + Framer Motion + Lucide React
 - ✅ All 6 sections: Hero (terminal demo), Supported Tools, How It Works, Features Grid, FAQ, Footer
 - ✅ Dark mode first (#0a0a0a), accent orange (#f97316), Geist fonts
 - ✅ Static export configured, build verified
-- ✅ Cycle 2: STANDBY per CEO directive — no changes needed
+- ✅ GitHub Pages deployment configured: `.github/workflows/deploy-site.yml`
+- ✅ `basePath: "/openOrchyStraw"` added to `next.config.ts`
+- ✅ Pages URL: https://chetansarda99.github.io/openOrchyStraw/
+- ✅ Deploy triggers on push to main touching `site/`
 
 ## Current Tasks
 
-### ACTIVATE — v0.1.0 tagged, deploy landing page (#39)
-v0.1.0 is TAG-READY (QA PASS + Security FULL PASS). Agent freeze lifted.
-Landing page MVP complete and build-verified in `site/`.
+### Deploy is READY — awaiting merge to main (#39)
+GitHub Pages workflow configured. Deploy will auto-trigger when cycle merges to main.
+After deploy confirms, verify the live site at https://chetansarda99.github.io/openOrchyStraw/.
 
-**Priority 1:** Deploy landing page to GitHub Pages or Vercel (#39).
+**Priority 1:** Verify deploy succeeded after merge. Fix any build issues if deploy fails.
 **Priority 2:** Begin Phase 2 docs site work after deploy confirmed.
 
 ### Phase 2 — Docs Site (AFTER v0.1.0)

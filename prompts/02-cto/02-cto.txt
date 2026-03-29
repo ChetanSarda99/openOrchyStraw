@@ -127,10 +127,11 @@ For now: maintain registry here, PM will propose migration when 2nd project star
 ### Next CTO Tasks:
 4. ~~**v0.2.0 architecture planning**~~ — DONE. 4 ADRs written: EXEC-001, REVIEW-001, WORKTREE-001, MODEL-001
 5. ~~**BUG-012 review**~~ — DONE. Expanded: 8 prompts missing PROTECTED FILES (not 3)
-6. **Consolidate agents.conf** — P2, move to single file at root (v0.2)
-7. **Benchmark architecture** — Review SWE-bench scaffold design when backend builds it
-8. **Review dynamic-router.sh** — When 06-backend builds it per EXEC-001 spec
+6. **Review dynamic-router.sh** — BUILT by 06-backend (26 tests pass). Verify against EXEC-001 spec. Pre-approved in shared context but formal review needed.
+7. **Consolidate agents.conf** — P2, move to single file at root (v0.2)
+8. **Benchmark architecture** — Review SWE-bench scaffold design when backend builds it
 9. **Review review-phase.sh** — When 06-backend builds it per REVIEW-001 spec
+10. **agents.conf v2 format validation** — Verify backward compat when backend adds columns 6-9
 
 ---
 
