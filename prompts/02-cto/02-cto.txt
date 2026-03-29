@@ -108,6 +108,10 @@ For now: maintain registry here, PM will propose migration when 2nd project star
 - ✅ v0.2.0 ADRs: EXEC-001 (dependency execution + dynamic routing), REVIEW-001 (loop review), WORKTREE-001 (agent isolation), MODEL-001 (model tiering)
 - ✅ SMART-CYCLE-DESIGN.md reviewed and approved (3 open questions answered)
 - ✅ BUG-012 audit: expanded scope from 3 to 8 missing prompts
+- ✅ Cycle 4: Full review of dynamic-router.sh (36 tests) — APPROVED. EXEC-001 + MODEL-001 compliant.
+- ✅ Cycle 4: Full review of review-phase.sh (24 tests) — HOLD. BUG-017 critical (printf dash), RP-01 (verdict validation).
+- ✅ Cycle 4: Full review of config-validator.sh v2+ (10 tests) — APPROVED. v1→v2→v2+ backward compat confirmed.
+- ✅ Hardening spec updated with v0.2 module findings (7 new issues: BUG-017, DR-01/02, RP-01/02/03/04)
 
 ## Current Technical Priorities
 
@@ -127,9 +131,9 @@ For now: maintain registry here, PM will propose migration when 2nd project star
 ### Next CTO Tasks:
 4. ~~**v0.2.0 architecture planning**~~ — DONE. 4 ADRs written: EXEC-001, REVIEW-001, WORKTREE-001, MODEL-001
 5. ~~**BUG-012 review**~~ — DONE. Expanded: 8 prompts missing PROTECTED FILES (not 3)
-6. **Review dynamic-router.sh + model tiering** — Now 36 tests (26 routing + 10 model). Verify model tiering against MODEL-001 spec. QA found BUG-014/015/016 — verify fixes once backend applies them.
-7. **Review review-phase.sh** — BUILT by 06-backend (24 tests pass). Verify against REVIEW-001 spec: cost guard at 50%, review record format, should_run logic.
-8. **Review config-validator.sh v2+ updates** — Now supports 9-column format with model field. Verify backward compat v1→v2→v2+.
+6. ~~**Review dynamic-router.sh + model tiering**~~ — DONE. APPROVED. 39 tests (BUG-014/015/016 fixed). DR-01/DR-02 medium issues logged.
+7. ~~**Review review-phase.sh**~~ — DONE. HOLD. BUG-017 critical (printf dash), RP-01 (verdict validation), RP-02 (missing Summary), RP-03 (no I/O checks), RP-04 (path traversal).
+8. ~~**Review config-validator.sh v2+ updates**~~ — DONE. APPROVED. v1→v2→v2+ backward compat confirmed. Production-ready.
 9. **Consolidate agents.conf** — P2, move to single file at root (v0.2)
 10. **Benchmark architecture** — Review SWE-bench scaffold design when backend builds it
 
