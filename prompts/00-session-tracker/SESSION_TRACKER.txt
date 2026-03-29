@@ -15,6 +15,32 @@
 | 8 | 2026-03-29 | 01,02,09,10,13,03 | CS shipped 601c9a2 (HIGH-03+HIGH-04+MEDIUM-01). QA PASS. Security FULL PASS. v0.1.0 TAG-READY. |
 | 9 | 2026-03-29 | 02,06,11,03 | v0.2.0 Phase 1: dynamic-router.sh (26 tests), 4 CTO ADRs, GitHub Pages deploy workflow |
 | 10 | 2026-03-29 | 01,06,09,11,13,03 | v0.2.0 Phase 2: review-phase.sh (24 tests), model tiering (10 tests), QA cycle 9 (BUG-014/015/016), SEO fixes |
+| 11 | 2026-03-29 | 02,06,03 | BUG-014/015/016 FIXED (39 tests), CTO reviewed 3 modules (2 APPROVED, 1 HOLD), 7 new issues logged |
+
+---
+
+## WHAT SHIPPED — Cycle 11 (2026-03-29 16:10–16:30)
+
+### 06-Backend
+- BUG-014 FIXED: Duplicate dependencies no longer inflate in-degree — deduplicated dep_list in orch_router_has_cycle + orch_router_groups
+- BUG-015 FIXED: Non-numeric priority defaults to 5 in orch_router_init
+- BUG-016 FIXED: Unknown agent in depends_on emits WARN log
+- 3 new test cases (T37-T39), 39 total, ALL PASS
+- Full suite: 13/13 pass, zero regressions
+
+### 02-CTO
+- Full code review of dynamic-router.sh (39 tests) — **APPROVED** (EXEC-001 + MODEL-001 compliant)
+- Full code review of review-phase.sh (24 tests) — **HOLD** (BUG-017 critical: printf dash, RP-01/02/03/04)
+- Full code review of config-validator.sh v2+ (10 tests) — **APPROVED** (v1→v2→v2+ backward compat)
+- Hardening spec updated with 7 new v0.2 issues (BUG-017, DR-01/02, RP-01/02/03/04)
+
+### 03-PM (this cycle)
+- Committed backend bug fixes (BUG-014/015/016) and shared context updates
+- Updated all 8 agent prompts with cycle 11 status
+- Backend: assigned BUG-017 + RP-01/02/03/04 as next tasks
+- CTO: assigned review-phase.sh re-review after fixes
+- Session tracker updated
+- CS action items updated with CTO integration note
 
 ---
 
@@ -367,7 +393,7 @@
 |-----------|------|--------|--------|
 | v0.1.0 | 0 blockers | #80,#81,#82,#91 closed | TAG-READY. QA PASS + Security FULL PASS. Only #25 (tag itself) remains. |
 | v0.1.1 | 3 items | 0 | BUG-013 (README Bash version), BUG-012 (PROTECTED FILES), `set -e` flag |
-| v0.2.0 | 2 items | 4 done | #40 DONE, #41 DONE, #43 DONE, #46 DONE. Remaining: #44 (worktree) + BUG-014/015/016 fixes + CS integration of 4 modules |
+| v0.2.0 | 2 items | 4 done | #40 DONE, #41 DONE, #43 DONE, #46 DONE. BUG-014/015/016 FIXED. review-phase.sh HOLD (BUG-017+RP-01/02/03/04). Remaining: #44 (worktree), review-phase fixes, CS integration |
 
 ## CODEBASE SIZE
 - `src/core/` modules: 13 bash files (8 v0.1.0 + 4 v0.2.0 + design doc)
@@ -380,11 +406,11 @@
 
 ## NEXT CYCLE PRIORITIES
 1. **Tag v0.1.0** — All blockers cleared. Fix BUG-013, then tag. CEO says this is #1 risk.
-2. **06-backend:** Fix BUG-014/015/016 in dynamic-router.sh (QA edge case bugs) + add test cases
-3. **CS: Integrate v0.2.0 modules** — dynamic-router.sh, signal-handler.sh, cycle-tracker.sh, review-phase.sh into auto-agent.sh
-4. **02-cto:** Review review-phase.sh (REVIEW-001), model tiering (MODEL-001), config-validator v2+ updates
-5. **09-qa:** Verify BUG-014/015/016 fixes, review review-phase.sh + model tiering tests
-6. **10-security:** Security review of review-phase.sh (record injection), model tiering (env override injection), config-validator v2+
+2. **06-backend:** Fix BUG-017 (printf dash in review-phase.sh) + RP-01 (verdict validation) — these block review-phase integration. Then DR-01/DR-02.
+3. **02-cto:** Re-review review-phase.sh after backend fixes BUG-017 + RP-01.
+4. **09-qa:** Verify BUG-014/015/016 fixes (39 tests). Review review-phase.sh once CTO lifts HOLD.
+5. **10-security:** Security review of dynamic-router.sh (CTO APPROVED). Wait for review-phase.sh fixes before reviewing.
+6. **CS: Integrate v0.2.0 modules** — dynamic-router.sh READY (CTO approved). signal-handler.sh + cycle-tracker.sh READY. review-phase.sh blocked on BUG-017 fix.
 7. **11-web:** Verify GitHub Pages deploy after merge to main. SEO fixes landed.
 8. **Benchmark sprint:** SWE-bench + Ralph comparison — starts after v0.1.0 tag
 9. After benchmarks: HN launch (only with receipts), activate 04-tauri-rust + 05-tauri-ui

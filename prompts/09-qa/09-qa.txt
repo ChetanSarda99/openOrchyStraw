@@ -157,10 +157,11 @@ All P0 blockers verified fixed. 11/11 tests pass. Release sign-off granted.
 BUG-013 (README Bash version) is non-blocking — quick fix before or after tag.
 
 ### Next QA Priorities
-1. **v0.2.0 QA — verify BUG-014/015/016 fixes** — Backend assigned to fix all 3. Once fixed, re-run test suite and verify:
-   - BUG-014: Duplicate deps deduplicated (in-degree correct)
-   - BUG-015: Non-numeric priority defaults to 5
-   - BUG-016: Unknown agent in depends_on logs WARN
+1. **v0.2.0 QA — verify BUG-014/015/016 fixes (DONE by backend cycle 11)** — Re-run test suite and verify:
+   - BUG-014: Duplicate deps deduplicated (in-degree correct) — FIXED, test T37
+   - BUG-015: Non-numeric priority defaults to 5 — FIXED, test T38
+   - BUG-016: Unknown agent in depends_on logs WARN — FIXED, test T39
+   - 39 total tests now pass. Run full suite to confirm zero regressions.
 2. **v0.2.0 QA — review-phase.sh** — Backend built `src/core/review-phase.sh` with 24 tests. Review:
    - Cost guard at 50% threshold correctness
    - Review record persistence + edge cases

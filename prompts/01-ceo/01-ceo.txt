@@ -92,12 +92,12 @@ Multi-agent AI coding orchestration. Markdown prompts + bash script. No framewor
 
 ---
 
-## Current Strategic Priorities (Updated Cycle 10 — 2026-03-29)
+## Current Strategic Priorities (Updated Cycle 11 — 2026-03-29)
 
 1. **TAG v0.1.0 NOW** — QA PASS + Security FULL PASS. Zero blockers. Tag is the #1 strategic risk.
 2. **v0.1.1 (same day as tag)** — BUG-013 (README "Bash 4+" → "Bash 5+"), BUG-012 (PROTECTED FILES in prompts).
 3. **Benchmark sprint (days 1-3 post-tag)** — SWE-bench Lite + Ralph head-to-head. Results in README.
-4. **v0.2.0 Phase 2 (parallel with benchmarks)** — review-phase.sh DONE (#40), model tiering DONE (#46). Backend fixing BUG-014/015/016 edge cases. CS integrates all v0.2.0 modules into auto-agent.sh.
+4. **v0.2.0 Phase 2 (parallel with benchmarks)** — review-phase.sh DONE (#40), model tiering DONE (#46). BUG-014/015/016 FIXED (cycle 11). CTO found BUG-017 + 4 issues in review-phase.sh (HOLD). Backend fixing next. CS integrates all v0.2.0 modules into auto-agent.sh.
 5. **HN launch** — Only after benchmarks land in README. Demo GIF required.
 6. **Landing page deploy** — SEO meta tags + CTA fixes landed. Deploy triggers on merge to main.
 7. **v0.2.0: `--single-agent` mode** — Ralph compatibility = growth hack.
