@@ -98,3 +98,10 @@ These are **locked decisions**. Do not substitute frameworks, libraries, or temp
 6. **No external dependencies** — bash + markdown for core orchestrator
 7. **Use Edit, not Write** — for prompt updates (preserve structure)
 8. **Check the PM's prioritized backlog** — prompts/03-pm/03-pm.txt has the full ordered issue list
+
+## Shared Resources
+- **Image Generation:** `~/Projects/shared/scripts/generate-image.sh` — AI image gen (Gemini free / OpenAI DALL-E)
+- **Batch Images:** `~/Projects/shared/scripts/batch-generate-images.sh` — Batch image gen from prompt files
+- **OrchyStraw Core:** `~/Projects/shared/orchystraw-core/` — Reusable orchestration modules (logger, error handler, cycle state, timeouts)
+- **OrchyStraw Templates:** `~/Projects/shared/orchystraw-templates/` — Agent design reference, anti-patterns, knowledge repos
+- **Synced State:** `~/Sync/shared-state/` — Cross-project health, alerts, API usage
