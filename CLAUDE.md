@@ -104,4 +104,4 @@ These are **locked decisions**. Do not substitute frameworks, libraries, or temp
 - **Batch Images:** `~/Projects/shared/scripts/batch-generate-images.sh` — Batch image gen from prompt files
 - **OrchyStraw Core:** `~/Projects/shared/orchystraw-core/` — Reusable orchestration modules (logger, error handler, cycle state, timeouts)
 - **OrchyStraw Templates:** `~/Projects/shared/orchystraw-templates/` — Agent design reference, anti-patterns, knowledge repos
-- **Synced State:** `~/Sync/shared-state/` — Cross-project health, alerts, API usage
+- **Synced State:** `~/Projects/shared/shared-state/` — Cross-project health, alerts, API usage
