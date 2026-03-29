@@ -101,7 +101,7 @@ orch_router_init() {
         [[ -z "$f_id" ]] && continue
 
         # Defaults for missing v2 columns
-        [[ -z "$f_priority" || "$f_priority" == "none" ]] && f_priority=5
+        [[ -z "$f_priority" || "$f_priority" == "none" || ! "$f_priority" =~ ^[0-9]+$ ]] && f_priority=5
         [[ -z "$f_depends" ]] && f_depends="none"
         [[ ! "$f_interval" =~ ^[0-9]+$ ]] && f_interval=1
         # Model defaults to ORCH_DEFAULT_MODEL if missing/empty
@@ -149,15 +149,23 @@ orch_router_has_cycle() {
             done
         else
             IFS=',' read -ra dep_list <<< "$deps"
+            # BUG-014: deduplicate deps to avoid inflated in-degree
+            declare -A _seen_deps=()
             for dep in "${dep_list[@]}"; do
                 dep=$(_orch_router_trim "$dep")
                 [[ -z "$dep" ]] && continue
+                [[ -n "${_seen_deps[$dep]+x}" ]] && continue
+                _seen_deps["$dep"]=1
                 # Only count if dep is a known agent
                 if [[ -n "${in_degree[$dep]+x}" ]]; then
                     adj["$dep"]+="$id,"
                     in_degree["$id"]=$(( ${in_degree[$id]} + 1 ))
+                else
+                    # BUG-016: warn on unknown dep
+                    _orch_router_log WARN "Agent '$id' depends on unknown agent '$dep'"
                 fi
             done
+            unset _seen_deps
         fi
     done
 
@@ -220,14 +228,21 @@ orch_router_groups() {
             done
         else
             IFS=',' read -ra dep_list <<< "$deps"
+            # BUG-014: deduplicate deps to avoid inflated in-degree
+            declare -A _seen_deps=()
             for dep in "${dep_list[@]}"; do
                 dep=$(_orch_router_trim "$dep")
                 [[ -z "$dep" ]] && continue
+                [[ -n "${_seen_deps[$dep]+x}" ]] && continue
+                _seen_deps["$dep"]=1
                 if [[ -n "${in_degree[$dep]+x}" ]]; then
                     adj["$dep"]+="$id,"
                     in_degree["$id"]=$(( ${in_degree[$id]} + 1 ))
+                else
+                    _orch_router_log WARN "Agent '$id' depends on unknown agent '$dep'"
                 fi
             done
+            unset _seen_deps
         fi
     done
 
