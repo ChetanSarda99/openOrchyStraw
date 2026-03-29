@@ -24,10 +24,10 @@
 - [ ] **BUG-012: Add PROTECTED FILES to 3 remaining prompts** — 01-ceo, 03-pm, 10-security still missing it.
 
 ### P0.5 — v0.2.0 Integration (protected file — CS only)
-- [ ] **Integrate dynamic-router.sh into auto-agent.sh** — 39 tests pass, **CTO APPROVED**. BUG-014/015/016 FIXED. READY to integrate. Also needs columns 6-9 parsing + --model flag per CTO.
+- [ ] **Integrate dynamic-router.sh into auto-agent.sh** — 41 tests pass, **CTO APPROVED**. DR-01/DR-02 FIXED. READY. Also needs columns 6-9 parsing + --model flag per CTO. **Quote `orch_router_model` output per DR-SEC-02.**
 - [ ] **Integrate signal-handler.sh into auto-agent.sh** — Built + tested (9 tests). Replace existing signal handling. READY.
 - [ ] **Integrate cycle-tracker.sh into auto-agent.sh** — Built + tested (14 tests). Smart empty cycle detection. READY.
-- [ ] **Integrate review-phase.sh into auto-agent.sh** — Built + tested (24 tests). **CTO HOLD** — BUG-017 (printf dash) + RP-01 must be fixed first. WAIT for backend fix.
+- [ ] **Integrate review-phase.sh into auto-agent.sh** — Built + tested (36 tests). ALL CTO findings FIXED (BUG-017, RP-01/02/03/04). CTO re-review pending — expected APPROVED. NEARLY READY.
 
 ### P1 — After v0.1.0 Tag
 - [ ] **Update CLAUDE.md** — Lists 11 agents and paths (src-tauri/, ios/) that don't exist yet. Align with reality.
