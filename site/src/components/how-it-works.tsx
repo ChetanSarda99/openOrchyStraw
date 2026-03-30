@@ -29,7 +29,7 @@ const steps = [
 
 export function HowItWorks() {
   return (
-    <section className="px-6 py-24">
+    <section className="px-4 py-16 sm:px-6 sm:py-24">
       <div className="mx-auto max-w-5xl">
         <motion.div
           initial={{ opacity: 0, y: 20 }}
@@ -46,7 +46,7 @@ export function HowItWorks() {
           </p>
         </motion.div>
 
-        <div className="mt-16 grid gap-8 md:grid-cols-3">
+        <div className="mt-10 grid gap-6 sm:mt-16 sm:gap-8 md:grid-cols-3">
           {steps.map((step, i) => (
             <motion.div
               key={step.number}
@@ -54,7 +54,7 @@ export function HowItWorks() {
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
               transition={{ duration: 0.5, delay: i * 0.15 }}
-              className="relative rounded-xl border border-card-border bg-card p-8"
+              className="relative rounded-xl border border-card-border bg-card p-6 sm:p-8"
             >
               <span className="font-mono text-5xl font-bold text-card-border">
                 {step.number}

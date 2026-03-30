@@ -51,7 +51,7 @@ const features = [
 
 export function Features() {
   return (
-    <section className="px-6 py-24">
+    <section className="px-4 py-16 sm:px-6 sm:py-24">
       <div className="mx-auto max-w-5xl">
         <motion.div
           initial={{ opacity: 0, y: 20 }}
@@ -68,7 +68,7 @@ export function Features() {
           </p>
         </motion.div>
 
-        <div className="mt-16 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+        <div className="mt-10 grid gap-4 sm:mt-16 sm:grid-cols-2 sm:gap-6 lg:grid-cols-3">
           {features.map((feature, i) => (
             <motion.div
               key={feature.title}

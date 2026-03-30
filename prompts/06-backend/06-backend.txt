@@ -178,10 +178,15 @@ Only non-blocking item: BUG-013 (README says "Bash 4+" should be "Bash 5+").
 - Total v0.2.0+ tests: 203 (148 previous + 30 prompt-compression + 25 conditional-activation)
 - Full test suite: 16/16 pass (14 unit + 1 integration + runner), zero regressions
 
+### v0.3.0 — Token Optimization (Cycle 15+)
+- ✅ `differential-context.sh` — #49 per-agent context filtering (section→agent mappings, cross-cycle history filtering, fail-open for unmapped sections, PM bypass). 42 tests PASS.
+- Total v0.2.0+ tests: 245 (203 previous + 42 differential-context)
+- Full test suite: 17/17 pass (15 unit + 1 integration + runner), zero regressions
+
 **Next tasks:**
-1. **#49 Differential context** — Per-agent relevant sections only (token optimization)
-2. **#52 Smart session tracker windowing** — Trim old cycle history
-3. **#54 Prompt template inheritance** — Base template with per-agent overrides
+1. **#52 Smart session tracker windowing** — Trim old cycle history to reduce token usage
+2. **#54 Prompt template inheritance** — Base template with per-agent overrides
+3. **#50 Progressive task decomposition** — Backlog one-liners (PM process, but backend tooling needed)
 4. **Await CS integration** — CS must integrate all modules into auto-agent.sh (protected file). Quote `orch_router_model` output per DR-SEC-02.
 5. **Benchmark scaffold** — After v0.1.0 tag: #4 SWE-bench scaffold, #5 Ralph comparison
 
