@@ -24,16 +24,16 @@
 - [ ] **BUG-012: Add PROTECTED FILES to 3 remaining prompts** — 01-ceo, 03-pm, 10-security still missing it.
 
 ### P0.5 — v0.2.0+ Integration (protected file — CS only)
-All v0.2.0 modules CTO APPROVED (6/6), QA PASS (8/8). Security review pending. See `src/core/INTEGRATION-GUIDE.md` for step-by-step.
-- [ ] **Integrate dynamic-router.sh into auto-agent.sh** — 41 tests, CTO APPROVED. **Quote `orch_router_model` output per DR-SEC-02.**
+**ALL GATES PASS:** CTO 8/8 APPROVED, QA 8/8 PASS, Security 6/6 APPROVED. See `src/core/INTEGRATION-GUIDE.md` for step-by-step.
+- [ ] **Integrate dynamic-router.sh into auto-agent.sh** — 41 tests. **Quote `orch_router_model` output per DR-SEC-02.**
 - [ ] **Integrate signal-handler.sh into auto-agent.sh** — 9 tests. Replace existing signal handling.
 - [ ] **Integrate cycle-tracker.sh into auto-agent.sh** — 14 tests. Smart empty cycle detection.
-- [ ] **Integrate review-phase.sh into auto-agent.sh** — 36 tests, CTO APPROVED.
-- [ ] **Integrate worktree.sh into auto-agent.sh** — 48 tests, CTO APPROVED. See Steps 8-11.
-- [ ] **Integrate prompt-compression.sh into auto-agent.sh** — 30 tests, CTO APPROVED. Tiered prompt loading.
-- [ ] **Integrate conditional-activation.sh into auto-agent.sh** — 25 tests, CTO APPROVED. Skip idle agents.
-- [ ] **Integrate differential-context.sh into auto-agent.sh** — 42 tests. Per-agent context filtering. See Step 12. CTO review pending.
-- [ ] **Integrate session-tracker.sh into auto-agent.sh** — NEW (cycle 16). 33 tests. Smart session tracker windowing. See Step 13. CTO review pending.
+- [ ] **Integrate review-phase.sh into auto-agent.sh** — 36 tests.
+- [ ] **Integrate worktree.sh into auto-agent.sh** — 48 tests. See Steps 8-11.
+- [ ] **Integrate prompt-compression.sh into auto-agent.sh** — 30 tests. Tiered prompt loading.
+- [ ] **Integrate conditional-activation.sh into auto-agent.sh** — 25 tests. Skip idle agents.
+- [ ] **Integrate differential-context.sh into auto-agent.sh** — 42 tests. Per-agent context filtering. See Step 12.
+- [ ] **Integrate session-tracker.sh into auto-agent.sh** — 33 tests. Smart session tracker windowing. See Step 13.
 
 ### P1 — After v0.1.0 Tag
 - [ ] **Connect Mintlify to GitHub** — 11-Web scaffolded docs site in `site/docs/` (12 MDX pages + mint.json). CS needs to connect Mintlify for auto-deploy.
