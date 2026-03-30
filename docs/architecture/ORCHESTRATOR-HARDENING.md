@@ -378,6 +378,26 @@ Security: No eval, no injection vectors. Ownership matching is prefix-based stri
 
 Architecture: Zero dependencies. Fail-open design (returns 0/activate if not initialized — avoids silent skips). Ownership detection supports include + exclude patterns. Context mention scanning uses keyword-boundary validation (prevents false positives). PM force flag has highest precedence, well-logged.
 
+### differential-context.sh — APPROVED (Cycle 10, 2026-03-29)
+
+42 tests pass (T1–T42). Covers: init/mapping, context parsing/section count, per-agent filtering (backend/CTO/web/PM), universal sections, custom mapping override, fail-open for unmapped sections, error handling (missing file, pre-parse, pre-init), stats/savings, cross-cycle history filtering (own entries, dependency entries, PM entries, "All" entries, cross-references), key normalization (emoji/special chars), agent label extraction, in-list matching (ID/label/wildcard/rejection).
+
+Security: No eval, no injection vectors. `sed` patterns are fixed literals (key normalization). `awk` program is hardcoded (column counting). `printf '%s'` used throughout. File reads via standard `while IFS= read -r` pattern. All array expansions quoted.
+
+Architecture: Zero dependencies. Fail-open design (unmapped sections included, not excluded). PM gets everything unconditionally. Dependency-aware history filtering (parsed from agents.conf v2+ `depends_on` field). Section→agent mappings hardcoded with override API.
+
+**Finding DC-01 (LOW):** `_orch_diffctx_in_list` line 78 `for item in $haystack` and `orch_diffctx_filter_history` line 313 `for dep in $deps` use unquoted iteration — same class as fixed HIGH-03. Not exploitable (agent names are `NN-name`, alphanumeric+dash only), but architecturally inconsistent. Consider array conversion for consistency.
+
+### session-tracker.sh — APPROVED (Cycle 10, 2026-03-29)
+
+33 tests pass (T1–T33). Covers: init/defaults/custom params/non-numeric fallback, window failures (no init, missing file), small/medium/large trackers, preserved sections (milestone/codebase/priorities), preamble/table header, stats/compression, single cycle, zero cycles, custom window sizes, overflow (recent > total), agent subsections in detail, summary-range exclusion, omitted-cycle exclusion, double-source guard, real tracker file, output ordering (newest first), init state reset, large cycle numbers (98-100), compression percentage (81% at 30 cycles), edge cases (summary=0, recent=0, no preserved sections), table rows for recent cycles.
+
+Security: No eval, no injection vectors. Only external command is `wc -l` (line counting). All regex patterns are fixed. Integer arithmetic uses validated inputs. File reads via standard `while IFS= read -r` pattern.
+
+Architecture: Zero dependencies. Parse-then-render separation. Sparse array handling for non-contiguous cycle numbers. Configurable windowing (recent N full detail, next M as table rows, older omitted). Preserved sections always pass through regardless of windowing. Target ~80 lines output regardless of project age.
+
+**Finding ST-01 (LOW):** `_orch_tracker_line_count` uses `<<<` (appends trailing newline) while original count uses `wc -l < file`. Can produce 1-line discrepancy in stats display. Negligible.
+
 ## v0.1 Release Status
 
 **ALL SECURITY BLOCKERS RESOLVED.** CS applied HIGH-03, HIGH-04, MEDIUM-01 fixes in commit `601c9a2`. CTO review: PASS on all three.
