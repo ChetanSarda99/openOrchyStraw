@@ -78,6 +78,21 @@ export function Hero() {
   );
 }
 
+const terminalLines = [
+  { text: <><span className="text-accent">$</span> ./auto-agent.sh</>, className: "text-muted", delay: 0 },
+  { text: "── OrchyStraw v0.1.0 ──────────────────", className: "mt-2 text-muted/70", delay: 0.4 },
+  { text: <><span className="text-green-400">✓</span> Loaded 11 agents from agents.conf</>, className: "mt-1", delay: 0.8 },
+  { text: <><span className="text-green-400">✓</span> Cycle 1 starting...</>, className: "", delay: 1.1 },
+  { text: "── Running agents ──────────────────────", className: "mt-1 text-muted/70", delay: 1.5 },
+  { text: <><span className="text-blue-400">→</span> <span className="text-foreground">04-tauri-rust</span> <span className="text-muted/50">building IPC commands...</span></>, className: "", delay: 1.9 },
+  { text: <><span className="text-blue-400">→</span> <span className="text-foreground">05-tauri-ui</span> <span className="text-muted/50">scaffolding dashboard...</span></>, className: "", delay: 2.3 },
+  { text: <><span className="text-blue-400">→</span> <span className="text-foreground">06-backend</span> <span className="text-muted/50">hardening orchestrator...</span></>, className: "", delay: 2.7 },
+  { text: <><span className="text-blue-400">→</span> <span className="text-foreground">07-ios</span> <span className="text-muted/50">building companion app...</span></>, className: "", delay: 3.1 },
+  { text: "── Cycle 1 complete ─────────────────────", className: "mt-1 text-muted/70", delay: 3.8 },
+  { text: <><span className="text-green-400">✓</span> 4 agents ran, 12 files changed, 0 conflicts</>, className: "", delay: 4.2 },
+  { text: <><span className="text-accent">$</span> <span className="animate-pulse">▌</span></>, className: "mt-2 text-muted", delay: 4.6 },
+];
+
 function TerminalDemo() {
   return (
     <div className="overflow-hidden rounded-xl border border-card-border bg-card shadow-2xl">
@@ -90,53 +105,18 @@ function TerminalDemo() {
       </div>
       {/* Content */}
       <div className="p-5 font-mono text-sm leading-relaxed">
-        <div className="text-muted">
-          <span className="text-accent">$</span> ./auto-agent.sh
-        </div>
-        <div className="mt-2 text-muted/70">
-          ── OrchyStraw v0.1.0 ──────────────────
-        </div>
-        <div className="mt-1">
-          <span className="text-green-400">✓</span> Loaded 11 agents from
-          agents.conf
-        </div>
-        <div>
-          <span className="text-green-400">✓</span> Cycle 1 starting...
-        </div>
-        <div className="mt-1 text-muted/70">
-          ── Running agents ──────────────────────
-        </div>
-        <div>
-          <span className="text-blue-400">→</span>{" "}
-          <span className="text-foreground">04-tauri-rust</span>{" "}
-          <span className="text-muted/50">building IPC commands...</span>
-        </div>
-        <div>
-          <span className="text-blue-400">→</span>{" "}
-          <span className="text-foreground">05-tauri-ui</span>{" "}
-          <span className="text-muted/50">scaffolding dashboard...</span>
-        </div>
-        <div>
-          <span className="text-blue-400">→</span>{" "}
-          <span className="text-foreground">06-backend</span>{" "}
-          <span className="text-muted/50">hardening orchestrator...</span>
-        </div>
-        <div>
-          <span className="text-blue-400">→</span>{" "}
-          <span className="text-foreground">07-ios</span>{" "}
-          <span className="text-muted/50">building companion app...</span>
-        </div>
-        <div className="mt-1 text-muted/70">
-          ── Cycle 1 complete ─────────────────────
-        </div>
-        <div>
-          <span className="text-green-400">✓</span> 4 agents ran, 12 files
-          changed, 0 conflicts
-        </div>
-        <div className="mt-2 text-muted">
-          <span className="text-accent">$</span>{" "}
-          <span className="animate-pulse">▌</span>
-        </div>
+        {terminalLines.map((line, i) => (
+          <motion.div
+            key={i}
+            initial={{ opacity: 0, x: -8 }}
+            whileInView={{ opacity: 1, x: 0 }}
+            viewport={{ once: true }}
+            transition={{ duration: 0.3, delay: line.delay }}
+            className={line.className}
+          >
+            {line.text}
+          </motion.div>
+        ))}
       </div>
     </div>
   );

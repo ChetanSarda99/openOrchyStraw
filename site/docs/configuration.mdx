@@ -10,28 +10,28 @@ The `agents.conf` file defines your entire agent team. Each non-comment line con
 ### Format
 
 ```ini
-# id | prompt_path | cli_command | ownership | interval
+# id | prompt_path | ownership | interval | label
 ```
 
 | Field | Description | Example |
 |-------|-------------|---------|
 | `id` | Unique agent identifier | `02-backend` |
 | `prompt_path` | Path to the agent's prompt file | `prompts/02-backend/02-backend.txt` |
-| `cli_command` | AI tool command to run | `claude`, `codex exec`, `gemini -p` |
 | `ownership` | Directories this agent can write to | `src/ scripts/` |
-| `interval` | How often the agent runs | `1` (every cycle), `3` (every 3rd), `PM` |
+| `interval` | How often the agent runs | `1` (every cycle), `3` (every 3rd), `0` (coordinator) |
+| `label` | Human-readable role description | `Backend Developer` |
 
 ### Example
 
 ```ini
 # Workers (run in parallel)
-02-backend  | prompts/02-backend/02-backend.txt  | claude    | src/core/ scripts/   | 1
-03-frontend | prompts/03-frontend/03-frontend.txt | gemini -p | src/components/ src/styles/ | 1
-04-design   | prompts/04-design/04-design.txt     | gemini -p | src/components/ui/   | 2
-05-qa       | prompts/05-qa/05-qa.txt             | codex exec | tests/ reports/     | 3
+02-backend  | prompts/02-backend/02-backend.txt  | src/core/ scripts/              | 1 | Backend Developer
+03-frontend | prompts/03-frontend/03-frontend.txt | src/components/ src/styles/      | 1 | Frontend Developer
+04-design   | prompts/04-design/04-design.txt     | src/components/ui/               | 2 | Design System
+05-qa       | prompts/05-qa/05-qa.txt             | tests/ reports/                  | 3 | QA Engineer
 
 # Coordinator (runs last)
-01-pm       | prompts/01-pm/01-pm.txt             | claude    | prompts/             | PM
+01-pm       | prompts/01-pm/01-pm.txt             | prompts/                         | 0 | PM Coordinator
 ```
 
 ### Intervals
@@ -41,7 +41,7 @@ The `agents.conf` file defines your entire agent team. Each non-comment line con
 | `1` | Runs every cycle |
 | `2` | Runs every 2nd cycle |
 | `3` | Runs every 3rd cycle |
-| `PM` | Runs last, after all workers finish |
+| `0` | Coordinator — runs last, after all workers finish |
 
 Use higher intervals for agents that don't need to run every cycle — QA, security audits, strategic reviews.
 
@@ -89,19 +89,11 @@ none
 06-security | ... | none                     | 3
 ```
 
-## CLI commands
+## How agents are executed
 
-Any AI tool that accepts piped input works:
+The orchestrator pipes the assembled prompt (shared context + cross-cycle history + agent prompt) to `claude -p` via stdin. All agents use Claude Code.
 
-| Tool | Command | Notes |
-|------|---------|-------|
-| Claude Code | `claude` | Default, best for complex work |
-| Codex | `codex exec` | Good for code review, research |
-| Gemini CLI | `gemini -p` | Good for UI work, design |
-| Aider | `aider --message` | Pair programming style |
-| Custom | Any command | Must accept stdin |
-
-The orchestrator pipes the assembled prompt (shared context + cross-cycle history + agent prompt) to the CLI command's stdin.
+The prompt-based architecture means any AI tool that accepts piped input could be substituted by editing the `run_agent` function in `auto-agent.sh`.
 
 ## Protected files
 

@@ -11,34 +11,24 @@ This example shows a full OrchyStraw team with 10 agents across engineering, QA,
 
 ```ini
 # Strategic agents (run every 3rd cycle)
-01-ceo      | prompts/01-ceo/01-ceo.txt           | claude     | docs/strategy/          | 3
-02-cto      | prompts/02-cto/02-cto.txt           | claude     | docs/architecture/ docs/tech-registry/ | 2
+01-ceo      | prompts/01-ceo/01-ceo.txt              | docs/strategy/                     | 3 | CEO
+02-cto      | prompts/02-cto/02-cto.txt              | docs/architecture/                 | 2 | CTO
 
 # Engineering agents (run every cycle)
-04-rust     | prompts/04-tauri-rust/04-tauri-rust.txt | claude  | src-tauri/              | 1
-05-ui       | prompts/05-tauri-ui/05-tauri-ui.txt  | gemini -p  | src/                    | 1
-06-backend  | prompts/06-backend/06-backend.txt    | claude     | src/core/ scripts/ tests/ | 1
-07-ios      | prompts/07-ios/07-ios.txt            | claude     | ios/                    | 1
+04-rust     | prompts/04-tauri-rust/04-tauri-rust.txt | src-tauri/                         | 1 | Tauri Rust
+05-ui       | prompts/05-tauri-ui/05-tauri-ui.txt     | src/                               | 1 | Tauri UI
+06-backend  | prompts/06-backend/06-backend.txt       | src/core/ scripts/ tests/          | 1 | Backend Developer
+07-ios      | prompts/07-ios/07-ios.txt               | ios/                               | 1 | iOS Developer
 
 # Specialists (run every 2nd-3rd cycle)
-08-pixel    | prompts/08-pixel/08-pixel.txt        | gemini -p  | src/pixel/ pixel-agents/ | 2
-09-qa       | prompts/09-qa/09-qa.txt              | codex exec | tests/ reports/ none    | 3
-10-security | prompts/10-security/10-security.txt  | claude     | none                    | 3
-11-web      | prompts/11-web/11-web.txt            | gemini -p  | site/                   | 2
+08-pixel    | prompts/08-pixel/08-pixel.txt           | src/pixel/ pixel-agents/           | 2 | Pixel Agents
+09-qa       | prompts/09-qa/09-qa.txt                 | tests/ reports/                    | 3 | QA Engineer
+10-security | prompts/10-security/10-security.txt     | none                               | 3 | Security
+11-web      | prompts/11-web/11-web.txt               | site/                              | 2 | Web Developer
 
 # Coordinator (always runs last)
-03-pm       | prompts/03-pm/03-pm.txt              | claude     | prompts/                | PM
+03-pm       | prompts/03-pm/03-pm.txt                 | prompts/                           | 0 | PM Coordinator
 ```
-
-## Model routing
-
-Different agents use different AI tools based on their strengths:
-
-| AI Tool | Best for | Agents |
-|---------|----------|--------|
-| `claude` | Architecture, complex logic, systems code | CEO, CTO, PM, Backend, Rust, iOS, Security |
-| `gemini -p` | UI design, layouts, visual work | Tauri UI, Pixel, Web |
-| `codex exec` | Code review, research, testing | QA |
 
 ## Agent roles
 
