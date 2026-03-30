@@ -20,6 +20,9 @@
 | dynamic-router | `dynamic-router.sh` | Dynamic routing + dependency groups + model tiering | config-validator, cycle-tracker |
 | review-phase | `review-phase.sh` | QA auto-rerun with cost guard | logger, config-validator |
 | worktree | `worktree.sh` | Git worktree isolation per agent (WORKTREE-001) | None (optional: logger) |
+| prompt-compression | `prompt-compression.sh` | Tiered prompt loading (stable/dynamic/reference) | None (optional: logger) |
+| conditional-activation | `conditional-activation.sh` | Skip agents with no work (change detection) | None (optional: logger) |
+| differential-context | `differential-context.sh` | Per-agent context filtering (#49) | None (optional: logger) |
 
 All modules are independently sourceable. No module depends on another.
 
@@ -186,6 +189,9 @@ source "$SCRIPT_DIR/../src/core/cycle-tracker.sh"
 source "$SCRIPT_DIR/../src/core/dynamic-router.sh"
 source "$SCRIPT_DIR/../src/core/review-phase.sh"
 source "$SCRIPT_DIR/../src/core/worktree.sh"
+source "$SCRIPT_DIR/../src/core/prompt-compression.sh"
+source "$SCRIPT_DIR/../src/core/conditional-activation.sh"
+source "$SCRIPT_DIR/../src/core/differential-context.sh"
 ```
 
 ## Step 9: Initialize worktree mode (opt-in)
@@ -255,6 +261,37 @@ fi
 ```
 
 This ensures worktrees are removed on SIGTERM/SIGINT (crash recovery).
+
+## Step 12: Use differential context for per-agent context filtering
+
+Initialize once before the agent loop, then filter context per-agent:
+
+```bash
+# Initialize with agents.conf (parses dependencies for history filtering)
+orch_diffctx_init "$CONF_FILE"
+
+# Parse shared context once per cycle
+orch_diffctx_parse "$PROJECT_ROOT/prompts/00-shared-context/context.md"
+```
+
+In the `run_agent()` function, pass filtered context instead of the full file:
+
+```bash
+# Instead of injecting full context.md into the prompt:
+local filtered_context
+filtered_context=$(orch_diffctx_filter "$agent_id")
+
+# If using cross-cycle history, filter that too:
+local history_content
+history_content=$(cat "$PROJECT_ROOT/prompts/00-shared-context/context-cycle-*.md" 2>/dev/null)
+local filtered_history
+filtered_history=$(orch_diffctx_filter_history "$agent_id" "$history_content")
+
+# Inject filtered_context + filtered_history into the agent's prompt
+```
+
+This saves 30-60% of context tokens for agents that don't need all sections.
+PM always gets the full unfiltered context.
 
 ---
 
