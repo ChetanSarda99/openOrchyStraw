@@ -352,6 +352,32 @@ REVIEW-001 ADR compliant. Ready for v0.2 integration.
 
 10 tests pass. Full backward compatibility v1→v2→v2+ confirmed. MODEL-001 model validation correct (warn on unknown, don't fail). Production-ready.
 
+### worktree.sh — APPROVED (Cycle 8, 2026-03-29)
+
+37 tests pass (T1–T37). Covers: init/validation, create/list, merge with/without changes, input validation (path traversal, numeric cycle), cleanup by cycle/all/stale, filesystem isolation, merge conflict detection, sequential merge.
+
+**ADR Deviation:** WORKTREE-001 said "inline in auto-agent.sh" but backend built standalone module. **Deviation accepted** — module approach is architecturally superior (testable, composable, no auto-agent.sh bloat). Recommend WORKTREE-002 ADR to document this decision.
+
+Security: No eval, no injection vectors. Path traversal blocked (`..` and `/` rejected). All git commands properly quoted. Glob expansion intentional and controlled (cleanup pattern). SHA validation not needed (git handles integrity). Git 2.15+ validated at init.
+
+**Integration status:** Module is production-ready but **NOT sourced in auto-agent.sh** — correct per ADR deferral to v0.2.0 Phase 2+. Dormant until CS integrates.
+
+### prompt-compression.sh — APPROVED (Cycle 8, 2026-03-29)
+
+30 tests pass (T1–T30). Covers: init/budget, section parsing/classification, compression modes (full/standard/minimal), token estimation (string + stdin), hash generation/determinism, hash I/O persistence, mode decision logic, stats reporting, error handling (missing file, unclassified, missing hash), edge cases (empty file, no stable sections, budget triggers).
+
+Security: No eval, no injection vectors. Hash computation via `sha256sum`/`shasum` (safe). Fallback string hash acceptable (non-cryptographic use). File handling quoted. Pattern arrays hardcoded (not user-derived). `printf '%s'` used throughout (no format string injection).
+
+Architecture: Zero dependencies. Token estimation `chars/4` is sound for Claude tokenizer (~4% margin, rounds up). Tiered loading (stable/dynamic/reference) aligns with TOKEN-EFFICIENCY.md Tier 1. Hash-based change detection is deterministic and cross-platform (sha256sum + shasum fallback).
+
+### conditional-activation.sh — APPROVED (Cycle 8, 2026-03-29)
+
+25 tests pass (T1–T25). Covers: init/config parsing, coordinator exclusion, ownership parsing, skip decision, PM force flag, owned-path change detection, boundary enforcement, multi-agent path matching, context mention scanning, exclusion patterns (`!`-prefix), empty input handling, stats output, error handling (missing config).
+
+Security: No eval, no injection vectors. Ownership matching is prefix-based string comparison (not glob/regex). All array expansions quoted. No filesystem operations on paths (comparison only). Force flag is exact string match (`"1"`). Context scanning uses bash `[[ =~ ]]` with hardcoded patterns only.
+
+Architecture: Zero dependencies. Fail-open design (returns 0/activate if not initialized — avoids silent skips). Ownership detection supports include + exclude patterns. Context mention scanning uses keyword-boundary validation (prevents false positives). PM force flag has highest precedence, well-logged.
+
 ## v0.1 Release Status
 
 **ALL SECURITY BLOCKERS RESOLVED.** CS applied HIGH-03, HIGH-04, MEDIUM-01 fixes in commit `601c9a2`. CTO review: PASS on all three.
