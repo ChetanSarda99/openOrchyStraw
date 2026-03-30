@@ -89,7 +89,7 @@ For now: maintain registry here, PM will propose migration when 2nd project star
 
 ---
 
-## What's DONE (Cycle 1–12)
+## What's DONE (Cycle 1–14)
 
 - ✅ 5 ADRs from cycle 1: UI-001, WEB-001, DOCS-001, STYLE-001, DB-001
 - ✅ BASH-001 ADR: Minimum bash 5.0, portable shebang (cycle 2)
@@ -112,6 +112,10 @@ For now: maintain registry here, PM will propose migration when 2nd project star
 - ✅ Cycle 11: Full review of review-phase.sh (24 tests) — HOLD. BUG-017 critical (printf dash), RP-01/02/03/04.
 - ✅ Cycle 11: Full review of config-validator.sh v2+ (10 tests) — APPROVED. v1→v2→v2+ backward compat confirmed.
 - ✅ Hardening spec updated with v0.2 module findings (7 new issues: BUG-017, DR-01/02, RP-01/02/03/04)
+- ✅ Cycle 8 (2026-03-29): worktree.sh APPROVED (37 tests). ADR deviation accepted — standalone module > inline.
+- ✅ Cycle 8 (2026-03-29): prompt-compression.sh APPROVED (30 tests). Zero deps, sound token estimation, robust hashing.
+- ✅ Cycle 8 (2026-03-29): conditional-activation.sh APPROVED (25 tests). Fail-open, ownership detection + context scanning.
+- ✅ v0.2.0 module review complete: 6/6 modules APPROVED (dynamic-router, review-phase, config-validator v2+, worktree, prompt-compression, conditional-activation)
 
 ## Current Technical Priorities
 
@@ -135,11 +139,13 @@ For now: maintain registry here, PM will propose migration when 2nd project star
 7. ~~**Review review-phase.sh**~~ — DONE. HOLD. BUG-017 + RP-01/02/03/04 logged.
 8. ~~**Review config-validator.sh v2+ updates**~~ — DONE. APPROVED. Production-ready.
 9. ~~**RE-REVIEW review-phase.sh**~~ — DONE (cycle 13). HOLD LIFTED. All 5 findings verified. 36 tests PASS. APPROVED for v0.2.
-10. **Review worktree.sh** — New module built by 06-backend (48 tests). **ADR DEVIATION:** WORKTREE-001 said "inline in auto-agent.sh" but backend built as a standalone module. Review and decide: accept module approach or require inline?
-11. **Review prompt-compression.sh** — NEW module (cycle 14, 30 tests). Tiered loading (full/standard/minimal), hash-based change detection, token estimation. Check architecture compliance.
-12. **Review conditional-activation.sh** — NEW module (cycle 14, 25 tests). Ownership-based change detection, context mention scanning, PM force flag. Check architecture compliance.
-13. **Consolidate agents.conf** — P2, move to single file at root (v0.2)
-14. **Benchmark architecture** — Review SWE-bench scaffold design when backend builds it
+10. ~~**Review worktree.sh**~~ — DONE (cycle 8). APPROVED. 37 tests PASS. ADR deviation accepted: standalone module > inline. Recommend WORKTREE-002 ADR to document decision. No security issues.
+11. ~~**Review prompt-compression.sh**~~ — DONE (cycle 8). APPROVED. 30 tests PASS. Zero deps. Token estimation sound. Hash-based change detection production-ready.
+12. ~~**Review conditional-activation.sh**~~ — DONE (cycle 8). APPROVED. 25 tests PASS. Fail-open design. Ownership detection + context scanning + PM force all working. No security issues.
+13. **Review differential-context.sh** — NEW module (cycle 15, #49, 42 tests). Per-agent context filtering: section→agent mappings, cross-cycle history filtering, fail-open for unmapped sections, PM bypass. Check architecture compliance.
+14. **Consolidate agents.conf** — P2, move to single file at root (v0.2)
+15. **Benchmark architecture** — Review SWE-bench scaffold design when backend builds it
+16. **Write WORKTREE-002 ADR** — Document module-based approach deviation from WORKTREE-001 (which said "inline in auto-agent.sh"). Low priority.
 
 ---
 

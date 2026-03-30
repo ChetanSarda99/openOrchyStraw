@@ -5,7 +5,7 @@ import { Github, Terminal } from "lucide-react";
 
 export function Hero() {
   return (
-    <section className="relative flex flex-col items-center justify-center px-6 pt-32 pb-24 text-center">
+    <section className="relative flex flex-col items-center justify-center px-4 pt-20 pb-16 text-center sm:px-6 sm:pt-32 sm:pb-24">
       {/* Subtle grid background */}
       <div
         className="pointer-events-none absolute inset-0 opacity-[0.03]"
@@ -23,7 +23,7 @@ export function Hero() {
         className="relative z-10 max-w-4xl"
       >
         {/* Badge */}
-        <div className="mb-8 inline-flex items-center gap-2 rounded-full border border-card-border bg-card px-4 py-1.5 text-sm text-muted">
+        <div className="mb-6 inline-flex items-center gap-2 rounded-full border border-card-border bg-card px-3 py-1 text-xs text-muted sm:mb-8 sm:px-4 sm:py-1.5 sm:text-sm">
           <Terminal className="h-3.5 w-3.5" />
           <span className="font-mono">v0.1.0</span>
           <span className="text-card-border">|</span>
@@ -44,7 +44,7 @@ export function Hero() {
         </p>
 
         {/* CTAs */}
-        <div className="mt-10 flex flex-col items-center gap-4 sm:flex-row sm:justify-center">
+        <div className="mt-8 flex w-full flex-col items-center gap-3 sm:mt-10 sm:w-auto sm:flex-row sm:justify-center sm:gap-4">
           <a
             href="https://github.com/ChetanSarda99/openOrchyStraw"
             target="_blank"
@@ -70,7 +70,7 @@ export function Hero() {
         initial={{ opacity: 0, y: 30 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.6, delay: 0.3 }}
-        className="relative z-10 mt-16 w-full max-w-2xl"
+        className="relative z-10 mt-10 w-full max-w-2xl sm:mt-16"
       >
         <TerminalDemo />
       </motion.div>
@@ -104,7 +104,7 @@ function TerminalDemo() {
         <span className="ml-2 text-xs text-muted font-mono">terminal</span>
       </div>
       {/* Content */}
-      <div className="p-5 font-mono text-sm leading-relaxed">
+      <div className="overflow-x-auto p-3 font-mono text-xs leading-relaxed sm:p-5 sm:text-sm">
         {terminalLines.map((line, i) => (
           <motion.div
             key={i}

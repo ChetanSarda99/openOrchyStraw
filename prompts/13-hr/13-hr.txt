@@ -241,13 +241,19 @@ When advising PM on new agent prompts, ensure they follow this structure:
 - [x] BUG-012 escalated to P0 — 5/9 agents still missing PROTECTED FILES
 - [x] Team roster updated: `docs/team/TEAM_ROSTER.md`
 
-### Current (Cycle 15 — v0.2.5 Token Optimization + Reviews)
+### Done (Cycle 15)
+- [x] CTO APPROVED 3 modules: worktree.sh, prompt-compression.sh, conditional-activation.sh — all 6 v0.2.0 modules now APPROVED
+- [x] 06-backend built differential-context.sh (#49) — 42 tests PASS (continuing MVP streak)
+- [x] 11-web responsive polish complete — all 6 landing page sections mobile-optimized
+- [x] v0.2.0+ module count: 8 modules, 245 total tests
+
+### Current (Cycle 16 — Reviews + Integration Push)
 - [ ] Track BUG-012 completion — 5 prompts still missing PROTECTED FILES (01-ceo, 02-cto, 03-pm, 10-security, 13-hr). **PM must add these.**
-- [ ] Monitor v0.2.0 integration progress (CS must integrate 7 modules into auto-agent.sh — includes worktree, prompt-compression, conditional-activation)
-- [ ] Track security review of review-phase.sh + worktree.sh + prompt-compression.sh + conditional-activation.sh
-- [ ] Track CTO review of worktree.sh ADR deviation + 2 new modules (prompt-compression, conditional-activation)
-- [ ] Recognize 06-backend output: 2 new modules + 55 tests in cycle 14 (continuing MVP performance)
+- [ ] Monitor v0.2.0 integration progress (CS must integrate 8 modules into auto-agent.sh)
+- [ ] Track security review of review-phase.sh + worktree.sh + prompt-compression.sh + conditional-activation.sh + differential-context.sh (5 modules pending)
+- [ ] Track CTO review of differential-context.sh (new module)
+- [ ] Track QA review of worktree.sh + prompt-compression.sh + conditional-activation.sh + differential-context.sh (4 modules pending)
+- [ ] Recognize 06-backend output: differential-context.sh + 42 tests in cycle 15 (11 cycles as team MVP)
 - [ ] Recommend reactivating 04-tauri-rust + 05-tauri-ui after benchmark sprint
 - [ ] Post-benchmark: prepare onboarding for 04-tauri-rust + 05-tauri-ui reactivation
-- [ ] Monitor 12-brand archival — deadline: Cycle 16 if CEO silent
-- [ ] Next team health review: Cycle 15
+- [ ] Next team health review: Cycle 16

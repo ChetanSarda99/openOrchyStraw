@@ -14,7 +14,7 @@ const tools = [
 
 export function SupportedTools() {
   return (
-    <section className="px-6 py-24">
+    <section className="px-4 py-16 sm:px-6 sm:py-24">
       <div className="mx-auto max-w-4xl text-center">
         <motion.div
           initial={{ opacity: 0, y: 20 }}
@@ -26,7 +26,7 @@ export function SupportedTools() {
             Works with anything that takes a prompt
           </p>
 
-          <div className="mt-10 flex flex-wrap items-center justify-center gap-6">
+          <div className="mt-8 flex flex-wrap items-center justify-center gap-4 sm:mt-10 sm:gap-6">
             {tools.map((tool, i) => (
               <motion.div
                 key={tool.name}
