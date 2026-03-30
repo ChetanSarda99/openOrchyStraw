@@ -31,15 +31,15 @@ That's it. No `npm install`, no `pip install`, no build step.
 Edit `agents.conf` to define your team. Each line is one agent:
 
 ```ini
-# id | prompt_path | cli_command | ownership | interval
-02-backend | prompts/02-backend/02-backend.txt | claude | src/ scripts/ | 1
-03-frontend | prompts/03-frontend/03-frontend.txt | claude | frontend/ | 1
-05-qa | prompts/05-qa/05-qa.txt | claude | tests/ reports/ | 3
-01-pm | prompts/01-pm/01-pm.txt | claude | prompts/ | PM
+# id | prompt_path | ownership | interval | label
+02-backend  | prompts/02-backend/02-backend.txt  | src/ scripts/   | 1 | Backend Developer
+03-frontend | prompts/03-frontend/03-frontend.txt | frontend/       | 1 | Frontend Developer
+05-qa       | prompts/05-qa/05-qa.txt             | tests/ reports/ | 3 | QA Engineer
+01-pm       | prompts/01-pm/01-pm.txt             | prompts/        | 0 | PM Coordinator
 ```
 
 <Note>
-  The PM agent always runs **last** — set its interval to `PM`. Workers run in parallel before the PM coordinates.
+  The PM agent always runs **last** — set its interval to `0`. Workers run in parallel before the PM coordinates.
 </Note>
 
 ## Write agent prompts
