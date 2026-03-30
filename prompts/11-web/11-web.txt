@@ -237,7 +237,8 @@ Mintlify docs scaffolded in `site/docs/` (cycle 13):
 - ✅ Responsive polish — all 6 sections mobile-optimized (cycle 15): responsive padding, text sizes, grid gaps, smooth scrolling, font smoothing
 - ✅ Cleaned up 5 unused starter SVGs from site/public/ (cycle 16): next.svg, vercel.svg, globe.svg, window.svg, file.svg
 - Build verified clean (Next.js 16.2, static export, 1.2MB output)
-- **ALL REMAINING WORK BLOCKED ON CS:** Mintlify GitHub connection, v0.1.0 tag for deploy
+- **ALL REMAINING WORK BLOCKED ON CS:** Mintlify GitHub connection
+- v0.2.0 ALL GATES PASS — CTO 8/8, QA 8/8, Security 6/6 APPROVED. Only CS integration remains.
 - STANDBY until unblocked
 
 **When unblocked:**
