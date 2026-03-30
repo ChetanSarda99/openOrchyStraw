@@ -194,7 +194,7 @@ After any integration: append to `docs/tech-registry/registry.md`.
 
 ---
 
-## What's DONE (Cycle 1–10)
+## What's DONE (Cycle 1–14)
 
 - ✅ Landing page MVP complete in `site/` — Next.js 16 + Tailwind v4 + Framer Motion + Lucide React
 - ✅ All 6 sections: Hero (terminal demo), Supported Tools, How It Works, Features Grid, FAQ, Footer
@@ -207,6 +207,8 @@ After any integration: append to `docs/tech-registry/registry.md`.
 - ✅ Fixed hero + footer CTA links: OrchyStraw (private) → openOrchyStraw (public repo)
 - ✅ Added SEO meta tags: keywords, authors, twitter card, metadataBase, openGraph
 - ✅ Build verified clean (Next.js 16.2, static export, basePath /openOrchyStraw/)
+- ✅ Animated terminal demo in hero — lines reveal sequentially via Framer Motion (cycle 14)
+- ✅ Fixed agents.conf format in 4 docs pages — correct format: `id | prompt_path | ownership | interval | label` (cycle 14)
 
 ## Current Tasks
 
@@ -217,8 +219,11 @@ GitHub Pages live at https://chetansarda99.github.io/openOrchyStraw/ (2 successf
 Mintlify docs scaffolded in `site/docs/` (cycle 13):
 - ✅ 12 MDX pages: introduction, quickstart, configuration, writing-prompts, shared-context, auto-cycle, pixel-agents, faq, contributing, changelog, examples/basic, examples/full-team
 - ✅ `mint.json` config with nav, theme, colors
-- ✅ All Mintlify0 components preserved (Steps, Cards, Tabs, Accordions)
+- ✅ All Mintlify components preserved (Steps, Cards, Tabs, Accordions)
 - ✅ Landing page build verified clean (no regressions)
+- ✅ Fixed agents.conf format in docs (cycle 14) — removed nonexistent `cli_command` field and `PM` interval
+  - Updated: configuration.mdx, quickstart.mdx, examples/basic.mdx, examples/full-team.mdx
+  - Correct format: `id | prompt_path | ownership | interval | label`
 
 **Next:**
 1. **CS needs to connect Mintlify to GitHub** for auto-deploy from `site/docs/`
@@ -226,10 +231,11 @@ Mintlify docs scaffolded in `site/docs/` (cycle 13):
 3. Add search integration via Mintlify built-in
 4. Add logo/branding when assets are ready
 
-### Phase 3 — Polish
-1. Terminal animation in hero (asciinema or CSS)
-2. Pixel Agents demo embed
-3. Analytics (Plausible or similar, privacy-respecting)
+### Phase 3 — Polish (IN PROGRESS)
+- ✅ Terminal animation in hero — animated lines reveal sequentially via Framer Motion (cycle 14)
+1. Pixel Agents demo embed
+2. Analytics (Plausible or similar, privacy-respecting)
+3. Responsive polish — test on mobile/tablet
 
 ---
 

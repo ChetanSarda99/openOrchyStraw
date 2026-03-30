@@ -166,11 +166,12 @@ BUG-013 (README Bash version) is non-blocking — quick fix before or after tag.
 - Report: `prompts/09-qa/reports/qa-cycle-10.md`
 
 ### Next QA Priorities
-1. **worktree.sh QA review** — New module (48 tests). Verify test coverage, review deviation from WORKTREE-001 ADR (module vs inline).
-2. **v0.1.1 QA pass** — Verify BUG-013 fix, BUG-012 PROTECTED FILES, `set -e` addition
-3. **Landing page QA** — Verify live site after merge to main + Mintlify docs site review
-4. **Benchmark QA** — Verify SWE-bench scaffold when backend builds it
-5. **Post-integration QA** — After CS integrates v0.2.0 modules into auto-agent.sh, full regression test
+1. **worktree.sh QA review** — Module (48 tests). Verify test coverage, review deviation from WORKTREE-001 ADR (module vs inline).
+2. **prompt-compression.sh QA review** — NEW module (cycle 14, 30 tests). Verify tiered loading modes, hash-based detection, token estimation.
+3. **conditional-activation.sh QA review** — NEW module (cycle 14, 25 tests). Verify ownership detection, context scanning, PM force flag.
+4. **Full test suite** — Run all 16 test files (203 v0.2.0+ tests total). Verify zero regressions.
+5. **v0.1.1 QA pass** — Verify BUG-013 fix, BUG-012 PROTECTED FILES, `set -e` addition
+6. **Post-integration QA** — After CS integrates v0.2.0 modules into auto-agent.sh, full regression test
 
 ---
 

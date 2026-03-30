@@ -29,6 +29,8 @@
 - [ ] **Integrate cycle-tracker.sh into auto-agent.sh** — Built + tested (14 tests). Smart empty cycle detection. READY.
 - [ ] **Integrate review-phase.sh into auto-agent.sh** — Built + tested (36 tests). ALL CTO findings FIXED. **CTO APPROVED** (HOLD lifted cycle 13). READY.
 - [ ] **Integrate worktree.sh into auto-agent.sh** — Built + tested (48 tests). See INTEGRATION-GUIDE.md Steps 8-11. CTO review of ADR deviation pending but module is functionally ready.
+- [ ] **Integrate prompt-compression.sh into auto-agent.sh** — NEW (cycle 14). Built + tested (30 tests). Tiered prompt loading (full/standard/minimal), hash-based change detection. CTO review pending.
+- [ ] **Integrate conditional-activation.sh into auto-agent.sh** — NEW (cycle 14). Built + tested (25 tests). Skip idle agents via ownership change detection. CTO review pending.
 
 ### P1 — After v0.1.0 Tag
 - [ ] **Connect Mintlify to GitHub** — 11-Web scaffolded docs site in `site/docs/` (12 MDX pages + mint.json). CS needs to connect Mintlify for auto-deploy.
