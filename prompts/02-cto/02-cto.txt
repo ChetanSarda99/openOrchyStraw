@@ -142,10 +142,11 @@ For now: maintain registry here, PM will propose migration when 2nd project star
 10. ~~**Review worktree.sh**~~ — DONE (cycle 8). APPROVED. 37 tests PASS. ADR deviation accepted: standalone module > inline. Recommend WORKTREE-002 ADR to document decision. No security issues.
 11. ~~**Review prompt-compression.sh**~~ — DONE (cycle 8). APPROVED. 30 tests PASS. Zero deps. Token estimation sound. Hash-based change detection production-ready.
 12. ~~**Review conditional-activation.sh**~~ — DONE (cycle 8). APPROVED. 25 tests PASS. Fail-open design. Ownership detection + context scanning + PM force all working. No security issues.
-13. **Review differential-context.sh** — NEW module (cycle 15, #49, 42 tests). Per-agent context filtering: section→agent mappings, cross-cycle history filtering, fail-open for unmapped sections, PM bypass. Check architecture compliance.
-14. **Consolidate agents.conf** — P2, move to single file at root (v0.2)
-15. **Benchmark architecture** — Review SWE-bench scaffold design when backend builds it
-16. **Write WORKTREE-002 ADR** — Document module-based approach deviation from WORKTREE-001 (which said "inline in auto-agent.sh"). Low priority.
+13. **Review differential-context.sh** — Module (cycle 15, #49, 42 tests, QA PASS). Per-agent context filtering: section→agent mappings, cross-cycle history filtering, fail-open for unmapped sections, PM bypass. Check architecture compliance. **DO THIS NEXT.**
+14. **Review session-tracker.sh** — NEW module (cycle 16, #52, 33 tests). Smart session tracker windowing: last N cycles full detail, next M as table rows, older omitted. Configurable via orch_tracker_init. Check architecture compliance.
+15. **Consolidate agents.conf** — P2, move to single file at root (v0.2)
+16. **Benchmark architecture** — Review SWE-bench scaffold design when backend builds it
+17. **Write WORKTREE-002 ADR** — Document module-based approach deviation from WORKTREE-001 (which said "inline in auto-agent.sh"). Low priority.
 
 ---
 
