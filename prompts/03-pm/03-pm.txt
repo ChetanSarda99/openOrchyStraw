@@ -225,7 +225,19 @@ Use the **Edit tool** to modify ONLY:
 - 4 CTO ADRs approved: EXEC-001, REVIEW-001, WORKTREE-001, MODEL-001
 - CTO code reviews: ALL 8 v0.2.0+ modules APPROVED
 - QA: ALL 8 v0.2.0+ modules PASS
-- Security: ALL 8 v0.2.0+ modules APPROVED. Open findings: DR-SEC-01 LOW, DR-SEC-02 MEDIUM (integration), WT-SEC-01 LOW, PC-SEC-01 INFO, DC-SEC-01 INFO
+- Security: ALL 8 v0.2.0+ modules APPROVED. Open findings: DR-SEC-01 LOW, DR-SEC-02 MEDIUM (integration), PC-SEC-01 INFO, DC-SEC-01 INFO
+- [x] WT-SEC-01 FIXED (cycle 18) — path traversal validation added to `orch_worktree_merge()`
+
+### Efficiency Layer (Cycle 18 — NEW)
+- [x] `scripts/pre-cycle-stats.sh` — per-agent stats as JSON before agents run
+- [x] `scripts/commit-summary.sh` — structured per-agent diff summary after commits
+- [x] `scripts/agent-health-report.sh` — agent efficiency matrix (success rate, idle/overloaded)
+- [x] `scripts/secrets-scan.sh` — 16 secret patterns, replaces manual security scan
+- [x] `scripts/post-cycle-router.sh` — wires dynamic-router interval adjustment
+- [x] CTO APPROVED all 5 scripts. Findings: SS-01 MEDIUM (dead regex), CS-01 LOW (GNU grep).
+- [x] CTO ADRs: EFFICIENCY-001 (script-first architecture), COST-001 (token budget architecture)
+- [ ] CS must wire 5 scripts into auto-agent.sh (see CTO integration order in 02-cto prompt)
+- [ ] Backend must fix SS-01, CS-01, LINT-01–04
 
 ### v0.3.0 — Token Optimization + Smart Provisioning (partially started)
 - [x] #49 Differential context — `differential-context.sh` BUILT + 42 tests PASS. CTO APPROVED. QA PASS. Security APPROVED.

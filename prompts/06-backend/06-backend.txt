@@ -184,37 +184,31 @@ Only non-blocking item: BUG-013 (README says "Bash 4+" should be "Bash 5+").
 - Total v0.2.0+ tests: 278 (245 previous + 33 session-tracker)
 - Full test suite: 18/18 pass (16 unit + 1 integration + runner), zero regressions
 
-**PRIORITY: EFFICIENCY SPRINT (Cycles 11-14)**
+### Cycle 18 DONE — Efficiency Sprint Complete ✅
+- ✅ `scripts/pre-cycle-stats.sh` — P0 DONE: per-agent stats (commits, issues, last activity) as JSON
+- ✅ `scripts/commit-summary.sh` — P0 DONE: structured per-agent diff summary (files, lines, top changes)
+- ✅ `scripts/agent-health-report.sh` — P0 DONE: agent efficiency matrix (success rate, idle/overloaded detection)
+- ✅ `scripts/secrets-scan.sh` — P1 DONE: scans for 16 secret patterns (AWS, API tokens, JWTs, private keys)
+- ✅ `scripts/post-cycle-router.sh` — P1 DONE: wires dynamic-router interval adjustment after each cycle
+- ✅ WT-SEC-01 FIXED: path traversal validation added to `orch_worktree_merge()`
+- Full test suite: 18/18 pass, zero regressions
+- Secrets scan: CLEAN on repo
 
-CS has wired v0.2 modules into auto-agent.sh. Now build the script-first efficiency layer:
+### NEXT PRIORITIES (Cycle 19+)
 
-1. **P0: `scripts/pre-cycle-stats.sh`** (#174) — Gather stats BEFORE agents run. Output JSON:
-   - Per-agent: open issues assigned, recent commits in owned paths, last run cycle
-   - Project-wide: total open issues, recent activity, build status
-   - Inject output into shared context so agents don't waste tokens running git/gh themselves
-   - Use context7 MCP to research best practices for cycle stats in orchestration frameworks
+1. **P1: Fix CTO findings in new scripts:**
+   - SS-01 MEDIUM: `secrets-scan.sh` line 30 — password regex uses Perl syntax with `grep -E` (dead code). Fix: use `-P` or POSIX classes.
+   - CS-01 LOW: `commit-summary.sh` — `grep -oP` is GNU-only, not portable to macOS. Fix: use `sed` or POSIX alternative.
+   - LINT-01–04 LOW: `pre-pm-lint.sh` — needs `set -e`, branch-scoped git queries, CONF_FILE check.
 
-2. **P0: `scripts/commit-summary.sh`** (#174) — After agents commit, generate structured diff summary:
-   - Per-agent: files changed, lines +/-, new files vs modified, key function/class names
-   - This replaces PM manually reading git diffs
+2. **P1: agents.conf v3 parser** — Per CTO COST-001 ADR:
+   - New format: `id | prompt | ownership | interval | label | model | max_tokens` (7 columns)
+   - Update config-validator.sh to handle v3 format
+   - Backward-compatible with v1/v2
 
-3. **P0: `scripts/agent-health-report.sh`** (#173) — Track agent efficiency over time:
-   - Success rate per agent (last 10 cycles)
-   - Average output size, commit count
-   - Identify consistently idle agents (candidates for interval increase)
-   - Identify overloaded agents (candidates for interval decrease)
+3. **P2: `--single-agent` mode** (#10) — Ralph-compatible single-agent runner for v0.2.1
 
-4. **P1: `scripts/secrets-scan.sh`** (#174) — Replace security agent's secrets scanning:
-   - grep for API keys, tokens, passwords in committed files
-   - Check .env files not in .gitignore
-   - If clean, security agent can skip that check entirely
-
-5. **P1: Wire dynamic-router.sh interval adjustment** (#173) — The module exists but isn't called:
-   - After each cycle, call `orch_router_adjust` to auto-tune agent intervals
-   - Agents with 3+ empty cycles get doubled intervals
-   - Agents with 5+ open issues get halved intervals
-
-6. **P2: WT-SEC-01 FIX** — Path traversal validation in `orch_worktree_merge()`
+4. **P3: SWE-bench scaffold** (#4) — Benchmark framework for evaluation
 
 ---
 
