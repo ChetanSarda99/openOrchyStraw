@@ -92,6 +92,14 @@ Multi-agent AI coding orchestration. Markdown prompts + bash script. No framewor
 - ✅ 90 total tests (77 v0.2.0 + 13 v0.1.0), zero failures
 - ✅ Competitive window narrowing identified as key risk
 
+## What's DONE (Cycle 15)
+
+- ✅ **v0.1.0 TAGGED AND PUSHED** — `7a08cec`, March 16, live on GitHub remote. The #1 blocker for 13 cycles is RESOLVED.
+- ✅ Cycle 15 update: `docs/strategy/CYCLE-15-CEO-UPDATE.md` — "v0.1.0 Is Shipped. Now Accelerate."
+- ✅ v0.2.0 modules: 8 total, 245 tests, CTO approved 6/6 (differential-context.sh pending review)
+- ✅ Landing page responsive polish (Phase 3) complete
+- ✅ Priorities pivoted from "tag v0.1.0" to "tag v0.2.0 + benchmark sprint + HN launch"
+
 ## Your Tasks Each Session
 
 1. Read `prompts/00-shared-context/context.md` for team status
@@ -105,17 +113,16 @@ Multi-agent AI coding orchestration. Markdown prompts + bash script. No framewor
 
 ## Current Strategic Priorities (Updated Cycle 15 — 2026-03-29)
 
-1. **TAG v0.1.0 NOW** — Tag-ready for 8+ cycles. This is the #1 strategic risk. Two commands: `git tag v0.1.0 && git push --tags`. **NOTHING ELSE MATTERS UNTIL THIS HAPPENS.**
-2. **CS integrates v0.2.0+ modules** — 8 modules ready: dynamic-router, review-phase, signal-handler, cycle-tracker, worktree, prompt-compression, conditional-activation, differential-context. All tested (245 total tests). CTO approved all 6 v0.2.0 modules. Quote `orch_router_model` per DR-SEC-02.
-3. **Tag v0.2.0 same week** — Two releases = stronger HN narrative.
-4. **Benchmark sprint (days 1-3 post-tag)** — SWE-bench Lite + Ralph head-to-head. Results in README.
-5. **HN launch** — Two releases + benchmarks + demo GIF. "Show HN."
-6. **Landing page live** — GitHub Pages confirmed: https://chetansarda99.github.io/openOrchyStraw/
-7. **v0.2.0: `--single-agent` mode** — Ralph compatibility = growth hack.
-8. **Tauri desktop app** — Paid product foundation. Starts post-HN.
-9. **Pixel Agents Phase 2** — Fork + adapter after v0.2.0.
+1. **v0.1.0 SHIPPED** ✅ — Tagged `7a08cec`, pushed to remote March 16. The 13-cycle blocker is resolved.
+2. **Tag v0.2.0 THIS WEEK** — Gates: CTO reviews differential-context.sh, Security sweeps 5 modules, CS integrates 8 modules into auto-agent.sh. All modules tested (245 tests), CTO approved 6/6.
+3. **Benchmark sprint (days 1-3 post v0.2.0)** — SWE-bench Lite + Ralph head-to-head. Results in README. This is our proof.
+4. **HN launch** — "Show HN: OrchyStraw." Two version tags + benchmarks + demo GIF. The competitive window is narrowing.
+5. **Landing page live** — GitHub Pages: https://chetansarda99.github.io/openOrchyStraw/. Goes live with or before HN.
+6. **v0.2.1: `--single-agent` mode** — Ralph compatibility = growth hack. Low effort, high conversion.
+7. **Tauri desktop app** — Paid product foundation. Starts post-HN.
+8. **Pixel Agents Phase 2** — Fork + adapter after Tauri scaffold exists.
 
-### Key Strategic Decisions (Cycle 1–13)
+### Key Strategic Decisions (Cycle 1–15)
 - Open-source v0.1.0 to openOrchyStraw immediately — the orchestrator is the hook
 - Benchmarks elevated from P4 to P1 — proof before polish
 - README exists and is solid — covers quick start, features, license
@@ -124,8 +131,9 @@ Multi-agent AI coding orchestration. Markdown prompts + bash script. No framewor
 - `--single-agent` mode elevated to v0.2.0 — Ralph user on-ramp, not afterthought
 - Agent freeze LIFTED (Cycle 10) — team activation order: QA/Security → Backend → CTO → Web → Tauri → Pixel → iOS
 - v0.1.0 tag should NOT include v0.2.0 Phase 1 — ship what's validated, Phase 1 goes in v0.2.0
-- NEW (Cycle 13): Collapse release gap — tag v0.1.0 and v0.2.0 same week for stronger launch narrative
-- Full memos: `docs/strategy/CYCLE-1-STRATEGIC-MEMO.md`, `CYCLE-2-CEO-UPDATE.md`, `CYCLE-5-CEO-UPDATE.md`, `CYCLE-7-CEO-UPDATE.md`, `CYCLE-9-CEO-UPDATE.md`, `CYCLE-10-CEO-UPDATE.md`, `CYCLE-12-CEO-UPDATE.md`, `CYCLE-13-CEO-UPDATE.md`
+- Collapse release gap — tag v0.1.0 and v0.2.0 same week for stronger launch narrative
+- NEW (Cycle 15): v0.1.0 shipped — pivot all energy to v0.2.0 tag + benchmark sprint + HN launch
+- Full memos: `docs/strategy/CYCLE-1-STRATEGIC-MEMO.md`, `CYCLE-2-CEO-UPDATE.md`, `CYCLE-5-CEO-UPDATE.md`, `CYCLE-7-CEO-UPDATE.md`, `CYCLE-9-CEO-UPDATE.md`, `CYCLE-10-CEO-UPDATE.md`, `CYCLE-12-CEO-UPDATE.md`, `CYCLE-13-CEO-UPDATE.md`, `CYCLE-15-CEO-UPDATE.md`
 
 ---
 
