@@ -10,10 +10,10 @@ This example shows a minimal OrchyStraw setup with 3 agents: a backend developer
 ## agents.conf
 
 ```ini
-# id | prompt_path | cli_command | ownership | interval
-02-backend  | prompts/02-backend/02-backend.txt  | claude | src/api/ src/models/ src/middleware/ | 1
-03-frontend | prompts/03-frontend/03-frontend.txt | claude | src/components/ src/pages/ src/styles/ | 1
-01-pm       | prompts/01-pm/01-pm.txt             | claude | prompts/ | PM
+# id | prompt_path | ownership | interval | label
+02-backend  | prompts/02-backend/02-backend.txt  | src/api/ src/models/ src/middleware/     | 1 | Backend Developer
+03-frontend | prompts/03-frontend/03-frontend.txt | src/components/ src/pages/ src/styles/  | 1 | Frontend Developer
+01-pm       | prompts/01-pm/01-pm.txt             | prompts/                                | 0 | PM Coordinator
 ```
 
 ## Directory structure

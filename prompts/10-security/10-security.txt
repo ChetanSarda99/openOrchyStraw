@@ -126,13 +126,21 @@ All findings resolved. All 9 gates pass. No open HIGH or MEDIUM findings. v0.1.0
    - Cost guard bypass — can the 50% threshold be circumvented?
    - RP-04 fix verification — path traversal rejection (rejects `..` in agent IDs)
    - RP-03 fix verification — I/O error handling
-4. **v0.2.0 security review — worktree.sh** — New module (48 tests). Review for:
+4. **v0.2.0 security review — worktree.sh** — Module (48 tests). Review for:
    - Path traversal in worktree paths
    - Stale worktree recovery safety
    - Merge conflict handling
-5. **DR-SEC-02 integration note** — CS must quote `orch_router_model` output when integrating into auto-agent.sh. Verify this during integration review.
-6. **v0.1.1 audit** — Verify `set -e` addition doesn't introduce new failure modes
-7. **Benchmark security review** — Ensure SWE-bench scaffold doesn't execute untrusted code
+5. **v0.2.5 security review — prompt-compression.sh** — NEW module (cycle 14, 30 tests). Review for:
+   - Hash-based change detection bypass — can crafted content produce hash collisions?
+   - Token estimation accuracy — can oversized prompts slip through?
+   - File read safety — does it safely handle missing/malformed prompt sections?
+6. **v0.2.5 security review — conditional-activation.sh** — NEW module (cycle 14, 25 tests). Review for:
+   - PM force flag abuse — can an agent self-activate via context injection?
+   - Ownership detection bypass — can agents trigger activation for other agents?
+   - Exclusion list integrity — can exclusions be overridden?
+7. **DR-SEC-02 integration note** — CS must quote `orch_router_model` output when integrating into auto-agent.sh. Verify this during integration review.
+8. **v0.1.1 audit** — Verify `set -e` addition doesn't introduce new failure modes
+9. **Benchmark security review** — Ensure SWE-bench scaffold doesn't execute untrusted code
 
 ---
 

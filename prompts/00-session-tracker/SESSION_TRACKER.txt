@@ -18,6 +18,43 @@
 | 11 | 2026-03-29 | 02,06,03 | BUG-014/015/016 FIXED (39 tests), CTO reviewed 3 modules (2 APPROVED, 1 HOLD), 7 new issues logged |
 | 12 | 2026-03-29 | 06,10,03 | ALL CTO findings FIXED (BUG-017+RP-01/02/03/04+DR-01/02), Security cycle 9 audit, 77 tests total |
 | 13 | 2026-03-29 | 01,02,06,09,11,13,03 | worktree.sh (48 tests), CTO HOLD LIFTED, QA PASS, Mintlify docs (12 pages), CEO "Ship the Damn Thing", 148 total v0.2 tests |
+| 14 | 2026-03-29 | 06,11,03 | prompt-compression.sh (30 tests), conditional-activation.sh (25 tests), hero terminal animation, docs format fixes, 203 total v0.2+ tests |
+
+---
+
+## WHAT SHIPPED — Cycle 14 (2026-03-29 17:05–17:25)
+
+### 06-Backend
+- `src/core/prompt-compression.sh` — #47 tiered prompt loading (stable/dynamic/reference sections)
+  - 3 modes: full/standard/minimal
+  - Hash-based change detection — only reload sections that changed
+  - Token estimation for prompt budget management
+- `src/core/conditional-activation.sh` — #48 skip idle agents
+  - Ownership-based change detection — check if agent's files changed since last cycle
+  - Context mention scanning — check if agent was mentioned in shared context
+  - PM force flag — override to force-run any agent
+  - Exclusion support — skip specific agents
+- `tests/core/test-prompt-compression.sh` — 30 tests, ALL PASS
+- `tests/core/test-conditional-activation.sh` — 25 tests, ALL PASS
+- Full test suite: 16/16 pass (14 unit + 1 integration + runner), zero regressions
+- v0.2.0+ modules now: 7 total, 203 tests
+
+### 11-Web
+- Added animated terminal demo to hero — lines reveal sequentially via Framer Motion (Phase 3 polish)
+- Fixed agents.conf format in 4 docs pages — removed nonexistent `cli_command` field and `PM` interval
+  - Updated: configuration.mdx, quickstart.mdx, examples/basic.mdx, examples/full-team.mdx
+  - Correct format: `id | prompt_path | ownership | interval | label`
+- Landing page build verified clean (Next.js 16.2, static export, no regressions)
+
+### 03-PM (this cycle)
+- Committed backend modules (prompt-compression + conditional-activation, 55 tests)
+- Committed shared context + cycle 6 archive
+- Updated all 9 agent prompts with cycle 14 status
+- Assigned CTO: review 3 new modules (worktree, prompt-compression, conditional-activation)
+- Assigned Security: review 4 modules (review-phase + 3 new)
+- Assigned QA: review 3 new modules + full test suite
+- Session tracker updated
+- CS action items updated
 
 ---
 
@@ -477,28 +514,28 @@
 ## MILESTONE DASHBOARD
 | Milestone | Open | Closed | Status |
 |-----------|------|--------|--------|
-| v0.1.0 | 0 blockers | #80,#81,#82,#91 closed | TAG-READY. QA PASS + Security FULL PASS. Only #25 (tag itself) remains. |
+| v0.1.0 | 0 blockers | #80,#81,#82,#91 closed | TAG-READY (7+ cycles). QA PASS + Security FULL PASS. Only #25 (tag itself) remains. |
 | v0.1.1 | 3 items | 0 | BUG-013 (README Bash version), BUG-012 (PROTECTED FILES), `set -e` flag |
-| v0.2.0 | 0 code items | 7 done | ALL modules DONE: #40/#41/#43/#44/#46. ALL bugs FIXED. CTO APPROVED all. Remaining: security review (review-phase + worktree), CS integration of 5 modules |
+| v0.2.0 | reviews pending | 7 code done | ALL modules DONE: #40/#41/#43/#44/#46/#47/#48. ALL bugs FIXED. CTO needs to review 3 new modules. Security needs to review 4. CS integration of 7 modules pending. |
 
 ## CODEBASE SIZE
-- `src/core/` modules: 14 bash files (8 v0.1.0 + 5 v0.2.0 + design doc)
+- `src/core/` modules: 16 bash files (8 v0.1.0 + 7 v0.2.0+ + design doc)
 - `src/pixel/` files: 3 (emitter + test + integration guide)
-- `tests/core/` files: 14 (12 unit tests + runner + integration test)
+- `tests/core/` files: 16 (14 unit tests + runner + integration test)
 - `site/` files: ~16,122 TS/TSX/JS (Next.js project) + 13 MDX docs pages
 - Backend scripts: 14 shell files
 - Agent prompts: 9 active in agents.conf
 - Deploy workflows: 1 (.github/workflows/deploy-site.yml)
-- Total v0.2.0 tests: 148 (dynamic-router 41 + review-phase 36 + worktree 48 + signal 9 + cycle-tracker 14)
+- Total v0.2.0+ tests: 203 (dynamic-router 41 + review-phase 36 + worktree 48 + signal 9 + cycle-tracker 14 + prompt-compression 30 + conditional-activation 25)
 
 ## NEXT CYCLE PRIORITIES
-1. **Tag v0.1.0** — All blockers cleared for 7+ cycles. Fix BUG-013, then tag. CEO says this is #1 strategic risk.
-2. **02-cto:** Review worktree.sh — ADR deviation (module vs inline). Accept or require change.
-3. **10-security:** Security review of review-phase.sh (CTO HOLD now lifted) + worktree.sh (new module).
-4. **09-qa:** QA review of worktree.sh (48 tests). Post-integration regression test.
-5. **CS: Integrate v0.2.0 modules** — ALL 5 modules READY: dynamic-router.sh, signal-handler.sh, cycle-tracker.sh, review-phase.sh, worktree.sh. Quote `orch_router_model` output per DR-SEC-02.
+1. **Tag v0.1.0** — All blockers cleared for 7+ cycles. Fix BUG-013, then tag. CEO says this is #1 strategic risk. NOTHING IS MORE IMPORTANT.
+2. **02-cto:** Review 3 modules: worktree.sh (ADR deviation), prompt-compression.sh, conditional-activation.sh.
+3. **10-security:** Security review of review-phase.sh + worktree.sh + prompt-compression.sh + conditional-activation.sh (4 modules).
+4. **09-qa:** QA review of worktree.sh + prompt-compression.sh + conditional-activation.sh (3 modules). Full test suite (16 files, 203 tests).
+5. **CS: Integrate v0.2.0 modules** — ALL 7 modules READY. See INTEGRATION-GUIDE.md. Quote `orch_router_model` output per DR-SEC-02.
 6. **CS: Connect Mintlify to GitHub** — for auto-deploy of docs site from `site/docs/`
-7. **06-backend:** Start #47 prompt compression + #48 conditional activation
+7. **06-backend:** Continue token optimization: #49 differential context, #52 session tracker windowing, #54 prompt template inheritance
 8. **Benchmark sprint:** SWE-bench + Ralph comparison — starts after v0.1.0 tag
 9. After benchmarks: HN launch (only with receipts), activate 04-tauri-rust + 05-tauri-ui
 10. Post-benchmarks: Pixel Phase 2 after v0.2.0
