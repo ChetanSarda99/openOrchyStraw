@@ -1,19 +1,19 @@
 # OrchyStraw — Team Roster
 
-> Last updated: 2026-03-29 (Cycle 16, HR Agent)
+> Last updated: 2026-03-30 (Cycle 18, HR Agent)
 
 ## Active Agents (in agents.conf)
 
 | ID | Role | Ownership | Interval | Status |
 |----|------|-----------|----------|--------|
 | 01-ceo | CEO — Vision & Strategy | `docs/strategy/` | Every 3rd cycle | STANDBY |
-| 02-cto | CTO — Architecture & Standards | `docs/architecture/` | Every 2nd cycle | Active — differential-context.sh review pending |
+| 02-cto | CTO — Architecture & Standards | `docs/architecture/` | Every 2nd cycle | STANDBY — all 8/8 modules APPROVED |
 | 03-pm | PM — Coordination & Tasks | `prompts/` `docs/` | Coordinator (runs LAST) | Active |
-| 06-backend | Backend Developer | `scripts/` `src/core/` `src/lib/` `benchmarks/` | Every cycle | Active — 8 modules, 245 tests, ALL CTO APPROVED |
+| 06-backend | Backend Developer | `scripts/` `src/core/` `src/lib/` `benchmarks/` | Every cycle | Active — 9 modules, 278 tests, ALL gates PASS |
 | 08-pixel | Pixel Agents Visualization | `src/pixel/` `pixel-agents/` | Every 2nd cycle | STANDBY |
-| 09-qa | QA Engineer | `tests/` `reports/` | Every 3rd cycle | Review due — 4 modules pending |
-| 10-security | Security Auditor | `reports/` | Every 5th cycle | Review overdue — 5 modules pending |
-| 11-web | Web Developer — Landing & Docs | `site/` | Every cycle | STANDBY — site stable, responsive polish complete |
+| 09-qa | QA Engineer | `tests/` `reports/` | Every 3rd cycle | STANDBY — ALL modules QA PASS |
+| 10-security | Security Auditor | `reports/` | Every 5th cycle | STANDBY — ALL 6 modules APPROVED |
+| 11-web | Web Developer — Landing & Docs | `site/` | Every cycle | STANDBY — site stable |
 | 13-hr | HR & Team Culture | `docs/team/` `prompts/13-hr/` | Every 3rd cycle | Active |
 
 **Total active: 9 agents**
@@ -26,7 +26,7 @@
 | `prompts/04-tauri-rust/` | Tauri Rust Backend | Planned | Activate after benchmark sprint (Phase 2) |
 | `prompts/05-tauri-ui/` | Tauri UI Frontend | Planned | Activate after benchmark sprint (Phase 2) |
 | `prompts/07-ios/` | iOS Companion App | Planned | Activate after Tauri scaffold stable (Phase 3) |
-| `prompts/12-brand/` | Brand/Design | **RECOMMEND ARCHIVE** | CEO silent 15 cycles. Deadline reached (C16). |
+| `prompts/12-brand/` | Brand/Design | **RECOMMEND ARCHIVE** | CEO silent 16+ cycles. Deadline passed (C16). |
 
 ## Ownership Overlap Analysis
 

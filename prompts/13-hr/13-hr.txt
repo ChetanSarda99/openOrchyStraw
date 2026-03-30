@@ -262,10 +262,19 @@ When advising PM on new agent prompts, ensure they follow this structure:
 - [x] 06-backend: 12th consecutive cycle as team MVP — BUG-018 fix.
 - [x] ALL v0.2.0 quality gates PASS — CTO, QA, Security. Only CS integration remains.
 
-### Current (Cycle 18 — CS Integration + Benchmarks)
-- [ ] Track BUG-012 completion — 5 prompts still missing PROTECTED FILES (01-ceo, 02-cto, 03-pm, 10-security, 13-hr). **PM must add these.**
-- [ ] Monitor v0.2.0 integration progress (CS must integrate 9 modules into auto-agent.sh)
-- [ ] Track WT-SEC-01 fix (LOW): path traversal validation in worktree.sh merge → 06-backend
+### Done (Cycle 18)
+- [x] CS efficiency sprint recognized: 6/9 v0.2 modules wired into auto-agent.sh
+- [x] 3 modules NOT YET wired: dynamic-router, review-phase, worktree
+- [x] ALL quality gates COMPLETE: CTO 8/8, QA ALL PASS, Security 6/6 APPROVED
+- [x] BUG-012 improved: 4/9 agents missing PROTECTED FILES (was 5/9)
+- [x] WT-SEC-01 RESOLVED: path traversal validation added to worktree.sh
+- [x] 06-backend: 12th consecutive cycle as team MVP — 5 new efficiency scripts + WT-SEC-01 fix
+
+### Current (Cycle 19 — Efficiency Sprint QA + v0.2 Integration)
+- [ ] Track BUG-012 completion — 4 prompts still missing PROTECTED FILES (01-ceo, 03-pm, 10-security, 13-hr). **PM must add these.**
+- [ ] Monitor v0.2.0 integration progress (CS must integrate 3 remaining modules: dynamic-router, review-phase, worktree)
+- [ ] Monitor new scripts integration (CS must wire 5 scripts into auto-agent.sh)
+- [ ] 06-backend: 13th consecutive cycle as team MVP — efficiency sprint complete
 - [ ] Recommend reactivating 04-tauri-rust + 05-tauri-ui after benchmark sprint
 - [ ] Post-benchmark: prepare onboarding for 04-tauri-rust + 05-tauri-ui reactivation
-- [ ] Next team health review: Cycle 18
+- [ ] Next team health review: Cycle 19

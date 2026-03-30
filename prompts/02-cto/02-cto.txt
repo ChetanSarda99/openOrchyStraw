@@ -89,7 +89,7 @@ For now: maintain registry here, PM will propose migration when 2nd project star
 
 ---
 
-## What's DONE (Cycle 1–14)
+## What's DONE (Cycle 1–15)
 
 - ✅ 5 ADRs from cycle 1: UI-001, WEB-001, DOCS-001, STYLE-001, DB-001
 - ✅ BASH-001 ADR: Minimum bash 5.0, portable shebang (cycle 2)
@@ -119,6 +119,11 @@ For now: maintain registry here, PM will propose migration when 2nd project star
 - ✅ Cycle 10 (2026-03-29): differential-context.sh APPROVED (42 tests). Zero deps, fail-open, section→agent mappings, dependency-aware history filtering. DC-01 LOW: unquoted iteration (cosmetic).
 - ✅ Cycle 10 (2026-03-29): session-tracker.sh APPROVED (33 tests). Zero deps, parse-then-render, 81% compression at 30 cycles, configurable windowing. ST-01 LOW: line count off-by-one in stats (cosmetic).
 - ✅ v0.2.0+ module review: 8/8 modules CTO APPROVED (all 6 prior + differential-context + session-tracker). Only security review remains.
+- ✅ Cycle 15 (2026-03-30): EFFICIENCY-001 ADR — script-first architecture principle. Decision framework documented. pre-pm-lint.sh reviewed (4 LOW/INFO findings).
+- ✅ Cycle 15 (2026-03-30): COST-001 ADR — token budget architecture. agents.conf v3 format (7 columns), PM skip policy, cost logging to JSONL.
+- ✅ Cycle 15 (2026-03-30): 5 new backend scripts reviewed — ALL APPROVED. SS-01 MEDIUM (password regex dead code). CS-01 LOW (GNU grep portability).
+- ✅ Cycle 15 (2026-03-30): auto-agent.sh v0.2 wiring reviewed — all integration points correct.
+- ✅ Tech registry updated: 14 domain decisions (5 LOCKED + 9 APPROVED).
 
 ## Current Technical Priorities
 
@@ -135,34 +140,24 @@ For now: maintain registry here, PM will propose migration when 2nd project star
 2. **Backend ownership exclusions** — 06-backend owns `scripts/` but protected files live there.
 3. **Shebang inconsistency** — auto-agent.sh uses `#!/bin/bash`, core modules use `#!/usr/bin/env bash`.
 
-### PRIORITY: EFFICIENCY ARCHITECTURE REVIEW (Cycles 11-14)
+### COMPLETED: EFFICIENCY ARCHITECTURE REVIEW
 
-CS has integrated all v0.2 modules into auto-agent.sh. The system now has conditional activation,
-differential context, session tracker windowing, and a pre-PM lint pass. Your job this sprint:
+All P0 and P1 tasks from the efficiency sprint are DONE:
+- ✅ EFFICIENCY-001 ADR — script-first architecture principle
+- ✅ COST-001 ADR — token budget architecture, agents.conf v3 format
+- ✅ pre-pm-lint.sh reviewed (4 LOW/INFO findings)
+- ✅ 5 new backend scripts reviewed (1 MEDIUM, 1 LOW)
+- ✅ auto-agent.sh v0.2 wiring reviewed
 
-1. **P0: Write EFFICIENCY-001 ADR** — Document the script-first architecture principle (#174):
-   - Decision: scripts handle mechanical work, agents handle judgment work only
-   - Decision framework: "Can a regex/grep/diff do it? → Script. Needs reasoning? → Agent."
-   - Catalog what moved from agents to scripts and expected token savings
-   - Review `scripts/pre-pm-lint.sh` — is the report format useful? Missing anything?
+### NEXT PRIORITIES
 
-2. **P0: Write COST-001 ADR** — Token budget architecture (#173):
-   - How per-agent token budgets should work (agents.conf column vs env var)
-   - Model tiering policy: which agents need Opus vs Sonnet vs Haiku
-   - PM skip policy: when lint says QUIET CYCLE, is skipping PM safe?
-   - Cost tracking: what to log, where to store, how to alert
+1. **P1: Review agents.conf v3 parser** — When backend implements COST-001 format (7 columns), review for correctness + backward compat.
 
-3. **P1: Review backend's new scripts** — When backend builds pre-cycle-stats.sh,
-   commit-summary.sh, agent-health-report.sh, secrets-scan.sh:
-   - Are they correct? Missing edge cases?
-   - Do they follow the zero-dependency principle?
-   - Security implications of parsing git output?
+2. **P1: Review CTO finding fixes** — Backend assigned SS-01, CS-01, LINT-01–04. Review when fixed.
 
-4. **P1: Consolidate agents.conf** — Single file at root, add model + max_tokens columns
-   - Proposed v3 format: `id | prompt | ownership | interval | label | model | max_tokens | depends_on | reviews`
-   - Write the spec, backend implements
+3. **P2: Write WORKTREE-002 ADR** — Module-based approach doc (low priority)
 
-5. **P2: Write WORKTREE-002 ADR** — Module-based approach doc (low priority)
+4. **P2: Review `--single-agent` mode design** — When backend proposes (#10), review architecture.
 
 ---
 
