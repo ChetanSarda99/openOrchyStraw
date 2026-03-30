@@ -104,7 +104,7 @@ All 8 v0.1.0 bash modules built in `src/core/`:
 - ✅ `lock-file.sh` — prevent concurrent orchestrators
 - ✅ `bash-version.sh` — exits if bash < 5.0, with install instructions
 
-v0.2.0 modules (cycle 5–12):
+v0.2.0 modules (cycle 5–14):
 - ✅ `signal-handler.sh` — graceful shutdown with SHUTTING_DOWN flag, SIGTERM→SIGKILL, PID tracking
 - ✅ `cycle-tracker.sh` — smart empty cycle detection, tracks agent outcomes vs commits separately
 - ✅ `SMART-CYCLE-DESIGN.md` — v0.2.0 design doc (#40 review, #41 dynamic routing, #43 dependency-aware parallel)
@@ -116,7 +116,13 @@ v0.2.0 modules (cycle 5–12):
 - ✅ `tests/core/test-review-phase.sh` — 36 tests (24 original + 12 CTO findings), ALL PASS
 - ✅ `config-validator.sh` — updated: v1 (5-col), v2 (8-col), v2+ (9-col) agents.conf; model validation (warn-only per MODEL-001)
 - ✅ `tests/core/test-config-validator.sh` — 10 tests (5 original + 5 new v2/v9 format), ALL PASS
-- ✅ Full test suite: 13/13 pass, zero regressions
+- ✅ `worktree.sh` — #44 WORKTREE-001: git worktree isolation, 8 public functions, path traversal validation
+- ✅ `tests/core/test-worktree.sh` — 48 tests using real temp git repos, ALL PASS
+- ✅ `prompt-compression.sh` — #47 tiered prompt loading (full/standard/minimal), hash-based change detection, token estimation
+- ✅ `tests/core/test-prompt-compression.sh` — 30 tests, ALL PASS
+- ✅ `conditional-activation.sh` — #48 skip idle agents, ownership change detection, context mention scanning, PM force flag
+- ✅ `tests/core/test-conditional-activation.sh` — 25 tests, ALL PASS
+- ✅ Full test suite: 16/16 pass (14 unit + 1 integration + runner), zero regressions
 
 Bug fixes (cycle 11–12):
 - ✅ BUG-014 FIXED: Duplicate deps no longer inflate in-degree — deduplicated dep_list
@@ -166,13 +172,18 @@ Only non-blocking item: BUG-013 (README says "Bash 4+" should be "Bash 5+").
 - ✅ `worktree.sh` — 48 tests PASS (#44, built cycle 13)
 - ✅ QA PASS on all modules (cycle 13): 77/77 v0.2 tests, 13/13 full suite
 
-**NOTE:** worktree.sh was built as a module (not inline in auto-agent.sh as WORKTREE-001 ADR specified). CTO should review this deviation.
+### v0.2.5 — Token Optimization (NEW — Cycle 14)
+- ✅ `prompt-compression.sh` — #47 tiered prompt loading (stable/dynamic/reference, 3 modes: full/standard/minimal, hash-based change detection, token estimation). 30 tests PASS.
+- ✅ `conditional-activation.sh` — #48 skip idle agents (ownership-based change detection, context mention scanning, PM force flag, exclusion support). 25 tests PASS.
+- Total v0.2.0+ tests: 203 (148 previous + 30 prompt-compression + 25 conditional-activation)
+- Full test suite: 16/16 pass (14 unit + 1 integration + runner), zero regressions
 
 **Next tasks:**
-1. **#47 Prompt compression** — Tiered loading (stable/dynamic/reference) for token savings
-2. **#48 Conditional agent activation** — Skip agents with no new work
-3. **Await CS integration** — CS must integrate all modules into auto-agent.sh (protected file). Quote `orch_router_model` output per DR-SEC-02.
-4. **Benchmark scaffold** — After v0.1.0 tag: #4 SWE-bench scaffold, #5 Ralph comparison
+1. **#49 Differential context** — Per-agent relevant sections only (token optimization)
+2. **#52 Smart session tracker windowing** — Trim old cycle history
+3. **#54 Prompt template inheritance** — Base template with per-agent overrides
+4. **Await CS integration** — CS must integrate all modules into auto-agent.sh (protected file). Quote `orch_router_model` output per DR-SEC-02.
+5. **Benchmark scaffold** — After v0.1.0 tag: #4 SWE-bench scaffold, #5 Ralph comparison
 
 ---
 
