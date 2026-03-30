@@ -23,6 +23,7 @@
 | prompt-compression | `prompt-compression.sh` | Tiered prompt loading (stable/dynamic/reference) | None (optional: logger) |
 | conditional-activation | `conditional-activation.sh` | Skip agents with no work (change detection) | None (optional: logger) |
 | differential-context | `differential-context.sh` | Per-agent context filtering (#49) | None (optional: logger) |
+| session-tracker | `session-tracker.sh` | Smart session tracker windowing (#52) | None (optional: logger) |
 
 All modules are independently sourceable. No module depends on another.
 
@@ -292,6 +293,41 @@ filtered_history=$(orch_diffctx_filter_history "$agent_id" "$history_content")
 
 This saves 30-60% of context tokens for agents that don't need all sections.
 PM always gets the full unfiltered context.
+
+---
+
+## Step 13: Use session tracker windowing for cross-cycle history
+
+Replace the static `tail -150` on SESSION_TRACKER.txt (line 185) with smart windowing:
+
+```bash
+source "$SCRIPT_DIR/../src/core/session-tracker.sh"
+
+# Initialize once before the agent loop (after sourcing modules)
+orch_tracker_init 2 8  # 2 recent cycles full, 8 summary rows
+```
+
+In the prompt assembly section, replace:
+
+```bash
+# OLD (static):
+tail -150 "$tracker_file"
+```
+
+With:
+
+```bash
+# NEW (smart windowing):
+orch_tracker_window "$tracker_file"
+```
+
+This replaces the static `tail -150` with dynamic windowing:
+- Last 2 cycles: full "WHAT SHIPPED" detail
+- Next 8 cycles: one-line table row summaries
+- Older cycles: omitted entirely
+- MILESTONE DASHBOARD, CODEBASE SIZE, NEXT CYCLE PRIORITIES: always preserved
+
+Result: ~80 lines output regardless of project age (vs 500+ lines at cycle 50).
 
 ---
 
