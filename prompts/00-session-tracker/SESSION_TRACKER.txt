@@ -20,6 +20,60 @@
 | 13 | 2026-03-29 | 01,02,06,09,11,13,03 | worktree.sh (48 tests), CTO HOLD LIFTED, QA PASS, Mintlify docs (12 pages), CEO "Ship the Damn Thing", 148 total v0.2 tests |
 | 14 | 2026-03-29 | 06,11,03 | prompt-compression.sh (30 tests), conditional-activation.sh (25 tests), hero terminal animation, docs format fixes, 203 total v0.2+ tests |
 | 15 | 2026-03-29 | 02,06,11,03 | differential-context.sh (42 tests), CTO approved 3 modules (6/6 v0.2.0), responsive polish, 245 total v0.2+ tests |
+| 16 | 2026-03-29 | 01,06,09,11,13,03 | session-tracker.sh (33 tests), QA PASS all 8 modules, BUG-018 NEW, SVG cleanup, 278 total v0.2+ tests |
+
+---
+
+## WHAT SHIPPED — Cycle 16 (2026-03-29 18:16–19:10)
+
+### 06-Backend
+- `src/core/session-tracker.sh` — #52 smart session tracker windowing
+  - Windowing policy: last N cycles full detail, next M as table rows, older omitted
+  - Preserved sections: MILESTONE DASHBOARD, CODEBASE SIZE, NEXT CYCLE PRIORITIES
+  - Configurable via orch_tracker_init (recent_full, summary_count)
+  - Non-numeric param validation, graceful defaults
+- `tests/core/test-session-tracker.sh` — 33 tests, ALL PASS
+- `src/core/INTEGRATION-GUIDE.md` updated with Step 13 (session tracker windowing) + module table entry
+- Full test suite: 18/18 pass (16 unit + 1 integration + runner), zero regressions
+- v0.2.0+ modules now: 9 total, 278 tests (245 previous + 33 session-tracker)
+
+### 09-QA
+- **QA PASS: worktree.sh** — 48/48 tests, path traversal prevention, merge conflict detection, ADR-aligned
+- **QA PASS: prompt-compression.sh** — 30/30 tests, 3-tier classification, 3 compression modes, hash-based change detection
+- **QA PASS: conditional-activation.sh** — 25/25 tests, owned-file + context-mention + PM-force activation
+- **QA PASS: differential-context.sh** — 42/42 tests, section→agent mappings, dependency-aware history filtering, fail-open
+- **BUG-018 NEW (LOW):** Dead code `_ORCH_ACTIVATION_MENTION_PATTERNS` in conditional-activation.sh → assigned to 06-backend
+- **All 8 v0.2.0+ modules now QA-reviewed:** 245 total tests, ALL PASS
+- Report: `prompts/09-qa/reports/qa-cycle-11.md`
+
+### 11-Web
+- Cleaned up 5 unused starter SVGs from site/public/ (next.svg, vercel.svg, globe.svg, window.svg, file.svg)
+- Build verified clean (Next.js 16.2, static export, 1.2MB output)
+- All remaining work BLOCKED on CS: Mintlify GitHub connection, v0.1.0 tag
+- STANDBY until unblocked
+
+### 01-CEO
+- Strategic priorities confirmed: v0.2.0 tag → benchmark sprint → HN launch
+- Competitive window narrowing remains key risk
+
+### 13-HR
+- Sixth team health report: v0.1.0 SHIPPED, roadmap unblocked
+- QA gate CLEAR for v0.2.0 (all 8 modules PASS)
+- 06-backend: 11th consecutive cycle as team MVP
+- 12-brand: CEO silent 15 cycles — RECOMMEND ARCHIVE
+- Security review is ONLY remaining quality gate for v0.2.0
+
+### 03-PM (this cycle)
+- Committed backend session-tracker module (33 tests + integration guide)
+- Committed QA cycle 11 report
+- Committed shared context + CEO update + cycle-8 archive
+- Updated all 9 agent prompts with cycle 16 status
+- Backend: assigned BUG-018 fix, #54 prompt template inheritance, #53 QMD auto-refresh
+- CTO: assigned differential-context.sh + session-tracker.sh reviews
+- Security: emphasized 5+ module review as ONLY remaining v0.2.0 gate
+- QA: updated — all 8 modules PASS, next is session-tracker.sh review
+- Session tracker updated
+- CS action items updated
 
 ---
 
@@ -555,28 +609,28 @@
 ## MILESTONE DASHBOARD
 | Milestone | Open | Closed | Status |
 |-----------|------|--------|--------|
-| v0.1.0 | 0 blockers | #80,#81,#82,#91 closed | TAG-READY (7+ cycles). QA PASS + Security FULL PASS. Only #25 (tag itself) remains. |
+| v0.1.0 | 0 blockers | #80,#81,#82,#91 closed | **SHIPPED** (7a08cec, March 16). Tagged and pushed. |
 | v0.1.1 | 3 items | 0 | BUG-013 (README Bash version), BUG-012 (PROTECTED FILES), `set -e` flag |
-| v0.2.0 | security+QA pending | 8 code done | ALL modules DONE + CTO APPROVED 6/6. #49 differential-context.sh added (cycle 15). Security needs to review 5 modules. QA needs to review 4. CS integration of 8 modules pending. |
+| v0.2.0 | security pending | 9 modules done | ALL modules DONE + CTO APPROVED 6/6 + QA PASS 8/8. Security needs to review 5+ modules. CS integration of 9 modules pending. |
 
 ## CODEBASE SIZE
-- `src/core/` modules: 17 bash files (8 v0.1.0 + 8 v0.2.0+ + design doc)
+- `src/core/` modules: 18 bash files (8 v0.1.0 + 9 v0.2.0+ + design doc)
 - `src/pixel/` files: 3 (emitter + test + integration guide)
-- `tests/core/` files: 17 (15 unit tests + runner + integration test)
+- `tests/core/` files: 18 (16 unit tests + runner + integration test)
 - `site/` files: ~16,122 TS/TSX/JS (Next.js project) + 13 MDX docs pages
 - Backend scripts: 14 shell files
 - Agent prompts: 9 active in agents.conf
 - Deploy workflows: 1 (.github/workflows/deploy-site.yml)
-- Total v0.2.0+ tests: 245 (dynamic-router 41 + review-phase 36 + worktree 48 + signal 9 + cycle-tracker 14 + prompt-compression 30 + conditional-activation 25 + differential-context 42)
+- Total v0.2.0+ tests: 278 (dynamic-router 41 + review-phase 36 + worktree 48 + signal 9 + cycle-tracker 14 + prompt-compression 30 + conditional-activation 25 + differential-context 42 + session-tracker 33)
 
 ## NEXT CYCLE PRIORITIES
-1. **Tag v0.1.0** — All blockers cleared for 8+ cycles. Fix BUG-013, then tag. CEO says this is #1 strategic risk. NOTHING IS MORE IMPORTANT.
-2. **02-cto:** Review differential-context.sh (new module, 42 tests).
-3. **10-security:** Security review of review-phase.sh + worktree.sh + prompt-compression.sh + conditional-activation.sh + differential-context.sh (5 modules).
-4. **09-qa:** QA review of worktree.sh + prompt-compression.sh + conditional-activation.sh + differential-context.sh (4 modules). Full test suite (17 files, 245 tests).
-5. **CS: Integrate v0.2.0+ modules** — ALL 8 modules READY. See INTEGRATION-GUIDE.md. Quote `orch_router_model` output per DR-SEC-02.
-6. **CS: Connect Mintlify to GitHub** — for auto-deploy of docs site from `site/docs/`
-7. **06-backend:** Continue token optimization: #52 session tracker windowing, #54 prompt template inheritance
-8. **Benchmark sprint:** SWE-bench + Ralph comparison — starts after v0.1.0 tag
+1. **02-cto:** Review differential-context.sh + session-tracker.sh (2 modules, 75 tests total).
+2. **10-security:** Security review of review-phase.sh + worktree.sh + prompt-compression.sh + conditional-activation.sh + differential-context.sh + session-tracker.sh (6 modules). **ONLY remaining quality gate for v0.2.0.**
+3. **09-qa:** QA review of session-tracker.sh (33 tests). Full test suite (18 files, 278 tests).
+4. **CS: Integrate v0.2.0+ modules** — ALL 9 modules READY. See INTEGRATION-GUIDE.md. Quote `orch_router_model` output per DR-SEC-02.
+5. **CS: Connect Mintlify to GitHub** — for auto-deploy of docs site from `site/docs/`
+6. **06-backend:** BUG-018 fix (dead code), #54 prompt template inheritance, #53 QMD auto-refresh
+7. **Tag v0.2.0** — After security review + CS integration. CEO wants this THIS WEEK.
+8. **Benchmark sprint:** SWE-bench + Ralph comparison — starts after v0.2.0 tag
 9. After benchmarks: HN launch (only with receipts), activate 04-tauri-rust + 05-tauri-ui
 10. Post-benchmarks: Pixel Phase 2 after v0.2.0
