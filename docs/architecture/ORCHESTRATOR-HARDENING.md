@@ -412,3 +412,81 @@ Remaining v0.1 path:
 7. Tag v0.1.0
 
 v0.1.1 backlog: `set -e`, shebang standardization, backend ownership exclusions
+
+---
+
+## CTO Review — Cycle 1 (2026-03-30): Efficiency Sprint
+
+CS applied the efficiency sprint in commit `a1a33f4`. CTO review of new code follows.
+
+### auto-agent.sh v0.2 module wiring — VERIFIED CORRECT
+
+Lines 36–41: v0.2 modules sourced in correct order (signal-handler, cycle-tracker,
+conditional-activation, differential-context, session-tracker, prompt-compression).
+Same conditional pattern as v0.1 (`[ -f ... ] && source`). No concerns.
+
+Lines 706–718: Module initialization in orchestrate loop — correct:
+- `orch_activation_init` parses config, `orch_activation_set_changed` feeds file list,
+  `orch_activation_set_context` feeds shared context. All guarded by `type -t` checks.
+- `orch_diffctx_init` + `orch_diffctx_parse` — same pattern. Context file existence check
+  before parse. Correct.
+
+Lines 728–731: Conditional activation skip — correct:
+- `orch_activation_check "$id"` returns 1 to skip, with reason logged via `orch_activation_reason`.
+- Agents that fail the check are logged and `continue`'d. No work wasted.
+
+Lines 787–817: Pre-PM lint integration — correct:
+- Lint report captured to `$LINT_REPORT` variable.
+- PM skip on `Recommendation: PM SKIP` — clean, tested by lint script's verdict logic.
+- Skipped cycles still backup prompts, save lint report to file, commit context, merge.
+- No silent data loss on PM skip.
+
+Lines 174–200: Per-agent context filtering — correct:
+- Differential context: `orch_diffctx_filter` with fallback to `cat` on failure. Fail-open. ✓
+- Session tracker windowing: `orch_tracker_window` with fallback to `tail -150`. Fail-open. ✓
+
+### scripts/pre-pm-lint.sh — APPROVED (4 LOW/INFO findings)
+
+Full review documented in EFFICIENCY-001 ADR. Summary:
+
+| Finding | Severity | Description |
+|---------|----------|-------------|
+| LINT-01 | LOW | Missing `set -e` (same as auto-agent.sh P1) |
+| LINT-02 | LOW | `--since="1 hour ago"` is fragile — should use branch diff |
+| LINT-03 | LOW | `git log --all` includes stale branches — should scope to current |
+| LINT-04 | INFO | No CONF_FILE existence check — silently empty on missing config |
+
+None blocking. Report format is clean and well-structured. Verdict logic (QUIET/LOW/ACTIVE)
+is correct. Backend should address LINT-01–04 in a follow-up.
+
+### New ADRs Written This Cycle
+
+- **EFFICIENCY-001** (`docs/architecture/EFFICIENCY-001-script-first.md`): Script-first
+  architecture principle. Decision framework: "Can a regex do it? → Script." Catalogs all
+  v0.2 script-vs-agent migrations. Reviews pre-pm-lint.sh.
+- **COST-001** (`docs/architecture/COST-001-token-budget.md`): Token budget architecture.
+  Per-agent model + max_tokens in agents.conf v3. PM skip policy. Cost logging to JSONL.
+  Warn-only budget enforcement for v0.2, hard stops deferred to v0.5.
+
+### Backend's 5 New Scripts — CTO REVIEW
+
+Backend shipped 5 new scripts (commit this cycle). CTO review follows.
+
+| Script | Lines | Zero-Dep | Verdict | Findings |
+|--------|-------|----------|---------|----------|
+| `pre-cycle-stats.sh` | 117 | PARTIAL (`gh` optional) | APPROVED | STATS-01 (LOW): empty agents → invalid JSON |
+| `commit-summary.sh` | 118 | YES | APPROVED | CS-01 (LOW): `grep -oP` is GNU-only, not portable to BSD |
+| `agent-health-report.sh` | 163 | YES | APPROVED | AHR-01 (INFO): state file format not validated |
+| `secrets-scan.sh` | 125 | YES | APPROVED w/ finding | SS-01 (MEDIUM): line 30 uses `\s` and `\x27` with `grep -E` — these are Perl extensions, not ERE. Pattern silently fails to match passwords. Fix: use `-P` flag or POSIX `[[:space:]]` |
+| `post-cycle-router.sh` | 108 | NO (sources modules) | APPROVED | PCR-01 (LOW): `git diff HEAD~1` fails if < 2 commits in repo |
+
+**Overall: ALL 5 APPROVED.** No eval, no injection vectors, proper quoting throughout.
+1 MEDIUM finding (SS-01) should be fixed — password pattern is effectively dead code.
+All other findings are LOW/INFO.
+
+**Security note:** `secrets-scan.sh` line 29 (`'PRIVATE KEY-''----'`) is NOT a syntax error —
+it's standard bash string concatenation producing `PRIVATE KEY-----`. Matches PEM headers correctly.
+
+**Architecture note:** `post-cycle-router.sh` sources internal modules (`dynamic-router.sh`,
+`logger.sh`) — this is acceptable. It's a glue script connecting existing approved modules.
+Not a new external dependency.
