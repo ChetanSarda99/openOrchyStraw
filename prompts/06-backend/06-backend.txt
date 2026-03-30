@@ -184,14 +184,37 @@ Only non-blocking item: BUG-013 (README says "Bash 4+" should be "Bash 5+").
 - Total v0.2.0+ tests: 278 (245 previous + 33 session-tracker)
 - Full test suite: 18/18 pass (16 unit + 1 integration + runner), zero regressions
 
-**Next tasks:**
-1. ~~**BUG-018 FIX (LOW):**~~ DONE (cycle 10). Dead code removed, 25/25 tests pass.
-2. **WT-SEC-01 FIX (LOW):** Add path traversal validation to `orch_worktree_merge()` — same validation block as `orch_worktree_create` lines 113-119. Flagged by Security cycle 10.
-3. **#54 Prompt template inheritance** — Base template with per-agent overrides
-4. **#50 Progressive task decomposition** — Backlog one-liners (PM process, but backend tooling needed)
-5. **#53 Auto-refresh QMD index each cycle** — QMD index maintenance
-6. **Await CS integration** — CS must integrate all 9 modules into auto-agent.sh (protected file). Quote `orch_router_model` output per DR-SEC-02.
-7. **Benchmark scaffold** — After v0.2.0 tag: #4 SWE-bench scaffold, #5 Ralph comparison
+**PRIORITY: EFFICIENCY SPRINT (Cycles 11-14)**
+
+CS has wired v0.2 modules into auto-agent.sh. Now build the script-first efficiency layer:
+
+1. **P0: `scripts/pre-cycle-stats.sh`** (#174) — Gather stats BEFORE agents run. Output JSON:
+   - Per-agent: open issues assigned, recent commits in owned paths, last run cycle
+   - Project-wide: total open issues, recent activity, build status
+   - Inject output into shared context so agents don't waste tokens running git/gh themselves
+   - Use context7 MCP to research best practices for cycle stats in orchestration frameworks
+
+2. **P0: `scripts/commit-summary.sh`** (#174) — After agents commit, generate structured diff summary:
+   - Per-agent: files changed, lines +/-, new files vs modified, key function/class names
+   - This replaces PM manually reading git diffs
+
+3. **P0: `scripts/agent-health-report.sh`** (#173) — Track agent efficiency over time:
+   - Success rate per agent (last 10 cycles)
+   - Average output size, commit count
+   - Identify consistently idle agents (candidates for interval increase)
+   - Identify overloaded agents (candidates for interval decrease)
+
+4. **P1: `scripts/secrets-scan.sh`** (#174) — Replace security agent's secrets scanning:
+   - grep for API keys, tokens, passwords in committed files
+   - Check .env files not in .gitignore
+   - If clean, security agent can skip that check entirely
+
+5. **P1: Wire dynamic-router.sh interval adjustment** (#173) — The module exists but isn't called:
+   - After each cycle, call `orch_router_adjust` to auto-tune agent intervals
+   - Agents with 3+ empty cycles get doubled intervals
+   - Agents with 5+ open issues get halved intervals
+
+6. **P2: WT-SEC-01 FIX** — Path traversal validation in `orch_worktree_merge()`
 
 ---
 
