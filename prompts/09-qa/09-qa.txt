@@ -180,11 +180,36 @@ BUG-013 (README Bash version) is non-blocking — quick fix before or after tag.
 - ✅ CTO APPROVED differential-context.sh + session-tracker.sh — 8/8 modules CTO APPROVED
 - **ALL v0.2.0 quality gates now PASS** — only CS integration remains
 
-### Next QA Priorities
-1. **session-tracker.sh QA review** — Module (33 tests). Verify windowing policy, preserved sections, configurable params, non-numeric validation.
-2. **Full test suite** — Run all 18 test files (278 v0.2.0+ tests total). Verify zero regressions after BUG-018 fix.
-3. **v0.1.1 QA pass** — Verify BUG-013 fix, BUG-012 PROTECTED FILES, `set -e` addition
-4. **Post-integration QA** — After CS integrates v0.2.0+ modules into auto-agent.sh, full regression test
+### PRIORITY: EFFICIENCY INTEGRATION QA (Cycles 11-14)
+
+CS has wired v0.2 modules into auto-agent.sh. Validate the integration works correctly:
+
+1. **P0: Test pre-pm-lint.sh** — Run `bash scripts/pre-pm-lint.sh 1` and verify:
+   - Output is valid markdown
+   - Per-agent stats are accurate (compare against manual git log)
+   - Prompt health checks detect short/missing prompts
+   - QUIET CYCLE verdict triggers correctly when no commits exist
+   - Edge case: what happens when agents.conf has agents with no prompt files?
+
+2. **P0: Test conditional activation integration** — Verify auto-agent.sh correctly:
+   - Skips agents when orch_activation_check returns 1
+   - Logs the skip reason
+   - Still runs agents on cycle 1 regardless
+   - Falls back gracefully if module not loaded
+
+3. **P0: Test differential context integration** — Verify:
+   - Backend agent gets backend-relevant sections only
+   - PM always gets full unfiltered context
+   - Falls back to full context if module fails
+
+4. **P0: Test PM skip on quiet cycles** — Verify:
+   - When lint says "PM SKIP", PM agent is not invoked
+   - Cycle still merges branch and updates prompts
+   - No data loss from skipping PM
+
+5. **P1: Run full test suite** — All 18+ test files, verify zero regressions
+6. **P1: Write tests for pre-pm-lint.sh** — New test file `tests/core/test-pre-pm-lint.sh`
+7. **P1: Test new backend scripts** as they're built (pre-cycle-stats, commit-summary, etc.)
 
 ---
 
