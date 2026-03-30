@@ -205,24 +205,26 @@ Use the **Edit tool** to modify ONLY:
 - [x] #43 Dependency-aware parallel execution — Kahn's algorithm topological sort. BUILT + tested. **CTO APPROVED**.
 - [x] #46 Model tiering per agent — BUILT in dynamic-router.sh + 10 tests. Config-validator updated for 9-col format. **CTO APPROVED**.
 - [x] #44 Git worktree isolation — `worktree.sh` BUILT + 48 tests PASS (cycle 13). **CTO review pending** (ADR deviation: module vs inline).
+- [x] #47 Prompt compression — `prompt-compression.sh` BUILT + 30 tests PASS (cycle 14). Tiered loading, hash-based change detection, token estimation. **CTO review pending**.
+- [x] #48 Conditional agent activation — `conditional-activation.sh` BUILT + 25 tests PASS (cycle 14). Ownership-based change detection, context scanning. **CTO review pending**.
 - [x] BUG-014/015/016 FIXED (cycle 11) — 3 new tests (T37-T39).
 - [x] BUG-017 + RP-01/02/03/04 FIXED (cycle 12) — review-phase.sh 36 tests (was 24). All CTO findings addressed.
 - [x] DR-01/DR-02 FIXED (cycle 12) — dynamic-router.sh 41 tests (was 39). State validation + I/O error checks.
 - [x] CTO re-review of review-phase.sh — APPROVED (cycle 13). HOLD LIFTED.
-- [x] QA PASS on all v0.2.0 modules (cycle 13) — 77/77 tests, 13/13 full suite.
+- [x] QA PASS on v0.2.0 core modules (cycle 13) — 77/77 tests, 13/13 full suite.
 - [ ] Security review of review-phase.sh — CTO HOLD lifted, security can now review
-- [ ] Security review of worktree.sh — new module needs audit
+- [ ] Security review of worktree.sh + prompt-compression.sh + conditional-activation.sh — new modules need audit
 - [ ] CTO review of worktree.sh — ADR deviation (module vs inline in auto-agent.sh)
-- [ ] #47 Prompt compression
-- [ ] #48 Conditional agent activation
+- [ ] CTO review of prompt-compression.sh + conditional-activation.sh — new modules
+- [ ] QA review of 3 new modules (worktree, prompt-compression, conditional-activation)
 - [ ] #51 Output budgets
-- v0.2.0 modules built: signal-handler.sh (9), cycle-tracker.sh (14), dynamic-router.sh (41), review-phase.sh (36), worktree.sh (48) — total 148 tests, all need CS integration
+- v0.2.0+ modules: signal-handler.sh (9), cycle-tracker.sh (14), dynamic-router.sh (41), review-phase.sh (36), worktree.sh (48), prompt-compression.sh (30), conditional-activation.sh (25) — total 203 tests, all need CS integration
 - 4 CTO ADRs approved: EXEC-001, REVIEW-001, WORKTREE-001, MODEL-001
-- CTO code reviews: dynamic-router.sh APPROVED, config-validator v2+ APPROVED, review-phase.sh APPROVED
-- Security: dynamic-router.sh APPROVED (DR-SEC-01 LOW, DR-SEC-02 MEDIUM), config-validator SECURE, review-phase.sh + worktree.sh PENDING
+- CTO code reviews: dynamic-router.sh APPROVED, config-validator v2+ APPROVED, review-phase.sh APPROVED. Pending: worktree.sh, prompt-compression.sh, conditional-activation.sh
+- Security: dynamic-router.sh APPROVED (DR-SEC-01 LOW, DR-SEC-02 MEDIUM), config-validator SECURE. Pending: review-phase.sh, worktree.sh, prompt-compression.sh, conditional-activation.sh
 
-### v0.3.0 — Token Optimization + Smart Provisioning
-- [ ] #49 Differential context
+### v0.3.0 — Token Optimization + Smart Provisioning (partially started)
+- [ ] #49 Differential context — per-agent relevant sections only
 - [ ] #50 Progressive task decomposition
 - [ ] #52 Session tracker windowing
 - [ ] #53 QMD auto-refresh

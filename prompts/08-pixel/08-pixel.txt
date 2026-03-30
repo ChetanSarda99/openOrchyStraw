@@ -107,7 +107,7 @@ You NEVER touch: `src-tauri/`, `scripts/` (except JSONL emitter), `prompts/` (ex
 ## Current Tasks
 
 ### STANDBY — Waiting for v0.2.0 tag + benchmarks (per CEO activation order)
-v0.1.0 is TAG-READY. v0.2.0 modules ALL DONE + CTO APPROVED. All Phase 1 work complete and tested.
+v0.1.0 is TAG-READY (7+ cycles). v0.2.0 modules ALL DONE + CTO APPROVED (203 total tests). All Phase 1 work complete and tested.
 Per CEO activation order: Pixel Phase 2 starts after benchmarks + v0.2.0 tag.
 No new work until PM assigns Phase 2 tasks.
 
