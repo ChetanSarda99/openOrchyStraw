@@ -22,6 +22,45 @@
 | 15 | 2026-03-29 | 02,06,11,03 | differential-context.sh (42 tests), CTO approved 3 modules (6/6 v0.2.0), responsive polish, 245 total v0.2+ tests |
 | 16 | 2026-03-29 | 01,06,09,11,13,03 | session-tracker.sh (33 tests), QA PASS all 8 modules, BUG-018 NEW, SVG cleanup, 278 total v0.2+ tests |
 | 17 | 2026-03-29 | 02,06,10,03 | CTO APPROVED 2 modules (8/8), Security APPROVED 6 modules (v0.2.0 gate PASS), BUG-018 FIXED, ALL v0.2.0 gates PASS |
+| 18 | 2026-03-30 | 02,06,13,03 | 5 efficiency scripts (pre-cycle-stats, commit-summary, agent-health-report, secrets-scan, post-cycle-router), WT-SEC-01 FIXED, CTO EFFICIENCY-001+COST-001 ADRs, HR team health |
+
+---
+
+## WHAT SHIPPED — Cycle 18 (2026-03-30 09:07–09:30)
+
+### 06-Backend
+- **5 new efficiency scripts** — all CTO APPROVED:
+  - `scripts/pre-cycle-stats.sh` — per-agent stats as JSON before agents run
+  - `scripts/commit-summary.sh` — structured per-agent diff summary after commits
+  - `scripts/agent-health-report.sh` — agent efficiency matrix (success rate, idle/overloaded)
+  - `scripts/secrets-scan.sh` — 16 secret pattern scanner, replaces manual security scan
+  - `scripts/post-cycle-router.sh` — wires dynamic-router interval adjustment after each cycle
+- **WT-SEC-01 FIXED** — path traversal validation added to `orch_worktree_merge()`
+- Full test suite: 18/18 pass, zero regressions
+- Secrets scan: CLEAN on repo
+
+### 02-CTO
+- **EFFICIENCY-001 ADR** — script-first architecture principle: "Can a regex do it? → Script."
+- **COST-001 ADR** — token budget architecture: agents.conf v3 format (7 columns), PM skip policy, cost logging
+- **5 backend scripts reviewed** — ALL APPROVED. SS-01 MEDIUM (dead regex), CS-01 LOW (GNU grep portability).
+- **pre-pm-lint.sh reviewed** — APPROVED with LINT-01–04 (LOW/INFO).
+- **auto-agent.sh v0.2 wiring reviewed** — all integration points correct.
+- Tech registry updated: 14 domain decisions total.
+
+### 13-HR
+- Team health report: CS efficiency sprint recognized (6/9 v0.2 modules wired)
+- 3 modules NOT YET wired: dynamic-router, review-phase, worktree
+- BUG-012 improved: 4/9 agents still missing PROTECTED FILES
+- 06-backend: 12th consecutive cycle as team MVP
+- WT-SEC-01 resolved, staffing stable, Tauri reactivation ready post-benchmarks
+
+### 03-PM (this cycle)
+- Committed 5 backend scripts + WT-SEC-01 fix + CTO context updates
+- Updated all 9 agent prompts with cycle 18 status
+- Backend: assigned CTO finding fixes (SS-01, CS-01, LINT-01–04) + agents.conf v3 parser
+- QA: assigned new script validation tasks
+- Security: assigned new script review + WT-SEC-01 verification
+- Session tracker updated
 
 ---
 
@@ -643,26 +682,27 @@
 |-----------|------|--------|--------|
 | v0.1.0 | 0 blockers | #80,#81,#82,#91 closed | **SHIPPED** (7a08cec, March 16). Tagged and pushed. |
 | v0.1.1 | 3 items | 0 | BUG-013 (README Bash version), BUG-012 (PROTECTED FILES), `set -e` flag |
-| v0.2.0 | security pending | 9 modules done | ALL modules DONE + CTO APPROVED 6/6 + QA PASS 8/8. Security needs to review 5+ modules. CS integration of 9 modules pending. |
+| v0.2.0 | CS integration | 9 modules done | ALL GATES PASS: CTO 8/8, QA 8/8, Security 6/6. CS must integrate 3 remaining modules + wire 5 scripts. |
+| Efficiency | scripts done | CTO approved | 5 scripts built, CTO EFFICIENCY-001 + COST-001 ADRs. Backend needs to fix SS-01, CS-01, LINT-01–04. |
 
 ## CODEBASE SIZE
 - `src/core/` modules: 18 bash files (8 v0.1.0 + 9 v0.2.0+ + design doc)
 - `src/pixel/` files: 3 (emitter + test + integration guide)
 - `tests/core/` files: 18 (16 unit tests + runner + integration test)
 - `site/` files: ~16,122 TS/TSX/JS (Next.js project) + 13 MDX docs pages
-- Backend scripts: 14 shell files
+- Backend scripts: 19 shell files (14 previous + 5 new efficiency scripts)
 - Agent prompts: 9 active in agents.conf
 - Deploy workflows: 1 (.github/workflows/deploy-site.yml)
 - Total v0.2.0+ tests: 278 (dynamic-router 41 + review-phase 36 + worktree 48 + signal 9 + cycle-tracker 14 + prompt-compression 30 + conditional-activation 25 + differential-context 42 + session-tracker 33)
 
 ## NEXT CYCLE PRIORITIES
-1. **02-cto:** Review differential-context.sh + session-tracker.sh (2 modules, 75 tests total).
-2. **10-security:** Security review of review-phase.sh + worktree.sh + prompt-compression.sh + conditional-activation.sh + differential-context.sh + session-tracker.sh (6 modules). **ONLY remaining quality gate for v0.2.0.**
-3. **09-qa:** QA review of session-tracker.sh (33 tests). Full test suite (18 files, 278 tests).
-4. **CS: Integrate v0.2.0+ modules** — ALL 9 modules READY. See INTEGRATION-GUIDE.md. Quote `orch_router_model` output per DR-SEC-02.
-5. **CS: Connect Mintlify to GitHub** — for auto-deploy of docs site from `site/docs/`
-6. **06-backend:** BUG-018 fix (dead code), #54 prompt template inheritance, #53 QMD auto-refresh
-7. **Tag v0.2.0** — After security review + CS integration. CEO wants this THIS WEEK.
-8. **Benchmark sprint:** SWE-bench + Ralph comparison — starts after v0.2.0 tag
-9. After benchmarks: HN launch (only with receipts), activate 04-tauri-rust + 05-tauri-ui
-10. Post-benchmarks: Pixel Phase 2 after v0.2.0
+1. **06-backend:** Fix CTO findings (SS-01, CS-01, LINT-01–04). Then agents.conf v3 parser per COST-001 ADR.
+2. **09-qa:** Test 5 new efficiency scripts. Run full test suite (18 files, 278 tests).
+3. **10-security:** Review 5 new scripts + verify WT-SEC-01 fix. Post-integration audit when CS wires modules.
+4. **02-cto:** Review agents.conf v3 parser when backend builds it. Review CTO finding fixes.
+5. **CS: Integrate 3 remaining v0.2.0 modules** — dynamic-router, review-phase, worktree. See INTEGRATION-GUIDE.md.
+6. **CS: Wire 5 efficiency scripts** into auto-agent.sh (see CTO integration order in 02-cto prompt).
+7. **CS: Connect Mintlify to GitHub** — for auto-deploy of docs site from `site/docs/`
+8. **Tag v0.2.0** — After CS integration. CEO wants this ASAP.
+9. **Benchmark sprint:** SWE-bench + Ralph comparison — starts after v0.2.0 tag
+10. After benchmarks: HN launch, activate 04-tauri-rust + 05-tauri-ui, Pixel Phase 2

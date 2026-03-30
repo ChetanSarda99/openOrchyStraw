@@ -151,20 +151,13 @@ All P0 and P1 tasks from the efficiency sprint are DONE:
 
 ### NEXT PRIORITIES
 
-1. **P1: Consolidate agents.conf** — Single file at root, add model + max_tokens columns
-   - v3 format spec is in COST-001: `id | prompt | ownership | interval | label | model | max_tokens`
-   - Backend implements parser changes. CTO reviews.
+1. **P1: Review agents.conf v3 parser** — When backend implements COST-001 format (7 columns), review for correctness + backward compat.
 
-2. **P1: Wire new scripts into auto-agent.sh** — CS must add to orchestrate loop:
-   - `pre-cycle-stats.sh` runs before agents (Step 1.7)
-   - `commit-summary.sh` runs after commits (Step 3.5)
-   - `agent-health-report.sh` runs before PM (Step 3.7, alongside pre-pm-lint)
-   - `secrets-scan.sh` runs after commits (Step 3.5)
-   - `post-cycle-router.sh` runs after merge (Step 5.5)
+2. **P1: Review CTO finding fixes** — Backend assigned SS-01, CS-01, LINT-01–04. Review when fixed.
 
-3. **P1: Backend should fix** — SS-01 (secrets-scan.sh password regex), CS-01 (commit-summary.sh GNU grep), LINT-01–04 (pre-pm-lint.sh)
+3. **P2: Write WORKTREE-002 ADR** — Module-based approach doc (low priority)
 
-4. **P2: Write WORKTREE-002 ADR** — Module-based approach doc (low priority)
+4. **P2: Review `--single-agent` mode design** — When backend proposes (#10), review architecture.
 
 ---
 

@@ -25,15 +25,18 @@
 
 ### P0.5 — v0.2.0+ Integration (protected file — CS only)
 **ALL GATES PASS:** CTO 8/8 APPROVED, QA 8/8 PASS, Security 6/6 APPROVED. See `src/core/INTEGRATION-GUIDE.md` for step-by-step.
+**6/9 modules already wired** (a1a33f4). 3 remaining:
 - [ ] **Integrate dynamic-router.sh into auto-agent.sh** — 41 tests. **Quote `orch_router_model` output per DR-SEC-02.**
-- [ ] **Integrate signal-handler.sh into auto-agent.sh** — 9 tests. Replace existing signal handling.
-- [ ] **Integrate cycle-tracker.sh into auto-agent.sh** — 14 tests. Smart empty cycle detection.
 - [ ] **Integrate review-phase.sh into auto-agent.sh** — 36 tests.
-- [ ] **Integrate worktree.sh into auto-agent.sh** — 48 tests. See Steps 8-11.
-- [ ] **Integrate prompt-compression.sh into auto-agent.sh** — 30 tests. Tiered prompt loading.
-- [ ] **Integrate conditional-activation.sh into auto-agent.sh** — 25 tests. Skip idle agents.
-- [ ] **Integrate differential-context.sh into auto-agent.sh** — 42 tests. Per-agent context filtering. See Step 12.
-- [ ] **Integrate session-tracker.sh into auto-agent.sh** — 33 tests. Smart session tracker windowing. See Step 13.
+- [ ] **Integrate worktree.sh into auto-agent.sh** — 48 tests. See Steps 8-11. WT-SEC-01 now FIXED.
+
+### P0.5 — Wire Efficiency Scripts (protected file — CS only)
+CTO integration order specified in EFFICIENCY-001 + COST-001 ADRs:
+- [ ] **Wire `pre-cycle-stats.sh`** — runs before agents (Step 1.7). Outputs JSON to shared context.
+- [ ] **Wire `commit-summary.sh`** — runs after agent commits (Step 3.5).
+- [ ] **Wire `agent-health-report.sh`** — runs before PM (Step 3.7, alongside pre-pm-lint).
+- [ ] **Wire `secrets-scan.sh`** — runs after agent commits (Step 3.5).
+- [ ] **Wire `post-cycle-router.sh`** — runs after merge (Step 5.5). Adjusts agent intervals.
 
 ### P1 — After v0.1.0 Tag
 - [ ] **Connect Mintlify to GitHub** — 11-Web scaffolded docs site in `site/docs/` (12 MDX pages + mint.json). CS needs to connect Mintlify for auto-deploy.
