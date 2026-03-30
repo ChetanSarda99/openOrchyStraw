@@ -116,6 +116,9 @@ For now: maintain registry here, PM will propose migration when 2nd project star
 - ✅ Cycle 8 (2026-03-29): prompt-compression.sh APPROVED (30 tests). Zero deps, sound token estimation, robust hashing.
 - ✅ Cycle 8 (2026-03-29): conditional-activation.sh APPROVED (25 tests). Fail-open, ownership detection + context scanning.
 - ✅ v0.2.0 module review complete: 6/6 modules APPROVED (dynamic-router, review-phase, config-validator v2+, worktree, prompt-compression, conditional-activation)
+- ✅ Cycle 10 (2026-03-29): differential-context.sh APPROVED (42 tests). Zero deps, fail-open, section→agent mappings, dependency-aware history filtering. DC-01 LOW: unquoted iteration (cosmetic).
+- ✅ Cycle 10 (2026-03-29): session-tracker.sh APPROVED (33 tests). Zero deps, parse-then-render, 81% compression at 30 cycles, configurable windowing. ST-01 LOW: line count off-by-one in stats (cosmetic).
+- ✅ v0.2.0+ module review: 8/8 modules CTO APPROVED (all 6 prior + differential-context + session-tracker). Only security review remains.
 
 ## Current Technical Priorities
 
@@ -142,8 +145,8 @@ For now: maintain registry here, PM will propose migration when 2nd project star
 10. ~~**Review worktree.sh**~~ — DONE (cycle 8). APPROVED. 37 tests PASS. ADR deviation accepted: standalone module > inline. Recommend WORKTREE-002 ADR to document decision. No security issues.
 11. ~~**Review prompt-compression.sh**~~ — DONE (cycle 8). APPROVED. 30 tests PASS. Zero deps. Token estimation sound. Hash-based change detection production-ready.
 12. ~~**Review conditional-activation.sh**~~ — DONE (cycle 8). APPROVED. 25 tests PASS. Fail-open design. Ownership detection + context scanning + PM force all working. No security issues.
-13. **Review differential-context.sh** — Module (cycle 15, #49, 42 tests, QA PASS). Per-agent context filtering: section→agent mappings, cross-cycle history filtering, fail-open for unmapped sections, PM bypass. Check architecture compliance. **DO THIS NEXT.**
-14. **Review session-tracker.sh** — NEW module (cycle 16, #52, 33 tests). Smart session tracker windowing: last N cycles full detail, next M as table rows, older omitted. Configurable via orch_tracker_init. Check architecture compliance.
+13. ~~**Review differential-context.sh**~~ — DONE (cycle 10). APPROVED. 42 tests PASS. Zero deps. Fail-open design. DC-01 LOW: unquoted iteration in `_orch_diffctx_in_list` and history filter (cosmetic, agent names are alphanumeric+dash).
+14. ~~**Review session-tracker.sh**~~ — DONE (cycle 10). APPROVED. 33 tests PASS. Zero deps. Parse-then-render. 81% compression at 30 cycles. ST-01 LOW: `_orch_tracker_line_count` off-by-one vs `wc -l` in stats (cosmetic).
 15. **Consolidate agents.conf** — P2, move to single file at root (v0.2)
 16. **Benchmark architecture** — Review SWE-bench scaffold design when backend builds it
 17. **Write WORKTREE-002 ADR** — Document module-based approach deviation from WORKTREE-001 (which said "inline in auto-agent.sh"). Low priority.
