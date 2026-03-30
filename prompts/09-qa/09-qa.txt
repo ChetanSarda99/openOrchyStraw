@@ -167,11 +167,12 @@ BUG-013 (README Bash version) is non-blocking — quick fix before or after tag.
 
 ### Next QA Priorities
 1. **worktree.sh QA review** — Module (48 tests). Verify test coverage, review deviation from WORKTREE-001 ADR (module vs inline).
-2. **prompt-compression.sh QA review** — NEW module (cycle 14, 30 tests). Verify tiered loading modes, hash-based detection, token estimation.
-3. **conditional-activation.sh QA review** — NEW module (cycle 14, 25 tests). Verify ownership detection, context scanning, PM force flag.
-4. **Full test suite** — Run all 16 test files (203 v0.2.0+ tests total). Verify zero regressions.
-5. **v0.1.1 QA pass** — Verify BUG-013 fix, BUG-012 PROTECTED FILES, `set -e` addition
-6. **Post-integration QA** — After CS integrates v0.2.0 modules into auto-agent.sh, full regression test
+2. **prompt-compression.sh QA review** — Module (30 tests). Verify tiered loading modes, hash-based detection, token estimation.
+3. **conditional-activation.sh QA review** — Module (25 tests). Verify ownership detection, context scanning, PM force flag.
+4. **differential-context.sh QA review** — NEW module (cycle 15, 42 tests). Verify section→agent mappings, cross-cycle history filtering, fail-open for unmapped sections, PM bypass.
+5. **Full test suite** — Run all 17 test files (245 v0.2.0+ tests total). Verify zero regressions.
+6. **v0.1.1 QA pass** — Verify BUG-013 fix, BUG-012 PROTECTED FILES, `set -e` addition
+7. **Post-integration QA** — After CS integrates v0.2.0 modules into auto-agent.sh, full regression test
 
 ---
 

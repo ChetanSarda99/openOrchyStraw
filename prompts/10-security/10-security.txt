@@ -138,9 +138,14 @@ All findings resolved. All 9 gates pass. No open HIGH or MEDIUM findings. v0.1.0
    - PM force flag abuse — can an agent self-activate via context injection?
    - Ownership detection bypass — can agents trigger activation for other agents?
    - Exclusion list integrity — can exclusions be overridden?
-7. **DR-SEC-02 integration note** — CS must quote `orch_router_model` output when integrating into auto-agent.sh. Verify this during integration review.
-8. **v0.1.1 audit** — Verify `set -e` addition doesn't introduce new failure modes
-9. **Benchmark security review** — Ensure SWE-bench scaffold doesn't execute untrusted code
+7. **v0.3.0 security review — differential-context.sh** — NEW module (cycle 15, 42 tests). Review for:
+   - Section mapping injection — can crafted section headers bypass agent filtering?
+   - Cross-cycle history filtering — can old context leak into wrong agent?
+   - Fail-open bypass — does the fallback (include all) create info leakage?
+   - PM bypass safety — can non-PM agents forge PM identity?
+8. **DR-SEC-02 integration note** — CS must quote `orch_router_model` output when integrating into auto-agent.sh. Verify this during integration review.
+9. **v0.1.1 audit** — Verify `set -e` addition doesn't introduce new failure modes
+10. **Benchmark security review** — Ensure SWE-bench scaffold doesn't execute untrusted code
 
 ---
 
