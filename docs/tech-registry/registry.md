@@ -1,6 +1,6 @@
 # Tech Stack Registry — OrchyStraw
 
-_Last updated: 2026-03-29 (cycle 2)_
+_Last updated: 2026-03-30 (cycle 1)_
 _Maintained by: CTO (02-cto)_
 _See docs/KNOWLEDGE-REPOSITORIES.md for full system documentation._
 
@@ -49,6 +49,8 @@ _See docs/KNOWLEDGE-REPOSITORIES.md for full system documentation._
 | Loop review | **APPROVED** | REVIEW-001 | Advisory review phase, post-commit critiques |
 | Agent isolation | **APPROVED** | WORKTREE-001 | Git worktree per agent (deferred to v0.2 Phase 2+) |
 | Model tiering | **APPROVED** | MODEL-001 | Per-agent model assignment, 40-60% cost savings |
+| Script-first architecture | **APPROVED** | EFFICIENCY-001 | Scripts for mechanical work, agents for judgment only |
+| Token budget | **APPROVED** | COST-001 | Per-agent budgets, PM skip policy, cost logging |
 | Benchmark runner | Pending | — | Custom vs existing SWE-bench harness |
 | v0.5 CLI language | Pending | — | Python (recommended in PLATFORM-COMPATIBILITY.md) |
 | Notifications | Pending | — | Desktop toast (WSL), Telegram, Slack |
