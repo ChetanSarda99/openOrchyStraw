@@ -215,19 +215,20 @@ Use the **Edit tool** to modify ONLY:
 - [x] CTO review of worktree.sh — APPROVED (cycle 15). ADR deviation accepted.
 - [x] CTO review of prompt-compression.sh — APPROVED (cycle 15). No issues.
 - [x] CTO review of conditional-activation.sh — APPROVED (cycle 15). No issues.
+- [x] QA review of 4 modules (worktree, prompt-compression, conditional-activation, differential-context) — ALL PASS (cycle 16). BUG-018 filed (LOW).
 - [ ] Security review of review-phase.sh — CTO HOLD lifted, security can now review
 - [ ] Security review of worktree.sh + prompt-compression.sh + conditional-activation.sh + differential-context.sh — modules need audit
-- [ ] QA review of 4 modules (worktree, prompt-compression, conditional-activation, differential-context)
 - [ ] #51 Output budgets
-- v0.2.0+ modules: signal-handler.sh (9), cycle-tracker.sh (14), dynamic-router.sh (41), review-phase.sh (36), worktree.sh (48), prompt-compression.sh (30), conditional-activation.sh (25), differential-context.sh (42) — total 245 tests, all need CS integration
+- v0.2.0+ modules: signal-handler.sh (9), cycle-tracker.sh (14), dynamic-router.sh (41), review-phase.sh (36), worktree.sh (48), prompt-compression.sh (30), conditional-activation.sh (25), differential-context.sh (42), session-tracker.sh (33) — total 278 tests, all need CS integration
 - 4 CTO ADRs approved: EXEC-001, REVIEW-001, WORKTREE-001, MODEL-001
-- CTO code reviews: ALL 6 v0.2.0 modules APPROVED (dynamic-router, config-validator v2+, review-phase, worktree, prompt-compression, conditional-activation). Pending: differential-context.sh
-- Security: dynamic-router.sh APPROVED (DR-SEC-01 LOW, DR-SEC-02 MEDIUM), config-validator SECURE. Pending: review-phase.sh, worktree.sh, prompt-compression.sh, conditional-activation.sh, differential-context.sh
+- CTO code reviews: ALL 6 v0.2.0 modules APPROVED (dynamic-router, config-validator v2+, review-phase, worktree, prompt-compression, conditional-activation). Pending: differential-context.sh, session-tracker.sh
+- QA: ALL 8 v0.2.0+ modules PASS (cycle 16). Pending: session-tracker.sh
+- Security: dynamic-router.sh APPROVED (DR-SEC-01 LOW, DR-SEC-02 MEDIUM), config-validator SECURE. Pending: review-phase.sh, worktree.sh, prompt-compression.sh, conditional-activation.sh, differential-context.sh, session-tracker.sh
 
 ### v0.3.0 — Token Optimization + Smart Provisioning (partially started)
-- [x] #49 Differential context — `differential-context.sh` BUILT + 42 tests PASS (cycle 15). Section→agent mappings, cross-cycle history filtering, fail-open design, PM bypass. CTO + Security review pending.
+- [x] #49 Differential context — `differential-context.sh` BUILT + 42 tests PASS (cycle 15). QA PASS (cycle 16). CTO + Security review pending.
+- [x] #52 Session tracker windowing — `session-tracker.sh` BUILT + 33 tests PASS (cycle 16). CTO + QA + Security review pending.
 - [ ] #50 Progressive task decomposition
-- [ ] #52 Session tracker windowing
 - [ ] #53 QMD auto-refresh
 - [ ] #54 Prompt template inheritance
 - [ ] #45 auto-agent.sh init

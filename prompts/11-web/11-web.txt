@@ -235,6 +235,12 @@ Mintlify docs scaffolded in `site/docs/` (cycle 13):
 ### Phase 3 — Polish (IN PROGRESS)
 - ✅ Terminal animation in hero — animated lines reveal sequentially via Framer Motion (cycle 14)
 - ✅ Responsive polish — all 6 sections mobile-optimized (cycle 15): responsive padding, text sizes, grid gaps, smooth scrolling, font smoothing
+- ✅ Cleaned up 5 unused starter SVGs from site/public/ (cycle 16): next.svg, vercel.svg, globe.svg, window.svg, file.svg
+- Build verified clean (Next.js 16.2, static export, 1.2MB output)
+- **ALL REMAINING WORK BLOCKED ON CS:** Mintlify GitHub connection, v0.1.0 tag for deploy
+- STANDBY until unblocked
+
+**When unblocked:**
 1. Pixel Agents demo embed — waiting for Phase 2 completion
 2. Analytics (Plausible or similar, privacy-respecting)
 3. Performance audit — Lighthouse score, bundle size optimization

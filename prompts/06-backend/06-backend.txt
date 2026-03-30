@@ -180,15 +180,17 @@ Only non-blocking item: BUG-013 (README says "Bash 4+" should be "Bash 5+").
 
 ### v0.3.0 — Token Optimization (Cycle 15+)
 - ✅ `differential-context.sh` — #49 per-agent context filtering (section→agent mappings, cross-cycle history filtering, fail-open for unmapped sections, PM bypass). 42 tests PASS.
-- Total v0.2.0+ tests: 245 (203 previous + 42 differential-context)
-- Full test suite: 17/17 pass (15 unit + 1 integration + runner), zero regressions
+- ✅ `session-tracker.sh` — #52 smart session tracker windowing (cycle 16). Windowing policy: last N cycles full detail, next M as table rows, older omitted. Preserved sections. Configurable via orch_tracker_init. 33 tests PASS.
+- Total v0.2.0+ tests: 278 (245 previous + 33 session-tracker)
+- Full test suite: 18/18 pass (16 unit + 1 integration + runner), zero regressions
 
 **Next tasks:**
-1. **#52 Smart session tracker windowing** — Trim old cycle history to reduce token usage
+1. **BUG-018 FIX (LOW):** Remove dead code `_ORCH_ACTIVATION_MENTION_PATTERNS` in conditional-activation.sh — flagged by QA cycle 11.
 2. **#54 Prompt template inheritance** — Base template with per-agent overrides
 3. **#50 Progressive task decomposition** — Backlog one-liners (PM process, but backend tooling needed)
-4. **Await CS integration** — CS must integrate all modules into auto-agent.sh (protected file). Quote `orch_router_model` output per DR-SEC-02.
-5. **Benchmark scaffold** — After v0.1.0 tag: #4 SWE-bench scaffold, #5 Ralph comparison
+4. **#53 Auto-refresh QMD index each cycle** — QMD index maintenance
+5. **Await CS integration** — CS must integrate all 9 modules into auto-agent.sh (protected file). Quote `orch_router_model` output per DR-SEC-02.
+6. **Benchmark scaffold** — After v0.2.0 tag: #4 SWE-bench scaffold, #5 Ralph comparison
 
 ---
 
