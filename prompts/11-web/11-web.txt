@@ -209,6 +209,7 @@ After any integration: append to `docs/tech-registry/registry.md`.
 - ✅ Build verified clean (Next.js 16.2, static export, basePath /openOrchyStraw/)
 - ✅ Animated terminal demo in hero — lines reveal sequentially via Framer Motion (cycle 14)
 - ✅ Fixed agents.conf format in 4 docs pages — correct format: `id | prompt_path | ownership | interval | label` (cycle 14)
+- ✅ Responsive polish (cycle 15) — all 6 sections mobile-optimized: responsive padding/text/grid, smooth scrolling, font smoothing
 
 ## Current Tasks
 
@@ -233,9 +234,10 @@ Mintlify docs scaffolded in `site/docs/` (cycle 13):
 
 ### Phase 3 — Polish (IN PROGRESS)
 - ✅ Terminal animation in hero — animated lines reveal sequentially via Framer Motion (cycle 14)
-1. Pixel Agents demo embed
+- ✅ Responsive polish — all 6 sections mobile-optimized (cycle 15): responsive padding, text sizes, grid gaps, smooth scrolling, font smoothing
+1. Pixel Agents demo embed — waiting for Phase 2 completion
 2. Analytics (Plausible or similar, privacy-respecting)
-3. Responsive polish — test on mobile/tablet
+3. Performance audit — Lighthouse score, bundle size optimization
 
 ---
 
