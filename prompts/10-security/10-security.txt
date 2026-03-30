@@ -118,39 +118,23 @@ You NEVER modify source code, scripts, configs, or other agent prompts.
 ### v0.1.0 — RELEASE GATE: FULL PASS ✅
 All findings resolved. All 9 gates pass. No open HIGH or MEDIUM findings. v0.1.0 cleared for release.
 
-### Next Security Priorities — v0.2.0 GATE (ONLY remaining quality gate)
-All 8 v0.2.0+ modules are CTO APPROVED and QA PASS. Security review is the LAST gate before v0.2.0 can ship.
+### v0.2.0 SECURITY GATE: PASS ✅ (Cycle 10)
+All 8 v0.2.0+ modules reviewed. 0 HIGH, 0 CRITICAL. Report: `prompts/10-security/reports/security-cycle-10.md`
 
-1. ~~**v0.2.0 security review — dynamic-router.sh**~~ — DONE (cycle 9 audit). APPROVED with DR-SEC-01 (LOW), DR-SEC-02 (MEDIUM).
-2. ~~**v0.2.0 security review — config-validator.sh v2+**~~ — DONE (cycle 9 audit). SECURE — no findings.
-3. **v0.2.0 security review — review-phase.sh** — CTO HOLD LIFTED (cycle 13). All findings fixed (BUG-017, RP-01/02/03/04). 36 tests PASS. QA PASS. **DO SECURITY REVIEW NOW.** Review for:
-   - Review record injection — can crafted QA output inject into re-run prompts?
-   - Cost guard bypass — can the 50% threshold be circumvented?
-   - RP-04 fix verification — path traversal rejection (rejects `..` in agent IDs)
-   - RP-03 fix verification — I/O error handling
-4. **v0.2.0 security review — worktree.sh** — Module (48 tests, QA PASS). Review for:
-   - Path traversal in worktree paths
-   - Stale worktree recovery safety
-   - Merge conflict handling
-5. **v0.2.5 security review — prompt-compression.sh** — Module (30 tests, QA PASS). Review for:
-   - Hash-based change detection bypass — can crafted content produce hash collisions?
-   - Token estimation accuracy — can oversized prompts slip through?
-   - File read safety — does it safely handle missing/malformed prompt sections?
-6. **v0.2.5 security review — conditional-activation.sh** — Module (25 tests, QA PASS). Review for:
-   - PM force flag abuse — can an agent self-activate via context injection?
-   - Ownership detection bypass — can agents trigger activation for other agents?
-   - Exclusion list integrity — can exclusions be overridden?
-7. **v0.3.0 security review — differential-context.sh** — Module (42 tests, QA PASS). Review for:
-   - Section mapping injection — can crafted section headers bypass agent filtering?
-   - Cross-cycle history filtering — can old context leak into wrong agent?
-   - Fail-open bypass — does the fallback (include all) create info leakage?
-   - PM bypass safety — can non-PM agents forge PM identity?
-8. **v0.3.0 security review — session-tracker.sh** — NEW module (cycle 16, 33 tests). Review for:
-   - Windowing policy bypass — can old data leak through preserved sections?
-   - Non-numeric param injection — does validation handle crafted config values?
+1. ~~**v0.2.0 security review — dynamic-router.sh**~~ — DONE (cycle 9). APPROVED with DR-SEC-01 (LOW), DR-SEC-02 (MEDIUM).
+2. ~~**v0.2.0 security review — config-validator.sh v2+**~~ — DONE (cycle 9). SECURE.
+3. ~~**v0.2.0 security review — review-phase.sh**~~ — DONE (cycle 10). APPROVED.
+4. ~~**v0.2.0 security review — worktree.sh**~~ — DONE (cycle 10). APPROVED. WT-SEC-01 LOW (merge path validation).
+5. ~~**v0.2.0 security review — prompt-compression.sh**~~ — DONE (cycle 10). APPROVED. PC-SEC-01 INFO (weak hash fallback).
+6. ~~**v0.2.0 security review — conditional-activation.sh**~~ — DONE (cycle 10). APPROVED.
+7. ~~**v0.2.0 security review — differential-context.sh**~~ — DONE (cycle 10). APPROVED. DC-SEC-01 INFO (fail-open design).
+8. ~~**v0.2.0 security review — session-tracker.sh**~~ — DONE (cycle 10). APPROVED.
+
+### Next Security Priorities
 9. **DR-SEC-02 integration note** — CS must quote `orch_router_model` output when integrating into auto-agent.sh. Verify this during integration review.
 10. **v0.1.1 audit** — Verify `set -e` addition doesn't introduce new failure modes
-11. **Benchmark security review** — Ensure SWE-bench scaffold doesn't execute untrusted code
+11. **Post-integration security review** — After CS integrates 9 modules, review auto-agent.sh for any new injection vectors
+12. **Benchmark security review** — Ensure SWE-bench scaffold doesn't execute untrusted code
 
 ---
 

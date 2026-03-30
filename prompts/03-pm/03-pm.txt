@@ -199,35 +199,37 @@ Use the **Edit tool** to modify ONLY:
 - [x] #24 CEO open-source boundary — decision made, documented in strategic memos
 - [ ] #25 Release tag — READY TO TAG. BUG-013 (README Bash version) is non-blocking.
 
-### v0.2.0 — Smart Cycle System (ALL MODULES DONE — awaiting CS integration)
-- [x] #40 Loop review & critique — `review-phase.sh` BUILT + 36 tests PASS. **CTO APPROVED** (HOLD lifted cycle 13).
+### v0.2.0 — Smart Cycle System (ALL GATES PASS ✅ — awaiting CS integration)
+- [x] #40 Loop review & critique — `review-phase.sh` BUILT + 36 tests PASS. **CTO APPROVED**.
 - [x] #41 Dynamic routing / smart mode — `dynamic-router.sh` BUILT + 41 tests PASS. **CTO APPROVED**.
 - [x] #43 Dependency-aware parallel execution — Kahn's algorithm topological sort. BUILT + tested. **CTO APPROVED**.
 - [x] #46 Model tiering per agent — BUILT in dynamic-router.sh + 10 tests. Config-validator updated for 9-col format. **CTO APPROVED**.
-- [x] #44 Git worktree isolation — `worktree.sh` BUILT + 48 tests PASS (cycle 13). **CTO review pending** (ADR deviation: module vs inline).
-- [x] #47 Prompt compression — `prompt-compression.sh` BUILT + 30 tests PASS (cycle 14). Tiered loading, hash-based change detection, token estimation. **CTO review pending**.
-- [x] #48 Conditional agent activation — `conditional-activation.sh` BUILT + 25 tests PASS (cycle 14). Ownership-based change detection, context scanning. **CTO review pending**.
+- [x] #44 Git worktree isolation — `worktree.sh` BUILT + 48 tests PASS. **CTO APPROVED**. WT-SEC-01 LOW (merge path validation).
+- [x] #47 Prompt compression — `prompt-compression.sh` BUILT + 30 tests PASS. **CTO APPROVED**.
+- [x] #48 Conditional agent activation — `conditional-activation.sh` BUILT + 25 tests PASS. **CTO APPROVED**. BUG-018 FIXED (cycle 10).
 - [x] BUG-014/015/016 FIXED (cycle 11) — 3 new tests (T37-T39).
-- [x] BUG-017 + RP-01/02/03/04 FIXED (cycle 12) — review-phase.sh 36 tests (was 24). All CTO findings addressed.
-- [x] DR-01/DR-02 FIXED (cycle 12) — dynamic-router.sh 41 tests (was 39). State validation + I/O error checks.
+- [x] BUG-017 + RP-01/02/03/04 FIXED (cycle 12) — review-phase.sh 36 tests (was 24).
+- [x] DR-01/DR-02 FIXED (cycle 12) — dynamic-router.sh 41 tests (was 39).
 - [x] CTO re-review of review-phase.sh — APPROVED (cycle 13). HOLD LIFTED.
 - [x] QA PASS on v0.2.0 core modules (cycle 13) — 77/77 tests, 13/13 full suite.
 - [x] CTO review of worktree.sh — APPROVED (cycle 15). ADR deviation accepted.
 - [x] CTO review of prompt-compression.sh — APPROVED (cycle 15). No issues.
 - [x] CTO review of conditional-activation.sh — APPROVED (cycle 15). No issues.
 - [x] QA review of 4 modules (worktree, prompt-compression, conditional-activation, differential-context) — ALL PASS (cycle 16). BUG-018 filed (LOW).
-- [ ] Security review of review-phase.sh — CTO HOLD lifted, security can now review
-- [ ] Security review of worktree.sh + prompt-compression.sh + conditional-activation.sh + differential-context.sh — modules need audit
+- [x] CTO review of differential-context.sh — APPROVED (cycle 10). DC-01 LOW.
+- [x] CTO review of session-tracker.sh — APPROVED (cycle 10). ST-01 LOW.
+- [x] Security review of ALL 6 remaining modules — APPROVED (cycle 10). 1 LOW, 2 INFO. **v0.2.0 security gate PASS.**
+- [x] BUG-018 FIXED (cycle 10) — dead code removed from conditional-activation.sh, 25/25 tests pass.
 - [ ] #51 Output budgets
 - v0.2.0+ modules: signal-handler.sh (9), cycle-tracker.sh (14), dynamic-router.sh (41), review-phase.sh (36), worktree.sh (48), prompt-compression.sh (30), conditional-activation.sh (25), differential-context.sh (42), session-tracker.sh (33) — total 278 tests, all need CS integration
 - 4 CTO ADRs approved: EXEC-001, REVIEW-001, WORKTREE-001, MODEL-001
-- CTO code reviews: ALL 6 v0.2.0 modules APPROVED (dynamic-router, config-validator v2+, review-phase, worktree, prompt-compression, conditional-activation). Pending: differential-context.sh, session-tracker.sh
-- QA: ALL 8 v0.2.0+ modules PASS (cycle 16). Pending: session-tracker.sh
-- Security: dynamic-router.sh APPROVED (DR-SEC-01 LOW, DR-SEC-02 MEDIUM), config-validator SECURE. Pending: review-phase.sh, worktree.sh, prompt-compression.sh, conditional-activation.sh, differential-context.sh, session-tracker.sh
+- CTO code reviews: ALL 8 v0.2.0+ modules APPROVED
+- QA: ALL 8 v0.2.0+ modules PASS
+- Security: ALL 8 v0.2.0+ modules APPROVED. Open findings: DR-SEC-01 LOW, DR-SEC-02 MEDIUM (integration), WT-SEC-01 LOW, PC-SEC-01 INFO, DC-SEC-01 INFO
 
 ### v0.3.0 — Token Optimization + Smart Provisioning (partially started)
-- [x] #49 Differential context — `differential-context.sh` BUILT + 42 tests PASS (cycle 15). QA PASS (cycle 16). CTO + Security review pending.
-- [x] #52 Session tracker windowing — `session-tracker.sh` BUILT + 33 tests PASS (cycle 16). CTO + QA + Security review pending.
+- [x] #49 Differential context — `differential-context.sh` BUILT + 42 tests PASS. CTO APPROVED. QA PASS. Security APPROVED.
+- [x] #52 Session tracker windowing — `session-tracker.sh` BUILT + 33 tests PASS. CTO APPROVED. Security APPROVED. QA review pending.
 - [ ] #50 Progressive task decomposition
 - [ ] #53 QMD auto-refresh
 - [ ] #54 Prompt template inheritance

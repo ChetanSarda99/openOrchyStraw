@@ -185,12 +185,13 @@ Only non-blocking item: BUG-013 (README says "Bash 4+" should be "Bash 5+").
 - Full test suite: 18/18 pass (16 unit + 1 integration + runner), zero regressions
 
 **Next tasks:**
-1. **BUG-018 FIX (LOW):** Remove dead code `_ORCH_ACTIVATION_MENTION_PATTERNS` in conditional-activation.sh — flagged by QA cycle 11.
-2. **#54 Prompt template inheritance** — Base template with per-agent overrides
-3. **#50 Progressive task decomposition** — Backlog one-liners (PM process, but backend tooling needed)
-4. **#53 Auto-refresh QMD index each cycle** — QMD index maintenance
-5. **Await CS integration** — CS must integrate all 9 modules into auto-agent.sh (protected file). Quote `orch_router_model` output per DR-SEC-02.
-6. **Benchmark scaffold** — After v0.2.0 tag: #4 SWE-bench scaffold, #5 Ralph comparison
+1. ~~**BUG-018 FIX (LOW):**~~ DONE (cycle 10). Dead code removed, 25/25 tests pass.
+2. **WT-SEC-01 FIX (LOW):** Add path traversal validation to `orch_worktree_merge()` — same validation block as `orch_worktree_create` lines 113-119. Flagged by Security cycle 10.
+3. **#54 Prompt template inheritance** — Base template with per-agent overrides
+4. **#50 Progressive task decomposition** — Backlog one-liners (PM process, but backend tooling needed)
+5. **#53 Auto-refresh QMD index each cycle** — QMD index maintenance
+6. **Await CS integration** — CS must integrate all 9 modules into auto-agent.sh (protected file). Quote `orch_router_model` output per DR-SEC-02.
+7. **Benchmark scaffold** — After v0.2.0 tag: #4 SWE-bench scaffold, #5 Ralph comparison
 
 ---
 

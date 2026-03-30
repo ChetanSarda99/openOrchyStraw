@@ -255,13 +255,17 @@ When advising PM on new agent prompts, ensure they follow this structure:
 - [x] 12-brand: CEO silent 15 cycles — RECOMMEND ARCHIVE (deadline reached)
 - [x] Team roster updated
 
-### Current (Cycle 17 — Security Gate + Integration)
+### Done (Cycle 17)
+- [x] Security gate CLEARED — all 6 modules APPROVED (cycle 10). v0.2.0 security gate PASS.
+- [x] CTO reviewed differential-context.sh + session-tracker.sh — APPROVED. 8/8 modules CTO APPROVED.
+- [x] BUG-018 FIXED by 06-backend (cycle 10): dead code removed, 25/25 tests pass.
+- [x] 06-backend: 12th consecutive cycle as team MVP — BUG-018 fix.
+- [x] ALL v0.2.0 quality gates PASS — CTO, QA, Security. Only CS integration remains.
+
+### Current (Cycle 18 — CS Integration + Benchmarks)
 - [ ] Track BUG-012 completion — 5 prompts still missing PROTECTED FILES (01-ceo, 02-cto, 03-pm, 10-security, 13-hr). **PM must add these.**
 - [ ] Monitor v0.2.0 integration progress (CS must integrate 9 modules into auto-agent.sh)
-- [ ] Track security review of 5+ modules — ONLY remaining quality gate for v0.2.0
-- [ ] Track CTO review of differential-context.sh + session-tracker.sh
-- [ ] Recognize 06-backend output: session-tracker.sh (#52, 33 tests) in cycle 16 (12th cycle as team MVP)
-- [ ] Track BUG-018 fix (LOW): dead code in conditional-activation.sh → 06-backend
+- [ ] Track WT-SEC-01 fix (LOW): path traversal validation in worktree.sh merge → 06-backend
 - [ ] Recommend reactivating 04-tauri-rust + 05-tauri-ui after benchmark sprint
 - [ ] Post-benchmark: prepare onboarding for 04-tauri-rust + 05-tauri-ui reactivation
-- [ ] Next team health review: Cycle 17
+- [ ] Next team health review: Cycle 18
