@@ -165,14 +165,20 @@ BUG-013 (README Bash version) is non-blocking — quick fix before or after tag.
 - ✅ Security findings DR-SEC-02 acceptable
 - Report: `prompts/09-qa/reports/qa-cycle-10.md`
 
+### v0.2.0+ Modules — QA COMPLETE ✅ (Cycle 16)
+- ✅ worktree.sh — 48/48 tests PASS
+- ✅ prompt-compression.sh — 30/30 tests PASS
+- ✅ conditional-activation.sh — 25/25 tests PASS
+- ✅ differential-context.sh — 42/42 tests PASS
+- ✅ All 8 v0.2.0+ modules QA-reviewed. 17/17 test files PASS. 0 regressions.
+- BUG-018 filed (LOW): Dead code `_ORCH_ACTIVATION_MENTION_PATTERNS` in conditional-activation.sh → assigned to 06-backend
+- Report: `prompts/09-qa/reports/qa-cycle-11.md`
+
 ### Next QA Priorities
-1. **worktree.sh QA review** — Module (48 tests). Verify test coverage, review deviation from WORKTREE-001 ADR (module vs inline).
-2. **prompt-compression.sh QA review** — Module (30 tests). Verify tiered loading modes, hash-based detection, token estimation.
-3. **conditional-activation.sh QA review** — Module (25 tests). Verify ownership detection, context scanning, PM force flag.
-4. **differential-context.sh QA review** — NEW module (cycle 15, 42 tests). Verify section→agent mappings, cross-cycle history filtering, fail-open for unmapped sections, PM bypass.
-5. **Full test suite** — Run all 17 test files (245 v0.2.0+ tests total). Verify zero regressions.
-6. **v0.1.1 QA pass** — Verify BUG-013 fix, BUG-012 PROTECTED FILES, `set -e` addition
-7. **Post-integration QA** — After CS integrates v0.2.0 modules into auto-agent.sh, full regression test
+1. **session-tracker.sh QA review** — NEW module (cycle 16, 33 tests). Verify windowing policy, preserved sections, configurable params, non-numeric validation.
+2. **Full test suite** — Run all 18 test files (278 v0.2.0+ tests total). Verify zero regressions.
+3. **v0.1.1 QA pass** — Verify BUG-013 fix, BUG-012 PROTECTED FILES, `set -e` addition
+4. **Post-integration QA** — After CS integrates v0.2.0+ modules into auto-agent.sh, full regression test
 
 ---
 

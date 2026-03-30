@@ -247,13 +247,21 @@ When advising PM on new agent prompts, ensure they follow this structure:
 - [x] 11-web responsive polish complete — all 6 landing page sections mobile-optimized
 - [x] v0.2.0+ module count: 8 modules, 245 total tests
 
-### Current (Cycle 16 — Reviews + Integration Push)
+### Done (Cycle 16)
+- [x] Sixth team health report: v0.1.0 SHIPPED (7a08cec), roadmap unblocked
+- [x] QA gate CLEAR — all 8 v0.2.0+ modules QA PASS (cycle 16)
+- [x] 06-backend: 11th consecutive cycle as team MVP — session-tracker.sh (#52, 33 tests)
+- [x] v0.2.0+ module count: 9 modules, 278 total tests
+- [x] 12-brand: CEO silent 15 cycles — RECOMMEND ARCHIVE (deadline reached)
+- [x] Team roster updated
+
+### Current (Cycle 17 — Security Gate + Integration)
 - [ ] Track BUG-012 completion — 5 prompts still missing PROTECTED FILES (01-ceo, 02-cto, 03-pm, 10-security, 13-hr). **PM must add these.**
-- [ ] Monitor v0.2.0 integration progress (CS must integrate 8 modules into auto-agent.sh)
-- [ ] Track security review of review-phase.sh + worktree.sh + prompt-compression.sh + conditional-activation.sh + differential-context.sh (5 modules pending)
-- [ ] Track CTO review of differential-context.sh (new module)
-- [ ] Track QA review of worktree.sh + prompt-compression.sh + conditional-activation.sh + differential-context.sh (4 modules pending)
-- [ ] Recognize 06-backend output: differential-context.sh + 42 tests in cycle 15 (11 cycles as team MVP)
+- [ ] Monitor v0.2.0 integration progress (CS must integrate 9 modules into auto-agent.sh)
+- [ ] Track security review of 5+ modules — ONLY remaining quality gate for v0.2.0
+- [ ] Track CTO review of differential-context.sh + session-tracker.sh
+- [ ] Recognize 06-backend output: session-tracker.sh (#52, 33 tests) in cycle 16 (12th cycle as team MVP)
+- [ ] Track BUG-018 fix (LOW): dead code in conditional-activation.sh → 06-backend
 - [ ] Recommend reactivating 04-tauri-rust + 05-tauri-ui after benchmark sprint
 - [ ] Post-benchmark: prepare onboarding for 04-tauri-rust + 05-tauri-ui reactivation
-- [ ] Next team health review: Cycle 16
+- [ ] Next team health review: Cycle 17
