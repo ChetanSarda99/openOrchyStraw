@@ -162,6 +162,16 @@ orch_worktree_merge() {
         return 1
     }
 
+    # Validate inputs — prevent path traversal (WT-SEC-01)
+    if [[ "$agent_id" == *".."* || "$agent_id" == *"/"* ]]; then
+        _orch_worktree_log ERROR "Invalid agent_id (path traversal rejected): $agent_id"
+        return 1
+    fi
+    if [[ ! "$cycle_num" =~ ^[0-9]+$ ]]; then
+        _orch_worktree_log ERROR "Invalid cycle_num (not numeric): $cycle_num"
+        return 1
+    fi
+
     local wt_path branch
     wt_path=$(orch_worktree_path "$agent_id" "$cycle_num")
     branch=$(orch_worktree_branch "$agent_id" "$cycle_num")
