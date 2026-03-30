@@ -30,17 +30,6 @@ declare -g _ORCH_ACTIVATION_CHANGED_FILES=""   # newline-separated changed files
 declare -g _ORCH_ACTIVATION_CONTEXT=""         # shared context content for mention scan
 declare -g _ORCH_ACTIVATION_LOADED=false
 
-# Patterns that indicate a request/need for an agent in shared context
-declare -g -a _ORCH_ACTIVATION_MENTION_PATTERNS=(
-    "NEED:.*%s"
-    "BLOCKED.*%s"
-    "waiting.*%s"
-    "needs.*%s"
-    "%s.*should"
-    "%s.*must"
-    "assign.*%s"
-)
-
 # ── Helpers ──
 
 _orch_activation_log() {
