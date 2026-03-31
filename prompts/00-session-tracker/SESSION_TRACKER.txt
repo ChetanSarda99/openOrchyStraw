@@ -25,6 +25,33 @@
 | 18 | 2026-03-30 | 02,06,13,03 | 5 efficiency scripts (pre-cycle-stats, commit-summary, agent-health-report, secrets-scan, post-cycle-router), WT-SEC-01 FIXED, CTO EFFICIENCY-001+COST-001 ADRs, HR team health |
 | 19 | 2026-03-30 | 06,13,03 | Backend FIXED all 6 CTO findings (SS-01, CS-01, LINT-01–04), 18/18 tests pass, HR team health update |
 | 20 | 2026-03-30 | 06,13,03 | agents.conf v3 parser (7-col, COST-001), BUG-012 FULLY RESOLVED (9/9 PROTECTED FILES), 18/18 tests pass |
+| 2-2 | 2026-03-30 | 06,13,03 | single-agent.sh (#10, 40 tests), 19/19 suite pass, INTEGRATION-GUIDE Step 14 |
+
+---
+
+## WHAT SHIPPED — Cycle 2 session 2 (2026-03-30 20:19–20:30)
+
+### 06-Backend
+- **single-agent.sh (#10) DONE:** Ralph-compatible runner with auto-detect, explicit agent selection, config parsing, module skip/keep logic, cycle tracking, status reporting
+- `tests/core/test-single-agent.sh` — 40 tests, ALL PASS
+- Full test suite: 19/19 PASS (17 unit + 1 integration + runner), zero regressions
+- INTEGRATION-GUIDE.md updated with Step 14: single-agent wiring instructions for CS
+
+### 13-HR
+- Team health updates
+- 06-backend: 15th consecutive cycle as team MVP
+
+### 08-Pixel
+- Tiny output (84 bytes) — may have failed silently. No deliverables.
+
+### 10-Security
+- 1 error in log. No deliverables this cycle.
+
+### 03-PM (this cycle)
+- Committed backend single-agent.sh + tests (1a5a4d7)
+- Updated all agent prompts: CTO assigned single-agent review, QA assigned testing, Security assigned review
+- CS action item added: wire `single` subcommand into auto-agent.sh
+- Session tracker updated
 
 ---
 

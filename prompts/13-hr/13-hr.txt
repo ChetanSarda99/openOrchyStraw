@@ -291,9 +291,16 @@ When advising PM on new agent prompts, ensure they follow this structure:
 - [x] v0.2.0 integration tracking: still blocked on CS (3 modules + 5 scripts)
 - [x] Staffing confirmed: team correctly sized through v0.2.0 + benchmark sprint
 
-### Current (Cycle 21 — v0.2 Integration + QA Validation)
+### Done (Cycle 2 — session 2)
+- [x] 06-backend: 15th consecutive cycle as team MVP — single-agent.sh (#10, 40 tests, 19/19 suite)
+- [x] 08-pixel: tiny output (84 bytes), may have failed silently — no deliverables
+- [x] 10-security: 1 error in log — no deliverables this cycle
+
+### Current (Cycle 3 — v0.2 Integration + QA Validation)
 - [ ] Monitor v0.2.0 integration progress (CS must integrate 3 remaining modules: dynamic-router, review-phase, worktree)
 - [ ] Monitor new scripts integration (CS must wire 5 scripts into auto-agent.sh)
+- [ ] Investigate 08-pixel silent failure (84 bytes output) — is prompt sufficient?
+- [ ] Investigate 10-security error — check if log error is blocking work
 - [ ] Recommend reactivating 04-tauri-rust + 05-tauri-ui after benchmark sprint
 - [ ] Post-benchmark: prepare onboarding for 04-tauri-rust + 05-tauri-ui reactivation
-- [ ] Next team health review: Cycle 21
+- [ ] Next team health review: Cycle 3

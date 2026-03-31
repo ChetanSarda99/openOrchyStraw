@@ -209,13 +209,19 @@ Only non-blocking item: BUG-013 (README says "Bash 4+" should be "Bash 5+").
 - ✅ Backward-compatible: v1 (5-col), v2 (8-col), v2+ (9-col) still accepted
 - ✅ 7 new tests added (tests 11–17), all pass. Full suite: 18/18 PASS, zero regressions
 
-### NEXT PRIORITIES (Cycle 21+)
+### Done (Cycle 2 — session 2)
+- ✅ `src/core/single-agent.sh` — #10 single-agent mode DONE: Ralph-compatible runner with auto-detect, explicit agent selection, config parsing, module skip/keep logic, cycle tracking, status reporting
+- ✅ `tests/core/test-single-agent.sh` — 40 tests, ALL PASS
+- ✅ Full test suite: 19/19 PASS (17 unit + 1 integration + runner), zero regressions
+- ✅ INTEGRATION-GUIDE.md updated with Step 14: single-agent wiring instructions for CS
 
-1. **P1: `--single-agent` mode** (#10) — Ralph-compatible single-agent runner for v0.2.1
+### NEXT PRIORITIES (Cycle 3+)
 
-2. **P2: SWE-bench scaffold** (#4) — Benchmark framework for evaluation
+1. **P1: SWE-bench scaffold** (#4) — Benchmark framework for evaluation
 
-3. **P3: QMD auto-refresh** (#53) — Auto-refresh index each cycle
+2. **P2: QMD auto-refresh** (#53) — Auto-refresh index each cycle
+
+3. **P3: Prompt template inheritance** (#54) — Reduce prompt duplication
 
 ---
 
