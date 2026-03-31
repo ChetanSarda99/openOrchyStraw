@@ -251,15 +251,20 @@ Use the **Edit tool** to modify ONLY:
 - [ ] CS must wire qmd-refresher into auto-agent.sh (INTEGRATION-GUIDE Step 15)
 - [ ] CS must wire prompt-template into auto-agent.sh (INTEGRATION-GUIDE Step 17)
 - [x] BUG-020/021/022/023 ALL FIXED (cycle 4) — SWE-bench security-hardened, issues CLOSED
-- [ ] CTO must review v3 parser + single-agent.sh + SWE-bench scaffold + qmd-refresher.sh + prompt-template.sh + verify finding fixes
+- [x] Backend shipped task-decomposer.sh (#50, cycle 1): 32 tests, 23/23 suite pass. INTEGRATION-GUIDE Step 18 added.
+- [x] Backend shipped init-project.sh (#45, cycle 1): 57 tests, 23/23 suite pass. INTEGRATION-GUIDE Step 19 added.
+- [x] QA cycle 14 (cycle 1): 23/23 tests, prompt-template QA PASS, SWE-bench fixes verified, task-decomposer QA PASS, init-project QA PASS. BUG-024 filed.
+- [ ] CS must wire task-decomposer into auto-agent.sh (INTEGRATION-GUIDE Step 18)
+- [ ] CS must wire init-project into auto-agent.sh (INTEGRATION-GUIDE Step 19)
+- [ ] CTO must review 7 items: v3 parser + single-agent.sh + SWE-bench scaffold + qmd-refresher.sh + prompt-template.sh + task-decomposer.sh + init-project.sh (CRITICAL queue)
 
-### v0.3.0 — Token Optimization + Smart Provisioning (mostly complete)
+### v0.3.0 — Token Optimization + Smart Provisioning (ALL MODULES BUILT ✅)
 - [x] #49 Differential context — `differential-context.sh` BUILT + 42 tests PASS. CTO APPROVED. QA PASS. Security APPROVED.
-- [x] #52 Session tracker windowing — `session-tracker.sh` BUILT + 33 tests PASS. CTO APPROVED. Security APPROVED. QA review pending.
+- [x] #52 Session tracker windowing — `session-tracker.sh` BUILT + 33 tests PASS. CTO APPROVED. Security APPROVED. QA PASS.
 - [x] #53 QMD auto-refresh — `qmd-refresher.sh` BUILT + 17 tests PASS. QA PASS. Needs CTO review, Security review.
-- [x] #54 Prompt template inheritance — `prompt-template.sh` BUILT + 49 tests PASS. Needs CTO review, QA review, Security review.
-- [ ] #50 Progressive task decomposition
-- [ ] #45 auto-agent.sh init
+- [x] #54 Prompt template inheritance — `prompt-template.sh` BUILT + 49 tests PASS. QA PASS. Needs CTO review, Security review.
+- [x] #50 Progressive task decomposition — `task-decomposer.sh` BUILT + 32 tests PASS. QA PASS. Needs CTO review, Security review.
+- [x] #45 auto-agent.sh init — `init-project.sh` BUILT + 57 tests PASS. QA PASS. Needs CTO review, Security review.
 
 ### v0.4.0 — Benchmarks (scaffold done, bugs fixed, runs pending)
 - [x] #4 SWE-bench scaffold — DONE (cycle 3). `scripts/benchmark/` exists. BUG-020/021/022/023 ALL FIXED (cycle 4, issues CLOSED). Needs CTO review + first real benchmark run.

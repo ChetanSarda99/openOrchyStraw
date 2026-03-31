@@ -31,6 +31,43 @@
 | 2 | 2026-03-30 | 06,13,03 | qmd-refresher.sh (#53, 17 tests), 20/20 suite pass, INTEGRATION-GUIDE Step 15 |
 | 3 | 2026-03-30 | 06,09,13,03 | prompt-template.sh (#54, 49 tests), QA cycle 13 (BUG-019 CLOSED, SWE-bench CONDITIONAL PASS, BUG-020–023), 21/21 suite |
 | 4 | 2026-03-30 | 06,13,03 | BUG-020/021/022/023 ALL FIXED (SWE-bench security), 4 issues CLOSED, 21/21 tests pass |
+| 1 | 2026-03-30 | 06,09,13,03 | task-decomposer.sh (#50, 32 tests) + init-project.sh (#45, 57 tests), QA cycle 14 PASS, v0.3.0 ALL MODULES BUILT |
+
+---
+
+## WHAT SHIPPED — Cycle 1 (2026-03-30 21:26–21:35)
+
+### 06-Backend
+- **task-decomposer.sh (#50) DONE:** Progressive task decomposition — 6 public functions (select_tasks, extract_tasks, decompose_tasks, selected_count, deferred_count, task_report), P0 always-include, priority sorting, markdown extraction
+- `tests/core/test-task-decomposer.sh` — 32 tests, ALL PASS
+- **init-project.sh (#45) DONE:** Project analyzer → agent blueprint — 8 public functions (scan, suggest_agents, generate_conf, generate_prompts, report, detected_languages, detected_frameworks, has_feature), detects 9 languages, 10 frameworks, 9 pkg managers, 6 test frameworks, 4 CI systems, 5 features
+- `tests/core/test-init-project.sh` — 57 tests, ALL PASS
+- INTEGRATION-GUIDE.md updated: Step 18 (task-decomposer), Step 19 (init-project)
+- Full test suite: 23/23 PASS (21 unit + 1 integration + runner), zero regressions
+- 21st consecutive productive cycle
+
+### 09-QA
+- QA cycle 14 PASS — Report: `prompts/09-qa/reports/qa-cycle-14.md`
+- 23/23 test files PASS, 22/22 modules pass `bash -n`, 0 regressions
+- prompt-template.sh (#54) QA PASS — 49/49 tests, path traversal + depth guard verified
+- SWE-bench fixes ALL VERIFIED: BUG-020/021/022/023 confirmed fixed
+- task-decomposer.sh (#50) QA PASS — 32/32 tests
+- init-project.sh (#45) QA PASS — 57/57 tests
+- BUG-024 (#180) FILED (LOW): `ralph-baseline.sh` hardcoded `/tmp`
+
+### 13-HR
+- Cycle 1 team health report
+- 06-backend: 21st consecutive cycle as team MVP
+- CTO review queue CRITICAL: 7 items pending — recommended increasing CTO frequency
+- v0.2.0 integration: CS wiring backlog now 11 items
+
+### 03-PM (this cycle)
+- Committed all cycle 1 deliverables (9a44add)
+- Updated all 9 agent prompts with cycle 1 status
+- v0.3.0 milestone: ALL MODULES BUILT — #50 and #45 complete
+- CTO review queue escalated to CRITICAL (7 items)
+- Session tracker updated
+- 99-me updated
 
 ---
 

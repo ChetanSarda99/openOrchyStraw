@@ -239,7 +239,7 @@ Mintlify docs scaffolded in `site/docs/` (cycle 13):
 - Build verified clean (Next.js 16.2, static export, 1.2MB output)
 - **ALL REMAINING WORK BLOCKED ON CS:** Mintlify GitHub connection
 - v0.2.0 ALL GATES PASS — CTO 8/8, QA 8/8, Security 6/6 APPROVED. Only CS integration remains.
-- Backend fixed all 4 SWE-bench bugs (BUG-020–023, cycle 4). SWE-bench scaffold security-hardened. 21/21 tests pass.
+- Backend shipped task-decomposer.sh (#50) + init-project.sh (#45) — cycle 1. 23/23 tests pass. CTO review queue at 7 items.
 - No web blockers removed. STANDBY until unblocked
 
 **When unblocked:**

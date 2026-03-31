@@ -50,6 +50,12 @@ CTO integration order specified in EFFICIENCY-001 + COST-001 ADRs:
 ### P0.5 — Wire Prompt Template (protected file — CS only)
 - [ ] **Wire `prompt-template.sh` into auto-agent.sh** — See INTEGRATION-GUIDE.md Step 17. `src/core/prompt-template.sh` is DONE (49 tests pass). Enables template inheritance for agent prompts.
 
+### P0.5 — Wire Task Decomposer (protected file — CS only)
+- [ ] **Wire `task-decomposer.sh` into auto-agent.sh** — See INTEGRATION-GUIDE.md Step 18. `src/core/task-decomposer.sh` is DONE (32 tests pass). QA PASS.
+
+### P0.5 — Wire Init Project (protected file — CS only)
+- [ ] **Wire `init-project.sh` into auto-agent.sh** — See INTEGRATION-GUIDE.md Step 19. `src/core/init-project.sh` is DONE (57 tests pass). QA PASS. Enables `./auto-agent.sh init` for new project setup.
+
 ### P0.5 — Run First Real Benchmark (cycle 3, bugs fixed cycle 4)
 - [ ] **Run SWE-bench scaffold dry-run** — Backend ported the scaffold to `scripts/benchmark/`. All 4 bugs FIXED (BUG-020–023, cycle 4, issues CLOSED). CS should run `bash scripts/benchmark/run-benchmark.sh --dry-run` after CTO review. This is the proof needed for HN launch.
 - [x] **SWE-bench 4 bugs FIXED** — BUG-020 (#176), BUG-021 (#177), BUG-022 (#178), BUG-023 (#179) ALL FIXED by 06-backend (cycle 4). Issues CLOSED.
