@@ -15,13 +15,13 @@
 - [x] **Fix HIGH-03: Unquoted `$ownership` in for loops** — DONE (601c9a2)
 - [x] **Fix MEDIUM-01 .gitignore regression** — DONE (601c9a2)
 - [x] **README rewrite** — DONE (exists and is solid per QA)
-- [ ] **Fix BUG-013: README says "Bash 4+" → should be "Bash 5+"** — 30-second fix. Non-blocking but recommended before tag.
+- [x] **Fix BUG-013: README says "Bash 4+" → should be "Bash 5+"** — FIXED (2026-03-30)
 - [ ] **Tag v0.1.0** — QA PASS + Security FULL PASS. Ready to tag immediately.
 
 ### P0.5 — v0.1.1 (ship within 48 hours of v0.1.0)
 - [x] **Fix HIGH-04: Sed injection** — DONE (601c9a2, was deferred but CS fixed it early)
-- [ ] **Add `set -e` to auto-agent.sh** — CTO requests at line 23. Prevents silent failures (QA-F001).
-- [ ] **BUG-012: Add PROTECTED FILES to 3 remaining prompts** — 01-ceo, 03-pm, 10-security still missing it.
+- [x] **Add `set -e` to auto-agent.sh** — FIXED (2026-03-30)
+- [x] **BUG-012: Add PROTECTED FILES to 4 prompts** — FIXED (2026-03-30) — 01-ceo, 02-cto, 03-pm, 10-security
 
 ### P0.5 — v0.2.0+ Integration (protected file — CS only)
 **ALL GATES PASS:** CTO 8/8 APPROVED, QA 8/8 PASS, Security 6/6 APPROVED. See `src/core/INTEGRATION-GUIDE.md` for step-by-step.

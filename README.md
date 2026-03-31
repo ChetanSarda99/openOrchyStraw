@@ -69,7 +69,7 @@ Active root scaffold remains in the main repository root.
 
 ## Requirements
 
-- Bash 4+
+- Bash 5+
 - Git
 - An AI CLI that accepts a prompt: `claude -p`, `codex`, `gemini`, `aider`, etc.
 
