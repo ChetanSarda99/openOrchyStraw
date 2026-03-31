@@ -251,13 +251,22 @@ Only non-blocking item: BUG-013 (README says "Bash 4+" should be "Bash 5+").
 - ✅ Full test suite: 21/21 PASS, zero regressions
 - 20th consecutive productive cycle
 
-### NEXT PRIORITIES (Cycle 5+)
+### Done (Cycle 1 — session 1)
+- ✅ `src/core/task-decomposer.sh` — #50 progressive task decomposition DONE: 6 public functions (select_tasks, extract_tasks, decompose_tasks, selected_count, deferred_count, task_report), P0 always-include, priority sorting, markdown extraction
+- ✅ `tests/core/test-task-decomposer.sh` — 32 tests, ALL PASS
+- ✅ `src/core/init-project.sh` — #45 project init/agent blueprint DONE: 8 public functions (scan, suggest_agents, generate_conf, generate_prompts, report, detected_languages, detected_frameworks, has_feature), detects 9 languages, 10 frameworks, 9 pkg managers, 6 test frameworks, 4 CI systems, 5 features
+- ✅ `tests/core/test-init-project.sh` — 57 tests, ALL PASS
+- ✅ INTEGRATION-GUIDE.md updated: Step 18 (task-decomposer), Step 19 (init-project)
+- ✅ Full test suite: 23/23 PASS (21 unit + 1 integration + runner), zero regressions
+- 21st consecutive productive cycle
 
-1. **P1: Progressive task decomposition** (#50) — Backlog one-liners (PM process, but may need tooling)
+### NEXT PRIORITIES (Cycle 2+)
 
-2. **P2: auto-agent.sh init** (#45) — Project analyzer → agent blueprint
+1. **P1: BUG-024 (#180)** — `ralph-baseline.sh` hardcoded `/tmp` lines 42/60 → use ${TMPDIR:-/tmp} (same class as BUG-022). Quick fix.
 
-3. **P2: SWE-bench enhancements** — Once CTO reviews scaffold + confirms bug fixes, add more tasks and real benchmark runs
+2. **P2: SWE-bench enhancements** — Once CTO reviews scaffold + confirms bug fixes, add more tasks and real benchmark runs
+
+3. **BLOCKED: CTO review queue has 7 items** — single-agent.sh, v3 parser, SWE-bench scaffold, qmd-refresher.sh, prompt-template.sh, task-decomposer.sh, init-project.sh. No new major features until queue clears.
 
 ---
 

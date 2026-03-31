@@ -26,6 +26,8 @@
 | session-tracker | `session-tracker.sh` | Smart session tracker windowing (#52) | None (optional: logger) |
 | qmd-refresher | `qmd-refresher.sh` | Auto-refresh QMD index each cycle (#53) | None |
 | prompt-template | `prompt-template.sh` | Template inheritance for prompts (#54) | None (optional: logger) |
+| task-decomposer | `task-decomposer.sh` | Progressive task decomposition (#50) | None |
+| init-project | `init-project.sh` | Project analyzer & agent blueprint (#45) | None |
 
 All modules are independently sourceable. No module depends on another.
 
@@ -918,3 +920,140 @@ Phase 3: Convert remaining agents. Old `.txt` files become overlays.
 - Max include depth: 5 (prevents infinite recursion)
 - Max file size: 100KB per include
 - Backward-compatible: if `00-templates/` doesn't exist, falls back to direct prompt files
+
+## Step 18: Task Decomposer (#50)
+
+**Added:** Cycle 1, session 3 (March 30, 2026)
+**Depends on:** None
+
+Progressive task decomposition — breaks large agent task lists into prioritized
+chunks. P0 tasks are always included. Remaining slots filled by priority order.
+Overflow deferred to next cycle.
+
+### Module: `src/core/task-decomposer.sh`
+
+**Functions:**
+| Function | Purpose |
+|----------|---------|
+| `orch_select_tasks <max> <tasks...>` | Select top N tasks by priority (P0 always included) |
+| `orch_extract_tasks <prompt_file>` | Parse tasks from markdown prompt file |
+| `orch_decompose_tasks <file> [max]` | Full pipeline: extract + select + report |
+| `orch_selected_count` | Number of selected tasks |
+| `orch_deferred_count` | Number of deferred tasks |
+| `orch_task_report <agent_id>` | Print selected/deferred summary |
+
+### Task format
+
+Tasks use `PRIORITY:description` format:
+- `P0:` — critical, always included (doesn't count against limit)
+- `P1:` — high priority
+- `P2:` — medium (default if no prefix)
+- `P3:` — low priority
+
+### Wiring into auto-agent.sh
+
+1. Source the module:
+
+```bash
+source "$SCRIPT_DIR/../src/core/task-decomposer.sh"
+```
+
+2. Before spawning each agent, decompose its tasks:
+
+```bash
+local prompt_file="prompts/${agent_id}/${agent_id}.txt"
+orch_decompose_tasks "$prompt_file" 5  # max 5 non-P0 tasks
+
+# Log what was selected/deferred
+orch_task_report "$agent_id"
+
+# If all tasks deferred (0 selected), consider skipping agent
+if [[ $(orch_selected_count) -eq 0 ]]; then
+    log_info "No tasks for $agent_id — skipping"
+    continue
+fi
+```
+
+3. Optionally write deferred tasks to shared context for PM visibility:
+
+```bash
+if [[ $(orch_deferred_count) -gt 0 ]]; then
+    echo "- ${agent_id}: deferred $(orch_deferred_count) tasks" >> "$CONTEXT_FILE"
+fi
+```
+
+### Env override
+
+`ORCH_MAX_TASKS_PER_AGENT=3` — override default max (5) globally.
+
+## Step 19: Project Init / Agent Blueprint (#45)
+
+**Added:** Cycle 1, session 3 (March 30, 2026)
+**Depends on:** None
+
+Scans a target project directory to detect languages, frameworks, package managers,
+test frameworks, and CI/CD. Generates a suggested agents.conf and scaffold prompt files.
+
+### Module: `src/core/init-project.sh`
+
+**Functions:**
+| Function | Purpose |
+|----------|---------|
+| `orch_init_scan <dir>` | Scan project directory (detects languages, frameworks, etc.) |
+| `orch_init_suggest_agents` | List suggested agents (one per line, pipe-delimited) |
+| `orch_init_generate_conf <path>` | Generate agents.conf at given path |
+| `orch_init_generate_prompts <dir>` | Generate scaffold prompt files, returns count |
+| `orch_init_report` | Print full analysis report to stdout |
+| `orch_init_detected_languages` | List detected languages (space-separated) |
+| `orch_init_detected_frameworks` | List detected frameworks (space-separated) |
+| `orch_init_has_feature <name>` | Check feature: monorepo, ci, tests, docker, database |
+
+### Detection coverage
+
+**Languages:** bash, python, javascript, typescript, rust, go, swift, java, ruby
+**Frameworks:** react, next, vue, svelte, tauri, express, django, flask, fastapi, ios
+**Package managers:** npm, yarn, pnpm, pip, cargo, go, cocoapods, gradle, maven
+**Test frameworks:** jest, vitest, pytest, cargo-test, go-test, xctest
+**CI systems:** GitHub Actions, GitLab CI, CircleCI, Jenkins
+**Features:** monorepo, docker, database
+
+### Usage (standalone)
+
+```bash
+source src/core/init-project.sh
+
+orch_init_scan "/path/to/project"
+orch_init_report                              # human-readable report
+orch_init_generate_conf "./agents.conf"       # generate config
+orch_init_generate_prompts "./prompts"        # scaffold prompts
+```
+
+### Wiring into auto-agent.sh (for `--init` flag)
+
+1. Source the module:
+
+```bash
+source "$SCRIPT_DIR/../src/core/init-project.sh"
+```
+
+2. Add `--init <dir>` flag to arg parsing:
+
+```bash
+--init)
+    local target_dir="${2:?--init requires a project directory}"
+    shift
+    orch_init_scan "$target_dir"
+    orch_init_report
+    orch_init_generate_conf "${target_dir}/agents.conf"
+    orch_init_generate_prompts "${target_dir}/prompts"
+    echo "Scaffold created. Review agents.conf and prompts/ before running."
+    exit 0
+    ;;
+```
+
+### Safety
+
+- Scans max depth 3 (avoids deep node_modules etc.)
+- Excludes: node_modules, .git, vendor, __pycache__, .venv, dist, build, target, .next, .nuxt
+- Non-destructive: only reads existing files, never modifies the scanned project
+- Generated files go to specified output paths, not the scanned project
