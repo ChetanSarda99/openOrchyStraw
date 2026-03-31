@@ -117,13 +117,14 @@ orch_validate_prompt() {
 #
 # Full validation of an agents.conf file. Checks in order:
 #   1. File exists and is readable
-#   2. Each non-comment line has 5, 8, or 9 pipe-separated fields
+#   2. Each non-comment line has 5, 7, 8, or 9 pipe-separated fields
 #   3. Agent IDs are non-empty and unique
 #   4. Prompt paths point to existing files
 #   5. Interval is a non-negative integer
 #   6. Exactly one coordinator (interval=0)
 #   7. No empty labels
-#   8. Model values (col 9) are valid names (warn-only per MODEL-001)
+#   8. Model values are valid names (warn-only per MODEL-001)
+#   9. max_tokens (v3 col 7) is numeric and > 0 (warn on < 10000)
 #
 # Returns 0 if all checks pass, 1 if any errors were found.
 # All errors are collected in _ORCH_CONFIG_ERRORS and printed to stderr.
@@ -167,19 +168,28 @@ orch_validate_config() {
         trimmed_line=$(_orch_cv_trim "$raw_line")
         [[ "$trimmed_line" == \#* ]] && continue
 
-        # ── Check 2: 5, 8, or 9 pipe-separated fields (v1, v2, v2+model) ──
+        # ── Check 2: 5, 7, 8, or 9 pipe-separated fields (v1, v3, v2, v2+) ──
         local pipe_count
         pipe_count=$(printf '%s' "$raw_line" | tr -cd '|' | wc -c)
         pipe_count=$(_orch_cv_trim "$pipe_count")
 
-        if [[ "$pipe_count" -ne 4 && "$pipe_count" -ne 7 && "$pipe_count" -ne 8 ]]; then
-            _orch_cv_error "line $lineno: expected 5, 8, or 9 pipe-separated fields, found $(( pipe_count + 1 )) — '$trimmed_line'"
+        if [[ "$pipe_count" -ne 4 && "$pipe_count" -ne 6 && "$pipe_count" -ne 7 && "$pipe_count" -ne 8 ]]; then
+            _orch_cv_error "line $lineno: expected 5, 7, 8, or 9 pipe-separated fields, found $(( pipe_count + 1 )) — '$trimmed_line'"
             continue
         fi
 
         # Split into fields (up to 9 columns)
-        local f_id f_prompt f_ownership f_interval f_label f_priority f_depends f_reviews f_model
-        IFS='|' read -r f_id f_prompt f_ownership f_interval f_label f_priority f_depends f_reviews f_model <<< "$raw_line"
+        local f_id f_prompt f_ownership f_interval f_label f_model f_max_tokens
+        local f_priority f_depends f_reviews
+        f_model="" f_max_tokens=""
+
+        if [[ "$pipe_count" -eq 6 ]]; then
+            # v3 format: id | prompt | ownership | interval | label | model | max_tokens
+            IFS='|' read -r f_id f_prompt f_ownership f_interval f_label f_model f_max_tokens <<< "$raw_line"
+        else
+            # v1 (5 col), v2 (8 col), v2+ (9 col)
+            IFS='|' read -r f_id f_prompt f_ownership f_interval f_label f_priority f_depends f_reviews f_model <<< "$raw_line"
+        fi
 
         f_id=$(_orch_cv_trim "$f_id")
         f_prompt=$(_orch_cv_trim "$f_prompt")
@@ -187,6 +197,7 @@ orch_validate_config() {
         f_interval=$(_orch_cv_trim "$f_interval")
         f_label=$(_orch_cv_trim "$f_label")
         f_model=$(_orch_cv_trim "${f_model:-}")
+        f_max_tokens=$(_orch_cv_trim "${f_max_tokens:-}")
 
         # ── Check 3: non-empty agent ID ──────────────────────────────────────
         if [[ -z "$f_id" ]]; then
@@ -251,6 +262,17 @@ orch_validate_config() {
             done
             if [[ "$model_valid" == "false" ]]; then
                 _orch_cv_warn "line $lineno [$f_id]: unknown model '$f_model' (expected: opus, sonnet, haiku)"
+            fi
+        fi
+
+        # ── Check 9: max_tokens (v3 — numeric, > 0, warn on low) ────────────
+        if [[ -n "$f_max_tokens" ]]; then
+            if [[ ! "$f_max_tokens" =~ ^[0-9]+$ ]]; then
+                _orch_cv_error "line $lineno [$f_id]: max_tokens must be a positive integer, got '$f_max_tokens'"
+            elif [[ "$f_max_tokens" -eq 0 ]]; then
+                _orch_cv_error "line $lineno [$f_id]: max_tokens must be > 0"
+            elif [[ "$f_max_tokens" -lt 10000 ]]; then
+                _orch_cv_warn "line $lineno [$f_id]: max_tokens=$f_max_tokens is suspiciously low (agent output may be truncated)"
             fi
         fi
 
