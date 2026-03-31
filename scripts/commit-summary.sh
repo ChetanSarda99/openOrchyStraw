@@ -100,11 +100,14 @@ for id in "${AGENT_IDS[@]}"; do
             [ -f "$PROJECT_ROOT/$f" ] || continue
             case "$f" in
                 *.sh)
-                    funcs=$(grep -oP '^[a-zA-Z_][a-zA-Z0-9_]*\(\)' "$PROJECT_ROOT/$f" 2>/dev/null | head -5 || true)
+                    funcs=$(grep -oE '^[a-zA-Z_][a-zA-Z0-9_]*\(\)' "$PROJECT_ROOT/$f" 2>/dev/null | head -5 || true)
                     [[ -n "$funcs" ]] && echo "$funcs" | while read -r fn; do echo "  - \`$fn\`"; done
                     ;;
                 *.ts|*.tsx|*.js)
-                    exports=$(grep -oP 'export\s+(default\s+)?(function|const|class)\s+\K\w+' "$PROJECT_ROOT/$f" 2>/dev/null | head -5 || true)
+                    exports=$(grep -E 'export[[:space:]]+(default[[:space:]]+)?(function|const|class)[[:space:]]+[a-zA-Z_]' "$PROJECT_ROOT/$f" 2>/dev/null \
+                        | sed -E 's/.*(function|const|class)[[:space:]]+//' \
+                        | sed 's/[^a-zA-Z0-9_].*//' \
+                        | head -5 || true)
                     [[ -n "$exports" ]] && echo "$exports" | while read -r ex; do echo "  - \`$ex\`"; done
                     ;;
             esac
