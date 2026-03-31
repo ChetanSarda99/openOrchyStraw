@@ -188,42 +188,31 @@ BUG-013 (README Bash version) is non-blocking — quick fix before or after tag.
 - Backend shipped agents.conf v3 parser (7-col format per COST-001 ADR). 7 new tests (11-17), 18/18 pass.
 - BUG-012 FULLY RESOLVED: all 9 agent prompts now have PROTECTED FILES section.
 
-### PRIORITY: NEW SCRIPTS QA (Cycle 19+)
+### Done (Cycle 3)
+- ✅ 19/19 test files PASS, 40/40 single-agent tests PASS, 0 regressions
+- ✅ All 18 core modules pass `bash -n` syntax check
+- ✅ agents.conf v3 parser VERIFIED (tests 11-17 pass, backward compat confirmed)
+- ✅ WT-SEC-01 VERIFIED FIXED, CS-01 VERIFIED FIXED, SS-01 VERIFIED FIXED
+- ✅ Efficiency scripts (pre-cycle-stats, commit-summary, agent-health-report, secrets-scan) all PASS
+- ✅ BUG-019 (HIGH) FILED (#175): `grep -c ... || echo 0` → `0\n0` in pre-pm-lint.sh:168 + post-cycle-router.sh:85
+- ✅ QA-F002 (LOW): 4/6 new scripts missing `set -e`
+- ✅ Report: prompts/09-qa/reports/qa-cycle-12.md
+- Verdict: CONDITIONAL PASS — BUG-019 must be fixed before wiring scripts
 
-5 backend scripts shipped cycle 18, CTO findings fixed cycle 19. Validate them:
+### PRIORITY: NEXT QA TASKS (Cycle 4+)
 
-1. **P0: Test `scripts/pre-cycle-stats.sh`** — Run and verify:
-   - Output is valid JSON
-   - Per-agent stats are accurate (compare against manual git log)
-   - Edge case: agents with no recent commits
+1. **P0: Verify BUG-019 fix** (#175) — After 06-backend fixes `grep -c || echo 0` multiline issue in pre-pm-lint.sh and post-cycle-router.sh, verify the fix works correctly.
 
-2. **P0: Test `scripts/commit-summary.sh`** — Run and verify:
-   - Per-agent diff summary is accurate
-   - Handles empty commits gracefully
-   - CS-01 fix: confirm no `grep -oP` (GNU-only) remains
+2. **P0: Test SWE-bench scaffold** — Backend shipped `scripts/benchmark/` (7 files + Python bridge). Validate:
+   - `run-benchmark.sh` dry-run mode works
+   - `lib/cost-estimator.sh` produces valid estimates
+   - `custom/tasks.jsonl` has valid JSONL format
+   - `swebench/scaffold.py` syntax + basic functionality check
+   - Security: repo URL validation, test command whitelist, path traversal guards
 
-3. **P0: Test `scripts/agent-health-report.sh`** — Run and verify:
-   - Efficiency matrix produces valid output
-   - Idle/overloaded detection works correctly
+3. **P1: Remaining efficiency script validation** — Verify post-cycle-router.sh and pre-pm-lint.sh integration after BUG-019 fix.
 
-4. **P1: Test `scripts/secrets-scan.sh`** — Run and verify:
-   - Detects planted test secrets
-   - Clean on actual repo (confirmed by backend)
-   - SS-01 fix: confirm no Perl regex (`\s`, `\x27`) remains
-
-5. **P1: Test `scripts/post-cycle-router.sh`** — Run and verify:
-   - Dynamic router interval adjustment works
-   - State persistence across runs
-
-6. **P1: Test pre-pm-lint.sh integration** — Run `bash scripts/pre-pm-lint.sh 1` and verify:
-   - Output is valid markdown
-   - LINT-01–04 fixes: `set -e`, branch-scoped queries, conf file check
-   - QUIET CYCLE verdict triggers correctly when no commits exist
-
-7. **P1: Run full test suite** — All 19+ test files, verify zero regressions
-8. **P1: Verify WT-SEC-01 fix** — Path traversal validation in `orch_worktree_merge()`
-9. **P1: Verify agents.conf v3 parser** — 7-col format (COST-001 ADR). Run tests 11-17, check backward compat with v1/v2/v2+ formats.
-10. **P0: Test single-agent.sh** — Backend shipped #10 (cycle 2). Run `tests/core/test-single-agent.sh` (40 tests). Verify: auto-detect mode, explicit agent selection, module skip/keep, cycle tracking, status reporting. Full suite: 19/19 expected.
+4. **P1: Run full test suite** — 19/19 test files, verify zero regressions after any new changes.
 
 ---
 

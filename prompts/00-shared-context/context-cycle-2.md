@@ -1,58 +1,49 @@
-# Shared Context — Cycle 2 — 2026-03-29 15:40:16
+# Shared Context — Cycle 2 — 2026-03-30 20:19:26
 > Agents: read before starting, append before finishing.
 
 ## Usage
 - API status: 0 (0=ok, 80=overage, 90+=limited)
 
 ## Progress (last cycle → this cycle)
-- Previous cycle: 1 (0 backend, 0 frontend, 4 commits)
+- Previous cycle: 2 (1 backend module, 0 frontend, 7 commits)
+- Backend shipped single-agent.sh (#10). All code work for v0.2.1 complete.
 - Build on this momentum. Don't redo what's already shipped.
 
 ## Backend Status
-- `src/core/dynamic-router.sh` — v0.2.0 Phase 1 module: dynamic agent routing + dependency-aware parallel groups
-  - `orch_router_init` — parses agents.conf v1 (5-col) and v2 (8-col) with backward compat
-  - `orch_router_groups` — topological sort into execution groups (Kahn's algorithm)
-  - `orch_router_eligible` — interval-based eligibility with fail-retry (halve) + empty-backoff (double)
-  - `orch_router_has_cycle` — circular dependency detection
-  - `orch_router_update` — adjusts effective intervals based on agent outcome
-  - `orch_router_force_agent` — PM override to force-run any agent
-  - `orch_router_save_state` / `orch_router_load_state` — persist/restore router state across cycles
-- `tests/core/test-dynamic-router.sh` — 26 tests, ALL PASS
-- Full suite: 12/12 pass (11 existing + 1 new), zero regressions
-- NEXT: #40 review-phase.sh (Phase 2, after Phase 1 stable) + CS integration of v0.2.0 modules
+- `src/core/single-agent.sh` — #10 single-agent mode DONE (cycle 2): Ralph-compatible runner, 40 tests ALL PASS
+- Full test suite: 19/19 PASS (17 unit + 1 integration + runner), zero regressions
+- INTEGRATION-GUIDE.md Step 14: single-agent wiring instructions for CS
+- CS NEEDED: Wire `single` subcommand into auto-agent.sh
+- Next backend priority: SWE-bench scaffold (#4)
+
+## CTO Pending Reviews
+- P0: single-agent.sh — architecture review needed
+- P0: agents.conf v3 parser — still pending from cycle 20
+- P1: Verify CTO finding fixes (SS-01, CS-01, LINT-01–04)
+
+## QA Pending
+- P0: Test single-agent.sh (40 tests)
+- P0-P1: Test 5 efficiency scripts (pre-cycle-stats, commit-summary, agent-health-report, secrets-scan, post-cycle-router)
+
+## Security Pending
+- P0: Review single-agent.sh for command injection, ownership enforcement
+- P1: Review 5 backend scripts, verify SS-01/CS-01 fixes
 
 ## iOS Status
-- (fresh cycle)
+- (not started)
 
 ## Design Status
-- 08-Pixel: STANDBY — Phase 1 complete (emitter + tests + integration guide). Waiting for v0.2.0 activation per CEO order. No changes this cycle.
-- 11-Web: GitHub Pages deployment configured. Workflow at `.github/workflows/deploy-site.yml`. Pages enabled at https://chetansarda99.github.io/openOrchyStraw/. `basePath: "/openOrchyStraw"` added to next.config.ts. Build verified. Deploy will trigger on next push to main touching `site/`.
-- [CTO] 4 v0.2.0 ADRs written and approved:
-  - EXEC-001: Dependency graph execution + dynamic routing (#41, #43)
-  - REVIEW-001: Loop review & critique phase (#40)
-  - WORKTREE-001: Git worktree isolation per agent (#44, deferred to Phase 2+)
-  - MODEL-001: Model tiering per agent (#46, 40-60% cost savings)
-- [CTO] SMART-CYCLE-DESIGN.md (06-backend) APPROVED — 3 open questions answered:
-  - Router state → `.orchystraw/` (gitignored, ephemeral)
-  - Reviews are advisory only (never block merge)
-  - No agent cap per group (cost control via usage guard, not topology)
-- [CTO] Tech registry updated: 10 domain decisions total (5 LOCKED + 5 APPROVED)
-- [CTO] agents.conf v2 format approved: columns 6-8 (priority, depends_on, reviews), column 9 (model). Backward compatible.
+- (no changes)
 
 ## QA Findings
-- [CTO] BUG-012 expanded: 8 prompts missing PROTECTED FILES (was 3). Missing from: 01-ceo, 03-pm, 04-tauri-rust, 05-tauri-ui, 07-ios, 10-security, 12-brand, 13-hr
-
-## PM Coordination — Cycle 9
-- ✅ Committed cycle 2 agent work: backend (dynamic-router.sh + tests), web (.github/ deploy workflow), CTO (registry update)
-- ✅ Updated all 8 agent prompts: backend → Phase 2 tasks, CTO → review router, web → verify deploy, QA/Security → review router
-- ✅ Session tracker updated with cycle 9 history
-- ✅ CS action items updated: v0.2.0 integration tasks added (3 modules need CS to source in auto-agent.sh)
-- Next cycle priorities: CS tags v0.1.0, CS integrates v0.2.0 modules, backend starts Phase 2 (#40 review-phase.sh)
+- (pending — QA had no output this cycle)
 
 ## Blockers
-- (none)
+- v0.2.0 integration STILL blocked on CS (3 modules + 5 scripts + single subcommand)
+- 11-web BLOCKED on CS (Mintlify GitHub connection)
 
 ## Notes
-- [CTO] v0.2.0 implementation order: Phase 1 = EXEC-001 (dynamic-router.sh) → Phase 2 = REVIEW-001 (review-phase.sh) → Phase 2+ = WORKTREE-001. MODEL-001 can ship independently.
-- [CTO] 06-backend: dynamic-router.sh already built and tested (26 tests PASS) — EXEC-001 ADR codifies the architecture. Next: CS integrates into auto-agent.sh.
-- [CTO] Backend's dynamic-router.sh matches EXEC-001 spec — CTO pre-approves the implementation.
+- 08-pixel: tiny output (84 bytes) — may have failed silently. HR to investigate.
+- 10-security: 1 error in log — HR to investigate.
+- 03-pm: Updated all 9 agent prompts. CTO/QA/Security assigned single-agent.sh reviews.
+- 03-pm: CS action item added for single subcommand wiring.
