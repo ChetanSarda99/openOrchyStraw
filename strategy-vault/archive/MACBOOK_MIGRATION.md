@@ -21,7 +21,7 @@
 
 - [ ] All changes committed and pushed to GitHub
 - [ ] `.env` values documented somewhere safe (NOT in git)
-- [ ] Supabase project credentials saved: project ID `mmdbizllhnmeiimvkrtf`, region `us-east-1`
+- [ ] Supabase project credentials saved: project ID `<your-project-ref>`, region `us-east-1`
 - [ ] Figma file URL saved: `https://www.figma.com/design/ldM6tmXgUiSGZuaGX3dMiy/Untitled?node-id=0-1`
 - [ ] This document is in the repo (`docs/MACBOOK_MIGRATION.md`)
 
@@ -108,7 +108,7 @@ PORT=3000
 NODE_ENV=development
 
 # Supabase
-SUPABASE_URL=https://mmdbizllhnmeiimvkrtf.supabase.co
+SUPABASE_URL=https://<your-project-ref>.supabase.co
 SUPABASE_ANON_KEY=<get from Supabase dashboard → Settings → API>
 SUPABASE_SERVICE_ROLE_KEY=<get from Supabase dashboard → Settings → API>
 
@@ -201,7 +201,7 @@ In Xcode: File → Add Package Dependencies
 Edit `ios/Memo/Utilities/Constants.swift`:
 ```swift
 enum Constants {
-    static let supabaseURL = "https://mmdbizllhnmeiimvkrtf.supabase.co"
+    static let supabaseURL = "https://<your-project-ref>.supabase.co"
     static let supabaseAnonKey = "<your-anon-key>"
     static let apiBaseURL = "http://localhost:3000"  // For simulator
 }
@@ -265,7 +265,7 @@ npx prisma db seed
 | Sources CRUD API | NOT built | No routes/controllers — #12 open |
 | Design system | Extracted | Tokens extracted from Figma, needs SwiftUI implementation |
 | UI components | NOT built | #32 was blocked on Figma, now unblocked |
-| Supabase project | Active | mmdbizllhnmeiimvkrtf, us-east-1, no public tables yet |
+| Supabase project | Active | <your-project-ref>, us-east-1, no public tables yet |
 | Figma designs | Done | 5 screens: Search, Login, Capture, Settings, Categories |
 | Docker Compose | Done | PostgreSQL (pgvector) + Redis |
 | CI/CD | Done | GitHub Actions |
