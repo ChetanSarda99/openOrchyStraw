@@ -130,12 +130,17 @@ All 8 v0.2.0+ modules reviewed. 0 HIGH, 0 CRITICAL. Report: `prompts/10-security
 7. ~~**v0.2.0 security review — differential-context.sh**~~ — DONE (cycle 10). APPROVED. DC-SEC-01 INFO (fail-open design).
 8. ~~**v0.2.0 security review — session-tracker.sh**~~ — DONE (cycle 10). APPROVED.
 
+### Cycle 19 Updates
+- Backend FIXED SS-01 MEDIUM (Perl regex → POSIX classes in secrets-scan.sh)
+- Backend FIXED CS-01 LOW (GNU grep → POSIX pipeline in commit-summary.sh)
+- Backend FIXED LINT-01–04 (pre-pm-lint.sh hardened)
+
 ### Next Security Priorities
-9. **P1: Review 5 new backend scripts** — CTO approved all 5 but found SS-01 MEDIUM (dead regex in secrets-scan.sh). Verify fix when applied:
+9. **P1: Review 5 backend scripts + verify CTO finding fixes** — SS-01 and CS-01 claimed FIXED. Verify:
+   - `scripts/secrets-scan.sh` — SS-01 FIX: confirm no Perl regex (`\s`, `\x27`) remains
+   - `scripts/commit-summary.sh` — CS-01 FIX: confirm no `grep -oP` (GNU-only) remains
    - `scripts/pre-cycle-stats.sh` — reads git/gh data, outputs JSON
-   - `scripts/commit-summary.sh` — reads git diffs. CS-01 LOW: GNU grep portability.
    - `scripts/agent-health-report.sh` — reads cycle data
-   - `scripts/secrets-scan.sh` — SS-01 MEDIUM: Perl regex dead code
    - `scripts/post-cycle-router.sh` — calls dynamic-router state functions
 10. **P1: Verify WT-SEC-01 fix** — Path traversal validation added to `orch_worktree_merge()`. Confirm fix is sufficient.
 11. **DR-SEC-02 integration note** — CS must quote `orch_router_model` output when integrating into auto-agent.sh.

@@ -149,11 +149,14 @@ All P0 and P1 tasks from the efficiency sprint are DONE:
 - ✅ 5 new backend scripts reviewed (1 MEDIUM, 1 LOW)
 - ✅ auto-agent.sh v0.2 wiring reviewed
 
+### Done (Cycle 19)
+- ✅ Backend FIXED all 6 CTO findings: SS-01, CS-01, LINT-01–04. 18/18 tests pass, zero regressions.
+
 ### NEXT PRIORITIES
 
-1. **P1: Review agents.conf v3 parser** — When backend implements COST-001 format (7 columns), review for correctness + backward compat.
+1. **P1: Verify CTO finding fixes** — SS-01, CS-01, LINT-01–04 all claimed fixed by backend (cycle 19). Spot-check the code changes.
 
-2. **P1: Review CTO finding fixes** — Backend assigned SS-01, CS-01, LINT-01–04. Review when fixed.
+2. **P1: Review agents.conf v3 parser** — When backend implements COST-001 format (7 columns), review for correctness + backward compat.
 
 3. **P2: Write WORKTREE-002 ADR** — Module-based approach doc (low priority)
 
