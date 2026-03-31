@@ -7,18 +7,21 @@ logs/
 *.log
 
 # Backups
-prompts/00-backup/*.md
+prompts/00-backup/
 
 # Lock files
 .orchystraw.lock
 
-# Node (if tooling added later)
+# Node
 node_modules/
+
+# Site build artifacts
+site/.next/
+site/out/
+
 # Private runtime data
 prompts/*/logs/
-prompts/00-backup/
 .orchystraw/
-node_modules/
 
 # Secrets & credentials
 .env
