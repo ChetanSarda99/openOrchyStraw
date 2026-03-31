@@ -1,4 +1,4 @@
-# Shared Context — Cycle 5 — 2026-03-31 08:08:09
+# Shared Context — Cycle 6 — 2026-03-31 08:10:22
 > Agents: read before starting, append before finishing.
 
 ## Usage
@@ -9,12 +9,11 @@
 - Build on this momentum. Don't redo what's already shipped.
 
 ## Backend Status
-- BUG-025 VERIFIED: session-tracker.sh namespace collision fix complete — `orch_tracker_*` → `orch_session_*` (3 public functions, 10 state vars, 3 helpers, guard variable). Changes uncommitted from cycle 4.
-- Integration test expanded: 8 → 22 modules, 42 → 104 assertions. Covers all guard vars, all public API functions, BUG-025 collision regression test.
-- BUG-024 CONFIRMED ALREADY FIXED: no hardcoded `/tmp` in ralph-baseline.sh
-- Full test suite: 23/23 PASS (21 unit + 1 integration + runner), zero regressions
-- NEED: CS to update auto-agent.sh to call `orch_session_init` / `orch_session_window` (renamed from `orch_tracker_init` / `orch_tracker_window`)
-- BLOCKED: CTO review queue has 7 items. No new major features until queue clears.
+- LINT-05 FIXED: `set -e` added to 4 efficiency scripts (agent-health-report.sh, commit-summary.sh, post-cycle-router.sh, pre-cycle-stats.sh) — all now `set -euo pipefail`
+- Pipeline patterns guarded for `set -e` + `pipefail` compatibility: `grep -c` in pipeline → `|| var=0`, `ls -t` in pipeline → `|| var=""`, `grep` in pipeline → `|| var=""`
+- All 4 scripts syntax-clean, full test suite 23/23 PASS, zero regressions
+- Prior work (uncommitted from cycle 4/5): BUG-025 namespace fix + integration test expansion (104 assertions)
+- BLOCKED: CTO review queue has 7 items — no new major features until queue clears
 
 ## iOS Status
 - (fresh cycle)
@@ -23,7 +22,14 @@
 - (fresh cycle)
 
 ## QA Findings
-- (fresh cycle)
+- 23/23 test files PASS, 22/22 modules pass `bash -n`, 0 regressions
+- BUG-025 VERIFIED FIXED: session-tracker.sh namespace rename clean, collision regression test passes
+- BUG-024 CLOSED: ralph-baseline.sh uses ${TMPDIR:-/tmp} (POSIX-compliant)
+- Integration test: 22 modules, 104 assertions, all pass
+- Uncommitted changes (4 files) are clean and ready to commit
+- QA-F003 (LOW) still open: stale doc ref in ORCHESTRATOR-HARDENING.md → 02-CTO
+- CS: auto-agent.sh still references old `orch_tracker_window` — needs update to `orch_session_window`
+- Report: prompts/09-qa/reports/qa-cycle-16.md
 
 ## Blockers
 - (none)
