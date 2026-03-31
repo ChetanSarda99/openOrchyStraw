@@ -1,43 +1,29 @@
-# Shared Context — Cycle 5 — 2026-03-29 16:20:17
+# Shared Context — Cycle 5 — 2026-03-31 08:08:09
 > Agents: read before starting, append before finishing.
 
 ## Usage
 - API status: 0 (0=ok, 80=overage, 90+=limited)
 
 ## Progress (last cycle → this cycle)
-- Previous cycle: 4 (0 backend, 0 frontend, 2 commits)
+- Previous cycle: 1 (0 backend, 0 frontend, 0 commits)
 - Build on this momentum. Don't redo what's already shipped.
 
 ## Backend Status
-- BUG-017 FIXED: `printf` leading-dash in review-phase.sh — added `--` to format strings starting with `-`
-- RP-01 FIXED: verdict validation in orch_review_record — rejects invalid verdicts (only approve|request-changes|comment)
-- RP-02 FIXED: orch_review_summary now outputs `**Summary:**` field (ALL CLEAR / NEEDS ATTENTION / No reviews)
-- RP-03 FIXED: I/O error checks on mkdir + file writes in orch_review_record and orch_router_save_state
-- RP-04 FIXED: path traversal rejection in orch_review_record + orch_review_context (rejects `..` in agent IDs)
-- DR-01 FIXED: orch_router_load_state validates numeric fields — corrupted state rows are skipped
-- DR-02 FIXED: orch_router_save_state checks mkdir return code + file write errors
-- Tests: review-phase 36 pass (was 24), dynamic-router 41 pass (was 39). Full suite 13/13 PASS, zero regressions.
-- READY for CTO re-review of review-phase.sh — all CTO findings addressed
+- BUG-025 VERIFIED: session-tracker.sh namespace collision fix complete — `orch_tracker_*` → `orch_session_*` (3 public functions, 10 state vars, 3 helpers, guard variable). Changes uncommitted from cycle 4.
+- Integration test expanded: 8 → 22 modules, 42 → 104 assertions. Covers all guard vars, all public API functions, BUG-025 collision regression test.
+- BUG-024 CONFIRMED ALREADY FIXED: no hardcoded `/tmp` in ralph-baseline.sh
+- Full test suite: 23/23 PASS (21 unit + 1 integration + runner), zero regressions
+- NEED: CS to update auto-agent.sh to call `orch_session_init` / `orch_session_window` (renamed from `orch_tracker_init` / `orch_tracker_window`)
+- BLOCKED: CTO review queue has 7 items. No new major features until queue clears.
 
 ## iOS Status
 - (fresh cycle)
 
 ## Design Status
-- 11-web: STANDBY — no new site work this cycle
-- Build verified clean (Next.js 16.2, static export, basePath /openOrchyStraw/)
-- Deploy workflow ready — will auto-trigger on next main merge touching site/
-- Phase 2 (docs site) ready to start once deploy confirmed live
+- (fresh cycle)
 
 ## QA Findings
 - (fresh cycle)
-
-## Security Status
-- Cycle 9 audit: CONDITIONAL PASS — `prompts/10-security/reports/security-cycle-9.md`
-- **dynamic-router.sh:** APPROVED with 2 findings (DR-SEC-01 LOW, DR-SEC-02 MEDIUM)
-- DR-SEC-02: model override pass-through — CS must quote `orch_router_model` output when integrating into auto-agent.sh
-- **review-phase.sh:** DEFERRED per CTO HOLD. Preliminary: RP-SEC-01 MEDIUM (path traversal in review dir — aligns with RP-04)
-- **config-validator.sh v2+:** SECURE — no findings
-- Secrets scan: CLEAN. .gitignore: PASS. Supply chain: PASS. Ownership: PASS
 
 ## Blockers
 - (none)
