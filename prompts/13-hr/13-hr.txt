@@ -317,10 +317,16 @@ When advising PM on new agent prompts, ensure they follow this structure:
 - [x] 09-qa: QA cycle 13 — BUG-019 VERIFIED CLOSED, qmd-refresher QA PASS, SWE-bench CONDITIONAL PASS (BUG-020–023)
 - [x] CTO review queue now at 5 items (single-agent, v3 parser, SWE-bench, qmd-refresher, prompt-template)
 
-### Current (Cycle 4+ — v0.2 Integration + Benchmarks)
+### Done (Cycle 4)
+- [x] 06-backend: 20th consecutive cycle as team MVP — BUG-020/021/022/023 ALL FIXED, SWE-bench security-hardened
+- [x] All 4 SWE-bench bug issues CLOSED (#176, #177, #178, #179)
+- [x] 21/21 tests pass, zero regressions
+- [x] Team healthy: 9 agents active, zero conflicts
+
+### Current (Cycle 5+ — v0.2 Integration + Benchmarks)
 - [ ] Monitor v0.2.0 integration progress (CS must integrate 3 remaining modules: dynamic-router, review-phase, worktree)
-- [ ] Monitor new scripts integration (CS must wire 5 scripts + single-agent + qmd-refresher into auto-agent.sh)
+- [ ] Monitor new scripts integration (CS must wire 5 scripts + single-agent + qmd-refresher + prompt-template into auto-agent.sh)
 - [ ] Monitor CTO review queue: 5 pending reviews (single-agent, v3 parser, SWE-bench scaffold, qmd-refresher, prompt-template)
 - [ ] Recommend reactivating 04-tauri-rust + 05-tauri-ui after benchmark sprint
 - [ ] Post-benchmark: prepare onboarding for 04-tauri-rust + 05-tauri-ui reactivation
-- [ ] Next team health review: Cycle 4
+- [ ] Next team health review: Cycle 5

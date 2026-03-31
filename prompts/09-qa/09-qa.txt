@@ -210,7 +210,10 @@ BUG-013 (README Bash version) is non-blocking — quick fix before or after tag.
 - ✅ 20/20 test files PASS, 0 regressions
 - ✅ Report: `prompts/09-qa/reports/qa-cycle-13.md`
 
-### PRIORITY: NEXT QA TASKS (Cycle 4+)
+### Cycle 4 Updates
+- Backend FIXED all 4 SWE-bench bugs: BUG-020 (#176), BUG-021 (#177), BUG-022 (#178), BUG-023 (#179). All issues CLOSED. 21/21 tests pass.
+
+### PRIORITY: NEXT QA TASKS (Cycle 5+)
 
 1. **P0: Test prompt-template.sh** — Backend DONE (cycle 3). `src/core/prompt-template.sh` — #54 prompt template inheritance, 8 public functions, 49 tests. Validate:
    - 49/49 tests pass independently
@@ -219,7 +222,11 @@ BUG-013 (README Bash version) is non-blocking — quick fix before or after tag.
    - Full test suite still 21/21 PASS
    - No regressions in existing modules
 
-2. **P0: Verify SWE-bench bug fixes** — When backend fixes BUG-020/021/022/023, verify each fix individually.
+2. **P0: Verify SWE-bench bug fixes (BUG-020/021/022/023)** — Backend claims FIXED (cycle 4). Verify each fix individually:
+   - BUG-020: URL validation rejects `..` path traversal
+   - BUG-021: test_command whitelist no longer bypassable
+   - BUG-022: no hardcoded /tmp paths remain
+   - BUG-023: jq empty validation works on malformed JSON
 
 3. **P1: Run full test suite** — 21/21 test files, verify zero regressions after any new changes.
 

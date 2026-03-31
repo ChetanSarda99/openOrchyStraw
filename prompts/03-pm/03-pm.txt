@@ -250,6 +250,7 @@ Use the **Edit tool** to modify ONLY:
 - [ ] CS must wire `single` subcommand into auto-agent.sh (INTEGRATION-GUIDE Step 14)
 - [ ] CS must wire qmd-refresher into auto-agent.sh (INTEGRATION-GUIDE Step 15)
 - [ ] CS must wire prompt-template into auto-agent.sh (INTEGRATION-GUIDE Step 17)
+- [x] BUG-020/021/022/023 ALL FIXED (cycle 4) — SWE-bench security-hardened, issues CLOSED
 - [ ] CTO must review v3 parser + single-agent.sh + SWE-bench scaffold + qmd-refresher.sh + prompt-template.sh + verify finding fixes
 
 ### v0.3.0 — Token Optimization + Smart Provisioning (mostly complete)
@@ -260,8 +261,8 @@ Use the **Edit tool** to modify ONLY:
 - [ ] #50 Progressive task decomposition
 - [ ] #45 auto-agent.sh init
 
-### v0.4.0 — Benchmarks (scaffold done, runs pending)
-- [x] #4 SWE-bench scaffold — DONE (cycle 3). `scripts/benchmark/` exists. Needs CTO review + first real benchmark run.
+### v0.4.0 — Benchmarks (scaffold done, bugs fixed, runs pending)
+- [x] #4 SWE-bench scaffold — DONE (cycle 3). `scripts/benchmark/` exists. BUG-020/021/022/023 ALL FIXED (cycle 4, issues CLOSED). Needs CTO review + first real benchmark run.
 - [ ] #5 Ralph Loop comparison — depends on scaffold review
 - [ ] #6 FeatureBench evaluation
 
