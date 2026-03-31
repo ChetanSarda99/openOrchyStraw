@@ -188,7 +188,7 @@ BUG-013 (README Bash version) is non-blocking — quick fix before or after tag.
 - Backend shipped agents.conf v3 parser (7-col format per COST-001 ADR). 7 new tests (11-17), 18/18 pass.
 - BUG-012 FULLY RESOLVED: all 9 agent prompts now have PROTECTED FILES section.
 
-### Done (Cycle 3)
+### Done (Cycle 3 — session 1)
 - ✅ 19/19 test files PASS, 40/40 single-agent tests PASS, 0 regressions
 - ✅ All 18 core modules pass `bash -n` syntax check
 - ✅ agents.conf v3 parser VERIFIED (tests 11-17 pass, backward compat confirmed)
@@ -199,29 +199,31 @@ BUG-013 (README Bash version) is non-blocking — quick fix before or after tag.
 - ✅ Report: prompts/09-qa/reports/qa-cycle-12.md
 - Verdict: CONDITIONAL PASS — BUG-019 must be fixed before wiring scripts
 
-### Cycle 2 Updates
-- Backend shipped `qmd-refresher.sh` (#53) — QMD auto-refresh module, 17 tests, 20/20 suite pass. Needs QA review.
+### Done (Cycle 3 — current)
+- ✅ **BUG-019 (#175) VERIFIED FIXED** — all 8 grep-c instances correct pattern. CLOSED.
+- ✅ **qmd-refresher.sh (#53) QA PASS** — 17/17 tests, zero injection risks, proper guards
+- ✅ **SWE-bench scaffold CONDITIONAL PASS** — 4 new bugs filed:
+  - BUG-020 (#176) HIGH: URL validation allows `..` in org/repo names
+  - BUG-021 (#177) HIGH: test_command whitelist bypassable via argument injection
+  - BUG-022 (#178) MEDIUM: hardcoded /tmp paths, no mktemp
+  - BUG-023 (#179) MEDIUM: jq parsing lacks malformed JSON handling
+- ✅ 20/20 test files PASS, 0 regressions
+- ✅ Report: `prompts/09-qa/reports/qa-cycle-13.md`
 
-### PRIORITY: NEXT QA TASKS (Cycle 3+)
+### PRIORITY: NEXT QA TASKS (Cycle 4+)
 
-1. **P0: Verify BUG-019 fix** (#175) — Backend FIXED `grep -c || echo 0` → `var=$(grep -c ...) || var=0` in 7 locations across 4 scripts. Verify the fix works correctly: run pre-pm-lint.sh and post-cycle-router.sh with zero-match scenarios. **STILL PENDING — carry forward.**
-
-2. **P0: Test SWE-bench scaffold** — Backend shipped `scripts/benchmark/` (7 files + Python bridge). Validate:
-   - `run-benchmark.sh` dry-run mode works
-   - `lib/cost-estimator.sh` produces valid estimates
-   - `custom/tasks.jsonl` has valid JSONL format
-   - `swebench/scaffold.py` syntax + basic functionality check
-   - Security: repo URL validation, test command whitelist, path traversal guards
-
-3. **P0: Test qmd-refresher.sh** — Backend shipped `src/core/qmd-refresher.sh` (cycle 2). Validate:
-   - 17/17 tests pass independently
-   - State tracking in .orchystraw/ works correctly
-   - Full test suite still 20/20 PASS
+1. **P0: Test prompt-template.sh** — Backend DONE (cycle 3). `src/core/prompt-template.sh` — #54 prompt template inheritance, 8 public functions, 49 tests. Validate:
+   - 49/49 tests pass independently
+   - Path traversal protection works (include directives)
+   - Max include depth guard prevents infinite loops
+   - Full test suite still 21/21 PASS
    - No regressions in existing modules
 
-4. **P1: Remaining efficiency script validation** — Verify post-cycle-router.sh and pre-pm-lint.sh integration after BUG-019 fix.
+2. **P0: Verify SWE-bench bug fixes** — When backend fixes BUG-020/021/022/023, verify each fix individually.
 
-5. **P1: Run full test suite** — 20/20 test files, verify zero regressions after any new changes.
+3. **P1: Run full test suite** — 21/21 test files, verify zero regressions after any new changes.
+
+4. **P1: Remaining efficiency script validation** — Verify post-cycle-router.sh and pre-pm-lint.sh integration after BUG-019 fix.
 
 ---
 
