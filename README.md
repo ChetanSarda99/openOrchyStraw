@@ -69,7 +69,7 @@ Active root scaffold remains in the main repository root.
 
 ## Requirements
 
-- Bash 5+
+- Bash 5+ (macOS: `brew install bash`, then use `/opt/homebrew/bin/bash` or add to PATH)
 - Git
 - An AI CLI that accepts a prompt: `claude -p`, `codex`, `gemini`, `aider`, etc.
 
