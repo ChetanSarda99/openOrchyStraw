@@ -872,7 +872,8 @@ PEOF
             current_time=$(date '+%H:%M')
 
             # Escape sed special chars in variables
-            local _safe_date _safe_time _safe_bsrc _safe_tc _safe_ts _safe_sw _safe_comp _safe_total
+            # Variable declarations (not local — this runs at top level)
+            _safe_date="" _safe_time="" _safe_bsrc="" _safe_tc="" _safe_ts="" _safe_sw="" _safe_comp="" _safe_total=""
             _safe_date=$(printf '%s\n' "$current_date" | sed 's/[|&]/\\&/g')
             _safe_time=$(printf '%s\n' "$current_time" | sed 's/[|&]/\\&/g')
             _safe_bsrc=$(printf '%s\n' "$backend_src" | sed 's/[|&]/\\&/g')

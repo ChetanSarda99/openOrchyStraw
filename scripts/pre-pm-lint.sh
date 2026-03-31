@@ -82,8 +82,8 @@ echo ""
 
 if [ -f "$CONTEXT_FILE" ]; then
     context_lines=$(wc -l < "$CONTEXT_FILE")
-    fresh_entries=$(grep -c "^- " "$CONTEXT_FILE" 2>/dev/null || echo 0)
-    fresh_cycle=$(grep -c "(fresh cycle)" "$CONTEXT_FILE" 2>/dev/null || echo 0)
+    fresh_entries=$(grep -c "^- " "$CONTEXT_FILE" 2>/dev/null) || fresh_entries=0
+    fresh_cycle=$(grep -c "(fresh cycle)" "$CONTEXT_FILE" 2>/dev/null) || fresh_cycle=0
 
     echo "- Context file: $context_lines lines, $fresh_entries entries"
     if [[ "$fresh_cycle" -gt 3 ]]; then
@@ -113,8 +113,8 @@ for id in "${AGENT_IDS[@]}"; do
 
     if [ -f "$pf" ]; then
         lines=$(wc -l < "$pf")
-        has_tasks=$(grep -c -i "YOUR.*TASK\|NEXT.*TASK\|Current Tasks" "$pf" 2>/dev/null || echo 0)
-        has_ownership=$(grep -c -i "File Ownership\|YOU MAY WRITE\|ownership" "$pf" 2>/dev/null || echo 0)
+        has_tasks=$(grep -c -i "YOUR.*TASK\|NEXT.*TASK\|Current Tasks" "$pf" 2>/dev/null) || has_tasks=0
+        has_ownership=$(grep -c -i "File Ownership\|YOU MAY WRITE\|ownership" "$pf" 2>/dev/null) || has_ownership=0
 
         status="OK"
         [[ "$lines" -lt 50 ]] && status="SHORT"
@@ -165,7 +165,7 @@ for id in "${AGENT_IDS[@]}"; do
         had_issues=true
     fi
 
-    errors=$(grep -c -i "error\|exception\|fatal\|panic" "$latest_log" 2>/dev/null || echo 0)
+    errors=$(grep -c -i "error\|exception\|fatal\|panic" "$latest_log" 2>/dev/null) || errors=0
     if [[ "$errors" -gt 0 ]]; then
         echo "- **$id**: $errors error(s) in log"
         had_issues=true
@@ -183,7 +183,7 @@ echo ""
 
 actions_file="$PROMPTS_DIR/99-me/99-actions.txt"
 if [ -f "$actions_file" ]; then
-    pending=$(grep -c "^### P0\|^### P1" "$actions_file" 2>/dev/null || echo 0)
+    pending=$(grep -c "^### P0\|^### P1" "$actions_file" 2>/dev/null) || pending=0
     if [[ "$pending" -gt 0 ]]; then
         echo "- **$pending P0/P1 blockers** in 99-actions.txt — check before next cycle"
         grep "^### P0\|^### P1" "$actions_file" 2>/dev/null | while read -r line; do
