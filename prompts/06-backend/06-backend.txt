@@ -225,13 +225,18 @@ Only non-blocking item: BUG-013 (README says "Bash 4+" should be "Bash 5+").
 - ✅ Security: repo URL validation, test command whitelist, path traversal protection
 - ✅ Full test suite: 19/19 PASS, zero regressions
 
-### NEXT PRIORITIES (Cycle 4+)
+### Done (Cycle 1 — session 3)
+- ✅ BUG-019 FIXED (#175): `grep -c ... || echo 0` → `var=$(grep -c ...) || var=0` in 7 locations across 4 scripts (pre-pm-lint.sh, post-cycle-router.sh, run-benchmark.sh, compare-ralph.sh)
+- ✅ Full test suite: 19/19 PASS, zero regressions
+- ✅ Script wiring NOW UNBLOCKED for CS
 
-1. **P0: Fix BUG-019** (#175) — `grep -c ... || echo 0` produces `0\n0` in `pre-pm-lint.sh:168` + `post-cycle-router.sh:85`. Must fix before scripts are wired into auto-agent.sh. HIGH priority.
+### NEXT PRIORITIES (Cycle 2+)
 
-2. **P1: QMD auto-refresh** (#53) — Auto-refresh index each cycle
+1. **P1: QMD auto-refresh** (#53) — Auto-refresh index each cycle
 
-3. **P2: Prompt template inheritance** (#54) — Reduce prompt duplication
+2. **P2: Prompt template inheritance** (#54) — Reduce prompt duplication
+
+3. **P2: Progressive task decomposition** (#50) — Backlog one-liners (PM process, but may need tooling)
 
 ---
 

@@ -240,6 +240,7 @@ Mintlify docs scaffolded in `site/docs/` (cycle 13):
 - **ALL REMAINING WORK BLOCKED ON CS:** Mintlify GitHub connection
 - v0.2.0 ALL GATES PASS — CTO 8/8, QA 8/8, Security 6/6 APPROVED. Only CS integration remains.
 - Cycle 3: Backend shipped SWE-bench scaffold (#4). No web blockers removed.
+- Cycle 1s3: BUG-019 FIXED — no web blockers removed.
 - STANDBY until unblocked
 
 **When unblocked:**

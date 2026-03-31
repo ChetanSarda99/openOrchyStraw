@@ -158,6 +158,10 @@ All 8 v0.2.0+ modules reviewed. 0 HIGH, 0 CRITICAL. Report: `prompts/10-security
 - QA filed BUG-019 (#175): `grep -c || echo 0` multiline issue in pre-pm-lint.sh + post-cycle-router.sh
 - QA verified: SS-01 FIXED, CS-01 FIXED, WT-SEC-01 FIXED
 
+### Cycle 1 (session 3) Updates
+- Backend FIXED BUG-019: `grep -c ... || echo 0` → `var=$(grep -c ...) || var=0` in 7 locations across 4 scripts
+- Script wiring now UNBLOCKED for CS
+
 ### Next Security Priorities
 9. **P0: Review single-agent.sh** — `src/core/single-agent.sh`. Check: command injection in agent selection, config parsing safety, module skip/keep logic, ownership boundary enforcement. **STILL PENDING — carry forward.**
 10. **P0: Review SWE-bench scaffold** — NEW (cycle 3). `scripts/benchmark/` — 7 bash scripts + Python bridge. Check: repo URL validation, test command whitelist, path traversal protection, env var injection prevention. Backend claims security measures in place — verify.

@@ -33,5 +33,14 @@
 - Pending reviews: CTO (single-agent.sh + v3 parser), QA (BUG-019 verify + single-agent.sh), Security (single-agent.sh)
 - Team roster updated: `docs/team/TEAM_ROSTER.md`
 
+## PM Status
+- All 9 agent prompts updated: BUG-019 resolved, tasks carried forward
+- BUG-019 fix committed (2deb753): 7 locations across 4 scripts
+- 99-me updated: BUG-019 blocker marked RESOLVED — script wiring now UNBLOCKED for CS
+- Session tracker updated with cycle 1 session 3 entry
+- Pending CTO reviews: single-agent.sh, v3 parser, SWE-bench scaffold (all carry forward)
+- Pending QA: verify BUG-019 fix, test SWE-bench scaffold (carry forward)
+- Pending Security: review single-agent.sh, SWE-bench scaffold (carry forward)
+
 ## Notes
 - (none)
