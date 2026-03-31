@@ -41,6 +41,12 @@ CTO integration order specified in EFFICIENCY-001 + COST-001 ADRs:
 ### P0.5 — Wire Single-Agent Mode (protected file — CS only)
 - [ ] **Wire `single` subcommand into auto-agent.sh** — See INTEGRATION-GUIDE.md Step 14. `src/core/single-agent.sh` is DONE (40 tests pass). CS must add `./auto-agent.sh single <agent-id>` support.
 
+### P0.5 — BUG-019 Blocks Script Wiring (NEW — cycle 3)
+- [ ] **BUG-019 (#175): Fix `grep -c || echo 0` multiline output** — Affects `pre-pm-lint.sh:168` + `post-cycle-router.sh:85`. `grep -c` returns 0 on no match (exit code 1), `|| echo 0` appends second "0" → arithmetic fails. Backend assigned to fix. **Must be fixed before wiring scripts into auto-agent.sh.**
+
+### P0.5 — Run First Real Benchmark (NEW — cycle 3)
+- [ ] **Run SWE-bench scaffold dry-run** — Backend ported the scaffold to `scripts/benchmark/`. CS should run `bash scripts/benchmark/run-benchmark.sh --dry-run` after CTO review. This is the proof needed for HN launch.
+
 ### P1 — After v0.1.0 Tag
 - [ ] **Connect Mintlify to GitHub** — 11-Web scaffolded docs site in `site/docs/` (12 MDX pages + mint.json). CS needs to connect Mintlify for auto-deploy.
 - [ ] **Update CLAUDE.md** — Lists 11 agents and paths (src-tauri/, ios/) that don't exist yet. Align with reality.
