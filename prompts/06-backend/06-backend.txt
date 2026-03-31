@@ -230,13 +230,19 @@ Only non-blocking item: BUG-013 (README says "Bash 4+" should be "Bash 5+").
 - ✅ Full test suite: 19/19 PASS, zero regressions
 - ✅ Script wiring NOW UNBLOCKED for CS
 
-### NEXT PRIORITIES (Cycle 2+)
+### Done (Cycle 2)
+- ✅ `src/core/qmd-refresher.sh` — #53 QMD auto-refresh module DONE: 6 public functions (available, refresh, embed, auto_refresh, status, collections_exist), state tracking via .orchystraw/, configurable embed interval
+- ✅ `tests/core/test-qmd-refresher.sh` — 17 tests, ALL PASS (15 ported from legacy + 2 implicit from status output)
+- ✅ Full test suite: 20/20 PASS (18 unit + 1 integration + runner), zero regressions
+- ✅ INTEGRATION-GUIDE.md updated: Step 15 documents QMD wiring (replaces inline lines 690-703 in auto-agent.sh)
 
-1. **P1: QMD auto-refresh** (#53) — Auto-refresh index each cycle
+### NEXT PRIORITIES (Cycle 3+)
 
-2. **P2: Prompt template inheritance** (#54) — Reduce prompt duplication
+1. **P2: Prompt template inheritance** (#54) — Reduce prompt duplication across agent prompts
 
-3. **P2: Progressive task decomposition** (#50) — Backlog one-liners (PM process, but may need tooling)
+2. **P2: Progressive task decomposition** (#50) — Backlog one-liners (PM process, but may need tooling)
+
+3. **P3: auto-agent.sh init** (#45) — Project analyzer → agent blueprint
 
 ---
 

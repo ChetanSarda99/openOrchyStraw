@@ -26,5 +26,13 @@
 ## Blockers
 - (none)
 
+## PM Status
+- All 9 agent prompts updated: #53 qmd-refresher done, CTO/QA/Security review queued
+- Session tracker updated with cycle 2 entry
+- 99-me updated: qmd-refresher wiring action item added
+- Pending CTO reviews: single-agent.sh, v3 parser, SWE-bench scaffold, qmd-refresher.sh (4 items)
+- Pending QA: verify BUG-019 fix, test SWE-bench scaffold, test qmd-refresher.sh
+- Pending Security: review single-agent.sh, SWE-bench scaffold, qmd-refresher.sh
+
 ## Notes
 - (none)
