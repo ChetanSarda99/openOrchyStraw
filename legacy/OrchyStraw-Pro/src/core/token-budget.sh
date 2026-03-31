@@ -9,8 +9,8 @@
 #   source src/core/token-budget.sh
 #
 #   orch_token_budget_init 500000           # Total budget pool (tokens)
-#   orch_budget_allocate "06-backend" 3  # Allocate for 3 agents total
-#   orch_budget_get "06-backend"      # Returns allocated tokens
+#   orch_token_budget_allocate "06-backend" 3  # Allocate for 3 agents total
+#   orch_token_budget_get "06-backend"      # Returns allocated tokens
 #   orch_token_budget_record "06-backend" 45000  # Record actual usage
 #   orch_token_budget_report                # Print usage summary
 #
@@ -53,7 +53,7 @@ orch_token_budget_init() {
 }
 
 # ---------------------------------------------------------------------------
-# orch_budget_allocate — allocate tokens for an agent
+# orch_token_budget_allocate — allocate tokens for an agent
 #
 # Args:
 #   $1 — agent_id
@@ -65,7 +65,7 @@ orch_token_budget_init() {
 # Priority agents get multiplier applied.
 # Hard cap = 2x base allocation.
 # ---------------------------------------------------------------------------
-orch_budget_allocate() {
+orch_token_budget_allocate() {
     local agent_id="$1"
     local agent_count="${2:-1}"
     local priority_mult="${3:-10}"  # x10 scale: 10=1.0x, 15=1.5x, 20=2.0x
@@ -96,9 +96,9 @@ orch_budget_allocate() {
 }
 
 # ---------------------------------------------------------------------------
-# orch_budget_get — get allocated tokens for an agent
+# orch_token_budget_get — get allocated tokens for an agent
 # ---------------------------------------------------------------------------
-orch_budget_get() {
+orch_token_budget_get() {
     local agent_id="$1"
     echo "${_ORCH_BUDGET_ALLOCATED[$agent_id]:-0}"
 }
@@ -115,11 +115,11 @@ orch_token_budget_record() {
 }
 
 # ---------------------------------------------------------------------------
-# orch_budget_exceeded — check if agent exceeded its allocation
+# orch_token_budget_exceeded — check if agent exceeded its allocation
 #
 # Returns 0 (true) if exceeded, 1 (false) if within budget
 # ---------------------------------------------------------------------------
-orch_budget_exceeded() {
+orch_token_budget_exceeded() {
     local agent_id="$1"
     local allocated="${_ORCH_BUDGET_ALLOCATED[$agent_id]:-0}"
     local used="${_ORCH_BUDGET_USED[$agent_id]:-0}"
@@ -127,10 +127,10 @@ orch_budget_exceeded() {
 }
 
 # ---------------------------------------------------------------------------
-# orch_budget_save_history — save current cycle's usage as history
+# orch_token_budget_save_history — save current cycle's usage as history
 # Call this at end of cycle so next cycle can adjust allocations.
 # ---------------------------------------------------------------------------
-orch_budget_save_history() {
+orch_token_budget_save_history() {
     local agent_id
     for agent_id in "${!_ORCH_BUDGET_USED[@]}"; do
         _ORCH_BUDGET_HISTORY_USED["$agent_id"]="${_ORCH_BUDGET_USED[$agent_id]}"
@@ -141,9 +141,9 @@ orch_budget_save_history() {
 }
 
 # ---------------------------------------------------------------------------
-# orch_budget_total_used — sum of all agents' actual usage
+# orch_token_budget_total_used — sum of all agents' actual usage
 # ---------------------------------------------------------------------------
-orch_budget_total_used() {
+orch_token_budget_total_used() {
     local total=0
     local agent_id
     for agent_id in "${!_ORCH_BUDGET_USED[@]}"; do
@@ -157,7 +157,7 @@ orch_budget_total_used() {
 # ---------------------------------------------------------------------------
 orch_token_budget_report() {
     local total_used
-    total_used=$(orch_budget_total_used)
+    total_used=$(orch_token_budget_total_used)
     local pct=0
     [[ $_ORCH_BUDGET_TOTAL -gt 0 ]] && pct=$(( total_used * 100 / _ORCH_BUDGET_TOTAL ))
 
@@ -180,7 +180,7 @@ orch_token_budget_report() {
 }
 
 # ---------------------------------------------------------------------------
-# orch_budget_to_max_tokens — convert token budget to --max-tokens CLI flag
+# orch_token_budget_to_max_tokens — convert token budget to --max-tokens CLI flag
 #
 # Returns a reasonable --max-tokens value based on allocation.
 # Output tokens are typically ~30% of total tokens for an agent invocation
@@ -189,7 +189,7 @@ orch_token_budget_report() {
 # Args: $1 — agent_id
 # Returns: suggested max output tokens
 # ---------------------------------------------------------------------------
-orch_budget_to_max_tokens() {
+orch_token_budget_to_max_tokens() {
     local agent_id="$1"
     local allocated="${_ORCH_BUDGET_ALLOCATED[$agent_id]:-100000}"
     # Output is ~30% of total budget, with a floor of 4096

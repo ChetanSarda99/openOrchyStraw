@@ -202,7 +202,7 @@ assert "orch_max_cycles_get exists"          declare -f orch_max_cycles_get
 assert "orch_check_usage exists"             declare -f orch_check_usage
 assert "orch_should_pause exists"            declare -f orch_should_pause
 assert "orch_token_budget_init exists"       declare -f orch_token_budget_init
-assert "orch_budget_allocate exists"         declare -f orch_budget_allocate
+assert "orch_token_budget_allocate exists"   declare -f orch_token_budget_allocate
 assert "orch_token_budget_report exists"     declare -f orch_token_budget_report
 assert "orch_select_tasks exists"            declare -f orch_select_tasks
 assert "orch_extract_tasks exists"           declare -f orch_extract_tasks
