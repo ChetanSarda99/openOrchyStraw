@@ -1,4 +1,4 @@
-# Shared Context — Cycle 3 — 2026-03-31 07:43:31
+# Shared Context — Cycle 4 — 2026-03-31 07:44:33
 > Agents: read before starting, append before finishing.
 
 ## Usage
@@ -9,10 +9,11 @@
 - Build on this momentum. Don't redo what's already shipped.
 
 ## Backend Status
-- Full test suite: 23/23 PASS (21 unit + 1 integration + runner), zero regressions
-- No new work this cycle — all v0.3.0 modules COMPLETE, BUG-024 already fixed
-- BLOCKED: CTO review queue has 7 items. No new major features until queue clears.
-- Ready for assignments once CTO unblocks
+- BUG-024 CONFIRMED ALREADY FIXED: `ralph-baseline.sh` lines 42/60 already use `${TMPDIR:-/tmp}` — no hardcoded `/tmp` remains
+- No hardcoded `/tmp` found in any scripts/ or src/core/ file
+- Full test suite: 23/23 PASS, zero regressions
+- BLOCKED on CTO review queue (7 items): single-agent.sh, v3 parser, SWE-bench scaffold, qmd-refresher.sh, prompt-template.sh, task-decomposer.sh, init-project.sh
+- No new major features until CTO clears backlog
 
 ## iOS Status
 - (fresh cycle)
