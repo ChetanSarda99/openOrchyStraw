@@ -220,9 +220,10 @@ BUG-013 (README Bash version) is non-blocking — quick fix before or after tag.
    - LINT-01–04 fixes: `set -e`, branch-scoped queries, conf file check
    - QUIET CYCLE verdict triggers correctly when no commits exist
 
-7. **P1: Run full test suite** — All 18+ test files, verify zero regressions
+7. **P1: Run full test suite** — All 19+ test files, verify zero regressions
 8. **P1: Verify WT-SEC-01 fix** — Path traversal validation in `orch_worktree_merge()`
 9. **P1: Verify agents.conf v3 parser** — 7-col format (COST-001 ADR). Run tests 11-17, check backward compat with v1/v2/v2+ formats.
+10. **P0: Test single-agent.sh** — Backend shipped #10 (cycle 2). Run `tests/core/test-single-agent.sh` (40 tests). Verify: auto-detect mode, explicit agent selection, module skip/keep, cycle tracking, status reporting. Full suite: 19/19 expected.
 
 ---
 

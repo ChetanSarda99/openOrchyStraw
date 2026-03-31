@@ -150,8 +150,12 @@ All 8 v0.2.0+ modules reviewed. 0 HIGH, 0 CRITICAL. Report: `prompts/10-security
 - Backend shipped agents.conf v3 parser (7-col format). New validation: max_tokens numeric check, >0, warn on <10000.
 - BUG-012 FULLY RESOLVED: all 9 agent prompts now have PROTECTED FILES section.
 
+### Cycle 2 Updates
+- Backend shipped single-agent.sh (#10): Ralph-compatible runner. 40 tests pass. Needs security review for command injection, ownership enforcement.
+
 ### Next Security Priorities
-9. **P1: Review 5 backend scripts + verify CTO finding fixes** — SS-01 and CS-01 claimed FIXED. Verify:
+9. **P0: Review single-agent.sh** — New module `src/core/single-agent.sh`. Check: command injection in agent selection, config parsing safety, module skip/keep logic, ownership boundary enforcement.
+10. **P1: Review 5 backend scripts + verify CTO finding fixes** — SS-01 and CS-01 claimed FIXED. Verify:
    - `scripts/secrets-scan.sh` — SS-01 FIX: confirm no Perl regex (`\s`, `\x27`) remains
    - `scripts/commit-summary.sh` — CS-01 FIX: confirm no `grep -oP` (GNU-only) remains
    - `scripts/pre-cycle-stats.sh` — reads git/gh data, outputs JSON
