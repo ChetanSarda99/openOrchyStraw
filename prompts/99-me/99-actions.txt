@@ -21,7 +21,7 @@
 ### P0.5 — v0.1.1 (ship within 48 hours of v0.1.0)
 - [x] **Fix HIGH-04: Sed injection** — DONE (601c9a2, was deferred but CS fixed it early)
 - [ ] **Add `set -e` to auto-agent.sh** — CTO requests at line 23. Prevents silent failures (QA-F001).
-- [ ] **BUG-012: Add PROTECTED FILES to 3 remaining prompts** — 01-ceo, 03-pm, 10-security still missing it.
+- [ ] **BUG-012: Add PROTECTED FILES to 4 remaining prompts** — 01-ceo, 03-pm, 10-security, 13-hr still missing it. (17+ cycles open, HR ESCALATED to P0)
 
 ### P0.5 — v0.2.0+ Integration (protected file — CS only)
 **ALL GATES PASS:** CTO 8/8 APPROVED, QA 8/8 PASS, Security 6/6 APPROVED. See `src/core/INTEGRATION-GUIDE.md` for step-by-step.

@@ -194,21 +194,25 @@ Only non-blocking item: BUG-013 (README says "Bash 4+" should be "Bash 5+").
 - Full test suite: 18/18 pass, zero regressions
 - Secrets scan: CLEAN on repo
 
-### NEXT PRIORITIES (Cycle 19+)
+### Done (Cycle 19)
+- ✅ SS-01 FIXED: `secrets-scan.sh` — Perl regex replaced with POSIX classes (`[[:space:]]`, literal quote)
+- ✅ CS-01 FIXED: `commit-summary.sh` — `grep -oP` replaced with `grep -oE` + `sed -E` pipeline (portable)
+- ✅ LINT-01 FIXED: `pre-pm-lint.sh` — added `set -e` (now `set -euo pipefail`)
+- ✅ LINT-02 FIXED: `pre-pm-lint.sh` — `--all --since="1 hour ago"` replaced with branch-scoped `main..HEAD`
+- ✅ LINT-03 FIXED: `pre-pm-lint.sh` — added CONF_FILE existence check
+- ✅ LINT-04 FIXED: `pre-pm-lint.sh` — `HEAD~5..HEAD` replaced with `main..HEAD` for file change counts
+- Full test suite: 18/18 pass, zero regressions
 
-1. **P1: Fix CTO findings in new scripts:**
-   - SS-01 MEDIUM: `secrets-scan.sh` line 30 — password regex uses Perl syntax with `grep -E` (dead code). Fix: use `-P` or POSIX classes.
-   - CS-01 LOW: `commit-summary.sh` — `grep -oP` is GNU-only, not portable to macOS. Fix: use `sed` or POSIX alternative.
-   - LINT-01–04 LOW: `pre-pm-lint.sh` — needs `set -e`, branch-scoped git queries, CONF_FILE check.
+### NEXT PRIORITIES (Cycle 20+)
 
-2. **P1: agents.conf v3 parser** — Per CTO COST-001 ADR:
+1. **P1: agents.conf v3 parser** — Per CTO COST-001 ADR:
    - New format: `id | prompt | ownership | interval | label | model | max_tokens` (7 columns)
    - Update config-validator.sh to handle v3 format
    - Backward-compatible with v1/v2
 
-3. **P2: `--single-agent` mode** (#10) — Ralph-compatible single-agent runner for v0.2.1
+2. **P2: `--single-agent` mode** (#10) — Ralph-compatible single-agent runner for v0.2.1
 
-4. **P3: SWE-bench scaffold** (#4) — Benchmark framework for evaluation
+3. **P3: SWE-bench scaffold** (#4) — Benchmark framework for evaluation
 
 ---
 
