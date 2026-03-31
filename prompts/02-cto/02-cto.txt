@@ -152,6 +152,9 @@ All P0 and P1 tasks from the efficiency sprint are DONE:
 ### Done (Cycle 19)
 - ✅ Backend FIXED all 6 CTO findings: SS-01, CS-01, LINT-01–04. 18/18 tests pass, zero regressions.
 
+### Cycle 2 Updates
+- Backend shipped `qmd-refresher.sh` (#53) — QMD auto-refresh module. 6 public functions, 17 tests, 20/20 suite pass. INTEGRATION-GUIDE Step 15 added. Needs CTO review.
+
 ### NEXT PRIORITIES
 
 1. **P0: Review single-agent.sh** — Backend DONE (cycle 2). `src/core/single-agent.sh` — Ralph-compatible runner with auto-detect, explicit agent selection, module skip/keep logic. 40 tests, 19/19 suite pass. Review for architecture compliance. **STILL PENDING — carry forward.**
@@ -160,11 +163,13 @@ All P0 and P1 tasks from the efficiency sprint are DONE:
 
 3. **P0: Review SWE-bench scaffold** — Backend DONE (cycle 3). `scripts/benchmark/` — 7 files, Python bridge, 5 custom tasks. Review architecture: security (repo URL validation, command whitelist, path traversal), cost estimation model, integration with existing modules. Tech registry says "Benchmark runner | Pending".
 
-4. **P1: Verify CTO finding fixes** — SS-01, CS-01, LINT-01–04 all claimed fixed by backend (cycle 19). Spot-check the code changes. **STILL PENDING — carry forward.**
+4. **P0: Review qmd-refresher.sh** — Backend DONE (cycle 2). `src/core/qmd-refresher.sh` — QMD auto-refresh module, 6 public functions, state tracking, configurable embed interval. 17 tests PASS. Review for architecture compliance + integration pattern (Step 15).
 
-5. **P1: Verify BUG-019 fix** — Backend FIXED (cycle 1 session 3). `grep -c || echo 0` → `var=$(grep -c ...) || var=0` in 7 locations across 4 scripts. QA-verified FIXED via shared context. Spot-check the pattern is correct.
+5. **P1: Verify CTO finding fixes** — SS-01, CS-01, LINT-01–04 all claimed fixed by backend (cycle 19). Spot-check the code changes. **STILL PENDING — carry forward.**
 
-6. **P2: Write WORKTREE-002 ADR** — Module-based approach doc (low priority)
+6. **P1: Verify BUG-019 fix** — Backend FIXED (cycle 1 session 3). `grep -c || echo 0` → `var=$(grep -c ...) || var=0` in 7 locations across 4 scripts. QA-verified FIXED via shared context. Spot-check the pattern is correct.
+
+7. **P2: Write WORKTREE-002 ADR** — Module-based approach doc (low priority)
 
 ---
 

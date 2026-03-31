@@ -24,6 +24,7 @@
 | conditional-activation | `conditional-activation.sh` | Skip agents with no work (change detection) | None (optional: logger) |
 | differential-context | `differential-context.sh` | Per-agent context filtering (#49) | None (optional: logger) |
 | session-tracker | `session-tracker.sh` | Smart session tracker windowing (#52) | None (optional: logger) |
+| qmd-refresher | `qmd-refresher.sh` | Auto-refresh QMD index each cycle (#53) | None |
 
 All modules are independently sourceable. No module depends on another.
 
@@ -703,7 +704,61 @@ service-account*.json
 
 ---
 
-## Step 15: Benchmark Harness (BENCH-001)
+## Step 15: QMD Auto-Refresh (#53)
+
+**Added:** Cycle 2, session 3 (March 30, 2026)
+**Depends on:** None (optional: logger)
+
+Source the module alongside the other v0.2.0+ modules:
+
+```bash
+source "$SCRIPT_DIR/../src/core/qmd-refresher.sh"
+```
+
+### Replace inline QMD logic (lines 690–703)
+
+**Old** (inline in auto-agent.sh):
+```bash
+# ── Step 1.5: Refresh qmd index on QA cycles ──
+if command -v qmd &>/dev/null; then
+    qmd update 2>/dev/null
+    for id_check in "${AGENT_IDS[@]}"; do
+        interval_check="${AGENT_INTERVALS[$id_check]}"
+        if [ "$interval_check" -gt 1 ] && { [ $((CYCLE % interval_check)) -eq 0 ] || [ "$CYCLE" -eq 1 ]; }; then
+            qmd embed 2>/dev/null
+            log "qmd re-indexed + re-embedded for QA cycle"
+            break
+        fi
+    done
+fi
+```
+
+**New** (module call):
+```bash
+# ── Step 1.5: Refresh qmd index ──
+orch_qmd_auto_refresh "false"
+```
+
+For QA cycles or forced re-embeds, pass `"true"`:
+```bash
+orch_qmd_auto_refresh "true"
+```
+
+### Environment variables
+
+| Variable | Default | Purpose |
+|----------|---------|---------|
+| `ORCH_STATE_DIR` | `.orchystraw` | State directory for timestamp files |
+| `ORCH_QMD_EMBED_INTERVAL` | `300` | Seconds between vector re-embeds |
+
+### State files
+
+- `.orchystraw/qmd-last-update` — epoch of last `qmd update`
+- `.orchystraw/qmd-last-embed` — epoch of last `qmd embed`
+
+---
+
+## Step 16: Benchmark Harness (BENCH-001)
 
 **Added:** Cycle 3, session 2 (March 30, 2026)
 **Depends on:** None (standalone, uses `claude` CLI directly)
