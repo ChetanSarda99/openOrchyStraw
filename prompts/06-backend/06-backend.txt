@@ -215,13 +215,23 @@ Only non-blocking item: BUG-013 (README says "Bash 4+" should be "Bash 5+").
 - ✅ Full test suite: 19/19 PASS (17 unit + 1 integration + runner), zero regressions
 - ✅ INTEGRATION-GUIDE.md updated with Step 14: single-agent wiring instructions for CS
 
-### NEXT PRIORITIES (Cycle 3+)
+### Done (Cycle 3)
+- ✅ SWE-bench scaffold PORTED (#4): full benchmark harness in `scripts/benchmark/`
+- ✅ 7 files: `run-benchmark.sh`, `lib/instance-runner.sh`, `lib/cost-estimator.sh`, `lib/results-collector.sh`, `custom/tasks.jsonl`, `custom/ralph-baseline.sh`, `custom/compare-ralph.sh`
+- ✅ Python SWE-bench bridge: `swebench/scaffold.py` + `swebench/README.md`
+- ✅ 5 custom tasks (3 Django, 1 DRF, 1 SymPy): easy/medium/hard
+- ✅ Dry-run cost estimation verified, bash syntax-clean, Python syntax-clean
+- ✅ Bash version gate aligned to 5.0+ per BASH-001 ADR
+- ✅ Security: repo URL validation, test command whitelist, path traversal protection
+- ✅ Full test suite: 19/19 PASS, zero regressions
 
-1. **P1: SWE-bench scaffold** (#4) — Benchmark framework for evaluation
+### NEXT PRIORITIES (Cycle 4+)
 
-2. **P2: QMD auto-refresh** (#53) — Auto-refresh index each cycle
+1. **P0: Fix BUG-019** (#175) — `grep -c ... || echo 0` produces `0\n0` in `pre-pm-lint.sh:168` + `post-cycle-router.sh:85`. Must fix before scripts are wired into auto-agent.sh. HIGH priority.
 
-3. **P3: Prompt template inheritance** (#54) — Reduce prompt duplication
+2. **P1: QMD auto-refresh** (#53) — Auto-refresh index each cycle
+
+3. **P2: Prompt template inheritance** (#54) — Reduce prompt duplication
 
 ---
 

@@ -700,3 +700,55 @@ service-account*.json
 ```
 
 **Note:** `site/.gitignore` already covers `.env*` and `*.pem` for the Next.js project, but the root `.gitignore` must also cover repo-root files.
+
+---
+
+## Step 15: Benchmark Harness (BENCH-001)
+
+**Added:** Cycle 3, session 2 (March 30, 2026)
+**Depends on:** None (standalone, uses `claude` CLI directly)
+
+The benchmark scaffold lives in `scripts/benchmark/` and runs independently of the orchestrator. No integration into `auto-agent.sh` needed.
+
+### Directory structure
+
+```
+scripts/benchmark/
+├── run-benchmark.sh          — Main entry point (all suites)
+├── .gitignore                — Ignores results/ and reports/
+├── lib/
+│   ├── instance-runner.sh    — Runs one benchmark instance end-to-end
+│   ├── cost-estimator.sh     — Estimates cost before running
+│   └── results-collector.sh  — Aggregates JSONL → summary + markdown
+├── custom/
+│   ├── tasks.jsonl           — 5 custom tasks (Django, DRF, SymPy)
+│   ├── ralph-baseline.sh     — Single-agent comparison runner
+│   └── compare-ralph.sh      — Head-to-head OrchyStraw vs Ralph
+├── swebench/
+│   ├── scaffold.py           — Python bridge to SWE-bench evaluation
+│   └── README.md             — Setup and usage
+├── tasks/                    — Local task JSON files (SWE-bench format)
+├── results/                  — Output JSONL (gitignored)
+└── reports/                  — Output markdown reports (gitignored)
+```
+
+### Quick start
+
+```bash
+# Cost estimate (no API calls)
+./scripts/benchmark/run-benchmark.sh --suite custom --limit 5 --dry-run
+
+# Run custom benchmark
+./scripts/benchmark/run-benchmark.sh --suite custom --limit 3 --model sonnet
+
+# Head-to-head comparison
+./scripts/benchmark/custom/compare-ralph.sh --limit 3 --model sonnet --dry-run
+
+# SWE-bench (Python, optional pip install)
+python3 scripts/benchmark/swebench/scaffold.py --tasks-jsonl scripts/benchmark/custom/tasks.jsonl --dry-run --limit 3
+```
+
+### Dependencies
+
+- Required: `bash 5.0+`, `git`, `jq`, `python3`, `claude` CLI
+- Optional: `pip install swebench datasets` (for HuggingFace dataset loading + leaderboard evaluation)

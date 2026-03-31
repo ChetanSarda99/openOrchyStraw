@@ -1,18 +1,18 @@
 # OrchyStraw — Team Roster
 
-> Last updated: 2026-03-30 (Cycle 20, HR Agent)
+> Last updated: 2026-03-30 (Cycle 3 Session 2, HR Agent)
 
 ## Active Agents (in agents.conf)
 
 | ID | Role | Ownership | Interval | Status |
 |----|------|-----------|----------|--------|
 | 01-ceo | CEO — Vision & Strategy | `docs/strategy/` | Every 3rd cycle | STANDBY |
-| 02-cto | CTO — Architecture & Standards | `docs/architecture/` | Every 2nd cycle | STANDBY — all 8/8 modules APPROVED |
+| 02-cto | CTO — Architecture & Standards | `docs/architecture/` | Every 2nd cycle | REVIEW PENDING — single-agent.sh + v3 parser |
 | 03-pm | PM — Coordination & Tasks | `prompts/` `docs/` | Coordinator (runs LAST) | Active |
-| 06-backend | Backend Developer | `scripts/` `src/core/` `src/lib/` `benchmarks/` | Every cycle | STANDBY — 9 modules, 278 tests, ALL gates PASS, CTO findings ALL FIXED |
-| 08-pixel | Pixel Agents Visualization | `src/pixel/` `pixel-agents/` | Every 2nd cycle | STANDBY |
-| 09-qa | QA Engineer | `tests/` `reports/` | Every 3rd cycle | STANDBY — ALL modules QA PASS |
-| 10-security | Security Auditor | `reports/` | Every 5th cycle | STANDBY — ALL 6 modules APPROVED |
+| 06-backend | Backend Developer | `scripts/` `src/core/` `src/lib/` `benchmarks/` | Every cycle | Active — 10 modules, 318 tests, single-agent.sh (#10) shipped |
+| 08-pixel | Pixel Agents Visualization | `src/pixel/` `pixel-agents/` | Every 2nd cycle | STANDBY — correctly skipped by orchestrator |
+| 09-qa | QA Engineer | `tests/` `reports/` | Every 3rd cycle | REVIEW PENDING — single-agent.sh + 5 scripts to test |
+| 10-security | Security Auditor | `reports/` | Every 5th cycle | REVIEW PENDING — single-agent.sh + 5 scripts |
 | 11-web | Web Developer — Landing & Docs | `site/` | Every cycle | STANDBY — site stable |
 | 13-hr | HR & Team Culture | `docs/team/` `prompts/13-hr/` | Every 3rd cycle | Active |
 
