@@ -39,7 +39,7 @@ main() {
 
     mkdir -p "$RESULTS_DIR"
     local results_file="$RESULTS_DIR/ralph-$(date +%Y%m%d-%H%M%S).jsonl"
-    local workspace_base="/tmp/orchystraw-ralph-$$"
+    local workspace_base="${TMPDIR:-/tmp}/orchystraw-ralph-$$"
 
     export BENCH_MODEL="$model"
     export BENCH_AGENTS=1
@@ -57,7 +57,7 @@ main() {
         id="$(printf '%s' "$line" | jq -r '.instance_id // .id')"
         _log "task $count: $id"
 
-        local tmp="/tmp/orchystraw-ralph-$id.json"
+        local tmp="${TMPDIR:-/tmp}/orchystraw-ralph-$id.json"
         printf '%s' "$line" > "$tmp"
 
         local result
