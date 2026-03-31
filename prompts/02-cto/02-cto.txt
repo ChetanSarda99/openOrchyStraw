@@ -158,21 +158,30 @@ All P0 and P1 tasks from the efficiency sprint are DONE:
 ### Cycle 4 Updates
 - Backend FIXED all 4 SWE-bench bugs: BUG-020 (#176), BUG-021 (#177), BUG-022 (#178), BUG-023 (#179). All issues CLOSED. 21/21 tests pass. SWE-bench scaffold now security-hardened.
 
-### NEXT PRIORITIES
+### Cycle 1 Updates
+- Backend shipped task-decomposer.sh (#50) + init-project.sh (#45): 2 new modules, 89 tests (32+57), 23/23 suite pass. INTEGRATION-GUIDE Steps 18-19 added.
+- QA cycle 14 PASS: 23/23 tests, task-decomposer QA PASS, init-project QA PASS, prompt-template QA PASS. BUG-024 filed (LOW).
+- **CTO review queue is now at 7 items — HR recommends increasing CTO frequency (interval 2→1) until queue clears.**
 
-1. **P0: Review single-agent.sh** — Backend DONE (cycle 2). `src/core/single-agent.sh` — Ralph-compatible runner with auto-detect, explicit agent selection, module skip/keep logic. 40 tests, 19/19 suite pass. Review for architecture compliance. **STILL PENDING — carry forward.**
+### NEXT PRIORITIES (CRITICAL — 7 ITEM REVIEW QUEUE)
 
-2. **P0: Review agents.conf v3 parser** — Backend DONE (cycle 20). `config-validator.sh` now accepts 7-col format per COST-001 ADR. Review for correctness + backward compat. 7 new tests (11–17), 18/18 pass. **STILL PENDING — carry forward.**
+1. **P0: Review single-agent.sh** — Backend DONE (cycle 2). `src/core/single-agent.sh` — Ralph-compatible runner, 40 tests. **STILL PENDING — carry forward.**
 
-3. **P0: Review SWE-bench scaffold** — Backend DONE (cycle 3). `scripts/benchmark/` — 7 files, Python bridge, 5 custom tasks. **BUG-020/021/022/023 ALL FIXED (cycle 4).** Review architecture: security hardening, cost estimation model, integration with existing modules. Ready for full review now.
+2. **P0: Review agents.conf v3 parser** — Backend DONE (cycle 20). `config-validator.sh` 7-col format per COST-001 ADR. 7 new tests. **STILL PENDING — carry forward.**
 
-4. **P0: Review qmd-refresher.sh** — Backend DONE (cycle 2). `src/core/qmd-refresher.sh` — QMD auto-refresh module, 6 public functions, state tracking, configurable embed interval. 17 tests PASS. QA PASS. Review for architecture compliance + integration pattern (Step 15). **STILL PENDING — carry forward.**
+3. **P0: Review SWE-bench scaffold** — Backend DONE (cycle 3). `scripts/benchmark/` — 7 files. BUG-020–023 ALL FIXED. **STILL PENDING — carry forward.**
 
-5. **P0: Review prompt-template.sh** — Backend DONE (cycle 3). `src/core/prompt-template.sh` — #54 prompt template inheritance, 8 public functions, variable substitution, include directives, named block inheritance, path traversal protection. 49 tests PASS, 21/21 suite. Review for architecture compliance + integration pattern (Step 17). **STILL PENDING — carry forward.**
+4. **P0: Review qmd-refresher.sh** — Backend DONE (cycle 2). `src/core/qmd-refresher.sh` — 6 functions, 17 tests. QA PASS. **STILL PENDING — carry forward.**
 
-6. **P1: Verify CTO finding fixes** — SS-01, CS-01, LINT-01–04 all claimed fixed by backend (cycle 19). QA-verified (cycle 3). Spot-check the code changes. **STILL PENDING — carry forward.**
+5. **P0: Review prompt-template.sh** — Backend DONE (cycle 3). `src/core/prompt-template.sh` — #54, 8 functions, 49 tests. QA PASS. **STILL PENDING — carry forward.**
 
-7. **P2: Write WORKTREE-002 ADR** — Module-based approach doc (low priority)
+6. **P0: Review task-decomposer.sh** — Backend DONE (cycle 1). `src/core/task-decomposer.sh` — #50, 6 functions, P0 always-include, priority sorting. 32 tests. QA PASS. Review for architecture compliance + integration pattern (Step 18).
+
+7. **P0: Review init-project.sh** — Backend DONE (cycle 1). `src/core/init-project.sh` — #45, 8 functions, language/framework/pkg detection, agent blueprint generation. 57 tests. QA PASS. Review for architecture compliance + integration pattern (Step 19).
+
+8. **P1: Verify CTO finding fixes** — SS-01, CS-01, LINT-01–04. QA-verified. Spot-check. **STILL PENDING.**
+
+9. **P2: Write WORKTREE-002 ADR** — Module-based approach doc (low priority)
 
 ---
 
