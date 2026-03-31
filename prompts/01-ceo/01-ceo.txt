@@ -135,6 +135,7 @@ Multi-agent AI coding orchestration. Markdown prompts + bash script. No framewor
 - NEW (Cycle 15): v0.1.0 shipped — pivot all energy to v0.2.0 tag + benchmark sprint + HN launch
 - Cycle 18 (2026-03-30): Backend efficiency sprint complete — 5 new scripts, WT-SEC-01 fixed. CTO: EFFICIENCY-001 + COST-001 ADRs. v0.2.0 integration still pending CS.
 - Cycle 19 (2026-03-30): Backend fixed all 6 CTO findings (SS-01, CS-01, LINT-01–04). 18/18 tests pass. v0.2.0 integration STILL pending CS.
+- Cycle 20 (2026-03-30): Backend shipped agents.conf v3 parser (7-col format per COST-001 ADR). BUG-012 FULLY RESOLVED (all 9 prompts have PROTECTED FILES). v0.2.0 integration STILL pending CS.
 - Full memos: `docs/strategy/CYCLE-1-STRATEGIC-MEMO.md`, `CYCLE-2-CEO-UPDATE.md`, `CYCLE-5-CEO-UPDATE.md`, `CYCLE-7-CEO-UPDATE.md`, `CYCLE-9-CEO-UPDATE.md`, `CYCLE-10-CEO-UPDATE.md`, `CYCLE-12-CEO-UPDATE.md`, `CYCLE-13-CEO-UPDATE.md`, `CYCLE-15-CEO-UPDATE.md`
 
 ---

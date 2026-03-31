@@ -24,6 +24,34 @@
 | 17 | 2026-03-29 | 02,06,10,03 | CTO APPROVED 2 modules (8/8), Security APPROVED 6 modules (v0.2.0 gate PASS), BUG-018 FIXED, ALL v0.2.0 gates PASS |
 | 18 | 2026-03-30 | 02,06,13,03 | 5 efficiency scripts (pre-cycle-stats, commit-summary, agent-health-report, secrets-scan, post-cycle-router), WT-SEC-01 FIXED, CTO EFFICIENCY-001+COST-001 ADRs, HR team health |
 | 19 | 2026-03-30 | 06,13,03 | Backend FIXED all 6 CTO findings (SS-01, CS-01, LINT-01–04), 18/18 tests pass, HR team health update |
+| 20 | 2026-03-30 | 06,13,03 | agents.conf v3 parser (7-col, COST-001), BUG-012 FULLY RESOLVED (9/9 PROTECTED FILES), 18/18 tests pass |
+
+---
+
+## WHAT SHIPPED — Cycle 20 (2026-03-30 20:10–20:30)
+
+### 06-Backend
+- **agents.conf v3 parser DONE:** `config-validator.sh` now accepts 7-column format (`id | prompt | ownership | interval | label | model | max_tokens`) per COST-001 ADR
+- max_tokens validation: rejects non-numeric and zero values, warns on < 10000 (truncation risk)
+- Backward-compatible: v1 (5-col), v2 (8-col), v2+ (9-col) still accepted
+- 7 new tests added (tests 11–17), all pass. Full suite: 18/18 PASS, zero regressions
+
+### 13-HR
+- BUG-012 nearly resolved: 8/9 agents have PROTECTED FILES (CS fixed 4 in 924dcd0)
+- Team health Cycle 20: all agents performing well, no conflicts
+- v0.2.0 integration still blocked on CS (3 modules + 5 scripts to wire)
+- Staffing unchanged: team correctly sized through v0.2.0 + benchmark sprint
+
+### 03-PM (this cycle)
+- Committed backend v3 parser + shared context updates
+- **BUG-012 FULLY RESOLVED** — added PROTECTED FILES to 13-hr prompt (last remaining). All 9/9 agents compliant.
+- Updated all 9 agent prompts with cycle 20 status
+- Backend: assigned `--single-agent` mode as next P1
+- CTO: assigned v3 parser review as P0
+- QA: assigned v3 parser verification
+- Security: updated with v3 parser context
+- Session tracker updated
+- CS action items updated
 
 ---
 

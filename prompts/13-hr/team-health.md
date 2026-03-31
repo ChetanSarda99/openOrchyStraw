@@ -1,69 +1,44 @@
-# Team Health Report — Cycle 19 (2026-03-30)
+# Team Health Report — Cycle 20 (2026-03-30)
 
-> Eighth HR assessment. Backend fixed ALL 6 CTO findings (SS-01, CS-01, LINT-01–04) — 13th consecutive MVP cycle. BUG-012 STILL 4/9 missing (17+ cycles, escalated to P0). v0.2.0 integration at 6/9 modules — only CS integration blocks the tag. All quality gates remain PASS.
+> Ninth HR assessment. BUG-012 NEARLY RESOLVED — CS fixed 4 missing prompts (924dcd0, 3608c4d), now 8/9 have PROTECTED FILES (only 13-hr missing — PM must add). v0.2.0 integration still at 6/9 modules wired. All quality gates remain PASS. Team healthy, no conflicts.
 
 ---
 
 ## Team Composition: 9 agents active (unchanged)
 
-| Agent | Total Cycles | Cycle 19 Activity | Output Quality | Notes |
+| Agent | Total Cycles | Cycle 20 Activity | Output Quality | Notes |
 |-------|-------------|-------------------|----------------|-------|
-| 01-ceo | 19 | STANDBY | Good | Strategic direction holding |
-| 02-cto | 19 | Active (C19) | Excellent | No new code to review; monitoring outstanding findings |
-| 03-pm | 19 | Active (C19) | Good | Coordination active |
-| 06-backend | 19 | Active (C19) | **Outstanding** | ALL 6 CTO findings FIXED, 18/18 tests pass, moving to agents.conf v3 |
-| 08-pixel | 19 | STANDBY | Good | Phase 1 complete, correctly frozen |
-| 09-qa | 19 | STANDBY | Excellent | ALL modules QA PASS — gate complete |
-| 10-security | 19 | STANDBY | Excellent | ALL 6 modules APPROVED — gate complete |
-| 11-web | 19 | STANDBY | Good | Site stable, responsive polish complete |
-| 13-hr | 8 | Active (C19) | Good | This report |
+| 01-ceo | 20 | STANDBY | Good | Strategic direction holding |
+| 02-cto | 20 | STANDBY | Excellent | All modules APPROVED, no new code to review |
+| 03-pm | 20 | Active (C20) | Good | Coordination active |
+| 06-backend | 20 | STANDBY | **Outstanding** | All CTO findings fixed C19, awaiting next task |
+| 08-pixel | 20 | STANDBY | Good | Phase 1 complete, correctly frozen |
+| 09-qa | 20 | STANDBY | Excellent | ALL modules QA PASS — gate complete |
+| 10-security | 20 | STANDBY | Excellent | ALL 6 modules APPROVED — gate complete |
+| 11-web | 20 | STANDBY | Good | Site stable, responsive polish complete |
+| 13-hr | 9 | Active (C20) | Good | This report |
 
 ## Key Findings
 
-### 1. BACKEND CLEANED UP CTO FINDINGS — GOOD CYCLE
+### 1. BUG-012 NEARLY RESOLVED — 8/9 FIXED (was 5/9)
 
-06-backend fixed all 6 CTO findings from Cycle 18:
-- **SS-01 FIXED:** `secrets-scan.sh` — Perl regex replaced with POSIX classes
-- **CS-01 FIXED:** `commit-summary.sh` — GNU grep replaced with portable pipeline
-- **LINT-01–04 ALL FIXED:** `pre-pm-lint.sh` — set -e, branch-scoped git log, config file check, proper range
+**Major progress.** CS fixed 4 missing PROTECTED FILES prompts via commits `924dcd0` and `3608c4d`:
 
-Full test suite: 18/18 pass, zero regressions. Backend now moving to agents.conf v3 parser (COST-001 ADR).
+| Agent | Status |
+|-------|--------|
+| 01-ceo | ✅ FIXED (was missing) |
+| 02-cto | ✅ FIXED (was missing) |
+| 03-pm | ✅ FIXED (was missing) |
+| 06-backend | ✅ Had it |
+| 08-pixel | ✅ Had it |
+| 09-qa | ✅ Had it |
+| 10-security | ✅ FIXED (was missing) |
+| 11-web | ✅ Had it |
+| **13-hr** | ❌ **STILL MISSING** |
 
-**Remaining v0.2.0 blockers are all on CS:**
-- Wire 3 remaining modules (dynamic-router, review-phase, worktree)
-- Wire 5 efficiency scripts into auto-agent.sh
-- Tag v0.2.0
+**Only 13-hr remains.** PM must add the PROTECTED FILES section to `prompts/13-hr/13-hr.txt`. After 18+ cycles, this bug is nearly closed. One trivial fix left.
 
-### 2. CTO FINDINGS — ALL RESOLVED THIS CYCLE
-
-06-backend addressed all 6 CTO findings from Cycle 18 review:
-
-| Finding | Severity | Status |
-|---------|----------|--------|
-| SS-01 | MEDIUM | **FIXED** — POSIX regex in secrets-scan.sh |
-| CS-01 | LOW | **FIXED** — portable grep in commit-summary.sh |
-| LINT-01 | LOW | **FIXED** — set -e added to pre-pm-lint.sh |
-| LINT-02 | LOW | **FIXED** — branch-scoped git log |
-| LINT-03 | INFO | **FIXED** — config file existence check |
-| LINT-04 | INFO | **FIXED** — proper git range |
-
-**CTO review pipeline continues to work well.** Finding → fix → verify loop running smoothly.
-
-### 3. BUG-012: STILL 4/9 MISSING — 17+ CYCLES OPEN
-
-**No change from Cycle 18.** This is now the longest-running open bug in the project.
-
-| Has PROTECTED FILES | Missing section |
-|---|---|
-| 06-backend | **01-ceo** |
-| 08-pixel | **02-cto** |
-| 09-qa | **03-pm** |
-| 11-web | **10-security** |
-| 13-hr | |
-
-**Escalation:** PM has not addressed this despite it being flagged since Cycle 3. The fix is trivial — copy the PROTECTED FILES block to 4 prompt files. **Recommending CS direct intervention.** This should not survive another cycle.
-
-### 4. v0.2.0 INTEGRATION STATUS — UNCHANGED
+### 2. v0.2.0 INTEGRATION STATUS — UNCHANGED
 
 | Component | Status | Owner |
 |-----------|--------|-------|
@@ -78,56 +53,56 @@ Full test suite: 18/18 pass, zero regressions. Backend now moving to agents.conf
 
 All quality gates remain PASS. Only CS integration blocks the v0.2.0 tag.
 
-### 5. 06-BACKEND: 13TH CONSECUTIVE CYCLE AS TEAM MVP
+### 3. 06-BACKEND: QUIET CYCLE AFTER 13 CONSECUTIVE MVP CYCLES
 
-All 6 CTO findings fixed this cycle, 18/18 tests pass. Now pivoting to agents.conf v3 parser (COST-001 ADR).
+No new commits from 06-backend this cycle — correct behavior. All CTO findings were fixed in C19, and the next work (agents.conf v3 parser) doesn't have external pressure yet.
 
-**Cumulative output:** 9 modules, 278 tests, 5 efficiency scripts, zero regressions, ALL CTO/QA/Security gates PASS. 13 consecutive cycles of productive output.
+**Cumulative output:** 9 modules, 278 tests, 5 efficiency scripts, zero regressions, ALL CTO/QA/Security gates PASS. 13 consecutive cycles of productive output through C19.
 
-### 6. TAURI REACTIVATION — TIMELINE STRETCHING
+### 4. TAURI REACTIVATION — TIMELINE STILL STRETCHING
 
-Pre-activation readiness unchanged, but timeline is slipping:
+Pre-activation readiness unchanged:
 - v0.2.0 tag blocked on CS integration (no progress this cycle)
 - Benchmark sprint can't start until v0.2.0 ships
 - Tauri activation follows benchmarks
 
-**Revised estimate:** If CS integrates remaining modules within 2 cycles, v0.2.0 tags by Cycle 21. Benchmarks run Cycles 22–24. Tauri activation Cycle 25+.
+**Revised estimate:** If CS integrates remaining modules within 2 cycles, v0.2.0 tags by Cycle 22. Benchmarks run Cycles 23–25. Tauri activation Cycle 26+.
 
-### 7. HOUSEKEEPING — STILL PENDING
+### 5. HOUSEKEEPING — PARTIALLY ADDRESSED
 
 | Item | Status | Priority |
 |------|--------|----------|
-| 12-brand archive | CEO silent 17+ cycles | P3 |
+| BUG-012 (PROTECTED FILES) | 8/9 done (was 5/9) — 13-hr remains | P1 (downgraded from P0) |
+| 12-brand archive | CEO silent 18+ cycles | P3 |
 | Orphaned `01-pm/` | Safe to archive | P3 |
 | agents.conf v3 parser | CTO requested (COST-001) | P2 |
 
-### 8. TEAM DYNAMICS — HEALTHY
+### 6. TEAM DYNAMICS — HEALTHY
 
 - **No conflicts:** Zero ownership violations
-- **Communication:** CTO and backend both wrote useful shared context updates
-- **CTO→Backend loop working:** Finding → fix → verify resolved 6 items in one cycle
-- **Idle agents:** 5 of 9 on STANDBY (01-ceo, 08-pixel, 09-qa, 10-security, 11-web) — correct given blocking state
-- **CS must act next:** All remaining v0.2.0 blockers are integration work only CS can do
+- **Communication:** Shared context functioning normally
+- **BUG-012 progress:** CS took direct action as recommended — 4 prompts fixed in one commit
+- **Idle agents:** 6 of 9 on STANDBY (01-ceo, 02-cto, 06-backend, 08-pixel, 09-qa, 10-security, 11-web) — correct given blocking state
+- **CS must act next:** Wire remaining 3 v0.2.0 modules + 5 efficiency scripts
 
 ## Open Items
 
 | Item | Status | Priority | Owner | Cycles Open |
 |------|--------|----------|-------|-------------|
 | v0.2.0 tag | 6/9 modules wired, 3 pending | **P0** | CS | Active |
-| BUG-012 (PROTECTED FILES) | 5/9 done, 4 remaining | **P0** | CS (escalated) | **17+ cycles** |
+| BUG-012 (13-hr prompt) | 8/9 done, 1 remaining | **P1** | PM | **18+ cycles** |
 | Wire dynamic-router.sh | Not in auto-agent.sh | P0 | CS | — |
 | Wire review-phase.sh | Not in auto-agent.sh | P0 | CS | — |
 | Wire worktree.sh | Not in auto-agent.sh | P0 | CS | — |
 | Wire 5 efficiency scripts | Not in auto-agent.sh | P1 | CS | — |
-| ~~CTO findings (SS-01 etc.)~~ | **ALL 6 FIXED** (C19) | — | — | RESOLVED |
 | agents.conf v3 parser | CTO COST-001 ADR | P2 | 06-backend | — |
 | Benchmark sprint | After v0.2.0 tag | P1 | CS + 06-backend | — |
-| 12-brand archive | CEO silent, deadline passed | P3 | CS | 17+ cycles |
-| Orphaned `01-pm/` | Safe to archive | P3 | CS | 17+ cycles |
+| 12-brand archive | CEO silent, deadline passed | P3 | CS | 18+ cycles |
+| Orphaned `01-pm/` | Safe to archive | P3 | CS | 18+ cycles |
 
 ## Staffing Recommendations
 
-| Action | Agent | Justification | Priority | Change from C18 |
+| Action | Agent | Justification | Priority | Change from C19 |
 |--------|-------|---------------|----------|-----------------|
 | KEEP | All 9 active | Correctly staffed — idle state is temporary | — | No change |
 | ACTIVATE post-benchmarks | 04-tauri-rust | Desktop app Rust backend — prompts ready | P2 | No change |
@@ -135,13 +110,13 @@ Pre-activation readiness unchanged, but timeline is slipping:
 | ACTIVATE post-Tauri | 07-ios | iOS companion app | P3 | No change |
 | DO NOT CREATE | benchmark agent | 06-backend covers this | — | No change |
 | DO NOT CREATE | 2nd backend agent | 278 tests in 12 cycles — no capacity issue | — | No change |
-| ARCHIVE | 12-brand | CEO silent 17+ cycles | P3 | No change |
+| ARCHIVE | 12-brand | CEO silent 18+ cycles | P3 | No change |
 | ARCHIVE | 01-pm | Orphaned old PM directory | P3 | No change |
 
 ## Next Review
 
-- Next HR cycle: Cycle 22 (every 3rd cycle)
-- Will track: v0.2.0 tag status, CTO finding fixes, benchmark sprint start, BUG-012 (final escalation if still open), Tauri activation timeline
+- Next HR cycle: Cycle 23 (every 3rd cycle)
+- Will track: v0.2.0 tag status, BUG-012 final close (13-hr prompt), benchmark sprint start, Tauri activation timeline
 
 ---
 
