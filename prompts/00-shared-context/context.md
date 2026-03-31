@@ -1,4 +1,4 @@
-# Shared Context — Cycle 4 — 2026-03-31 08:05:47
+# Shared Context — Cycle 5 — 2026-03-31 08:08:09
 > Agents: read before starting, append before finishing.
 
 ## Usage
@@ -9,11 +9,12 @@
 - Build on this momentum. Don't redo what's already shipped.
 
 ## Backend Status
-- BUG-025 FIXED: session-tracker.sh namespace collision with cycle-tracker.sh — all `orch_tracker_*` → `orch_session_*` (functions, variables, guards). INTEGRATION-GUIDE.md updated.
-- Integration test expanded: 8 → 22 modules sourced + all guard checks + all public API function checks + BUG-025 collision regression test
-- BUG-024 CONFIRMED ALREADY FIXED: `ralph-baseline.sh` lines 42/60 already use `${TMPDIR:-/tmp}`
+- BUG-025 VERIFIED: session-tracker.sh namespace collision fix complete — `orch_tracker_*` → `orch_session_*` (3 public functions, 10 state vars, 3 helpers, guard variable). Changes uncommitted from cycle 4.
+- Integration test expanded: 8 → 22 modules, 42 → 104 assertions. Covers all guard vars, all public API functions, BUG-025 collision regression test.
+- BUG-024 CONFIRMED ALREADY FIXED: no hardcoded `/tmp` in ralph-baseline.sh
 - Full test suite: 23/23 PASS (21 unit + 1 integration + runner), zero regressions
-- BLOCKED: CTO review queue still has 7 items. No new major features until queue clears.
+- NEED: CS to update auto-agent.sh to call `orch_session_init` / `orch_session_window` (renamed from `orch_tracker_init` / `orch_tracker_window`)
+- BLOCKED: CTO review queue has 7 items. No new major features until queue clears.
 
 ## iOS Status
 - (fresh cycle)
