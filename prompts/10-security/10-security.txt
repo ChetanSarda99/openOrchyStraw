@@ -168,15 +168,21 @@ All 8 v0.2.0+ modules reviewed. 0 HIGH, 0 CRITICAL. Report: `prompts/10-security
 ### Cycle 4 Updates
 - Backend FIXED all 4 SWE-bench bugs: BUG-020 (#176), BUG-021 (#177), BUG-022 (#178), BUG-023 (#179). All issues CLOSED. 21/21 tests pass.
 
+### Cycle 1 Updates
+- Backend shipped task-decomposer.sh (#50, 32 tests) + init-project.sh (#45, 57 tests). QA PASS on both. Need security review.
+- QA cycle 14: 23/23 tests pass, BUG-024 filed (LOW).
+
 ### Next Security Priorities
 9. **P0: Review single-agent.sh** — `src/core/single-agent.sh`. Check: command injection in agent selection, config parsing safety, module skip/keep logic, ownership boundary enforcement. **STILL PENDING — carry forward.**
-10. **P0: Review SWE-bench scaffold** — `scripts/benchmark/` — 7 bash scripts + Python bridge. **BUG-020/021/022/023 ALL FIXED (cycle 4).** Do full security review — verify fixes are correct + check for remaining attack surface.
-11. **P0: Review qmd-refresher.sh** — `src/core/qmd-refresher.sh` — state tracking via .orchystraw/, file I/O. QA PASS (cycle 3). Check: path traversal, state file injection, safe defaults. **STILL PENDING — carry forward.**
-12. **P0: Review prompt-template.sh** — `src/core/prompt-template.sh` — #54 template inheritance. Backend claims path traversal protection + max include depth guard. 49 tests. **STILL PENDING — verify security claims.**
-13. **P1: Review 5 efficiency scripts + verify CTO finding fixes** — SS-01 and CS-01 QA-verified FIXED. Do independent security verification.
-14. **P1: Verify WT-SEC-01 fix** — QA verified. Do independent security verification.
-15. **DR-SEC-02 integration note** — CS must quote `orch_router_model` output when integrating into auto-agent.sh.
-16. **Post-integration security review** — After CS integrates remaining modules, review auto-agent.sh.
+10. **P0: Review SWE-bench scaffold** — `scripts/benchmark/` — 7 bash scripts + Python bridge. BUG-020–023 ALL FIXED (cycle 4). Full review pending. **STILL PENDING — carry forward.**
+11. **P0: Review qmd-refresher.sh** — `src/core/qmd-refresher.sh` — state tracking via .orchystraw/, file I/O. QA PASS. **STILL PENDING — carry forward.**
+12. **P0: Review prompt-template.sh** — `src/core/prompt-template.sh` — #54 template inheritance. 49 tests. QA PASS. **STILL PENDING — carry forward.**
+13. **P0: Review task-decomposer.sh** — `src/core/task-decomposer.sh` — #50 progressive task decomposition. 6 public functions, priority sorting, markdown extraction. 32 tests. QA PASS. Check: input sanitization on markdown parsing, priority manipulation.
+14. **P0: Review init-project.sh** — `src/core/init-project.sh` — #45 project analyzer → agent blueprint. 8 public functions, file system scanning, config generation. 57 tests. QA PASS. Check: path traversal in scanning, safe defaults in generated conf, no command injection in language detection.
+15. **P1: Review 5 efficiency scripts + verify CTO finding fixes** — SS-01 and CS-01 QA-verified FIXED. Do independent security verification.
+16. **P1: Verify WT-SEC-01 fix** — QA verified. Do independent security verification.
+17. **DR-SEC-02 integration note** — CS must quote `orch_router_model` output when integrating into auto-agent.sh.
+18. **Post-integration security review** — After CS integrates remaining modules, review auto-agent.sh.
 
 ---
 
