@@ -25,6 +25,7 @@
 | differential-context | `differential-context.sh` | Per-agent context filtering (#49) | None (optional: logger) |
 | session-tracker | `session-tracker.sh` | Smart session tracker windowing (#52) | None (optional: logger) |
 | qmd-refresher | `qmd-refresher.sh` | Auto-refresh QMD index each cycle (#53) | None |
+| prompt-template | `prompt-template.sh` | Template inheritance for prompts (#54) | None (optional: logger) |
 
 All modules are independently sourceable. No module depends on another.
 
@@ -807,3 +808,113 @@ python3 scripts/benchmark/swebench/scaffold.py --tasks-jsonl scripts/benchmark/c
 
 - Required: `bash 5.0+`, `git`, `jq`, `python3`, `claude` CLI
 - Optional: `pip install swebench datasets` (for HuggingFace dataset loading + leaderboard evaluation)
+
+---
+
+## Step 17: Prompt Template Inheritance (#54)
+
+**Added:** Cycle 3, session 3 (March 30, 2026)
+**Depends on:** None (optional: logger for log output)
+
+Template inheritance reduces prompt duplication. Shared sections (PROTECTED FILES,
+Git Safety, etc.) live in a base template. Each agent has a small overlay that
+overrides blocks and sets variables. The orchestrator renders the merged prompt.
+
+### Module: `src/core/prompt-template.sh`
+
+**Functions:**
+| Function | Purpose |
+|----------|---------|
+| `orch_tpl_init <dir>` | Set template directory root |
+| `orch_tpl_set <name> <value>` | Set variable for `{{VAR}}` substitution |
+| `orch_tpl_set_from_file <name> <path>` | Set variable from file contents |
+| `orch_tpl_render <base> [overlay]` | Merge base + overlay → stdout |
+| `orch_tpl_resolve_includes <text>` | Resolve `<!-- include: path -->` directives |
+| `orch_tpl_validate <text>` | Check for unresolved `{{VAR}}` placeholders |
+| `orch_tpl_list_vars <file>` | List all `{{VAR}}` in a file (deduplicated) |
+| `orch_tpl_stats <base> [overlay]` | Print block/var/include counts |
+
+### Template syntax
+
+```markdown
+# {{AGENT_NAME}} — {{AGENT_ROLE}}
+Date: {{DATE}}
+
+<!-- include: shared/protected-files.md -->
+<!-- include: shared/git-safety.md -->
+
+<!-- begin: OWNERSHIP -->
+Default ownership (overridden by overlay).
+<!-- end: OWNERSHIP -->
+
+<!-- begin: TASKS -->
+Default tasks.
+<!-- end: TASKS -->
+```
+
+### Overlay syntax
+
+```markdown
+AGENT_NAME=06-backend
+AGENT_ROLE=Backend Developer
+DATE=2026-03-30
+
+<!-- begin: OWNERSHIP -->
+You OWN: src/core/, scripts/
+You NEVER touch: src-tauri/, prompts/
+<!-- end: OWNERSHIP -->
+
+<!-- begin: TASKS -->
+1. Build prompt-template.sh
+2. Write tests
+<!-- end: TASKS -->
+```
+
+### Wiring into auto-agent.sh
+
+1. Source the module:
+
+```bash
+source "$SCRIPT_DIR/../src/core/prompt-template.sh"
+```
+
+2. In the agent-spawning loop, replace direct prompt file reading with template rendering:
+
+```bash
+# Before (current):
+local prompt_file="prompts/${agent_id}/${agent_id}.txt"
+
+# After (template mode):
+local template_dir="prompts/00-templates"
+if [[ -d "$template_dir" && -f "$template_dir/base.md" ]]; then
+    orch_tpl_init "$template_dir"
+    local overlay="prompts/${agent_id}/${agent_id}-overlay.md"
+    [[ -f "$overlay" ]] || overlay=""
+    local rendered_prompt
+    rendered_prompt=$(orch_tpl_render "base.md" "$overlay")
+    # Write to temp file or pass directly
+    local tmp_prompt=$(mktemp)
+    printf '%s' "$rendered_prompt" > "$tmp_prompt"
+    prompt_file="$tmp_prompt"
+fi
+```
+
+3. Clean up temp file after agent finishes.
+
+### Migration plan
+
+Phase 1: Create `prompts/00-templates/` with shared sections:
+- `base.md` — PROTECTED FILES, Git Safety, auto-cycle instructions
+- `shared/protected-files.md` — the protected files list
+- `shared/git-safety.md` — git safety rules
+
+Phase 2: Convert one agent (e.g., 06-backend) to overlay format as a pilot.
+
+Phase 3: Convert remaining agents. Old `.txt` files become overlays.
+
+### Safety
+
+- Path traversal: rejected (includes cannot escape template dir)
+- Max include depth: 5 (prevents infinite recursion)
+- Max file size: 100KB per include
+- Backward-compatible: if `00-templates/` doesn't exist, falls back to direct prompt files

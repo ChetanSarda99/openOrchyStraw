@@ -161,15 +161,17 @@ All P0 and P1 tasks from the efficiency sprint are DONE:
 
 2. **P0: Review agents.conf v3 parser** — Backend DONE (cycle 20). `config-validator.sh` now accepts 7-col format per COST-001 ADR. Review for correctness + backward compat. 7 new tests (11–17), 18/18 pass. **STILL PENDING — carry forward.**
 
-3. **P0: Review SWE-bench scaffold** — Backend DONE (cycle 3). `scripts/benchmark/` — 7 files, Python bridge, 5 custom tasks. Review architecture: security (repo URL validation, command whitelist, path traversal), cost estimation model, integration with existing modules. Tech registry says "Benchmark runner | Pending".
+3. **P0: Review SWE-bench scaffold** — Backend DONE (cycle 3). `scripts/benchmark/` — 7 files, Python bridge, 5 custom tasks. Review architecture: security (repo URL validation, command whitelist, path traversal), cost estimation model, integration with existing modules. **QA CONDITIONAL PASS — BUG-020/021 HIGH must fix before untrusted repos.**
 
-4. **P0: Review qmd-refresher.sh** — Backend DONE (cycle 2). `src/core/qmd-refresher.sh` — QMD auto-refresh module, 6 public functions, state tracking, configurable embed interval. 17 tests PASS. Review for architecture compliance + integration pattern (Step 15).
+4. **P0: Review qmd-refresher.sh** — Backend DONE (cycle 2). `src/core/qmd-refresher.sh` — QMD auto-refresh module, 6 public functions, state tracking, configurable embed interval. 17 tests PASS. QA PASS. Review for architecture compliance + integration pattern (Step 15). **STILL PENDING — carry forward.**
 
-5. **P1: Verify CTO finding fixes** — SS-01, CS-01, LINT-01–04 all claimed fixed by backend (cycle 19). Spot-check the code changes. **STILL PENDING — carry forward.**
+5. **P0: Review prompt-template.sh** — Backend DONE (cycle 3). `src/core/prompt-template.sh` — #54 prompt template inheritance, 8 public functions, variable substitution, include directives, named block inheritance, path traversal protection. 49 tests PASS, 21/21 suite. Review for architecture compliance + integration pattern (Step 17). **NEW.**
 
-6. **P1: Verify BUG-019 fix** — Backend FIXED (cycle 1 session 3). `grep -c || echo 0` → `var=$(grep -c ...) || var=0` in 7 locations across 4 scripts. QA-verified FIXED via shared context. Spot-check the pattern is correct.
+6. **P1: Verify CTO finding fixes** — SS-01, CS-01, LINT-01–04 all claimed fixed by backend (cycle 19). Spot-check the code changes. **STILL PENDING — carry forward.**
 
-7. **P2: Write WORKTREE-002 ADR** — Module-based approach doc (low priority)
+7. **P1: Verify BUG-019 fix** — Backend FIXED (cycle 1 session 3). QA-verified FIXED (cycle 3). Spot-check the pattern is correct.
+
+8. **P2: Write WORKTREE-002 ADR** — Module-based approach doc (low priority)
 
 ---
 

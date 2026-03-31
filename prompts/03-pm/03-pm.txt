@@ -244,17 +244,20 @@ Use the **Edit tool** to modify ONLY:
 - [x] QA cycle 12 report (cycle 3): 19/19 tests, 40/40 single-agent. BUG-019 FILED (#175, HIGH). CONDITIONAL PASS.
 - [x] BUG-019 FIXED (cycle 1 session 3): 7 locations across 4 scripts. Script wiring UNBLOCKED.
 - [x] Backend shipped qmd-refresher.sh (#53, cycle 2): 17 tests, 20/20 suite pass. INTEGRATION-GUIDE Step 15 added.
+- [x] Backend shipped prompt-template.sh (#54, cycle 3): 49 tests, 21/21 suite pass. INTEGRATION-GUIDE Step 17 added.
+- [x] QA cycle 13 (cycle 3): BUG-019 VERIFIED CLOSED. qmd-refresher QA PASS. SWE-bench CONDITIONAL PASS (BUG-020–023 filed).
 - [ ] CS must wire 5 scripts into auto-agent.sh (see CTO integration order in 02-cto prompt)
 - [ ] CS must wire `single` subcommand into auto-agent.sh (INTEGRATION-GUIDE Step 14)
 - [ ] CS must wire qmd-refresher into auto-agent.sh (INTEGRATION-GUIDE Step 15)
-- [ ] CTO must review v3 parser + single-agent.sh + SWE-bench scaffold + qmd-refresher.sh + verify finding fixes
+- [ ] CS must wire prompt-template into auto-agent.sh (INTEGRATION-GUIDE Step 17)
+- [ ] CTO must review v3 parser + single-agent.sh + SWE-bench scaffold + qmd-refresher.sh + prompt-template.sh + verify finding fixes
 
-### v0.3.0 — Token Optimization + Smart Provisioning (partially started)
+### v0.3.0 — Token Optimization + Smart Provisioning (mostly complete)
 - [x] #49 Differential context — `differential-context.sh` BUILT + 42 tests PASS. CTO APPROVED. QA PASS. Security APPROVED.
 - [x] #52 Session tracker windowing — `session-tracker.sh` BUILT + 33 tests PASS. CTO APPROVED. Security APPROVED. QA review pending.
-- [x] #53 QMD auto-refresh — `qmd-refresher.sh` BUILT + 17 tests PASS. Needs CTO review, QA review, Security review.
+- [x] #53 QMD auto-refresh — `qmd-refresher.sh` BUILT + 17 tests PASS. QA PASS. Needs CTO review, Security review.
+- [x] #54 Prompt template inheritance — `prompt-template.sh` BUILT + 49 tests PASS. Needs CTO review, QA review, Security review.
 - [ ] #50 Progressive task decomposition
-- [ ] #54 Prompt template inheritance
 - [ ] #45 auto-agent.sh init
 
 ### v0.4.0 — Benchmarks (scaffold done, runs pending)
