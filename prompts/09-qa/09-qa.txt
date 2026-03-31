@@ -180,9 +180,13 @@ BUG-013 (README Bash version) is non-blocking — quick fix before or after tag.
 - ✅ CTO APPROVED differential-context.sh + session-tracker.sh — 8/8 modules CTO APPROVED
 - **ALL v0.2.0 quality gates now PASS** — only CS integration remains
 
+### Cycle 19 Updates
+- Backend FIXED all 6 CTO findings (SS-01, CS-01, LINT-01–04). 18/18 tests pass.
+- Scripts now use POSIX-portable grep, `set -euo pipefail`, branch-scoped queries.
+
 ### PRIORITY: NEW SCRIPTS QA (Cycle 19+)
 
-5 new backend scripts shipped this cycle. Validate them:
+5 backend scripts shipped cycle 18, CTO findings fixed cycle 19. Validate them:
 
 1. **P0: Test `scripts/pre-cycle-stats.sh`** — Run and verify:
    - Output is valid JSON
@@ -192,6 +196,7 @@ BUG-013 (README Bash version) is non-blocking — quick fix before or after tag.
 2. **P0: Test `scripts/commit-summary.sh`** — Run and verify:
    - Per-agent diff summary is accurate
    - Handles empty commits gracefully
+   - CS-01 fix: confirm no `grep -oP` (GNU-only) remains
 
 3. **P0: Test `scripts/agent-health-report.sh`** — Run and verify:
    - Efficiency matrix produces valid output
@@ -200,6 +205,7 @@ BUG-013 (README Bash version) is non-blocking — quick fix before or after tag.
 4. **P1: Test `scripts/secrets-scan.sh`** — Run and verify:
    - Detects planted test secrets
    - Clean on actual repo (confirmed by backend)
+   - SS-01 fix: confirm no Perl regex (`\s`, `\x27`) remains
 
 5. **P1: Test `scripts/post-cycle-router.sh`** — Run and verify:
    - Dynamic router interval adjustment works
@@ -207,6 +213,7 @@ BUG-013 (README Bash version) is non-blocking — quick fix before or after tag.
 
 6. **P1: Test pre-pm-lint.sh integration** — Run `bash scripts/pre-pm-lint.sh 1` and verify:
    - Output is valid markdown
+   - LINT-01–04 fixes: `set -e`, branch-scoped queries, conf file check
    - QUIET CYCLE verdict triggers correctly when no commits exist
 
 7. **P1: Run full test suite** — All 18+ test files, verify zero regressions
