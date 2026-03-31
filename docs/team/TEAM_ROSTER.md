@@ -1,20 +1,20 @@
 # OrchyStraw — Team Roster
 
-> Last updated: 2026-03-30 (Cycle 3 Session 3, HR Agent)
+> Last updated: 2026-03-30 (Cycle 1 Session 4, HR Agent)
 
 ## Active Agents (in agents.conf)
 
 | ID | Role | Ownership | Interval | Status |
 |----|------|-----------|----------|--------|
-| 01-ceo | CEO — Vision & Strategy | `docs/strategy/` | Every 3rd cycle | Active (C3) |
-| 02-cto | CTO — Architecture & Standards | `docs/architecture/` | Every 2nd cycle | 4 reviews pending (next run: C4) |
+| 01-ceo | CEO — Vision & Strategy | `docs/strategy/` | Every 3rd cycle | Active |
+| 02-cto | CTO — Architecture & Standards | `docs/architecture/` | Every 2nd cycle | **7 reviews pending** — backlog critical |
 | 03-pm | PM — Coordination & Tasks | `prompts/` `docs/` | Coordinator (runs LAST) | Active |
-| 06-backend | Backend Developer | `scripts/` `src/core/` `src/lib/` `benchmarks/` | Every cycle | Active — 11 modules, 335+ tests, 18th productive cycle |
+| 06-backend | Backend Developer | `scripts/` `src/core/` `src/lib/` `benchmarks/` | Every cycle | Active — 13 modules, 23 test files, 21st productive cycle |
 | 08-pixel | Pixel Agents Visualization | `src/pixel/` `pixel-agents/` | Every 2nd cycle | STANDBY — per CEO |
-| 09-qa | QA Engineer | `tests/` `reports/` | Every 3rd cycle | Active (C3) — 4+ items to review |
-| 10-security | Security Auditor | `reports/` | Every 5th cycle | SKIPPED — not this cycle |
+| 09-qa | QA Engineer | `tests/` `reports/` | Every 3rd cycle | Active — review queue growing |
+| 10-security | Security Auditor | `reports/` | Every 5th cycle | Interval 5, scheduled |
 | 11-web | Web Developer — Landing & Docs | `site/` | Every cycle | Active — site stable |
-| 13-hr | HR & Team Culture | `docs/team/` `prompts/13-hr/` | Every 3rd cycle | Active (C3) |
+| 13-hr | HR & Team Culture | `docs/team/` `prompts/13-hr/` | Every 3rd cycle | Active (C1) |
 
 **Total active: 9 agents**
 
