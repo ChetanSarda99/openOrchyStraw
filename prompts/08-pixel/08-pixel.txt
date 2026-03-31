@@ -108,7 +108,7 @@ You NEVER touch: `src-tauri/`, `scripts/` (except JSONL emitter), `prompts/` (ex
 
 ### STANDBY — Waiting for v0.2.0 tag + benchmarks (per CEO activation order)
 v0.1.0 SHIPPED (7a08cec). v0.2.0 ALL GATES PASS: CTO 8/8, QA 8/8, Security 6/6 APPROVED. Only CS integration remains.
-Backend continues shipping: qmd-refresher.sh (#53, cycle 2), SWE-bench scaffold (#4, cycle 3). BUG-019 FIXED.
+Backend shipped prompt-template.sh (#54, cycle 3). QA: BUG-019 CLOSED, SWE-bench CONDITIONAL PASS (4 bugs). v0.3.0 token optimization modules all DONE.
 Per CEO activation order: Pixel Phase 2 starts after benchmarks + v0.2.0 tag.
 No new work until PM assigns Phase 2 tasks.
 
