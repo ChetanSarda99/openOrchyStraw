@@ -6,11 +6,16 @@
 # Usage: bash scripts/pre-pm-lint.sh <cycle_num> [project_root]
 # Output: Structured markdown to stdout (pipe to file or PM context)
 
-set -uo pipefail
+set -euo pipefail
 
 CYCLE="${1:?Usage: pre-pm-lint.sh <cycle_num>}"
 PROJECT_ROOT="${2:-$(cd "$(dirname "$0")/.." && pwd)}"
 CONF_FILE="$PROJECT_ROOT/scripts/agents.conf"
+
+if [[ ! -f "$CONF_FILE" ]]; then
+    echo "ERROR: agents.conf not found at $CONF_FILE" >&2
+    exit 1
+fi
 CONTEXT_FILE="$PROJECT_ROOT/prompts/00-shared-context/context.md"
 PROMPTS_DIR="$PROJECT_ROOT/prompts"
 
@@ -44,7 +49,7 @@ TOTAL_COMMITS=0
 TOTAL_FILES=0
 for id in "${AGENT_IDS[@]}"; do
     # Count commits by this agent in current cycle branch or recent
-    commits=$(git log --oneline --all --grep="feat($id)" --since="1 hour ago" 2>/dev/null | wc -l | tr -d ' ')
+    commits=$(git log --oneline --grep="feat($id)" --since="3600 seconds ago" 2>/dev/null | wc -l | tr -d ' ')
 
     # Count files in owned paths
     IFS=' ' read -ra paths <<< "${AGENT_OWNERSHIP[$id]}"
@@ -57,7 +62,7 @@ for id in "${AGENT_IDS[@]}"; do
     done
 
     if [[ "$commits" -gt 0 ]]; then
-        lines_delta=$(git log --all --grep="feat($id)" --since="1 hour ago" --format="" --shortstat 2>/dev/null | awk '{ins+=$4; del+=$6} END {printf "+%d/-%d", ins, del}')
+        lines_delta=$(git log --grep="feat($id)" --since="3600 seconds ago" --format="" --shortstat 2>/dev/null | awk '{ins+=$4; del+=$6} END {printf "+%d/-%d", ins, del}')
     else
         lines_delta="—"
     fi

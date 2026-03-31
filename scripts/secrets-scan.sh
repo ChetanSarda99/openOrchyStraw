@@ -5,7 +5,7 @@
 # Usage: bash scripts/secrets-scan.sh [project_root]
 # Exit: 0 = clean, 1 = secrets found
 
-set -uo pipefail
+set -euo pipefail
 
 PROJECT_ROOT="${1:-$(cd "$(dirname "$0")/.." && pwd)}"
 
@@ -27,7 +27,7 @@ PATTERNS=(
     'rk_live_[0-9a-zA-Z]{24,}'                  # Stripe restricted key
     'npm_[a-zA-Z0-9]{36}'                       # npm token
     'PRIVATE KEY-''----'                          # Private key block
-    'password\s*[:=]\s*["\x27][^\s"'\'']{8,}'   # password = "..." patterns
+    'password[[:space:]]*[:=][[:space:]]*["'"'"'][^[:space:]"'"'"']{8,}'   # password = "..." patterns
 )
 
 # Files/dirs to exclude from scanning

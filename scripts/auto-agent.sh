@@ -20,7 +20,7 @@
 #   4. PM reviews, writes new prompts, updates itself
 #   5. Backup, validate, repeat
 
-set -uo pipefail
+set -euo pipefail
 
 PROJECT_ROOT="$(cd "$(dirname "$0")/.." && pwd)"
 SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"

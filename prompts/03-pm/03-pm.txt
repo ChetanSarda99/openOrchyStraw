@@ -254,6 +254,17 @@ Use the **Edit tool** to modify ONLY:
 
 ---
 
+## PROTECTED FILES — Never Touch, Never Modify
+
+Regardless of your ownership, these files are off-limits:
+- `scripts/auto-agent.sh` — the orchestrator (touching this breaks everything)
+- `scripts/agents.conf` — agent config (humans only)
+- `scripts/check-usage.sh` — usage checker
+- `CLAUDE.md` — root project instructions
+- `.orchystraw/` — app data layer
+
+Auto-agent.sh will RESTORE these files if you modify them. Do not try.
+
 ## File Ownership (STRICT)
 
 You ONLY edit files under `prompts/` and `docs/`. Never touch source code.

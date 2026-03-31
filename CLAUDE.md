@@ -6,71 +6,77 @@ Multi-agent AI coding orchestration. Markdown prompts + bash script. No framewor
 **Private repo** — research, benchmarks, proprietary features, Tauri desktop app, Pixel Agents integration.
 **Public repo** — openOrchyStraw (MIT, community-facing scaffold).
 
-## Agent Team (11 agents)
-- **01-CEO** — Vision, strategy, market positioning (every 3rd cycle)
-- **02-CTO** — Architecture, tech standards, code quality (every 2nd cycle)
-- **03-PM** — Coordination, task assignment, milestone tracking (runs LAST)
-- **04-Tauri-Rust** — Desktop app Rust backend: IPC commands, state, SQLite (every cycle)
-- **05-Tauri-UI** — Desktop app React frontend: dashboard, log viewer, config editor (every cycle)
-- **06-Backend** — Core orchestrator scripts, engine, CLI (every cycle)
-- **07-iOS** — Native mobile companion app (every cycle)
-- **08-Pixel** — Pixel Agents visualization: pixel art office showing agents at work (every 2nd cycle)
-- **09-QA** — Testing, code review, quality gates (every 3rd cycle)
-- **10-Security** — Threat modeling, vulnerability scanning (every 3rd cycle, read-only)
-- **11-Web** — Landing page + docs site, inspired by conductor.build (every 2nd cycle)
+## Agent Team
+
+### Active Agents (9 — configured in agents.conf)
+| ID | Role | Owns | Interval | Notes |
+|----|------|------|----------|-------|
+| 01-ceo | CEO | docs/strategy/ | 3 | Vision & market direction |
+| 02-cto | CTO | docs/architecture/ | 2 | Architecture & standards |
+| 03-pm | PM | prompts/ docs/ | 0 (last) | Coordination, runs LAST each cycle |
+| 06-backend | Backend | scripts/ src/core/ | 1 | Core orchestrator engine |
+| 08-pixel | Pixel Agents | src/pixel/ | 2 | Visual agent visualization layer |
+| 09-qa | QA | tests/ | 3 | Testing & quality gates |
+| 10-security | Security | (read-only) | 5 | Security audits |
+| 11-web | Web Dev | site/ | 1 | Landing page + docs site |
+| 13-hr | HR | docs/team/ prompts/13-hr/ | 3 | Team health & composition |
+
+### Future Agents (prompts exist, not yet activated)
+- **04-Tauri-Rust** — Desktop app Rust backend (activate when Tauri work starts)
+- **05-Tauri-UI** — Desktop app React frontend (activate when Tauri work starts)
+- **07-iOS** — Native mobile companion app (activate when iOS work starts)
 
 ## File Structure
 ```
 agents.conf              — Agent configuration (who, what, when)
 CLAUDE.md                — This file (project guide for all agents)
+
 prompts/                 — All agent prompts and shared files
   00-shared-context/     — Cross-agent communication (reset each cycle)
   00-session-tracker/    — Cycle history
-  00-backup/             — Context backups
-  01-ceo/ → 10-security/ — Individual agent prompts
+  00-backup/             — Context backups (gitignored)
+  01-ceo/ → 13-hr/       — Individual agent prompts
   99-me/                 — Human action items
 
-src-tauri/               — Tauri desktop app (Rust backend)
-  src/                   — Rust source: commands, models, state, db
-  Cargo.toml             — Rust dependencies
-  tauri.conf.json        — Tauri config
+scripts/                 — Orchestrator (auto-agent.sh) + helper scripts
+src/core/                — Core orchestration modules (17 bash modules, 278 tests)
+src/pixel/               — Pixel Agents JSONL emitter + integration
 
-src/                     — React frontend for Tauri app
-  components/            — Reusable UI components
-  styles/                — CSS / Tailwind
-public/                  — Static assets
-
-scripts/                 — Orchestrator script (auto-agent.sh), helpers
-src/core/                — Core orchestration logic
-src/lib/                 — Shared utilities
-
-src/pixel/               — OrchyStraw-specific Pixel Agents code
-pixel-agents/            — Forked pixel-agents-standalone (when created)
-
-ios/                     — iOS companion app (Xcode project)
-src/native/              — Shared native code
-
-site/                    — Landing page + docs site
+site/                    — Landing page (Next.js 15 + shadcn/ui v4)
   src/                   — Pages, components, layouts
-  public/                — Static assets
-  content/               — Markdown docs content
+  out/                   — Static build output (deployed to GitHub Pages)
 
 tests/                   — Test files
+  core/                  — 19 test scripts + runner
+
 docs/                    — Documentation
-  strategy/              — CEO strategic docs
-  architecture/          — CTO technical specs
+  architecture/          — ADRs and technical specs (14 files)
+  strategy/              — CEO strategic memos (9 files)
+  team/                  — Team norms, onboarding, roster
+  references/            — Locked stack decisions (Tauri, landing page, docs)
+  tech-registry/         — Technology decision records
+
 research/                — Competitive analysis, benchmarks
-assets/                  — Icons, branding
-logs/                    — Cycle logs (gitignored)
+template/                — Agent prompt templates for new projects
+examples/                — Sample agents.conf
 ```
 
-## Priority Order
-1. **v0.1.0** — Harden orchestrator (backend), security audit, QA pass, release tag
-2. **Pixel Agents** — Synthetic JSONL emitter, fork + adapter, character mapping
-3. **Tauri App** — Scaffold, Rust commands, dashboard, UI inspired by Conductor
-3.5. **Landing Page** — Public site inspired by conductor.build + Claude Code docs
-4. **Benchmarks** — SWE-bench, Ralph comparison, FeatureBench
-5. **Distribution** — Demo GIF, launch posts, community
+## Current Status
+
+### v0.1.0 — Hardened Release (DONE — ready to tag)
+All 8 core modules built, tested, integrated. QA PASS. Security FULL PASS. CTO approved.
+
+### v0.2.0 — Smart Cycle System (ALL GATES PASS — awaiting integration)
+9 modules with 278 tests. CTO 8/8, QA 8/8, Security 6/6. 6/9 wired into auto-agent.sh.
+Remaining: dynamic-router.sh, review-phase.sh, worktree.sh.
+
+### Next Up
+1. Tag v0.1.0
+2. Wire remaining v0.2.0 modules + efficiency scripts
+3. v0.3.0 — Token optimization (#50, #53, #54)
+4. Pixel Agents integration
+5. Tauri desktop app
+6. Benchmarks & distribution
 
 ## Stack Reference Docs (LOCKED — read before building)
 
@@ -80,14 +86,11 @@ logs/                    — Cycle logs (gitignored)
 | Landing Page | `docs/references/LANDING-PAGE-STACK.md` | 11-web |
 | Documentation Site | `docs/references/DOCS-STACK.md` | 11-web |
 
-These are **locked decisions**. Do not substitute frameworks, libraries, or templates.
-
 ### Summary
 - **Tauri app:** dannysmith/tauri-template → React 19 + shadcn/ui v4 + Zustand + TanStack Query + tauri-specta
 - **Landing page:** memextech/nextjs-shadcn-landing-page-template → Next.js 15 + shadcn/ui v4 + Framer Motion
 - **Docs site:** Mintlify (same as Claude Code docs + Conductor docs)
 - **Shared:** shadcn/ui v4, Tailwind v4, Lucide React, JetBrains Mono, Inter/Geist, dark mode (#0a0a0a)
-- **MCP:** shadcn + mintlify servers in `.mcp.json`
 
 ## Rules
 1. **Read your prompt first** — it has your current tasks
@@ -102,6 +105,7 @@ These are **locked decisions**. Do not substitute frameworks, libraries, or temp
 ## Shared Resources
 - **Image Generation:** `~/Projects/shared/scripts/generate-image.sh` — AI image gen (Gemini free / OpenAI DALL-E)
 - **Batch Images:** `~/Projects/shared/scripts/batch-generate-images.sh` — Batch image gen from prompt files
-- **OrchyStraw Core:** `~/Projects/shared/orchystraw-core/` — Reusable orchestration modules (logger, error handler, cycle state, timeouts)
-- **OrchyStraw Templates:** `~/Projects/shared/orchystraw-templates/` — Agent design reference, anti-patterns, knowledge repos
+- **Telegram:** `~/Projects/shared/scripts/send-telegram.sh` — Send messages via Bot API
+- **OrchyStraw Core:** `~/Projects/shared/orchystraw-core/` — Reusable orchestration modules (logger, error handler, cycle state, timeouts, lock file, config validator, signal handler, dry-run, cycle tracker, bash version gate)
+- **OrchyStraw Templates:** `~/Projects/shared/orchystraw-templates/` — Agent design reference, anti-patterns, knowledge repos, sample agents.conf
 - **Synced State:** `~/Projects/shared/shared-state/` — Cross-project health, alerts, API usage
