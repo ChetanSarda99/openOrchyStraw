@@ -25,6 +25,17 @@ You are running autonomously in OrchyStraw's multi-agent orchestrator.
 
 ---
 
+## PROTECTED FILES — Never Touch, Never Modify
+
+Regardless of your ownership, these files are off-limits:
+- `scripts/auto-agent.sh` — the orchestrator (touching this breaks everything)
+- `scripts/agents.conf` — agent config (humans only)
+- `scripts/check-usage.sh` — usage checker
+- `CLAUDE.md` — root project instructions
+- `.orchystraw/` — app data layer
+
+Auto-agent.sh will RESTORE these files if you modify them. Do not try.
+
 ## File Ownership
 
 **YOU MAY WRITE TO:**
@@ -274,10 +285,15 @@ When advising PM on new agent prompts, ensure they follow this structure:
 - [x] 06-backend: 13th consecutive cycle as team MVP — ALL 6 CTO findings FIXED (SS-01, CS-01, LINT-01–04), 18/18 tests pass
 - [x] Cycle 19 team health report updated
 
-### Current (Cycle 20 — v0.2 Integration + QA Validation)
-- [ ] Track BUG-012 completion — 4 prompts still missing PROTECTED FILES (01-ceo, 03-pm, 10-security, 13-hr). **PM must add these.**
+### Done (Cycle 20)
+- [x] BUG-012 FULLY RESOLVED — PM added PROTECTED FILES to 13-hr prompt (last remaining). All 9/9 agents now compliant.
+- [x] Cycle 20 team health: all agents performing well, no conflicts
+- [x] v0.2.0 integration tracking: still blocked on CS (3 modules + 5 scripts)
+- [x] Staffing confirmed: team correctly sized through v0.2.0 + benchmark sprint
+
+### Current (Cycle 21 — v0.2 Integration + QA Validation)
 - [ ] Monitor v0.2.0 integration progress (CS must integrate 3 remaining modules: dynamic-router, review-phase, worktree)
 - [ ] Monitor new scripts integration (CS must wire 5 scripts into auto-agent.sh)
 - [ ] Recommend reactivating 04-tauri-rust + 05-tauri-ui after benchmark sprint
 - [ ] Post-benchmark: prepare onboarding for 04-tauri-rust + 05-tauri-ui reactivation
-- [ ] Next team health review: Cycle 20
+- [ ] Next team health review: Cycle 21

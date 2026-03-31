@@ -99,4 +99,69 @@ if orch_validate_config "$TEST_DIR/bad6.conf" 2>/dev/null; then
     exit 1
 fi
 
+# Test 11: v3 format (7 columns: id|prompt|ownership|interval|label|model|max_tokens) passes
+cat > "$TEST_DIR/v3.conf" <<'EOF'
+01-test | prompts/agent.txt | src/ | 0 | Test Agent | sonnet | 200000
+EOF
+if ! orch_validate_config "$TEST_DIR/v3.conf" 2>/dev/null; then
+    echo "v3 config (7 col) should pass"
+    exit 1
+fi
+
+# Test 12: v3 with valid model and max_tokens — no warnings
+orch_validate_config "$TEST_DIR/v3.conf" 2>/dev/null
+warn_count=$(orch_config_warning_count)
+[[ "$warn_count" -eq 0 ]] || { echo "v3 valid config should not warn, got $warn_count"; exit 1; }
+
+# Test 13: v3 with unknown model warns but passes
+cat > "$TEST_DIR/v3badmodel.conf" <<'EOF'
+01-test | prompts/agent.txt | src/ | 0 | Test | gpt-4o | 150000
+EOF
+if ! orch_validate_config "$TEST_DIR/v3badmodel.conf" 2>/dev/null; then
+    echo "v3 unknown model should warn, not fail"
+    exit 1
+fi
+warn_count=$(orch_config_warning_count)
+[[ "$warn_count" -ge 1 ]] || { echo "expected warning for unknown model in v3, got $warn_count"; exit 1; }
+
+# Test 14: v3 with non-numeric max_tokens fails
+cat > "$TEST_DIR/v3badtokens.conf" <<'EOF'
+01-test | prompts/agent.txt | src/ | 0 | Test | opus | abc
+EOF
+if orch_validate_config "$TEST_DIR/v3badtokens.conf" 2>/dev/null; then
+    echo "v3 non-numeric max_tokens should fail"
+    exit 1
+fi
+
+# Test 15: v3 with max_tokens=0 fails
+cat > "$TEST_DIR/v3zero.conf" <<'EOF'
+01-test | prompts/agent.txt | src/ | 0 | Test | opus | 0
+EOF
+if orch_validate_config "$TEST_DIR/v3zero.conf" 2>/dev/null; then
+    echo "v3 max_tokens=0 should fail"
+    exit 1
+fi
+
+# Test 16: v3 with suspiciously low max_tokens warns but passes
+cat > "$TEST_DIR/v3low.conf" <<'EOF'
+01-test | prompts/agent.txt | src/ | 0 | Test | opus | 5000
+EOF
+if ! orch_validate_config "$TEST_DIR/v3low.conf" 2>/dev/null; then
+    echo "v3 low max_tokens should warn, not fail"
+    exit 1
+fi
+warn_count=$(orch_config_warning_count)
+[[ "$warn_count" -ge 1 ]] || { echo "expected warning for low max_tokens, got $warn_count"; exit 1; }
+
+# Test 17: v3 multi-agent with mixed models passes
+cat > "$TEST_DIR/v3multi.conf" <<'EOF'
+06-backend | prompts/agent.txt | scripts/ src/core/ | 1 | Backend Developer | sonnet | 200000
+02-cto     | prompts/agent.txt | docs/architecture/ | 2 | CTO               | opus   | 150000
+03-pm      | prompts/agent.txt | prompts/ docs/     | 0 | PM Coordinator    | sonnet | 200000
+EOF
+if ! orch_validate_config "$TEST_DIR/v3multi.conf" 2>/dev/null; then
+    echo "v3 multi-agent config should pass"
+    exit 1
+fi
+
 echo "config-validator: all tests passed"

@@ -154,9 +154,9 @@ All P0 and P1 tasks from the efficiency sprint are DONE:
 
 ### NEXT PRIORITIES
 
-1. **P1: Verify CTO finding fixes** — SS-01, CS-01, LINT-01–04 all claimed fixed by backend (cycle 19). Spot-check the code changes.
+1. **P0: Review agents.conf v3 parser** — Backend DONE (cycle 20). `config-validator.sh` now accepts 7-col format per COST-001 ADR. Review for correctness + backward compat. 7 new tests (11–17), 18/18 pass.
 
-2. **P1: Review agents.conf v3 parser** — When backend implements COST-001 format (7 columns), review for correctness + backward compat.
+2. **P1: Verify CTO finding fixes** — SS-01, CS-01, LINT-01–04 all claimed fixed by backend (cycle 19). Spot-check the code changes. Still pending from last cycle.
 
 3. **P2: Write WORKTREE-002 ADR** — Module-based approach doc (low priority)
 
