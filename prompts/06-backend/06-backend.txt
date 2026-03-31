@@ -236,9 +236,16 @@ Only non-blocking item: BUG-013 (README says "Bash 4+" should be "Bash 5+").
 - ✅ Full test suite: 20/20 PASS (18 unit + 1 integration + runner), zero regressions
 - ✅ INTEGRATION-GUIDE.md updated: Step 15 documents QMD wiring (replaces inline lines 690-703 in auto-agent.sh)
 
-### NEXT PRIORITIES (Cycle 3+)
+### Done (Cycle 3)
+- ✅ `src/core/prompt-template.sh` — #54 prompt template inheritance DONE: 8 public functions (init, set, set_from_file, render, resolve_includes, validate, list_vars, stats), variable substitution, include directives, named block inheritance, path traversal protection, max include depth guard
+- ✅ `tests/core/test-prompt-template.sh` — 49 tests, ALL PASS
+- ✅ Full test suite: 21/21 PASS (19 unit + 1 integration + runner), zero regressions
+- ✅ INTEGRATION-GUIDE.md updated: Step 17 documents template wiring + migration plan for CS
+- 19th consecutive productive cycle
 
-1. **P2: Prompt template inheritance** (#54) — Reduce prompt duplication across agent prompts
+### NEXT PRIORITIES (Cycle 4+)
+
+1. **P1: Fix SWE-bench bugs** — BUG-020 (#176) HIGH: URL validation allows `..` in org/repo. BUG-021 (#177) HIGH: test_command whitelist bypass. BUG-022 (#178) MEDIUM: hardcoded /tmp. BUG-023 (#179) MEDIUM: jq malformed JSON. Fix before untrusted repo use.
 
 2. **P2: Progressive task decomposition** (#50) — Backlog one-liners (PM process, but may need tooling)
 

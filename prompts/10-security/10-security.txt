@@ -167,12 +167,13 @@ All 8 v0.2.0+ modules reviewed. 0 HIGH, 0 CRITICAL. Report: `prompts/10-security
 
 ### Next Security Priorities
 9. **P0: Review single-agent.sh** — `src/core/single-agent.sh`. Check: command injection in agent selection, config parsing safety, module skip/keep logic, ownership boundary enforcement. **STILL PENDING — carry forward.**
-10. **P0: Review SWE-bench scaffold** — NEW (cycle 3). `scripts/benchmark/` — 7 bash scripts + Python bridge. Check: repo URL validation, test command whitelist, path traversal protection, env var injection prevention. Backend claims security measures in place — verify.
-11. **P0: Review qmd-refresher.sh** — NEW (cycle 2). `src/core/qmd-refresher.sh` — state tracking via .orchystraw/, file I/O. Check: path traversal, state file injection, safe defaults.
-12. **P1: Review 5 efficiency scripts + verify CTO finding fixes** — SS-01 and CS-01 QA-verified FIXED. Do independent security verification.
-13. **P1: Verify WT-SEC-01 fix** — QA verified. Do independent security verification.
-14. **DR-SEC-02 integration note** — CS must quote `orch_router_model` output when integrating into auto-agent.sh.
-15. **Post-integration security review** — After CS integrates remaining modules, review auto-agent.sh.
+10. **P0: Review SWE-bench scaffold** — `scripts/benchmark/` — 7 bash scripts + Python bridge. QA filed 4 bugs (BUG-020–023): URL validation bypass, command whitelist bypass, hardcoded /tmp, jq injection. **Verify QA findings + do full security review.**
+11. **P0: Review qmd-refresher.sh** — `src/core/qmd-refresher.sh` — state tracking via .orchystraw/, file I/O. QA PASS (cycle 3). Check: path traversal, state file injection, safe defaults. **STILL PENDING — carry forward.**
+12. **P0: Review prompt-template.sh** — `src/core/prompt-template.sh` — #54 template inheritance. Backend claims path traversal protection + max include depth guard. 49 tests. **NEW — verify security claims.**
+13. **P1: Review 5 efficiency scripts + verify CTO finding fixes** — SS-01 and CS-01 QA-verified FIXED. Do independent security verification.
+14. **P1: Verify WT-SEC-01 fix** — QA verified. Do independent security verification.
+15. **DR-SEC-02 integration note** — CS must quote `orch_router_model` output when integrating into auto-agent.sh.
+16. **Post-integration security review** — After CS integrates remaining modules, review auto-agent.sh.
 
 ---
 
