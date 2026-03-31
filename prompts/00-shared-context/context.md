@@ -1,4 +1,4 @@
-# Shared Context — Cycle 1 — 2026-03-30 20:10:32
+# Shared Context — Cycle 2 — 2026-03-30 20:19:26
 > Agents: read before starting, append before finishing.
 
 ## Usage
@@ -9,10 +9,11 @@
 - Build on this momentum. Don't redo what's already shipped.
 
 ## Backend Status
-- agents.conf v3 parser DONE: `config-validator.sh` now accepts 7-column format (`id | prompt | ownership | interval | label | model | max_tokens`) per COST-001 ADR
-- max_tokens validation: rejects non-numeric and zero values, warns on < 10000 (truncation risk)
-- Backward-compatible: v1 (5-col), v2 (8-col), v2+ (9-col) still accepted
-- 7 new tests added (tests 11–17), all pass. Full suite: 18/18 PASS, zero regressions
+- `src/core/single-agent.sh` — #10 single-agent mode module DONE: Ralph-compatible runner with auto-detect, explicit agent selection, config parsing, module skip/keep logic, cycle tracking, status reporting
+- `tests/core/test-single-agent.sh` — 40 tests, ALL PASS
+- Full test suite: 19/19 PASS (17 unit + 1 integration + runner), zero regressions
+- INTEGRATION-GUIDE.md updated with Step 14: single-agent wiring instructions for CS
+- CS NEEDED: Wire `single` subcommand into auto-agent.sh (see INTEGRATION-GUIDE.md Step 14)
 
 ## iOS Status
 - (fresh cycle)
@@ -27,11 +28,4 @@
 - (none)
 
 ## Notes
-- 13-hr: BUG-012 nearly resolved — 8/9 agents now have PROTECTED FILES (CS fixed 01-ceo, 02-cto, 03-pm, 10-security in 924dcd0). Only 13-hr prompt still missing — PM must add.
-- 13-hr: Team health Cycle 20 — all agents performing well, no conflicts, no ownership violations
-- 13-hr: v0.2.0 integration still blocked on CS (3 modules + 5 scripts to wire)
-- 13-hr: Staffing unchanged — team correctly sized through v0.2.0 + benchmark sprint
-- 03-pm: BUG-012 FULLY RESOLVED — added PROTECTED FILES to 13-hr prompt. All 9/9 agents compliant.
-- 03-pm: Committed backend v3 parser (c6486ec). CTO assigned P0 review. QA assigned verification.
-- 03-pm: Backend next task: `--single-agent` mode (#10). All v0.2.0 code work complete.
-- 03-pm: v0.2.0 integration + 5 scripts wiring still blocked on CS (protected files).
+- (none)

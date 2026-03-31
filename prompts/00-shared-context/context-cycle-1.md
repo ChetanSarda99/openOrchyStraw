@@ -1,22 +1,18 @@
-# Shared Context — Cycle 1 — 2026-03-30 09:07:22
+# Shared Context — Cycle 1 — 2026-03-30 20:10:32
 > Agents: read before starting, append before finishing.
 
 ## Usage
 - API status: 0 (0=ok, 80=overage, 90+=limited)
 
 ## Progress (last cycle → this cycle)
-- Previous cycle: 10 (0 backend, 0 frontend, 2 commits)
+- Previous cycle: 1 (0 backend, 0 frontend, 3 commits)
 - Build on this momentum. Don't redo what's already shipped.
 
 ## Backend Status
-- `scripts/pre-cycle-stats.sh` — P0 DONE: gathers per-agent stats (commits, issues, last activity) as JSON before agents run
-- `scripts/commit-summary.sh` — P0 DONE: structured per-agent diff summary (files, lines, top changes, new exports)
-- `scripts/agent-health-report.sh` — P0 DONE: agent efficiency matrix (success rate, idle/overloaded detection, recommendations)
-- `scripts/secrets-scan.sh` — P1 DONE: scans committed files for 16 secret patterns (AWS keys, API tokens, JWTs, private keys, etc.)
-- `scripts/post-cycle-router.sh` — P1 DONE: wires dynamic-router interval adjustment after each cycle (loads state, determines outcomes, saves state)
-- WT-SEC-01 FIXED: path traversal validation added to `orch_worktree_merge()` — matches `orch_worktree_create()` guards
-- Full test suite: 18/18 pass, zero regressions
-- Secrets scan: CLEAN on repo
+- agents.conf v3 parser DONE: `config-validator.sh` now accepts 7-column format (`id | prompt | ownership | interval | label | model | max_tokens`) per COST-001 ADR
+- max_tokens validation: rejects non-numeric and zero values, warns on < 10000 (truncation risk)
+- Backward-compatible: v1 (5-col), v2 (8-col), v2+ (9-col) still accepted
+- 7 new tests added (tests 11–17), all pass. Full suite: 18/18 PASS, zero regressions
 
 ## iOS Status
 - (fresh cycle)
@@ -30,31 +26,12 @@
 ## Blockers
 - (none)
 
-## Team Health (13-hr)
-- Cycle 18 team health report: `prompts/13-hr/team-health.md`
-- CS efficiency sprint recognized: 6/9 v0.2 modules wired into auto-agent.sh (`a1a33f4`)
-- 3 modules NOT YET wired: dynamic-router, review-phase, worktree
-- ALL quality gates COMPLETE: CTO 8/8, QA ALL PASS, Security 6/6 APPROVED
-- BUG-012 improved: 4/9 agents missing PROTECTED FILES (was 5/9). Still missing: 01-ceo, 02-cto, 03-pm, 10-security
-- BUG-012 RECOMMENDATION: CS should intervene directly — PM has not fixed in 16+ cycles
-- WT-SEC-01 RESOLVED: path traversal validation already present in worktree.sh
-- 06-backend: 12th consecutive cycle as team MVP — 9 modules, 278 tests, zero regressions
-- Staffing: team correctly sized. No changes recommended.
-- Tauri reactivation: ready when benchmarks complete (04-tauri-rust, 05-tauri-ui prompts exist)
-- Team roster updated: `docs/team/TEAM_ROSTER.md`
-
-## CTO Status
-- [CTO] EFFICIENCY-001 ADR written: script-first architecture principle — scripts for mechanical work, agents for judgment. Decision framework: "Can a regex do it? → Script."
-- [CTO] COST-001 ADR written: token budget architecture — per-agent model + max_tokens in agents.conf v3, PM skip policy, cost logging to JSONL, warn-only budget enforcement.
-- [CTO] pre-pm-lint.sh REVIEWED: APPROVED with 4 LOW/INFO findings (LINT-01 through LINT-04). Report format is clean. Backend should fix: missing `set -e`, fragile `--since="1 hour ago"`, `git log --all` scope, missing CONF_FILE check.
-- [CTO] auto-agent.sh v0.2 module wiring REVIEWED: all integration points correct. Conditional activation, differential context, session tracker windowing, pre-PM lint + PM skip all verified.
-- [CTO] Hardening spec updated with cycle 1 efficiency sprint review.
-- [CTO] Tech registry updated: 2 new decisions (EFFICIENCY-001, COST-001). Total: 14 domain decisions.
-- [CTO BROADCAST] agents.conf v3 format proposed: `id | prompt | ownership | interval | label | model | max_tokens` (7 columns). Backend should implement parser changes. See COST-001.
-- [CTO REVIEW] 5 new backend scripts ALL APPROVED: pre-cycle-stats.sh, commit-summary.sh, agent-health-report.sh, secrets-scan.sh, post-cycle-router.sh
-- [CTO] SS-01 MEDIUM: secrets-scan.sh line 30 password pattern uses Perl regex (`\s`, `\x27`) with `grep -E` — pattern is dead code. Fix: use `-P` or POSIX character classes.
-- [CTO] CS-01 LOW: commit-summary.sh uses `grep -oP` (GNU-only). Not portable to BSD/macOS without GNU grep.
-- [CTO] LINT-01–04 LOW: pre-pm-lint.sh needs `set -e`, branch-scoped git queries, CONF_FILE check.
-
 ## Notes
-- (none)
+- 13-hr: BUG-012 nearly resolved — 8/9 agents now have PROTECTED FILES (CS fixed 01-ceo, 02-cto, 03-pm, 10-security in 924dcd0). Only 13-hr prompt still missing — PM must add.
+- 13-hr: Team health Cycle 20 — all agents performing well, no conflicts, no ownership violations
+- 13-hr: v0.2.0 integration still blocked on CS (3 modules + 5 scripts to wire)
+- 13-hr: Staffing unchanged — team correctly sized through v0.2.0 + benchmark sprint
+- 03-pm: BUG-012 FULLY RESOLVED — added PROTECTED FILES to 13-hr prompt. All 9/9 agents compliant.
+- 03-pm: Committed backend v3 parser (c6486ec). CTO assigned P0 review. QA assigned verification.
+- 03-pm: Backend next task: `--single-agent` mode (#10). All v0.2.0 code work complete.
+- 03-pm: v0.2.0 integration + 5 scripts wiring still blocked on CS (protected files).
