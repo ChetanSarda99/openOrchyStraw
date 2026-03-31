@@ -331,6 +331,133 @@ Result: ~80 lines output regardless of project age (vs 500+ lines at cycle 50).
 
 ---
 
+## Step 14: Single-Agent Mode (`--single-agent`)
+
+Source the single-agent module and add a new subcommand:
+
+```bash
+# ── v0.2.1 modules ─────────────────────────────────────────────────────
+source "$SCRIPT_DIR/../src/core/single-agent.sh"
+```
+
+### Add `single` subcommand to the `case` block (line ~599)
+
+```bash
+    single)
+        parse_config
+        local AGENT_ID="${3:-}"
+        local SA_MAX="${4:-$MAX_CYCLES}"
+
+        # Source single-agent module
+        source "$PROJECT_ROOT/src/core/single-agent.sh"
+        orch_single_init "$PROJECT_ROOT" "$CONF_FILE"
+
+        # Resolve agent (explicit or auto-detect)
+        local SINGLE_AGENT
+        if [[ -n "$AGENT_ID" ]]; then
+            SINGLE_AGENT=$(orch_single_get_agent "$CONF_FILE" "$AGENT_ID")
+        else
+            SINGLE_AGENT=$(orch_single_get_agent "$CONF_FILE")
+        fi
+        orch_single_set_agent "$SINGLE_AGENT"
+
+        echo "╔══════════════════════════════════════════════════╗"
+        echo "║  orchystraw — single-agent mode                  ║"
+        echo "║  Agent: $SINGLE_AGENT │ Max: $SA_MAX cycles      ║"
+        echo "╚══════════════════════════════════════════════════╝"
+        notify "Single-agent mode: $SINGLE_AGENT, max $SA_MAX cycles"
+
+        CYCLE=1
+        declare -a AGENT_PIDS=()
+
+        while true; do
+            log "━━━ CYCLE $CYCLE (single: $SINGLE_AGENT) ━━━"
+
+            # Usage check
+            bash "$PROJECT_ROOT/scripts/check-usage.sh" 2>/dev/null
+            usage_file="$PROMPTS_DIR/00-shared-context/usage.txt"
+            if [ -f "$usage_file" ]; then
+                usage_pct=$(cat "$usage_file" 2>/dev/null | grep -oE '[0-9]+' | head -1)
+                if [ -n "$usage_pct" ] && [ "$usage_pct" -ge 70 ] 2>/dev/null; then
+                    log "PAUSED: usage at ${usage_pct}%"
+                    sleep 60
+                    continue
+                fi
+            fi
+
+            # Create cycle branch
+            git checkout main 2>/dev/null
+            git pull origin main 2>/dev/null || true
+            CYCLE_BRANCH=$(create_cycle_branch "$CYCLE")
+
+            # Run the single agent (no PM, no review, no routing)
+            run_agent "$SINGLE_AGENT"
+
+            # Commit by ownership
+            commit_by_ownership "$SINGLE_AGENT" && COMMITS=1 || COMMITS=0
+            detect_rogue_writes
+
+            # Merge to main
+            merge_cycle_branch "$CYCLE_BRANCH" "$CYCLE"
+
+            # Track cycle
+            orch_single_increment_cycle
+            log "CYCLE $CYCLE DONE — $COMMITS commits"
+            notify "Cycle $CYCLE done (single-agent: $SINGLE_AGENT)"
+
+            if [ "$SA_MAX" -gt 0 ] && [ "$CYCLE" -ge "$SA_MAX" ]; then
+                log "Max cycles reached ($CYCLE/$SA_MAX)"
+                break
+            fi
+            CYCLE=$((CYCLE + 1))
+            sleep 5
+        done
+
+        orch_single_report
+        ;;
+```
+
+### Usage
+
+```bash
+# Auto-detect single agent from agents.conf (must have exactly 1 worker)
+./scripts/auto-agent.sh single
+
+# Specify agent explicitly (works with multi-agent configs)
+./scripts/auto-agent.sh single 06-backend
+
+# With max cycles
+./scripts/auto-agent.sh single 06-backend 5
+```
+
+### Update help text
+
+Add to the help `case` block:
+
+```bash
+echo "  single [agent-id] [max-cycles=10]            Single-agent loop (Ralph-compatible)"
+```
+
+### What's skipped in single-agent mode
+
+| Module | Skipped? | Reason |
+|--------|----------|--------|
+| review-phase | Yes | No QA review needed for 1 agent |
+| dynamic-router | Yes | No routing with 1 agent |
+| worktree | Yes | No isolation needed |
+| conditional-activation | Yes | Single agent always runs |
+| differential-context | Yes | No cross-agent filtering |
+| logger | No | Still useful |
+| error-handler | No | Still useful |
+| cycle-state | No | Resume support |
+| agent-timeout | No | Timeout protection |
+| prompt-compression | No | Token savings still apply |
+| session-tracker | No | History tracking still useful |
+| signal-handler | No | Graceful shutdown |
+| cycle-tracker | No | Empty cycle detection |
+
+---
+
 ## Security Fixes — Status
 
 All v0.1.0 security fixes have been applied by CS.
