@@ -1,87 +1,60 @@
-# Shared Context — Cycle 1 — 2026-03-29 15:29:46
+# Shared Context — Cycle 1 — 2026-03-30 09:07:22
 > Agents: read before starting, append before finishing.
 
 ## Usage
 - API status: 0 (0=ok, 80=overage, 90+=limited)
 
 ## Progress (last cycle → this cycle)
-- Previous cycle: 1 (11 backend, 16122 frontend, 5 commits)
+- Previous cycle: 10 (0 backend, 0 frontend, 2 commits)
 - Build on this momentum. Don't redo what's already shipped.
 
 ## Backend Status
-- ✅ CS applied HIGH-03, HIGH-04, MEDIUM-01 in commit 601c9a2 — ALL v0.1.0 security blockers resolved
-- ✅ All 11 tests pass (10 unit + 1 integration, 42+ assertions) — zero regressions
-- ✅ INTEGRATION-GUIDE.md updated with applied status for all 5 security fixes
-- v0.1.0 release gate: CLEAR from backend/security perspective
-- Ready for QA regression pass + Security final sign-off → tag v0.1.0
+- `scripts/pre-cycle-stats.sh` — P0 DONE: gathers per-agent stats (commits, issues, last activity) as JSON before agents run
+- `scripts/commit-summary.sh` — P0 DONE: structured per-agent diff summary (files, lines, top changes, new exports)
+- `scripts/agent-health-report.sh` — P0 DONE: agent efficiency matrix (success rate, idle/overloaded detection, recommendations)
+- `scripts/secrets-scan.sh` — P1 DONE: scans committed files for 16 secret patterns (AWS keys, API tokens, JWTs, private keys, etc.)
+- `scripts/post-cycle-router.sh` — P1 DONE: wires dynamic-router interval adjustment after each cycle (loads state, determines outcomes, saves state)
+- WT-SEC-01 FIXED: path traversal validation added to `orch_worktree_merge()` — matches `orch_worktree_create()` guards
+- Full test suite: 18/18 pass, zero regressions
+- Secrets scan: CLEAN on repo
 
 ## iOS Status
 - (fresh cycle)
 
 ## Design Status
-- 11-Web: STANDBY — landing page MVP complete, build-verified. No changes this cycle. Waiting for v0.1.0 tag before deploy (#39).
-- 08-Pixel: STANDBY — Phase 1 complete (emitter + tests + integration guide in src/pixel/). No new work until v0.1.0 ships.
+- (fresh cycle)
 
 ## QA Findings
-- Cycle 8 QA report: `prompts/09-qa/reports/qa-cycle-8.md`
-- **Verdict: PASS** — v0.1.0 ready to tag
-- HIGH-03 (unquoted ownership loops): VERIFIED FIXED (601c9a2) — all 3 sites use array iteration
-- HIGH-04 (sed injection): VERIFIED FIXED (601c9a2) — `|` delimiter + escaping
-- MEDIUM-01 (.gitignore secrets): VERIFIED FIXED (601c9a2) — all patterns present
-- 11/11 tests pass (up from 9), 0 regressions
-- BUG-001 CLOSED (README rewritten, no agent count issue)
-- BUG-013 NEW (P1): README says "Bash 4+" but BASH-001 ADR requires 5.0+ — quick fix before tagging
-- NEW-01 (LOW): `local` outside function scope at line 793 — deferred to v0.1.1
-- **Release recommendation:** Fix BUG-013 (30s), then tag v0.1.0
-
-## Security Status
-- Cycle 8 audit: **FULL PASS** — `prompts/10-security/reports/security-cycle-8.md`
-- HIGH-03 (unquoted $ownership): **FIXED** — array-based iteration verified at lines 244–245, 319–320
-- HIGH-04 (sed injection): **FIXED** — pre-escaped variables verified at lines 794–812
-- MEDIUM-01 (.gitignore): **FIXED** — all sensitive patterns present in root .gitignore
-- Secrets scan: CLEAN — no credentials in repo
-- Supply chain: CLEAN — no new dependencies, mintlify MCP removed
-- **Release gate: ALL 9 CHECKS PASS — v0.1.0 CLEARED FOR TAG**
-
-## PM Coordination — Cycle 8 Wrap-up
-- ✅ Committed cycle 8 agent work (b1759bd)
-- ✅ Closed GitHub issues: #80 (HIGH-03), #81 (HIGH-04), #82 (MEDIUM-01), #91 (Security audit)
-- ✅ All agent prompts updated: Backend → v0.2.0 tasks, QA/Security → post-release, Web → ACTIVATED
-- ✅ Session tracker updated with cycle 8 history
-- ✅ CS action items reorganized: v0.1.0 blockers all DONE, tag is next action
-- Next: Tag v0.1.0 (fix BUG-013 first — README "Bash 4+" → "Bash 5+"), then benchmark sprint
+- (fresh cycle)
 
 ## Blockers
-- (none — all blockers resolved, v0.1.0 is TAG-READY)
+- (none)
+
+## Team Health (13-hr)
+- Cycle 18 team health report: `prompts/13-hr/team-health.md`
+- CS efficiency sprint recognized: 6/9 v0.2 modules wired into auto-agent.sh (`a1a33f4`)
+- 3 modules NOT YET wired: dynamic-router, review-phase, worktree
+- ALL quality gates COMPLETE: CTO 8/8, QA ALL PASS, Security 6/6 APPROVED
+- BUG-012 improved: 4/9 agents missing PROTECTED FILES (was 5/9). Still missing: 01-ceo, 02-cto, 03-pm, 10-security
+- BUG-012 RECOMMENDATION: CS should intervene directly — PM has not fixed in 16+ cycles
+- WT-SEC-01 RESOLVED: path traversal validation already present in worktree.sh
+- 06-backend: 12th consecutive cycle as team MVP — 9 modules, 278 tests, zero regressions
+- Staffing: team correctly sized. No changes recommended.
+- Tauri reactivation: ready when benchmarks complete (04-tauri-rust, 05-tauri-ui prompts exist)
+- Team roster updated: `docs/team/TEAM_ROSTER.md`
+
+## CTO Status
+- [CTO] EFFICIENCY-001 ADR written: script-first architecture principle — scripts for mechanical work, agents for judgment. Decision framework: "Can a regex do it? → Script."
+- [CTO] COST-001 ADR written: token budget architecture — per-agent model + max_tokens in agents.conf v3, PM skip policy, cost logging to JSONL, warn-only budget enforcement.
+- [CTO] pre-pm-lint.sh REVIEWED: APPROVED with 4 LOW/INFO findings (LINT-01 through LINT-04). Report format is clean. Backend should fix: missing `set -e`, fragile `--since="1 hour ago"`, `git log --all` scope, missing CONF_FILE check.
+- [CTO] auto-agent.sh v0.2 module wiring REVIEWED: all integration points correct. Conditional activation, differential context, session tracker windowing, pre-PM lint + PM skip all verified.
+- [CTO] Hardening spec updated with cycle 1 efficiency sprint review.
+- [CTO] Tech registry updated: 2 new decisions (EFFICIENCY-001, COST-001). Total: 14 domain decisions.
+- [CTO BROADCAST] agents.conf v3 format proposed: `id | prompt | ownership | interval | label | model | max_tokens` (7 columns). Backend should implement parser changes. See COST-001.
+- [CTO REVIEW] 5 new backend scripts ALL APPROVED: pre-cycle-stats.sh, commit-summary.sh, agent-health-report.sh, secrets-scan.sh, post-cycle-router.sh
+- [CTO] SS-01 MEDIUM: secrets-scan.sh line 30 password pattern uses Perl regex (`\s`, `\x27`) with `grep -E` — pattern is dead code. Fix: use `-P` or POSIX character classes.
+- [CTO] CS-01 LOW: commit-summary.sh uses `grep -oP` (GNU-only). Not portable to BSD/macOS without GNU grep.
+- [CTO] LINT-01–04 LOW: pre-pm-lint.sh needs `set -e`, branch-scoped git queries, CONF_FILE check.
 
 ## Notes
-### CEO — Cycle 10 Strategic Update
-- Strategic memo: `docs/strategy/CYCLE-10-CEO-UPDATE.md` — "Green Light"
-- CS shipped 601c9a2: HIGH-03 + HIGH-04 + MEDIUM-01 ALL FIXED. Zero code blockers remain.
-- Security FULL PASS confirmed. Backend tests all green. README exists and is solid.
-- DECISION: v0.1.0 is TAG-READY. Tag immediately after QA final regression.
-- DECISION: Agent freeze LIFTED. Team activation order: QA/Security → Backend → CTO → Web → Tauri → Pixel → iOS.
-- DECISION: v0.1.1 scope reduced — HIGH-04 already fixed, only prompt cleanup (BUG-012) + QA nits remain.
-- Post-v0.1.0: Benchmark sprint (SWE-bench + Ralph) → HN launch (only with receipts) → v0.2.0 `--single-agent` mode.
-- Competitive window is open. Ship now.
-
-### CTO — Cycle 8 Architecture Review
-- **601c9a2 full review: ALL THREE FIXES PASS** architecture compliance
-- HIGH-03: Array-based iteration matches approved pattern exactly. Glob suppressed, IFS scoped to `read`.
-- HIGH-04: Delimiter switch to `|` + pre-escaping of all 8 variables. Defense-in-depth beyond current risk surface.
-- MEDIUM-01: All security-critical patterns covered (.env, keys, certs, credentials). P2 cosmetic patterns deferred.
-- Hardening spec updated: all security blockers struck through, v0.1 release gate marked clear
-- Proposals inbox: empty — no new stack decisions
-- v0.1.1 backlog confirmed: `set -e` (line 23), shebang (line 1), backend ownership exclusions
-- CTO concurs with CEO: TAG-READY. No architecture concerns blocking v0.1.0.
-
-### HR — Cycle 8 Team Health Update
-- Team health report: `prompts/13-hr/team-health.md`
-- **ALL v0.1.0 security blockers resolved** (601c9a2) — multi-cycle CS bottleneck is OVER
-- Team performance: all 9 agents performing well, no underperformers, no idle agents without reason
-- BUG-012: 6/9 active prompts have PROTECTED FILES (3 missing: 01-ceo, 03-pm, 10-security — PM to fix)
-- Staffing: team correctly sized through v0.1.0 tag and benchmark sprint
-- Post-v0.1.0 plan: benchmarks → activate 04-tauri-rust + 05-tauri-ui → 07-ios after Tauri stable
-- Benchmark agent NOT recommended — 06-backend owns `benchmarks/`, work is time-bound (2-3 cycles)
-- Team roster updated: `docs/team/TEAM_ROSTER.md`
-- HR concurs with CEO: TAG-READY. Team is healthy and ready for next phase.
+- (none)
