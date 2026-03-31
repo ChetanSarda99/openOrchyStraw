@@ -239,8 +239,7 @@ Mintlify docs scaffolded in `site/docs/` (cycle 13):
 - Build verified clean (Next.js 16.2, static export, 1.2MB output)
 - **ALL REMAINING WORK BLOCKED ON CS:** Mintlify GitHub connection
 - v0.2.0 ALL GATES PASS — CTO 8/8, QA 8/8, Security 6/6 APPROVED. Only CS integration remains.
-- Cycle 3: Backend shipped SWE-bench scaffold (#4). No web blockers removed.
-- Cycle 1s3: BUG-019 FIXED — no web blockers removed.
+- Backend continues shipping modules (qmd-refresher #53, single-agent #10, SWE-bench #4). No web blockers removed.
 - STANDBY until unblocked
 
 **When unblocked:**

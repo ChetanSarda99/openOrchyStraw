@@ -41,6 +41,9 @@ CTO integration order specified in EFFICIENCY-001 + COST-001 ADRs:
 ### P0.5 — Wire Single-Agent Mode (protected file — CS only)
 - [ ] **Wire `single` subcommand into auto-agent.sh** — See INTEGRATION-GUIDE.md Step 14. `src/core/single-agent.sh` is DONE (40 tests pass). CS must add `./auto-agent.sh single <agent-id>` support.
 
+### P0.5 — Wire QMD Refresher (protected file — CS only)
+- [ ] **Wire `qmd-refresher.sh` into auto-agent.sh** — See INTEGRATION-GUIDE.md Step 15. `src/core/qmd-refresher.sh` is DONE (17 tests pass). Replaces inline lines 690-703 in auto-agent.sh.
+
 ### ~~P0.5 — BUG-019 Blocks Script Wiring~~ (RESOLVED — cycle 1 session 3)
 - [x] **BUG-019 (#175) FIXED** — Backend fixed `grep -c || echo 0` → `var=$(grep -c ...) || var=0` in 7 locations across 4 scripts (pre-pm-lint.sh, post-cycle-router.sh, run-benchmark.sh, compare-ralph.sh). 19/19 tests pass. Script wiring NOW UNBLOCKED.
 
