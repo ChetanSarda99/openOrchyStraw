@@ -38,6 +38,9 @@ CTO integration order specified in EFFICIENCY-001 + COST-001 ADRs:
 - [ ] **Wire `secrets-scan.sh`** — runs after agent commits (Step 3.5).
 - [ ] **Wire `post-cycle-router.sh`** — runs after merge (Step 5.5). Adjusts agent intervals.
 
+### P0.5 — Wire Single-Agent Mode (protected file — CS only)
+- [ ] **Wire `single` subcommand into auto-agent.sh** — See INTEGRATION-GUIDE.md Step 14. `src/core/single-agent.sh` is DONE (40 tests pass). CS must add `./auto-agent.sh single <agent-id>` support.
+
 ### P1 — After v0.1.0 Tag
 - [ ] **Connect Mintlify to GitHub** — 11-Web scaffolded docs site in `site/docs/` (12 MDX pages + mint.json). CS needs to connect Mintlify for auto-deploy.
 - [ ] **Update CLAUDE.md** — Lists 11 agents and paths (src-tauri/, ios/) that don't exist yet. Align with reality.
