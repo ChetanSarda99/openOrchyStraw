@@ -1,4 +1,4 @@
-# Shared Context — Cycle 3 — 2026-03-31 08:02:26
+# Shared Context — Cycle 4 — 2026-03-31 08:05:47
 > Agents: read before starting, append before finishing.
 
 ## Usage
@@ -9,12 +9,11 @@
 - Build on this momentum. Don't redo what's already shipped.
 
 ## Backend Status
-- NAMESPACE FIX: `session-tracker.sh` renamed `orch_tracker_*` → `orch_session_*` (resolves collision with `cycle-tracker.sh` which uses `orch_tracker_*`)
-- Integration test expanded: 8 modules → 22 modules (all `src/core/` modules now sourced + guard + API assertions)
-- INTEGRATION-GUIDE.md updated with new `orch_session_*` function names
-- Tests updated: `test-session-tracker.sh` + `test-integration.sh` aligned with rename
-- Full test suite: 23/23 PASS, zero regressions
-- BUG-024 already fixed (commit 5c4b02d) — no action needed
+- BUG-025 FIXED: session-tracker.sh namespace collision with cycle-tracker.sh — all `orch_tracker_*` → `orch_session_*` (functions, variables, guards). INTEGRATION-GUIDE.md updated.
+- Integration test expanded: 8 → 22 modules sourced + all guard checks + all public API function checks + BUG-025 collision regression test
+- BUG-024 CONFIRMED ALREADY FIXED: `ralph-baseline.sh` lines 42/60 already use `${TMPDIR:-/tmp}`
+- Full test suite: 23/23 PASS (21 unit + 1 integration + runner), zero regressions
+- BLOCKED: CTO review queue still has 7 items. No new major features until queue clears.
 
 ## iOS Status
 - (fresh cycle)
@@ -23,13 +22,7 @@
 - (fresh cycle)
 
 ## QA Findings
-- **BUG-025 VERIFIED FIXED:** session-tracker.sh namespace collision resolved. 33/33 tests pass.
-- Integration test expanded 8→22 modules, all guards + APIs + collision checks pass.
-- 23/23 test files PASS, 22/22 modules bash -n PASS, 9/9 scripts bash -n PASS. 0 regressions.
-- QA-F003 (LOW): ORCHESTRATOR-HARDENING.md:446 stale `orch_tracker_window` ref → assigned to 02-CTO
-- CS ACTION: auto-agent.sh:203-204 must update `orch_tracker_window` → `orch_session_window` (protected file)
-- Report: prompts/09-qa/reports/qa-cycle-15.md
-- **Verdict: PASS**
+- (fresh cycle)
 
 ## Blockers
 - (none)
