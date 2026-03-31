@@ -50,9 +50,9 @@ CTO integration order specified in EFFICIENCY-001 + COST-001 ADRs:
 ### P0.5 — Wire Prompt Template (protected file — CS only)
 - [ ] **Wire `prompt-template.sh` into auto-agent.sh** — See INTEGRATION-GUIDE.md Step 17. `src/core/prompt-template.sh` is DONE (49 tests pass). Enables template inheritance for agent prompts.
 
-### P0.5 — Run First Real Benchmark (NEW — cycle 3)
-- [ ] **Run SWE-bench scaffold dry-run** — Backend ported the scaffold to `scripts/benchmark/`. CS should run `bash scripts/benchmark/run-benchmark.sh --dry-run` after CTO review. This is the proof needed for HN launch.
-- [ ] **SWE-bench has 4 open bugs** — BUG-020 (#176), BUG-021 (#177) are HIGH — must fix before untrusted repos. BUG-022 (#178), BUG-023 (#179) are MEDIUM. Backend assigned to fix.
+### P0.5 — Run First Real Benchmark (cycle 3, bugs fixed cycle 4)
+- [ ] **Run SWE-bench scaffold dry-run** — Backend ported the scaffold to `scripts/benchmark/`. All 4 bugs FIXED (BUG-020–023, cycle 4, issues CLOSED). CS should run `bash scripts/benchmark/run-benchmark.sh --dry-run` after CTO review. This is the proof needed for HN launch.
+- [x] **SWE-bench 4 bugs FIXED** — BUG-020 (#176), BUG-021 (#177), BUG-022 (#178), BUG-023 (#179) ALL FIXED by 06-backend (cycle 4). Issues CLOSED.
 
 ### P1 — After v0.1.0 Tag
 - [ ] **Connect Mintlify to GitHub** — 11-Web scaffolded docs site in `site/docs/` (12 MDX pages + mint.json). CS needs to connect Mintlify for auto-deploy.
