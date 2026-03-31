@@ -243,13 +243,21 @@ Only non-blocking item: BUG-013 (README says "Bash 4+" should be "Bash 5+").
 - ✅ INTEGRATION-GUIDE.md updated: Step 17 documents template wiring + migration plan for CS
 - 19th consecutive productive cycle
 
-### NEXT PRIORITIES (Cycle 4+)
+### Done (Cycle 4)
+- ✅ BUG-020 FIXED (#176): URL validation rejects `..` path traversal in org/repo, requires alphanumeric first char
+- ✅ BUG-021 FIXED (#177): test_command whitelist tightened — exact matches + safe prefixes only
+- ✅ BUG-022 FIXED (#178): hardcoded /tmp replaced with ${TMPDIR:-/tmp} in 3 scripts (6 sites)
+- ✅ BUG-023 FIXED (#179): jq empty validation before parsing instance JSON
+- ✅ Full test suite: 21/21 PASS, zero regressions
+- 20th consecutive productive cycle
 
-1. **P1: Fix SWE-bench bugs** — BUG-020 (#176) HIGH: URL validation allows `..` in org/repo. BUG-021 (#177) HIGH: test_command whitelist bypass. BUG-022 (#178) MEDIUM: hardcoded /tmp. BUG-023 (#179) MEDIUM: jq malformed JSON. Fix before untrusted repo use.
+### NEXT PRIORITIES (Cycle 5+)
 
-2. **P2: Progressive task decomposition** (#50) — Backlog one-liners (PM process, but may need tooling)
+1. **P1: Progressive task decomposition** (#50) — Backlog one-liners (PM process, but may need tooling)
 
-3. **P3: auto-agent.sh init** (#45) — Project analyzer → agent blueprint
+2. **P2: auto-agent.sh init** (#45) — Project analyzer → agent blueprint
+
+3. **P2: SWE-bench enhancements** — Once CTO reviews scaffold + confirms bug fixes, add more tasks and real benchmark runs
 
 ---
 

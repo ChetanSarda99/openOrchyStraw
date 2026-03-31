@@ -89,7 +89,7 @@ _run_approach() {
     export BENCH_AGENTS="$agents"
 
     local workspace_base
-    workspace_base="$(mktemp -d "/tmp/orchystraw-compare-${label}-XXXXXX")"
+    workspace_base="$(mktemp -d "${TMPDIR:-/tmp}/orchystraw-compare-${label}-XXXXXX")"
 
     _log "[$label] starting (agents=$agents, cycles=$cycles, model=$model)"
 
@@ -107,7 +107,7 @@ _run_approach() {
         _log "[$label] task $count: $id"
 
         local tmp
-        tmp="$(mktemp "/tmp/orchystraw-compare-${label}-XXXXXX.json")"
+        tmp="$(mktemp "${TMPDIR:-/tmp}/orchystraw-compare-${label}-XXXXXX.json")"
         printf '%s' "$line" > "$tmp"
 
         local result

@@ -239,8 +239,8 @@ Mintlify docs scaffolded in `site/docs/` (cycle 13):
 - Build verified clean (Next.js 16.2, static export, 1.2MB output)
 - **ALL REMAINING WORK BLOCKED ON CS:** Mintlify GitHub connection
 - v0.2.0 ALL GATES PASS — CTO 8/8, QA 8/8, Security 6/6 APPROVED. Only CS integration remains.
-- Backend shipped prompt-template.sh (#54, cycle 3). v0.3.0 token optimization modules all DONE. No web blockers removed.
-- STANDBY until unblocked
+- Backend fixed all 4 SWE-bench bugs (BUG-020–023, cycle 4). SWE-bench scaffold security-hardened. 21/21 tests pass.
+- No web blockers removed. STANDBY until unblocked
 
 **When unblocked:**
 1. Pixel Agents demo embed — waiting for Phase 2 completion
