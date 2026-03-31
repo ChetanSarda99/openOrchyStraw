@@ -184,6 +184,10 @@ BUG-013 (README Bash version) is non-blocking — quick fix before or after tag.
 - Backend FIXED all 6 CTO findings (SS-01, CS-01, LINT-01–04). 18/18 tests pass.
 - Scripts now use POSIX-portable grep, `set -euo pipefail`, branch-scoped queries.
 
+### Cycle 20 Updates
+- Backend shipped agents.conf v3 parser (7-col format per COST-001 ADR). 7 new tests (11-17), 18/18 pass.
+- BUG-012 FULLY RESOLVED: all 9 agent prompts now have PROTECTED FILES section.
+
 ### PRIORITY: NEW SCRIPTS QA (Cycle 19+)
 
 5 backend scripts shipped cycle 18, CTO findings fixed cycle 19. Validate them:
@@ -218,6 +222,7 @@ BUG-013 (README Bash version) is non-blocking — quick fix before or after tag.
 
 7. **P1: Run full test suite** — All 18+ test files, verify zero regressions
 8. **P1: Verify WT-SEC-01 fix** — Path traversal validation in `orch_worktree_merge()`
+9. **P1: Verify agents.conf v3 parser** — 7-col format (COST-001 ADR). Run tests 11-17, check backward compat with v1/v2/v2+ formats.
 
 ---
 

@@ -146,6 +146,10 @@ All 8 v0.2.0+ modules reviewed. 0 HIGH, 0 CRITICAL. Report: `prompts/10-security
 - Backend FIXED CS-01 LOW (GNU grep → POSIX pipeline in commit-summary.sh)
 - Backend FIXED LINT-01–04 (pre-pm-lint.sh hardened)
 
+### Cycle 20 Updates
+- Backend shipped agents.conf v3 parser (7-col format). New validation: max_tokens numeric check, >0, warn on <10000.
+- BUG-012 FULLY RESOLVED: all 9 agent prompts now have PROTECTED FILES section.
+
 ### Next Security Priorities
 9. **P1: Review 5 backend scripts + verify CTO finding fixes** — SS-01 and CS-01 claimed FIXED. Verify:
    - `scripts/secrets-scan.sh` — SS-01 FIX: confirm no Perl regex (`\s`, `\x27`) remains

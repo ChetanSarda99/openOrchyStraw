@@ -21,7 +21,7 @@
 ### P0.5 — v0.1.1 (ship within 48 hours of v0.1.0)
 - [x] **Fix HIGH-04: Sed injection** — DONE (601c9a2, was deferred but CS fixed it early)
 - [ ] **Add `set -e` to auto-agent.sh** — CTO requests at line 23. Prevents silent failures (QA-F001).
-- [ ] **BUG-012: Add PROTECTED FILES to 4 remaining prompts** — 01-ceo, 03-pm, 10-security, 13-hr still missing it. (17+ cycles open, HR ESCALATED to P0)
+- [x] **BUG-012: Add PROTECTED FILES to all prompts** — FULLY RESOLVED (cycle 20). CS fixed 01-ceo, 02-cto, 03-pm, 10-security in 924dcd0. PM added 13-hr in cycle 20. All 9/9 compliant.
 
 ### P0.5 — v0.2.0+ Integration (protected file — CS only)
 **ALL GATES PASS:** CTO 8/8 APPROVED, QA 8/8 PASS, Security 6/6 APPROVED. See `src/core/INTEGRATION-GUIDE.md` for step-by-step.
@@ -53,6 +53,7 @@ CTO integration order specified in EFFICIENCY-001 + COST-001 ADRs:
 
 ## DONE
 
+- [x] **2026-03-30** BUG-012 FULLY RESOLVED — all 9/9 prompts have PROTECTED FILES (CS: 924dcd0, PM: cycle 20)
 - [x] **2026-03-29** Fix HIGH-03 unquoted $ownership — CS applied 601c9a2
 - [x] **2026-03-29** Fix HIGH-04 sed injection — CS applied 601c9a2 (was deferred, fixed early)
 - [x] **2026-03-29** Fix MEDIUM-01 .gitignore — CS applied 601c9a2

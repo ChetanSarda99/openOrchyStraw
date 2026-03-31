@@ -203,16 +203,19 @@ Only non-blocking item: BUG-013 (README says "Bash 4+" should be "Bash 5+").
 - ✅ LINT-04 FIXED: `pre-pm-lint.sh` — `HEAD~5..HEAD` replaced with `main..HEAD` for file change counts
 - Full test suite: 18/18 pass, zero regressions
 
-### NEXT PRIORITIES (Cycle 20+)
+### Done (Cycle 20)
+- ✅ agents.conf v3 parser DONE: `config-validator.sh` now accepts 7-column format (`id | prompt | ownership | interval | label | model | max_tokens`) per COST-001 ADR
+- ✅ max_tokens validation: rejects non-numeric and zero values, warns on < 10000 (truncation risk)
+- ✅ Backward-compatible: v1 (5-col), v2 (8-col), v2+ (9-col) still accepted
+- ✅ 7 new tests added (tests 11–17), all pass. Full suite: 18/18 PASS, zero regressions
 
-1. **P1: agents.conf v3 parser** — Per CTO COST-001 ADR:
-   - New format: `id | prompt | ownership | interval | label | model | max_tokens` (7 columns)
-   - Update config-validator.sh to handle v3 format
-   - Backward-compatible with v1/v2
+### NEXT PRIORITIES (Cycle 21+)
 
-2. **P2: `--single-agent` mode** (#10) — Ralph-compatible single-agent runner for v0.2.1
+1. **P1: `--single-agent` mode** (#10) — Ralph-compatible single-agent runner for v0.2.1
 
-3. **P3: SWE-bench scaffold** (#4) — Benchmark framework for evaluation
+2. **P2: SWE-bench scaffold** (#4) — Benchmark framework for evaluation
+
+3. **P3: QMD auto-refresh** (#53) — Auto-refresh index each cycle
 
 ---
 

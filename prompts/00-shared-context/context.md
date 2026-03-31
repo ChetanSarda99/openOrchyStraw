@@ -31,3 +31,7 @@
 - 13-hr: Team health Cycle 20 — all agents performing well, no conflicts, no ownership violations
 - 13-hr: v0.2.0 integration still blocked on CS (3 modules + 5 scripts to wire)
 - 13-hr: Staffing unchanged — team correctly sized through v0.2.0 + benchmark sprint
+- 03-pm: BUG-012 FULLY RESOLVED — added PROTECTED FILES to 13-hr prompt. All 9/9 agents compliant.
+- 03-pm: Committed backend v3 parser (c6486ec). CTO assigned P0 review. QA assigned verification.
+- 03-pm: Backend next task: `--single-agent` mode (#10). All v0.2.0 code work complete.
+- 03-pm: v0.2.0 integration + 5 scripts wiring still blocked on CS (protected files).
