@@ -33,9 +33,16 @@ if [ -d "$PROJECT_ROOT/src/core" ]; then
     done
 fi
 
-# ── Efficiency modules (v0.2) ────────────────────────────────────────────
+# ── Smart cycle modules (v0.2) ──────────────────────────────────────────
 if [ -d "$PROJECT_ROOT/src/core" ]; then
-    for mod in signal-handler cycle-tracker conditional-activation differential-context session-tracker prompt-compression; do
+    for mod in signal-handler cycle-tracker conditional-activation differential-context session-tracker prompt-compression dynamic-router review-phase worktree; do
+        [ -f "$PROJECT_ROOT/src/core/${mod}.sh" ] && source "$PROJECT_ROOT/src/core/${mod}.sh"
+    done
+fi
+
+# ── Extended modules (v0.3) ─────────────────────────────────────────────
+if [ -d "$PROJECT_ROOT/src/core" ]; then
+    for mod in single-agent qmd-refresher prompt-template task-decomposer init-project; do
         [ -f "$PROJECT_ROOT/src/core/${mod}.sh" ] && source "$PROJECT_ROOT/src/core/${mod}.sh"
     done
 fi
@@ -702,6 +709,9 @@ CTXEOF
                 done
             fi
 
+            # ── Step 1.6: Pre-cycle stats ──
+            [ -x "$SCRIPT_DIR/pre-cycle-stats.sh" ] && bash "$SCRIPT_DIR/pre-cycle-stats.sh" "$PROJECT_ROOT" 2>/dev/null
+
             # ── Step 1.7: Initialize efficiency modules ──
             # Conditional activation: skip agents with no work
             if [[ "$(type -t orch_activation_init)" == "function" ]]; then
@@ -780,8 +790,11 @@ CTXEOF
                 log "No commits this cycle (agents ran but produced no file changes)"
             fi
 
-            # ── Step 3.5: Detect rogue writes (outside all ownership) ──
+            # ── Step 3.5: Detect rogue writes + post-commit scans ──
             detect_rogue_writes
+            [ -x "$SCRIPT_DIR/commit-summary.sh" ] && bash "$SCRIPT_DIR/commit-summary.sh" "HEAD~${COMMITS:-1}" "$PROJECT_ROOT" > "$PM_LOG_DIR/commit-summary-cycle-${CYCLE}.md" 2>/dev/null
+            [ -x "$SCRIPT_DIR/secrets-scan.sh" ] && bash "$SCRIPT_DIR/secrets-scan.sh" "$PROJECT_ROOT" > "$PM_LOG_DIR/secrets-scan-cycle-${CYCLE}.md" 2>/dev/null
+            [ -x "$SCRIPT_DIR/agent-health-report.sh" ] && bash "$SCRIPT_DIR/agent-health-report.sh" "$PROJECT_ROOT" > "$PM_LOG_DIR/health-report-cycle-${CYCLE}.md" 2>/dev/null
 
             # ── Step 3.7: Pre-PM lint (free, instant — digests cycle for PM) ──
             LINT_REPORT=""
@@ -836,7 +849,10 @@ CTXEOF
             merge_cycle_branch "$CYCLE_BRANCH" "$CYCLE"
             validate_prompts
 
-            # ── Step 5.5: Progress checkpoint ──
+            # ── Step 5.5: Post-cycle router adjustment ──
+            [ -x "$SCRIPT_DIR/post-cycle-router.sh" ] && bash "$SCRIPT_DIR/post-cycle-router.sh" "$PROJECT_ROOT" 2>/dev/null
+
+            # ── Step 5.6: Progress checkpoint ──
             progress_file="$PROMPTS_DIR/00-shared-context/progress.json"
             prev_progress=$(cat "$progress_file" 2>/dev/null || echo '{}')
 
