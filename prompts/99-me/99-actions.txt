@@ -7,85 +7,40 @@
 
 ## PENDING — Work through by priority
 
-### P0 — Tag v0.1.0 (ALL BLOCKERS RESOLVED)
-- [x] **Integrate core modules into auto-agent.sh** — DONE (d130de7, lines 29-34)
-- [x] **Fix eval injection (HIGH-01)** — DONE (d130de7, array-based pathspec)
-- [x] **Fix PowerShell notify (MEDIUM-02)** — DONE (d130de7, env var + XML escaping)
-- [x] **Reconcile agents.conf (BUG-009)** — DONE (d130de7, root + scripts/ identical)
-- [x] **Fix HIGH-03: Unquoted `$ownership` in for loops** — DONE (601c9a2)
-- [x] **Fix MEDIUM-01 .gitignore regression** — DONE (601c9a2)
-- [x] **README rewrite** — DONE (exists and is solid per QA)
-- [ ] **Fix BUG-013: README says "Bash 4+" → should be "Bash 5+"** — 30-second fix. Non-blocking but recommended before tag.
-- [ ] **Tag v0.1.0** — QA PASS + Security FULL PASS. Ready to tag immediately.
+### P0 — Ship & Distribute
+- [ ] **Push to origin** — `git push origin main --tags` (v0.1.0 tag is local only)
+- [ ] **Run benchmark dry-run** — `bash scripts/benchmark/run-benchmark.sh --dry-run`
+- [ ] **Demo GIF (#131)** — needed for HN launch
 
-### P0.5 — v0.1.1 (ship within 48 hours of v0.1.0)
-- [x] **Fix HIGH-04: Sed injection** — DONE (601c9a2, was deferred but CS fixed it early)
-- [ ] **Add `set -e` to auto-agent.sh** — CTO requests at line 23. Prevents silent failures (QA-F001).
-- [x] **BUG-012: Add PROTECTED FILES to all prompts** — FULLY RESOLVED (cycle 20). CS fixed 01-ceo, 02-cto, 03-pm, 10-security in 924dcd0. PM added 13-hr in cycle 20. All 9/9 compliant.
+### P0.5 — Wire Module Functions into auto-agent.sh Execution Path
+Modules are sourced but their functions are never called from the main loop.
+These need actual integration (not just `source`):
+- [ ] **#88 Wire timeout** — wrap `run_agent()` claude call with `orch_run_with_timeout`. Currently agents run indefinitely.
+- [ ] **#90 Wire --dry-run** — add CLI flag parsing + call `orch_dry_run_report`. Currently no --dry-run support.
+- [ ] **#145 Wire review-phase** — call `orch_review_*` after agent runs for QA gate. Currently dormant.
+- [ ] **#147 Wire model tiering end-to-end** — add model column to agents.conf, pass `--model "$(orch_router_model $id)"` to claude CLI.
+- [ ] **#168 Wire worktree** — add `--worktree` flag, call `orch_worktree_create/merge` in execution loop. Currently agents share main checkout.
 
-### P0.5 — v0.2.0+ Integration (protected file — CS only)
-**ALL GATES PASS:** CTO 8/8 APPROVED, QA 8/8 PASS, Security 6/6 APPROVED. See `src/core/INTEGRATION-GUIDE.md` for step-by-step.
-**6/9 modules already wired** (a1a33f4). 3 remaining:
-- [ ] **Integrate dynamic-router.sh into auto-agent.sh** — 41 tests. **Quote `orch_router_model` output per DR-SEC-02.**
-- [ ] **Integrate review-phase.sh into auto-agent.sh** — 36 tests.
-- [ ] **Integrate worktree.sh into auto-agent.sh** — 48 tests. See Steps 8-11. WT-SEC-01 now FIXED.
+### P1 — Incomplete Features
+- [ ] **#169 Benchmark completion** — featurebench suite missing, standalone run-comparison.sh and run-featurebench.sh needed
+- [ ] **#121 Docs site** — Mintlify per DOCS-STACK.md. Landing page exists but docs site has zero implementation.
+- [ ] **Connect Mintlify to GitHub** — needed for docs auto-deploy
+- [ ] **Logo/branding assets** — web agent needs logo in assets/branding/
 
-### P0.5 — Wire Efficiency Scripts (protected file — CS only)
-CTO integration order specified in EFFICIENCY-001 + COST-001 ADRs:
-- [ ] **Wire `pre-cycle-stats.sh`** — runs before agents (Step 1.7). Outputs JSON to shared context.
-- [ ] **Wire `commit-summary.sh`** — runs after agent commits (Step 3.5).
-- [ ] **Wire `agent-health-report.sh`** — runs before PM (Step 3.7, alongside pre-pm-lint).
-- [ ] **Wire `secrets-scan.sh`** — runs after agent commits (Step 3.5).
-- [ ] **Wire `post-cycle-router.sh`** — runs after merge (Step 5.5). Adjusts agent intervals.
-
-### P0.5 — Wire Single-Agent Mode (protected file — CS only)
-- [ ] **Wire `single` subcommand into auto-agent.sh** — See INTEGRATION-GUIDE.md Step 14. `src/core/single-agent.sh` is DONE (40 tests pass). CS must add `./auto-agent.sh single <agent-id>` support.
-
-### P0.5 — Wire QMD Refresher (protected file — CS only)
-- [ ] **Wire `qmd-refresher.sh` into auto-agent.sh** — See INTEGRATION-GUIDE.md Step 15. `src/core/qmd-refresher.sh` is DONE (17 tests pass). Replaces inline lines 690-703 in auto-agent.sh.
-
-### ~~P0.5 — BUG-019 Blocks Script Wiring~~ (RESOLVED — cycle 1 session 3)
-- [x] **BUG-019 (#175) FIXED** — Backend fixed `grep -c || echo 0` → `var=$(grep -c ...) || var=0` in 7 locations across 4 scripts (pre-pm-lint.sh, post-cycle-router.sh, run-benchmark.sh, compare-ralph.sh). 19/19 tests pass. Script wiring NOW UNBLOCKED.
-
-### P0.5 — Wire Prompt Template (protected file — CS only)
-- [ ] **Wire `prompt-template.sh` into auto-agent.sh** — See INTEGRATION-GUIDE.md Step 17. `src/core/prompt-template.sh` is DONE (49 tests pass). Enables template inheritance for agent prompts.
-
-### P0.5 — Wire Task Decomposer (protected file — CS only)
-- [ ] **Wire `task-decomposer.sh` into auto-agent.sh** — See INTEGRATION-GUIDE.md Step 18. `src/core/task-decomposer.sh` is DONE (32 tests pass). QA PASS.
-
-### P0.5 — Wire Init Project (protected file — CS only)
-- [ ] **Wire `init-project.sh` into auto-agent.sh** — See INTEGRATION-GUIDE.md Step 19. `src/core/init-project.sh` is DONE (57 tests pass). QA PASS. Enables `./auto-agent.sh init` for new project setup.
-
-### P0.5 — Run First Real Benchmark (cycle 3, bugs fixed cycle 4)
-- [ ] **Run SWE-bench scaffold dry-run** — Backend ported the scaffold to `scripts/benchmark/`. All 4 bugs FIXED (BUG-020–023, cycle 4, issues CLOSED). CS should run `bash scripts/benchmark/run-benchmark.sh --dry-run` after CTO review. This is the proof needed for HN launch.
-- [x] **SWE-bench 4 bugs FIXED** — BUG-020 (#176), BUG-021 (#177), BUG-022 (#178), BUG-023 (#179) ALL FIXED by 06-backend (cycle 4). Issues CLOSED.
-
-### P1 — After v0.1.0 Tag
-- [ ] **Connect Mintlify to GitHub** — 11-Web scaffolded docs site in `site/docs/` (12 MDX pages + mint.json). CS needs to connect Mintlify for auto-deploy.
-- [ ] **Update CLAUDE.md** — Lists 11 agents and paths (src-tauri/, ios/) that don't exist yet. Align with reality.
-- [ ] **Logo/branding assets** — Web agent needs logo in `assets/branding/` (currently text-only)
-- [x] **Verify GitHub Pages deploy** — CONFIRMED LIVE at https://chetansarda99.github.io/openOrchyStraw/ (2 successful runs)
-
-### P2 — After Benchmarks
-- [ ] **Remove orphaned `prompts/01-pm/` directory (BUG-008)** — Old directory from before PM moved to 03-pm
-- [ ] **Update CLAUDE.md agent count** — Lists 11 agents but agents.conf only has 8-9.
-- [ ] **Update CLAUDE.md file paths** — References `src-tauri/`, `ios/` which don't exist yet.
+### P2 — Future Product
+- [ ] Tauri desktop app (#97-101)
+- [ ] Pixel Agents integration (#94-96)
+- [ ] macOS compatibility (#143)
+- [ ] Model fallback routing (#160)
+- [ ] Max cycles env override (#159)
 
 ---
 
 ## DONE
 
-- [x] **2026-03-30** BUG-012 FULLY RESOLVED — all 9/9 prompts have PROTECTED FILES (CS: 924dcd0, PM: cycle 20)
-- [x] **2026-03-29** Fix HIGH-03 unquoted $ownership — CS applied 601c9a2
-- [x] **2026-03-29** Fix HIGH-04 sed injection — CS applied 601c9a2 (was deferred, fixed early)
-- [x] **2026-03-29** Fix MEDIUM-01 .gitignore — CS applied 601c9a2
-- [x] **2026-03-29** Security audit FULL PASS — all 9 gates pass (cycle 8)
-- [x] **2026-03-29** QA PASS — 11/11 tests, all fixes verified (cycle 8)
-- [x] **2026-03-29** GitHub issues closed: #80, #81, #82, #91
-- [x] **2026-03-18** Fix QA prompt path (BUG-004) — PM fixed in cycle 4
-- [x] **2026-03-18** Fix Security prompt path (BUG-005) — PM fixed in cycle 4
-- [x] **2026-03-18** .gitignore update (MEDIUM-01) — Backend fixed in cycle 2 (regressed, re-fixed in 601c9a2)
-- [x] **2026-03-18** Integrate core modules into auto-agent.sh — CS applied d130de7
-- [x] **2026-03-18** Fix eval injection (HIGH-01) — CS applied d130de7
-- [x] **2026-03-18** Fix PowerShell notify (MEDIUM-02) — CS applied d130de7
-- [x] **2026-03-18** Reconcile agents.conf (BUG-009) — CS applied d130de7
+- [x] **2026-03-31** Closed 20 completed + 4 obsolete issues. Fixed 4 bugs (BUG-024, #151, #156, #158). Reopened 7 genuinely incomplete issues.
+- [x] **2026-03-30** v0.1.0 TAGGED (6a02462). All 22 modules wired (sourced). 5 efficiency scripts wired. 23/23 tests pass.
+- [x] **2026-03-30** 10 bugs fixed: BUG-013, QA-F001, SS-01, CS-01, LINT-01-04, BUG-012. Shared resources synced (22 modules).
+- [x] **2026-03-30** CLAUDE.md rewritten, .gitignore cleaned, agents.conf symlinked, orphans removed.
+- [x] **2026-03-30** ~12 agent cycles ran: single-agent.sh, benchmark framework, qmd-refresher, prompt-template, task-decomposer, init-project built.
+- [x] **2026-03-29** v0.1.0 all blockers resolved: security FULL PASS, QA PASS, CTO 8/8.
