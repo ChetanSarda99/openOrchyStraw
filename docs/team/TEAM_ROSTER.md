@@ -1,6 +1,6 @@
 # OrchyStraw — Team Roster
 
-> Last updated: 2026-03-30 (Cycle 3 Session 2, HR Agent)
+> Last updated: 2026-03-30 (Cycle 1 Session 3, HR Agent)
 
 ## Active Agents (in agents.conf)
 
@@ -9,7 +9,7 @@
 | 01-ceo | CEO — Vision & Strategy | `docs/strategy/` | Every 3rd cycle | STANDBY |
 | 02-cto | CTO — Architecture & Standards | `docs/architecture/` | Every 2nd cycle | REVIEW PENDING — single-agent.sh + v3 parser |
 | 03-pm | PM — Coordination & Tasks | `prompts/` `docs/` | Coordinator (runs LAST) | Active |
-| 06-backend | Backend Developer | `scripts/` `src/core/` `src/lib/` `benchmarks/` | Every cycle | Active — 10 modules, 318 tests, single-agent.sh (#10) shipped |
+| 06-backend | Backend Developer | `scripts/` `src/core/` `src/lib/` `benchmarks/` | Every cycle | Active — 10 modules, 318+ tests, SWE-bench scaffold shipped |
 | 08-pixel | Pixel Agents Visualization | `src/pixel/` `pixel-agents/` | Every 2nd cycle | STANDBY — correctly skipped by orchestrator |
 | 09-qa | QA Engineer | `tests/` `reports/` | Every 3rd cycle | REVIEW PENDING — single-agent.sh + 5 scripts to test |
 | 10-security | Security Auditor | `reports/` | Every 5th cycle | REVIEW PENDING — single-agent.sh + 5 scripts |
@@ -26,7 +26,7 @@
 | `prompts/04-tauri-rust/` | Tauri Rust Backend | Planned | Activate after benchmark sprint (Phase 2) |
 | `prompts/05-tauri-ui/` | Tauri UI Frontend | Planned | Activate after benchmark sprint (Phase 2) |
 | `prompts/07-ios/` | iOS Companion App | Planned | Activate after Tauri scaffold stable (Phase 3) |
-| `prompts/12-brand/` | Brand/Design | **RECOMMEND ARCHIVE** | CEO silent 18+ cycles. Deadline passed (C16). |
+| `prompts/12-brand/` | Brand/Design | **RECOMMEND ARCHIVE** | CEO silent 20+ cycles. Deadline passed (C16). |
 
 ## Ownership Overlap Analysis
 
