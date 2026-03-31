@@ -153,18 +153,18 @@ All 8 v0.2.0+ modules reviewed. 0 HIGH, 0 CRITICAL. Report: `prompts/10-security
 ### Cycle 2 Updates
 - Backend shipped single-agent.sh (#10): Ralph-compatible runner. 40 tests pass. Needs security review for command injection, ownership enforcement.
 
+### Cycle 3 Updates
+- Backend shipped SWE-bench scaffold (#4): `scripts/benchmark/` — 7 files + Python bridge
+- QA filed BUG-019 (#175): `grep -c || echo 0` multiline issue in pre-pm-lint.sh + post-cycle-router.sh
+- QA verified: SS-01 FIXED, CS-01 FIXED, WT-SEC-01 FIXED
+
 ### Next Security Priorities
-9. **P0: Review single-agent.sh** — New module `src/core/single-agent.sh`. Check: command injection in agent selection, config parsing safety, module skip/keep logic, ownership boundary enforcement.
-10. **P1: Review 5 backend scripts + verify CTO finding fixes** — SS-01 and CS-01 claimed FIXED. Verify:
-   - `scripts/secrets-scan.sh` — SS-01 FIX: confirm no Perl regex (`\s`, `\x27`) remains
-   - `scripts/commit-summary.sh` — CS-01 FIX: confirm no `grep -oP` (GNU-only) remains
-   - `scripts/pre-cycle-stats.sh` — reads git/gh data, outputs JSON
-   - `scripts/agent-health-report.sh` — reads cycle data
-   - `scripts/post-cycle-router.sh` — calls dynamic-router state functions
-10. **P1: Verify WT-SEC-01 fix** — Path traversal validation added to `orch_worktree_merge()`. Confirm fix is sufficient.
-11. **DR-SEC-02 integration note** — CS must quote `orch_router_model` output when integrating into auto-agent.sh.
-12. **Post-integration security review** — After CS integrates remaining modules, review auto-agent.sh.
-13. **Benchmark security review** — Ensure SWE-bench scaffold doesn't execute untrusted code
+9. **P0: Review single-agent.sh** — `src/core/single-agent.sh`. Check: command injection in agent selection, config parsing safety, module skip/keep logic, ownership boundary enforcement. **STILL PENDING — carry forward.**
+10. **P0: Review SWE-bench scaffold** — NEW (cycle 3). `scripts/benchmark/` — 7 bash scripts + Python bridge. Check: repo URL validation, test command whitelist, path traversal protection, env var injection prevention. Backend claims security measures in place — verify.
+11. **P1: Review 5 efficiency scripts + verify CTO finding fixes** — SS-01 and CS-01 QA-verified FIXED. Do independent security verification.
+12. **P1: Verify WT-SEC-01 fix** — QA verified. Do independent security verification.
+13. **DR-SEC-02 integration note** — CS must quote `orch_router_model` output when integrating into auto-agent.sh.
+14. **Post-integration security review** — After CS integrates remaining modules, review auto-agent.sh.
 
 ---
 

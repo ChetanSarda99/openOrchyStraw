@@ -240,9 +240,12 @@ Use the **Edit tool** to modify ONLY:
 - [x] Backend shipped agents.conf v3 parser (cycle 20): 7-col format per COST-001 ADR, 7 new tests, 18/18 pass.
 - [x] BUG-012 FULLY RESOLVED (cycle 20): all 9/9 agent prompts have PROTECTED FILES section.
 - [x] Backend shipped single-agent.sh (#10, cycle 2): Ralph-compatible runner, 40 tests, 19/19 suite pass.
+- [x] Backend shipped SWE-bench scaffold (#4, cycle 3): 7 files + Python bridge, 5 custom tasks, security hardened.
+- [x] QA cycle 12 report (cycle 3): 19/19 tests, 40/40 single-agent. BUG-019 FILED (#175, HIGH). CONDITIONAL PASS.
+- [ ] BUG-019 must be FIXED before wiring scripts into auto-agent.sh
 - [ ] CS must wire 5 scripts into auto-agent.sh (see CTO integration order in 02-cto prompt)
 - [ ] CS must wire `single` subcommand into auto-agent.sh (INTEGRATION-GUIDE Step 14)
-- [ ] CTO must review v3 parser + single-agent.sh + verify finding fixes
+- [ ] CTO must review v3 parser + single-agent.sh + SWE-bench scaffold + verify finding fixes
 
 ### v0.3.0 — Token Optimization + Smart Provisioning (partially started)
 - [x] #49 Differential context — `differential-context.sh` BUILT + 42 tests PASS. CTO APPROVED. QA PASS. Security APPROVED.
@@ -252,9 +255,9 @@ Use the **Edit tool** to modify ONLY:
 - [ ] #54 Prompt template inheritance
 - [ ] #45 auto-agent.sh init
 
-### v0.4.0 — Benchmarks
-- [ ] #4 SWE-bench scaffold
-- [ ] #5 Ralph Loop comparison
+### v0.4.0 — Benchmarks (scaffold done, runs pending)
+- [x] #4 SWE-bench scaffold — DONE (cycle 3). `scripts/benchmark/` exists. Needs CTO review + first real benchmark run.
+- [ ] #5 Ralph Loop comparison — depends on scaffold review
 - [ ] #6 FeatureBench evaluation
 
 ---
