@@ -12,6 +12,9 @@
 - [ ] **Run benchmark dry-run** — `bash scripts/benchmark/run-benchmark.sh --dry-run`
 - [ ] **Demo GIF (#131)** — needed for HN launch
 
+### P0.5 — Namespace Fix in auto-agent.sh
+- [ ] **BUG-025: session-tracker rename** — `orch_tracker_window` → `orch_session_window`, `orch_tracker_init` → `orch_session_init` in auto-agent.sh (lines 203-204). Module renamed to avoid namespace collision with cycle-tracker.sh. Both defined `orch_tracker_init()`.
+
 ### P0.5 — Wire Module Functions into auto-agent.sh Execution Path
 Modules are sourced but their functions are never called from the main loop.
 These need actual integration (not just `source`):
