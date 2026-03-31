@@ -85,7 +85,7 @@ _run_all() {
 
     mkdir -p "$output_dir"
     local results_file="$output_dir/${suite}-$(date +%Y%m%d-%H%M%S).jsonl"
-    local workspace_base="/tmp/orchystraw-bench-$$"
+    local workspace_base="${TMPDIR:-/tmp}/orchystraw-bench-$$"
 
     export BENCH_MODEL="$model"
     export BENCH_AGENTS="$agents"
@@ -117,7 +117,7 @@ _run_all() {
         fi
 
         if [[ "$parallel" -gt 0 ]]; then
-            local tmp_instance="/tmp/orchystraw-instance-$id.json"
+            local tmp_instance="${TMPDIR:-/tmp}/orchystraw-instance-$id.json"
             printf '%s' "$instance_json" > "$tmp_instance"
             (
                 result="$(run_instance "$tmp_instance" "$workspace_base" "$model" "$max_cycles" "$timeout")"
@@ -131,7 +131,7 @@ _run_all() {
                 running=$(( running - 1 ))
             fi
         else
-            local tmp_instance="/tmp/orchystraw-instance-$id.json"
+            local tmp_instance="${TMPDIR:-/tmp}/orchystraw-instance-$id.json"
             printf '%s' "$instance_json" > "$tmp_instance"
             local result
             result="$(run_instance "$tmp_instance" "$workspace_base" "$model" "$max_cycles" "$timeout")" || true

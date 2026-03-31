@@ -18,7 +18,10 @@ _err() { _log "ERROR: $*"; }
 
 _validate_repo_url() {
     local url="$1"
-    if [[ ! "$url" =~ ^https://github\.com/[a-zA-Z0-9_.-]+/[a-zA-Z0-9_.-]+(\.git)?$ ]]; then
+    if [[ "$url" == *".."* ]]; then
+        _err "repo URL contains path traversal: '$url'"; return 1
+    fi
+    if [[ ! "$url" =~ ^https://github\.com/[a-zA-Z0-9][a-zA-Z0-9_.-]*/[a-zA-Z0-9][a-zA-Z0-9_.-]*(\.git)?$ ]]; then
         _err "invalid repo URL: '$url'"; return 1
     fi
 }
@@ -39,20 +42,23 @@ _validate_test_command() {
         _err "test_command contains shell metacharacters: '$cmd'"; return 1
     fi
 
-    local -a allowed=(
-        "pytest" "python -m pytest" "python -m unittest"
-        "python3 -m pytest" "python3 -m unittest"
+    local -a allowed_exact=(
+        "pytest" "tox" "nox"
         "make test" "make check"
-        "npm test" "npm run test" "npx"
-        "cargo test" "go test"
-        "tox" "nox"
-        "bash " "./test" "./run_test"
+        "npm test" "npm run test"
     )
-    local prefix
-    for prefix in "${allowed[@]}"; do
-        if [[ "$cmd" == "$prefix"* ]]; then
-            return 0
-        fi
+    local -a allowed_prefixes=(
+        "pytest " "python -m pytest " "python -m unittest "
+        "python3 -m pytest " "python3 -m unittest "
+        "cargo test " "go test "
+        "npx jest " "npx vitest " "npx mocha "
+    )
+    local item
+    for item in "${allowed_exact[@]}"; do
+        [[ "$cmd" == "$item" ]] && return 0
+    done
+    for item in "${allowed_prefixes[@]}"; do
+        [[ "$cmd" == "$item"* ]] && return 0
     done
 
     _err "test_command not in whitelist: '$cmd'"; return 1
@@ -60,7 +66,7 @@ _validate_test_command() {
 
 run_instance() {
     local instance_file="${1:--}"
-    local workspace_base="${2:-/tmp/orchystraw-bench}"
+    local workspace_base="${2:-${TMPDIR:-/tmp}/orchystraw-bench}"
     local model="${3:-sonnet}"
     local max_cycles="${4:-5}"
     local timeout="${5:-600}"
@@ -70,6 +76,12 @@ run_instance() {
         instance_json="$(cat)"
     else
         instance_json="$(cat "$instance_file")"
+    fi
+
+    if ! printf '%s' "$instance_json" | jq empty 2>/dev/null; then
+        _err "malformed JSON in instance: $instance_file"
+        _emit_result "unknown" "error" "1" 0 0 0 0 ""
+        return 1
     fi
 
     local id repo_url commit issue_text test_command
