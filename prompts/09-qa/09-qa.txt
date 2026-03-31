@@ -199,9 +199,9 @@ BUG-013 (README Bash version) is non-blocking — quick fix before or after tag.
 - ✅ Report: prompts/09-qa/reports/qa-cycle-12.md
 - Verdict: CONDITIONAL PASS — BUG-019 must be fixed before wiring scripts
 
-### PRIORITY: NEXT QA TASKS (Cycle 4+)
+### PRIORITY: NEXT QA TASKS (Cycle 2+)
 
-1. **P0: Verify BUG-019 fix** (#175) — After 06-backend fixes `grep -c || echo 0` multiline issue in pre-pm-lint.sh and post-cycle-router.sh, verify the fix works correctly.
+1. **P0: Verify BUG-019 fix** (#175) — Backend FIXED `grep -c || echo 0` → `var=$(grep -c ...) || var=0` in 7 locations across 4 scripts. Verify the fix works correctly: run pre-pm-lint.sh and post-cycle-router.sh with zero-match scenarios.
 
 2. **P0: Test SWE-bench scaffold** — Backend shipped `scripts/benchmark/` (7 files + Python bridge). Validate:
    - `run-benchmark.sh` dry-run mode works

@@ -232,7 +232,7 @@ main() {
         local instances
         instances="$(_load_instances "$suite" "$limit")"
         local count
-        count="$(printf '%s\n' "$instances" | grep -c . || echo 0)"
+        count="$(printf '%s\n' "$instances" | grep -c .)" || count=0
         _log "dry-run: $count instance(s) from suite=$suite"
         local est
         est="$(estimate_cost "$count" "$model" "$agents" "$max_cycles")"

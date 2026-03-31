@@ -162,7 +162,9 @@ All P0 and P1 tasks from the efficiency sprint are DONE:
 
 4. **P1: Verify CTO finding fixes** — SS-01, CS-01, LINT-01–04 all claimed fixed by backend (cycle 19). Spot-check the code changes. **STILL PENDING — carry forward.**
 
-5. **P2: Write WORKTREE-002 ADR** — Module-based approach doc (low priority)
+5. **P1: Verify BUG-019 fix** — Backend FIXED (cycle 1 session 3). `grep -c || echo 0` → `var=$(grep -c ...) || var=0` in 7 locations across 4 scripts. QA-verified FIXED via shared context. Spot-check the pattern is correct.
+
+6. **P2: Write WORKTREE-002 ADR** — Module-based approach doc (low priority)
 
 ---
 

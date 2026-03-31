@@ -258,7 +258,7 @@ _dry_run() {
     local tasks
     tasks="$(_load_tasks "$limit")"
     local count
-    count="$(printf '%s\n' "$tasks" | grep -c . || echo 0)"
+    count="$(printf '%s\n' "$tasks" | grep -c .)" || count=0
 
     _log "dry-run: $count task(s) — estimating cost for both approaches"
 
@@ -329,7 +329,7 @@ main() {
     local tasks
     tasks="$(_load_tasks "$limit")"
     local task_count
-    task_count="$(printf '%s\n' "$tasks" | grep -c . || echo 0)"
+    task_count="$(printf '%s\n' "$tasks" | grep -c .)" || task_count=0
 
     [[ "$task_count" -gt 0 ]] || _die "no tasks found"
 

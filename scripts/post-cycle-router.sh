@@ -82,7 +82,7 @@ for id in "${_ORCH_ROUTER_AGENTS[@]}"; do
             if [[ "$log_size" -lt 100 ]]; then
                 outcome="fail"
             else
-                errors=$(grep -c -i "fatal\|panic\|traceback" "$latest_log" 2>/dev/null || echo 0)
+                errors=$(grep -c -i "fatal\|panic\|traceback" "$latest_log" 2>/dev/null) || errors=0
                 [[ "$errors" -gt 0 ]] && outcome="fail"
             fi
         fi

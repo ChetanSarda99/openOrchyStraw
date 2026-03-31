@@ -242,7 +242,7 @@ Use the **Edit tool** to modify ONLY:
 - [x] Backend shipped single-agent.sh (#10, cycle 2): Ralph-compatible runner, 40 tests, 19/19 suite pass.
 - [x] Backend shipped SWE-bench scaffold (#4, cycle 3): 7 files + Python bridge, 5 custom tasks, security hardened.
 - [x] QA cycle 12 report (cycle 3): 19/19 tests, 40/40 single-agent. BUG-019 FILED (#175, HIGH). CONDITIONAL PASS.
-- [ ] BUG-019 must be FIXED before wiring scripts into auto-agent.sh
+- [x] BUG-019 FIXED (cycle 1 session 3): 7 locations across 4 scripts. Script wiring UNBLOCKED.
 - [ ] CS must wire 5 scripts into auto-agent.sh (see CTO integration order in 02-cto prompt)
 - [ ] CS must wire `single` subcommand into auto-agent.sh (INTEGRATION-GUIDE Step 14)
 - [ ] CTO must review v3 parser + single-agent.sh + SWE-bench scaffold + verify finding fixes
