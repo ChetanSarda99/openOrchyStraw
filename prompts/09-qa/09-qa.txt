@@ -199,9 +199,12 @@ BUG-013 (README Bash version) is non-blocking — quick fix before or after tag.
 - ✅ Report: prompts/09-qa/reports/qa-cycle-12.md
 - Verdict: CONDITIONAL PASS — BUG-019 must be fixed before wiring scripts
 
-### PRIORITY: NEXT QA TASKS (Cycle 2+)
+### Cycle 2 Updates
+- Backend shipped `qmd-refresher.sh` (#53) — QMD auto-refresh module, 17 tests, 20/20 suite pass. Needs QA review.
 
-1. **P0: Verify BUG-019 fix** (#175) — Backend FIXED `grep -c || echo 0` → `var=$(grep -c ...) || var=0` in 7 locations across 4 scripts. Verify the fix works correctly: run pre-pm-lint.sh and post-cycle-router.sh with zero-match scenarios.
+### PRIORITY: NEXT QA TASKS (Cycle 3+)
+
+1. **P0: Verify BUG-019 fix** (#175) — Backend FIXED `grep -c || echo 0` → `var=$(grep -c ...) || var=0` in 7 locations across 4 scripts. Verify the fix works correctly: run pre-pm-lint.sh and post-cycle-router.sh with zero-match scenarios. **STILL PENDING — carry forward.**
 
 2. **P0: Test SWE-bench scaffold** — Backend shipped `scripts/benchmark/` (7 files + Python bridge). Validate:
    - `run-benchmark.sh` dry-run mode works
@@ -210,9 +213,15 @@ BUG-013 (README Bash version) is non-blocking — quick fix before or after tag.
    - `swebench/scaffold.py` syntax + basic functionality check
    - Security: repo URL validation, test command whitelist, path traversal guards
 
-3. **P1: Remaining efficiency script validation** — Verify post-cycle-router.sh and pre-pm-lint.sh integration after BUG-019 fix.
+3. **P0: Test qmd-refresher.sh** — Backend shipped `src/core/qmd-refresher.sh` (cycle 2). Validate:
+   - 17/17 tests pass independently
+   - State tracking in .orchystraw/ works correctly
+   - Full test suite still 20/20 PASS
+   - No regressions in existing modules
 
-4. **P1: Run full test suite** — 19/19 test files, verify zero regressions after any new changes.
+4. **P1: Remaining efficiency script validation** — Verify post-cycle-router.sh and pre-pm-lint.sh integration after BUG-019 fix.
+
+5. **P1: Run full test suite** — 20/20 test files, verify zero regressions after any new changes.
 
 ---
 
