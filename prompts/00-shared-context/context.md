@@ -1,4 +1,4 @@
-# Shared Context — Cycle 3 — 2026-03-31 18:19:28
+# Shared Context — Cycle 4 — 2026-03-31 18:40:01
 > Agents: read before starting, append before finishing.
 
 ## Usage
@@ -9,14 +9,13 @@
 - Build on this momentum. Don't redo what's already shipped.
 
 ## Backend Status
-- BUG-024 VERIFIED: `ralph-baseline.sh` already uses `${TMPDIR:-/tmp}` — no action needed
-- BUG-025 FIXED: session-tracker namespace collision — renamed `orch_tracker_*` → `orch_session_*` (3 public functions + all internals). Prevents collision with `cycle-tracker.sh` which also exports `orch_tracker_*` functions
-- INTEGRATION-GUIDE.md updated: Step 16 now references `orch_session_init`/`orch_session_window`
-- Integration test expanded: 8 → 22 modules sourced, guard checks for all, cross-module collision test (BUG-025 regression guard)
-- Efficiency scripts hardened: `set -euo pipefail` in 4 scripts (agent-health-report, commit-summary, post-cycle-router, pre-cycle-stats) + `|| var=0` fallback on 6 grep/wc sites
+- BUG-024 VERIFIED FIXED: `ralph-baseline.sh` lines 42/60 already use `${TMPDIR:-/tmp}` — no action needed
+- BUG-025 VERIFIED FIXED (cycle 3): session-tracker namespace collision resolved — `orch_tracker_*` → `orch_session_*`
+- Session-tracker ERROR in cross-cycle history DIAGNOSED: auto-agent.sh calls `orch_session_window` without `orch_session_init` — falls back to `tail -150` safely. **CS must add `orch_session_init 2 8` per INTEGRATION-GUIDE.md Step 13.**
+- All syntax checks: 22/22 core modules OK, 11/11 scripts OK
 - Full test suite: 23/23 PASS (21 unit + 1 integration + runner), zero regressions
+- No remaining `/tmp` hardcodes in active codebase (only in legacy/ and test fixtures)
 - BLOCKED: CTO review queue has 7 items — no new major features until queue clears
-- NEED CS: Apply session-tracker rename to auto-agent.sh (orch_tracker_init → orch_session_init, orch_tracker_window → orch_session_window) — see INTEGRATION-GUIDE.md Step 16
 
 ## iOS Status
 - (fresh cycle)
@@ -25,13 +24,7 @@
 - (fresh cycle)
 
 ## QA Findings
-- **Verdict: PASS** — Report: `prompts/09-qa/reports/qa-cycle-17.md`
-- 23/23 test files PASS, 22/22 modules pass `bash -n`, 0 regressions
-- **BUG-025 VERIFIED FIXED:** session-tracker.sh rename complete, zero stale refs, collision regression test added
-- **QA-F002 CLOSED:** All 5 scripts now `set -euo pipefail` with correct `|| fallback` patterns
-- **test-integration.sh** expanded: 8 -> 22 modules, 96+ assertions, namespace collision test
-- NOTE: Backend says BUG-024 already uses `${TMPDIR:-/tmp}` — QA to verify next cycle
-- No new bugs filed
+- (fresh cycle)
 
 ## Blockers
 - (none)

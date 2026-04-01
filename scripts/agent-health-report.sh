@@ -5,7 +5,7 @@
 # Usage: bash scripts/agent-health-report.sh [cycles=10] [project_root]
 # Output: Markdown report to stdout
 
-set -uo pipefail
+set -euo pipefail
 
 LOOKBACK="${1:-10}"
 PROJECT_ROOT="${2:-$(cd "$(dirname "$0")/.." && pwd)}"
@@ -58,7 +58,7 @@ for id in "${AGENT_IDS[@]}"; do
     fi
 
     # Count commits by this agent
-    commits=$(git -C "$PROJECT_ROOT" log --oneline --all --grep="feat($id)" -n 100 2>/dev/null | wc -l | tr -d ' ')
+    commits=$(git -C "$PROJECT_ROOT" log --oneline --all --grep="feat($id)" -n 100 2>/dev/null | wc -l | tr -d ' ') || commits=0
 
     # Analyze logs
     log_dir="$PROMPTS_DIR/$id/logs"
@@ -74,8 +74,7 @@ for id in "${AGENT_IDS[@]}"; do
             size=$(wc -c < "$logfile" 2>/dev/null | tr -d '[:space:]')
             size="${size:-0}"
             total_size=$((total_size + size))
-            errors=$(grep -c -iE "error|fatal|panic|exception" "$logfile" 2>/dev/null | tr -d '[:space:]')
-            errors="${errors:-0}"
+            errors=$(grep -c -iE "error|fatal|panic|exception" "$logfile" 2>/dev/null | tr -d '[:space:]') || errors=0
             if [[ "$errors" -gt 0 ]]; then
                 error_count=$((error_count + 1))
             else
@@ -150,7 +149,7 @@ echo ""
 
 orphan_prompts=0
 for id in "${AGENT_IDS[@]}"; do
-    prompt_path=$(grep "^${id}" "$CONF_FILE" 2>/dev/null | head -1 | cut -d'|' -f2 | xargs)
+    prompt_path=$(grep "^${id}" "$CONF_FILE" 2>/dev/null | head -1 | cut -d'|' -f2 | xargs) || prompt_path=""
     if [ -n "$prompt_path" ] && [ ! -f "$PROJECT_ROOT/$prompt_path" ]; then
         echo "- **MISSING PROMPT:** $id → $prompt_path"
         orphan_prompts=$((orphan_prompts + 1))
