@@ -242,6 +242,7 @@ Mintlify docs scaffolded in `site/docs/` (cycle 13):
 - Backend shipped task-decomposer.sh (#50) + init-project.sh (#45) — cycle 1. 23/23 tests pass. CTO review queue at 7 items.
 - Cycle 4 (2026-03-31): No web blockers removed. CTO review queue still at 7 items. v0.2.0 integration still pending CS.
 - Cycle 1s5 (2026-03-31): No changes. Still blocked on CS Mintlify connection.
+- Cycle 2 (2026-03-31): Another quiet cycle — 0 agent commits. Still blocked on CS Mintlify connection.
 - STANDBY until unblocked
 
 **When unblocked:**
