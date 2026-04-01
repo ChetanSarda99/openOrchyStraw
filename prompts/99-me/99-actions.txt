@@ -24,6 +24,11 @@ These need actual integration (not just `source`):
 - [ ] **#147 Wire model tiering end-to-end** — add model column to agents.conf, pass `--model "$(orch_router_model $id)"` to claude CLI.
 - [ ] **#168 Wire worktree** — add `--worktree` flag, call `orch_worktree_create/merge` in execution loop. Currently agents share main checkout.
 
+### P0 — STOP ORCHESTRATOR (NEW — Cycle 5)
+- [ ] **HARD PAUSE the orchestrator** — 5 consecutive quiet cycles today, 26+ idle cycles total, ~45 wasted agent invocations today alone. Nothing will change until the items below are done.
+- [ ] **Clear CTO review queue (7 items)** — single-agent.sh, v3 parser, SWE-bench scaffold, qmd-refresher.sh, prompt-template.sh, task-decomposer.sh, init-project.sh. CS can batch-review or run CTO agent manually with focused prompt.
+- [ ] **Wire v0.2.0 modules into auto-agent.sh** — see P0.5 section below for specifics
+
 ### P1 — Incomplete Features
 - [ ] **#169 Benchmark completion** — featurebench suite missing, standalone run-comparison.sh and run-featurebench.sh needed
 - [ ] **#121 Docs site** — Mintlify per DOCS-STACK.md. Landing page exists but docs site has zero implementation.
