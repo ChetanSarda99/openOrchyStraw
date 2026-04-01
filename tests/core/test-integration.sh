@@ -2,7 +2,7 @@
 # =============================================================================
 # test-integration.sh — Integration smoke test for all src/core/ modules
 #
-# Verifies that all 22 modules can be sourced together without conflicts:
+# Verifies that all 23 modules can be sourced together without conflicts:
 #   - No duplicate function names
 #   - No guard variable collisions
 #   - No associative array clashes
@@ -47,8 +47,8 @@ WORK_DIR="$(mktemp -d)"
 trap 'rm -rf "$WORK_DIR"' EXIT
 cd "$WORK_DIR"
 
-# ── Test 1: Source all 22 modules in documented order ────────────────────────
-printf 'test-integration: sourcing all 22 modules...\n'
+# ── Test 1: Source all 23 modules in documented order ────────────────────────
+printf 'test-integration: sourcing all 23 modules...\n'
 
 export ORCH_QUIET=1  # suppress log output during tests
 
@@ -80,11 +80,12 @@ source "$CORE_DIR/single-agent.sh"
 source "$CORE_DIR/qmd-refresher.sh"
 source "$CORE_DIR/prompt-template.sh"
 
-# v0.3.0+ modules (2)
+# v0.3.0+ modules (3)
 source "$CORE_DIR/task-decomposer.sh"
 source "$CORE_DIR/init-project.sh"
+source "$CORE_DIR/freshness-detector.sh"
 
-assert "all 22 modules sourced without error" true
+assert "all 23 modules sourced without error" true
 
 # ── Test 2: Guard variables prevent double-sourcing ──────────────────────────
 printf 'test-integration: verifying double-source guards...\n'
@@ -114,6 +115,7 @@ assert "qmd-refresher guard set"        test -n "${_ORCH_QMD_REFRESHER_LOADED:-}
 assert "prompt-template guard set"      test -n "${_ORCH_PROMPT_TEMPLATE_LOADED:-}"
 assert "task-decomposer guard set"      test -n "${_ORCH_TASK_DECOMPOSER_LOADED:-}"
 assert "init-project guard set"         test -n "${_ORCH_INIT_PROJECT_LOADED:-}"
+assert "freshness-detector guard set"  test -n "${_ORCH_FRESHNESS_LOADED:-}"
 
 # ── Test 3: Key functions exist from each module ─────────────────────────────
 printf 'test-integration: verifying public API functions exist...\n'
@@ -227,6 +229,12 @@ assert "orch_init_scan exists"          declare -f orch_init_scan
 assert "orch_init_suggest_agents exists" declare -f orch_init_suggest_agents
 assert "orch_init_report exists"        declare -f orch_init_report
 
+# freshness-detector
+assert "orch_freshness_init exists"    declare -f orch_freshness_init
+assert "orch_freshness_scan exists"    declare -f orch_freshness_scan
+assert "orch_freshness_report exists"  declare -f orch_freshness_report
+assert "orch_freshness_check exists"   declare -f orch_freshness_check
+
 # ── Test 4: Cross-module workflow ────────────────────────────────────────────
 printf 'test-integration: running cross-module workflow...\n'
 
@@ -292,7 +300,7 @@ printf 'test-integration: checking for namespace collisions...\n'
 # All internal functions should start with _orch_
 # Count total orch functions — should be a reasonable number (not duplicated)
 orch_fn_count=$(declare -F | grep -c ' orch_\|_orch_' || true)
-assert "orch functions loaded (22 modules)" test "$orch_fn_count" -gt 80
+assert "orch functions loaded (23 modules)" test "$orch_fn_count" -gt 80
 
 # Verify session-tracker and cycle-tracker don't collide (BUG-025 fix)
 assert "orch_tracker_init is cycle-tracker (not overwritten)" \
