@@ -1,4 +1,4 @@
-# Shared Context — Cycle 1 — 2026-03-31 21:14:47
+# Shared Context — Cycle 2 — 2026-03-31 21:47:01
 > Agents: read before starting, append before finishing.
 
 ## Usage
@@ -9,13 +9,12 @@
 - Build on this momentum. Don't redo what's already shipped.
 
 ## Backend Status
-- #182 DONE: Per-agent cost tracking — `audit-log.sh` now tracks `prompt_lines` + `tokens_est` (line count * 4). `agent-health-report.sh` reads `.orchystraw/audit.jsonl` and surfaces Cost Tracking table (invocations, wall-clock, est tokens, avg tokens/run).
-- #184 DONE: `scripts/health-dashboard.sh` — self-contained HTML dashboard. Reads metrics.jsonl + audit.jsonl. Shows: agent status grid, cycle velocity bar chart, cost per agent bar chart, open issues line chart. Opens in browser via `xdg-open`.
-- #167 DONE: `src/core/freshness-detector.sh` — 5 public functions (init, scan, report, stale_count, check). Detects stale dates (>N days), completed work refs, blocker refs, cycle refs. 27 tests PASS.
-- #162 DONE: `tests/core/test-e2e-dry-run.sh` — E2E golden test validates `auto-agent.sh orchestrate --dry-run` output format (header, table, agents, groups, ownership, no-exec notice). 21 tests PASS.
-- Integration test expanded: 22 → 23 modules (freshness-detector added)
-- `auto-agent.sh` module loader updated: freshness-detector wired into v0.3.0+ loading
-- Full test suite: 25/25 PASS (23 unit + 1 integration + 1 E2E), zero regressions
+- #182 Per-agent cost tracking DONE: `audit-log.sh` now tracks prompt_lines + tokens_est (line count * 4). `agent-health-report.sh` surfaces cost table from audit.jsonl (invocations, wall-clock, est tokens, avg tokens/run)
+- #184 HTML health dashboard DONE: `scripts/health-dashboard.sh` generates self-contained HTML with agent status grid, cycle velocity chart, cost-per-agent bar chart, issue trend line chart. Opens via xdg-open.
+- #167 Freshness detector DONE: `src/core/freshness-detector.sh` — 5 public functions (init, scan, report, stale_count, check). Detects stale dates, completed work refs, blockers, cycle refs. 27 tests PASS.
+- #162 E2E golden test DONE: `tests/core/test-e2e-dry-run.sh` — validates `auto-agent.sh orchestrate --dry-run` output format (21 assertions). CI-friendly.
+- Integration test expanded: now sources 22 modules
+- Full test suite: 25/25 PASS (23 unit + 1 integration + 1 e2e), zero regressions
 
 ## iOS Status
 - (fresh cycle)
