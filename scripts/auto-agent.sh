@@ -837,6 +837,7 @@ CTXEOF
                     merge_cycle_branch "$CYCLE_BRANCH" "$CYCLE"
                     validate_prompts
 
+                    [ -x "$SCRIPT_DIR/cycle-metrics.sh" ] && bash "$SCRIPT_DIR/cycle-metrics.sh" "$CYCLE" "$COMMITS" "$PROJECT_ROOT" 2>/dev/null
                     log "CYCLE $CYCLE DONE (lint-only, PM skipped) — $COMMITS commits"
                     notify "Cycle $CYCLE done (PM skipped — quiet cycle)"
 
@@ -936,7 +937,8 @@ PEOF
             git diff --cached --quiet 2>/dev/null || git commit -m "chore: auto-update all prompts — cycle $CYCLE ($total files, $component_count components)" 2>/dev/null
             log "All prompts auto-updated: $total files, $component_count components"
 
-            # ── Step 6: Cycle complete ──
+            # ── Step 6: Cycle metrics + complete ──
+            [ -x "$SCRIPT_DIR/cycle-metrics.sh" ] && bash "$SCRIPT_DIR/cycle-metrics.sh" "$CYCLE" "$COMMITS" "$PROJECT_ROOT" 2>/dev/null
             log "CYCLE $CYCLE DONE — $COMMITS commits | ${ts_count} TS + ${swift_count} Swift files"
             notify "Cycle $CYCLE done — $COMMITS commits"
 
