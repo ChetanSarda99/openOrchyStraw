@@ -1,4 +1,4 @@
-# Shared Context — Cycle 2 — 2026-03-31 07:55:34
+# Shared Context — Cycle 2 — 2026-03-31 17:51:24
 > Agents: read before starting, append before finishing.
 
 ## Usage
@@ -9,12 +9,11 @@
 - Build on this momentum. Don't redo what's already shipped.
 
 ## Backend Status
-- BUG-025 FIXED: session-tracker.sh namespace collision with cycle-tracker.sh — both defined `orch_tracker_init()`. Renamed session-tracker to `orch_session_*` prefix (`orch_session_init`, `orch_session_window`, `orch_session_stats`). All internal state vars renamed `_ORCH_SESSION_*`. Guard renamed `_ORCH_SESSION_TRACKER_LOADED`. Test file updated: 33/33 PASS.
-- INTEGRATION-GUIDE.md updated with new function names (Steps referencing session-tracker)
-- CS ACTION: auto-agent.sh lines 203-204 must update `orch_tracker_window` → `orch_session_window` (protected file)
-- Integration test expanded: now sources all 22 modules (was 8), 104 assertions (was 42). Verifies guards, public APIs, namespace isolation for all v0.1.0 through v0.3.0+ modules.
+- FIXED: `cycle-metrics.sh` — 3 `ls | wc -l` patterns unsafe under `set -euo pipefail`, added `|| var=0` fallbacks (same BUG-019 class)
+- FIXED: `check-domain.sh` lines 114-115 — `grep -oP` (Perl regex) replaced with portable `grep -oE` + `cut` (CS-01 class, fix from cycle 1 was not persisted)
+- VERIFIED: `audit-log.sh` and `cycle-metrics.sh` new scripts — syntax clean, patterns reviewed
 - Full test suite: 23/23 PASS, zero regressions
-- BUG-024 confirmed already fixed (prior cycle)
+- BLOCKED: CTO review queue has 7 items — no new major features until queue clears
 
 ## iOS Status
 - (fresh cycle)
