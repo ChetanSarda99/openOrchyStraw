@@ -49,7 +49,7 @@ TOTAL_COMMITS=0
 TOTAL_FILES=0
 for id in "${AGENT_IDS[@]}"; do
     # Count commits by this agent in current cycle branch or recent
-    commits=$(git log --oneline --grep="feat($id)" --since="3600 seconds ago" 2>/dev/null | wc -l | tr -d ' ')
+    commits=$(git log --oneline --grep="feat($id)" --since="3600 seconds ago" 2>/dev/null | wc -l | tr -d ' ') || commits=0
 
     # Count files in owned paths
     IFS=' ' read -ra paths <<< "${AGENT_OWNERSHIP[$id]}"
@@ -57,7 +57,7 @@ for id in "${AGENT_IDS[@]}"; do
     lines_delta=""
     for path in "${paths[@]}"; do
         [[ "$path" == !* ]] && continue
-        fc=$(git diff --name-only HEAD~5..HEAD -- "$path" 2>/dev/null | wc -l | tr -d ' ')
+        fc=$(git diff --name-only HEAD~5..HEAD -- "$path" 2>/dev/null | wc -l | tr -d ' ') || fc=0
         files_changed=$((files_changed + fc))
     done
 

@@ -308,7 +308,7 @@ Replace the static `tail -150` on SESSION_TRACKER.txt (line 185) with smart wind
 source "$SCRIPT_DIR/../src/core/session-tracker.sh"
 
 # Initialize once before the agent loop (after sourcing modules)
-orch_tracker_init 2 8  # 2 recent cycles full, 8 summary rows
+orch_session_init 2 8  # 2 recent cycles full, 8 summary rows
 ```
 
 In the prompt assembly section, replace:
@@ -322,7 +322,7 @@ With:
 
 ```bash
 # NEW (smart windowing):
-orch_tracker_window "$tracker_file"
+orch_session_window "$tracker_file"
 ```
 
 This replaces the static `tail -150` with dynamic windowing:
