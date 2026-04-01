@@ -1,15 +1,15 @@
 # OrchyStraw — Team Roster
 
-> Last updated: 2026-03-30 (Cycle 1 Session 4, HR Agent)
+> Last updated: 2026-03-31 (Cycle 1 Session 5, HR Agent)
 
 ## Active Agents (in agents.conf)
 
 | ID | Role | Ownership | Interval | Status |
 |----|------|-----------|----------|--------|
 | 01-ceo | CEO — Vision & Strategy | `docs/strategy/` | Every 3rd cycle | Active |
-| 02-cto | CTO — Architecture & Standards | `docs/architecture/` | Every 2nd cycle | **7 reviews pending** — backlog critical |
+| 02-cto | CTO — Architecture & Standards | `docs/architecture/` | Every 2nd cycle | **7 reviews pending 3+ sessions** — ESCALATED |
 | 03-pm | PM — Coordination & Tasks | `prompts/` `docs/` | Coordinator (runs LAST) | Active |
-| 06-backend | Backend Developer | `scripts/` `src/core/` `src/lib/` `benchmarks/` | Every cycle | Active — 13 modules, 23 test files, 21st productive cycle |
+| 06-backend | Backend Developer | `scripts/` `src/core/` `src/lib/` `benchmarks/` | Every cycle | Active — 22 modules in src/core/, 22nd+ productive cycle |
 | 08-pixel | Pixel Agents Visualization | `src/pixel/` `pixel-agents/` | Every 2nd cycle | STANDBY — per CEO |
 | 09-qa | QA Engineer | `tests/` `reports/` | Every 3rd cycle | Active — review queue growing |
 | 10-security | Security Auditor | `reports/` | Every 5th cycle | Interval 5, scheduled |
