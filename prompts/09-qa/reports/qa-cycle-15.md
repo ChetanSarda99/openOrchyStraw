@@ -1,4 +1,4 @@
-# QA Report — Cycle 15
+# QA Report — Cycle 15 (Updated)
 **Date:** 2026-03-31
 **Agent:** 09-QA
 **Verdict:** PASS
@@ -7,9 +7,9 @@
 
 ## Summary
 
-Backend shipped BUG-025 fix: session-tracker.sh namespace collision with cycle-tracker.sh resolved.
-Integration test expanded from 8 → 22 modules with full guard + API + collision verification.
-All tests pass. No regressions.
+Full verification pass. BUG-025 (namespace collision), BUG-024 (hardcoded /tmp), QA-F002 (missing `set -e`)
+all confirmed fixed. Integration test expanded 8 → 22 modules (104 assertions). 23/23 test files PASS.
+30/30 syntax checks PASS. No new bugs found. No regressions.
 
 ---
 
@@ -17,10 +17,11 @@ All tests pass. No regressions.
 
 | Suite | Files | Tests | Result |
 |-------|-------|-------|--------|
-| Unit tests | 23 | all | 23/23 PASS |
+| Full test suite | 23 | all | 23/23 PASS |
+| Integration test | 1 | 104 assertions | 104/104 PASS |
+| Session tracker | 1 | 33 assertions | 33/33 PASS |
 | Syntax checks (src/core/) | 22 | bash -n | 22/22 PASS |
-| Syntax checks (scripts/) | 9 | bash -n | 9/9 PASS |
-| Integration test | 1 | expanded | PASS |
+| Syntax checks (scripts/) | 8 | bash -n | 8/8 PASS |
 
 **0 regressions. 0 failures.**
 
@@ -79,19 +80,10 @@ All 33 tests updated to use new function names. No stale references.
 
 ## CS Action Required (Protected File)
 
-**auto-agent.sh:203-204** still references `orch_tracker_window` (old name). Currently fail-open: the `type -t` check fails, falls back to `tail -150`. Functionally safe but defeats the purpose of windowing.
+**auto-agent.sh** — VERIFIED: Now correctly references `orch_session_window` (lines 212-213).
+BUG-025 fix fully wired in the protected file. No further action needed here.
 
-**Fix needed:**
-```bash
-# Line 203-204: Change
-if [[ "$(type -t orch_tracker_window)" == "function" ]]; then
-    orch_tracker_window "$tracker_file" 2>/dev/null || tail -150 "$tracker_file"
-# To
-if [[ "$(type -t orch_session_window)" == "function" ]]; then
-    orch_session_window "$tracker_file" 2>/dev/null || tail -150 "$tracker_file"
-```
-
-**Also:** `orch_session_init 2 8` must be called somewhere before the agent loop (currently `orch_tracker_init` is not called, so windowing was never active anyway).
+**Remaining:** `orch_session_init 2 8` must be called before the agent loop for windowing to activate.
 
 ---
 
@@ -100,8 +92,10 @@ if [[ "$(type -t orch_session_window)" == "function" ]]; then
 | Bug | Severity | Status | Notes |
 |-----|----------|--------|-------|
 | BUG-025 | HIGH | **CLOSED** | Namespace collision fixed, verified |
-| BUG-024 | LOW | OPEN | ralph-baseline.sh hardcoded /tmp (06-backend) |
-| QA-F003 | LOW | NEW | Stale doc ref in ORCHESTRATOR-HARDENING.md (02-CTO) |
+| BUG-024 | LOW | **CLOSED** | ralph-baseline.sh uses `${TMPDIR:-/tmp}`, #180 closed |
+| QA-F002 | LOW | **CLOSED** | All 4 scripts now have `set -euo pipefail` |
+| QA-F003 | LOW | OPEN | Stale doc refs in ORCHESTRATOR-HARDENING.md:399,446 (02-CTO) |
+| QA-F001 | LOW | OPEN | auto-agent.sh `set -uo pipefail` missing `-e` (CS, protected file) |
 
 ---
 
@@ -109,4 +103,4 @@ if [[ "$(type -t orch_session_window)" == "function" ]]; then
 
 - BUG-019 (#175): CLOSED (verified cycle 13)
 - BUG-020–023 (#176-179): CLOSED (verified cycle 14)
-- BUG-024 (#180): OPEN — awaiting 06-backend fix
+- BUG-024 (#180): **CLOSED** — verified fixed (`${TMPDIR:-/tmp}` pattern)
