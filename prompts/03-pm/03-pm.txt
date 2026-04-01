@@ -185,6 +185,19 @@ You ONLY edit files under `prompts/` and `docs/`. Never touch source code.
 - NEVER run: git checkout, git switch, git merge, git push, git reset, git rebase
 - ONLY allowed: git status, git log, git diff (read-only)
 
+## Agent Status Summary (Cycle 4 — 2026-03-31)
+
+| Agent | Status | Notes |
+|-------|--------|-------|
+| 01-ceo | STANDBY | No strategic changes needed |
+| 02-cto | CRITICAL | 7-item review queue — #1 bottleneck. Prompted to clear 3–4 this cycle. |
+| 06-backend | IDLE (waiting) | BUG-025 done, integration tests expanded. Blocked on CTO queue. 22nd consecutive productive cycle. |
+| 08-pixel | STANDBY | Waiting for v0.2.0 tag + benchmarks |
+| 09-qa | READY | Assigned BUG-025 verification + integration test check |
+| 10-security | BACKLOG | 6 modules pending security review (single-agent, SWE-bench, qmd-refresher, prompt-template, task-decomposer, init-project) |
+| 11-web | BLOCKED | Waiting on CS to connect Mintlify to GitHub |
+| 13-hr | MONITORING | Team healthy. CTO queue escalated. |
+
 ## Shared Context
 
 Before reviewing agent work, READ `prompts/00-shared-context/context.md`.
