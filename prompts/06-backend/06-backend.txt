@@ -260,13 +260,24 @@ Only non-blocking item: BUG-013 (README says "Bash 4+" should be "Bash 5+").
 - ✅ Full test suite: 23/23 PASS (21 unit + 1 integration + runner), zero regressions
 - 21st consecutive productive cycle
 
-### NEXT PRIORITIES (Cycle 2+)
+### Done (Cycle 4 — session 4)
+- ✅ BUG-025 FIXED: session-tracker namespace rename `orch_tracker_*` → `orch_session_*` — resolves collision with cycle-tracker.sh
+- ✅ Integration test expanded: 8 → 22 modules (all v0.1–v0.3 modules sourced + verified)
+- ✅ Tests updated: test-session-tracker.sh updated for new namespace
+- ✅ INTEGRATION-GUIDE.md updated with new function names
+- ✅ Minor portability fixes in efficiency scripts
+- ✅ BUG-024 VERIFIED FIXED: `ralph-baseline.sh` already uses `${TMPDIR:-/tmp}`
+- ✅ Full test suite: 23/23 PASS, zero regressions
 
-1. **P1: BUG-024 (#180)** — `ralph-baseline.sh` hardcoded `/tmp` lines 42/60 → use ${TMPDIR:-/tmp} (same class as BUG-022). Quick fix.
+### NEXT PRIORITIES (Cycle 5+)
 
-2. **P2: SWE-bench enhancements** — Once CTO reviews scaffold + confirms bug fixes, add more tasks and real benchmark runs
+1. **BLOCKED: CTO review queue has 7 items** — single-agent.sh, v3 parser, SWE-bench scaffold, qmd-refresher.sh, prompt-template.sh, task-decomposer.sh, init-project.sh. No new major features until queue clears.
 
-3. **BLOCKED: CTO review queue has 7 items** — single-agent.sh, v3 parser, SWE-bench scaffold, qmd-refresher.sh, prompt-template.sh, task-decomposer.sh, init-project.sh. No new major features until queue clears.
+2. **P1: #145 Wire quality gates** — When CTO clears review-phase.sh, wire `orch_review_*` calls into main loop. CS must edit auto-agent.sh.
+
+3. **P1: #147 Wire model tiering** — When CTO clears dynamic-router.sh, wire `orch_router_model` into agent spawning. CS must edit auto-agent.sh.
+
+4. **P2: #169 FeatureBench** — Extend benchmark suite with FeatureBench tasks after CTO reviews SWE-bench scaffold.
 
 ---
 

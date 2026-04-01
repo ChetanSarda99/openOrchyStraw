@@ -222,13 +222,20 @@ BUG-013 (README Bash version) is non-blocking — quick fix before or after tag.
 - ✅ **init-project.sh (#45) QA PASS** — 57/57 tests, clean code
 - ✅ BUG-024 (#180) FILED (LOW): `ralph-baseline.sh` hardcoded `/tmp` lines 42/60
 
-### PRIORITY: NEXT QA TASKS (Cycle 2+)
+### Cycle 4 Updates
+- Backend completed BUG-025 namespace rename (`orch_tracker_*` → `orch_session_*`), integration test expanded to 22 modules.
+- BUG-024 VERIFIED FIXED — already uses `${TMPDIR:-/tmp}`.
+- All 23/23 tests pass, all syntax checks clean.
 
-1. **P1: Verify BUG-024 fix** — When 06-backend fixes `ralph-baseline.sh` hardcoded `/tmp`, verify the fix.
+### PRIORITY: NEXT QA TASKS (Cycle 5+)
 
-2. **P1: Full test suite regression** — 23/23 test files after any new changes.
+1. **P1: Verify BUG-025 fix** — session-tracker.sh namespace rename (`orch_tracker_*` → `orch_session_*`). Verify all 33 tests still pass with new names. Check no old `orch_tracker_` references remain in codebase.
 
-3. **P2: Security review support** — task-decomposer.sh and init-project.sh await Security review. QA results available for cross-reference.
+2. **P1: Verify integration test expansion** — test-integration.sh now sources all 22 modules. Run and verify no conflicts.
+
+3. **P1: Full test suite regression** — 23/23 test files after any new changes.
+
+4. **P2: #162 E2E golden tests** — When PM assigns, design E2E test framework for full orchestrator cycles.
 
 ---
 
