@@ -32,6 +32,34 @@ while IFS='|' read -r id prompt ownership interval label; do
     AGENT_INTERVALS["$id"]="$interval"
 done < "$CONF_FILE"
 
+AUDIT_FILE="$PROJECT_ROOT/.orchystraw/audit.jsonl"
+
+declare -A AUDIT_INVOCATIONS=()
+declare -A AUDIT_DURATION=()
+declare -A AUDIT_TOKENS=()
+
+if [[ -f "$AUDIT_FILE" ]]; then
+    while IFS= read -r line; do
+        [[ -z "$line" ]] && continue
+        agent=""
+        dur=0
+        tok=0
+        for field in $(echo "$line" | tr '{},:"' ' '); do
+            case "$prev" in
+                agent) agent="$field" ;;
+                duration_s) dur="$field" ;;
+                tokens_est) tok="$field" ;;
+            esac
+            prev="$field"
+        done
+        if [[ -n "$agent" ]]; then
+            AUDIT_INVOCATIONS["$agent"]=$(( ${AUDIT_INVOCATIONS["$agent"]:-0} + 1 ))
+            AUDIT_DURATION["$agent"]=$(( ${AUDIT_DURATION["$agent"]:-0} + dur ))
+            AUDIT_TOKENS["$agent"]=$(( ${AUDIT_TOKENS["$agent"]:-0} + tok ))
+        fi
+    done < "$AUDIT_FILE"
+fi
+
 echo "# Agent Health Report"
 echo "> Generated: $(date '+%Y-%m-%d %H:%M:%S') | Lookback: $LOOKBACK cycles"
 echo ""
@@ -139,6 +167,28 @@ if [[ ${#RECOMMENDATIONS[@]} -eq 0 ]]; then
 else
     for id in "${!RECOMMENDATIONS[@]}"; do
         echo "- **$id:** ${RECOMMENDATIONS[$id]}"
+    done
+fi
+echo ""
+
+# ── Cost Tracking (from audit.jsonl) ──
+echo "## Cost Tracking"
+echo ""
+
+if [[ ${#AUDIT_INVOCATIONS[@]} -eq 0 ]]; then
+    echo "- No audit data available (run cycles to populate .orchystraw/audit.jsonl)"
+else
+    echo "| Agent | Invocations | Wall-Clock (s) | Est. Tokens | Avg Tokens/Run |"
+    echo "|-------|------------|----------------|-------------|----------------|"
+    for id in "${AGENT_IDS[@]}"; do
+        inv="${AUDIT_INVOCATIONS[$id]:-0}"
+        dur="${AUDIT_DURATION[$id]:-0}"
+        tok="${AUDIT_TOKENS[$id]:-0}"
+        avg_tok=0
+        if [[ $inv -gt 0 ]]; then
+            avg_tok=$(( tok / inv ))
+        fi
+        echo "| $id | $inv | $dur | $tok | $avg_tok |"
     done
 fi
 echo ""

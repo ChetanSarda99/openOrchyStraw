@@ -28,6 +28,7 @@
 | prompt-template | `prompt-template.sh` | Template inheritance for prompts (#54) | None (optional: logger) |
 | task-decomposer | `task-decomposer.sh` | Progressive task decomposition (#50) | None |
 | init-project | `init-project.sh` | Project analyzer & agent blueprint (#45) | None |
+| freshness-detector | `freshness-detector.sh` | Detect stale references in prompts (#167) | None (optional: logger) |
 
 All modules are independently sourceable. No module depends on another.
 
@@ -1057,3 +1058,43 @@ source "$SCRIPT_DIR/../src/core/init-project.sh"
 - Excludes: node_modules, .git, vendor, __pycache__, .venv, dist, build, target, .next, .nuxt
 - Non-destructive: only reads existing files, never modifies the scanned project
 - Generated files go to specified output paths, not the scanned project
+
+---
+
+## Step 20: Knowledge Freshness Detector (#167)
+
+**Added:** Cycle 1, session 3 (March 31, 2026)
+**Depends on:** None (optional: logger)
+
+Scans prompt files for stale references: outdated dates, completed work markers,
+unresolved blockers, and old cycle references. Prevents agents from operating on
+stale context.
+
+### Module: `src/core/freshness-detector.sh`
+
+**Functions:**
+| Function | Purpose |
+|----------|---------|
+| `orch_freshness_init [max_age_days] [today]` | Configure scan parameters (default: 7 days) |
+| `orch_freshness_scan <path>` | Scan a file or directory for stale references |
+| `orch_freshness_report` | Print staleness report to stdout |
+| `orch_freshness_stale_count` | Return count of stale findings |
+| `orch_freshness_check` | Quick pass/fail: 0=fresh, 1=stale |
+
+### Already wired
+
+The module is sourced in the v0.3.0+ module loop at auto-agent.sh line 46.
+
+### Optional: Pre-cycle freshness check
+
+Add before the agent execution loop to warn about stale prompts:
+
+```bash
+if [[ "$(type -t orch_freshness_init)" == "function" ]]; then
+    orch_freshness_init 7
+    orch_freshness_scan "$PROMPTS_DIR"
+    if ! orch_freshness_check; then
+        log "WARNING: $(orch_freshness_stale_count) stale references in prompts"
+    fi
+fi
+```
