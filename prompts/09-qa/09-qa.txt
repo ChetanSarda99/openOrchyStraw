@@ -227,15 +227,21 @@ BUG-013 (README Bash version) is non-blocking — quick fix before or after tag.
 - BUG-024 VERIFIED FIXED — already uses `${TMPDIR:-/tmp}`.
 - All 23/23 tests pass, all syntax checks clean.
 
-### PRIORITY: NEXT QA TASKS (Cycle 5+)
+### Done (Cycle 1 — session 5)
+- ✅ **QA cycle 18 PASS** — Report: `prompts/09-qa/reports/qa-cycle-18.md`
+- ✅ **BUG-025 VERIFIED FIXED** — namespace rename complete, regression guard confirmed, CLOSED
+- ✅ **Integration test expansion VERIFIED** — 22/22 modules sourced correctly
+- ✅ New scripts reviewed: cycle-metrics.sh PASS, audit-log.sh PASS
+- ✅ 23/23 test files PASS, 22/22 modules `bash -n`, 0 regressions
+- No new bugs found
 
-1. **P1: Verify BUG-025 fix** — session-tracker.sh namespace rename (`orch_tracker_*` → `orch_session_*`). Verify all 33 tests still pass with new names. Check no old `orch_tracker_` references remain in codebase.
+### PRIORITY: NEXT QA TASKS (Cycle 2+)
 
-2. **P1: Verify integration test expansion** — test-integration.sh now sources all 22 modules. Run and verify no conflicts.
+1. **P1: Full test suite regression** — 23/23 test files after any new changes.
 
-3. **P1: Full test suite regression** — 23/23 test files after any new changes.
+2. **P2: #162 E2E golden tests** — When PM assigns, design E2E test framework for full orchestrator cycles.
 
-4. **P2: #162 E2E golden tests** — When PM assigns, design E2E test framework for full orchestrator cycles.
+3. **STANDBY** — No new modules to review until CTO clears review queue and backend resumes work.
 
 ---
 
