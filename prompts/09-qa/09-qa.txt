@@ -242,7 +242,10 @@ BUG-013 (README Bash version) is non-blocking — quick fix before or after tag.
 ### Cycle 3 — No Changes (3rd consecutive quiet cycle today)
 - 0 new code to review. All test results still current: 23/23 PASS.
 
-### PRIORITY: NEXT QA TASKS (Cycle 3+)
+### Cycle 4 — No Changes (4th consecutive quiet cycle today)
+- 0 new code to review. PM recommends HARD PAUSE — no work available until blockers clear.
+
+### PRIORITY: NEXT QA TASKS (when blockers clear)
 
 1. **P1: Full test suite regression** — 23/23 test files after any new changes.
 
