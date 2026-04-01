@@ -6,7 +6,7 @@
 #   since_ref: git ref to diff from (default: HEAD~10)
 # Output: Markdown summary to stdout
 
-set -uo pipefail
+set -euo pipefail
 
 SINCE_REF="${1:-HEAD~10}"
 PROJECT_ROOT="${2:-$(cd "$(dirname "$0")/.." && pwd)}"
