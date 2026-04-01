@@ -5,7 +5,7 @@
 # Usage: bash scripts/post-cycle-router.sh <cycle_num> [project_root]
 # Requires: src/core/dynamic-router.sh, src/core/logger.sh sourced
 
-set -uo pipefail
+set -euo pipefail
 
 CYCLE_NUM="${1:?Usage: post-cycle-router.sh <cycle_num> [project_root]}"
 PROJECT_ROOT="${2:-$(cd "$(dirname "$0")/.." && pwd)}"
@@ -67,7 +67,7 @@ for id in "${_ORCH_ROUTER_AGENTS[@]}"; do
 
     outcome="skip"
     if [[ ${#local_include[@]} -gt 0 ]]; then
-        changes=$(git -C "$PROJECT_ROOT" diff --name-only HEAD~1..HEAD -- "${local_include[@]}" 2>/dev/null | wc -l | tr -d ' ')
+        changes=$(git -C "$PROJECT_ROOT" diff --name-only HEAD~1..HEAD -- "${local_include[@]}" 2>/dev/null | wc -l | tr -d ' ') || changes=0
         if [[ "$changes" -gt 0 ]]; then
             outcome="success"
         fi
@@ -76,7 +76,7 @@ for id in "${_ORCH_ROUTER_AGENTS[@]}"; do
     # Check agent log for errors
     log_dir="$PROJECT_ROOT/prompts/$id/logs"
     if [ -d "$log_dir" ]; then
-        latest_log=$(ls -t "$log_dir/"*.log 2>/dev/null | head -1)
+        latest_log=$(ls -t "$log_dir/"*.log 2>/dev/null | head -1) || latest_log=""
         if [ -n "$latest_log" ]; then
             log_size=$(wc -c < "$latest_log" 2>/dev/null || echo 0)
             if [[ "$log_size" -lt 100 ]]; then

@@ -13,7 +13,7 @@
 - [ ] **Demo GIF (#131)** — needed for HN launch
 
 ### P0.5 — Namespace Fix in auto-agent.sh
-- [ ] **BUG-025: session-tracker rename** — `orch_tracker_window` → `orch_session_window`, `orch_tracker_init` → `orch_session_init` in auto-agent.sh (lines 203-204). Module renamed to avoid namespace collision with cycle-tracker.sh. Both defined `orch_tracker_init()`.
+- [ ] **BUG-025: Update auto-agent.sh calls** — Module renamed `orch_tracker_*` → `orch_session_*` (committed 74dd956). CS must update auto-agent.sh call sites: `orch_tracker_window` → `orch_session_window`, `orch_tracker_init` → `orch_session_init` (lines 203-204).
 
 ### P0.5 — Wire Module Functions into auto-agent.sh Execution Path
 Modules are sourced but their functions are never called from the main loop.

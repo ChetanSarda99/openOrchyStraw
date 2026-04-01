@@ -163,25 +163,30 @@ All P0 and P1 tasks from the efficiency sprint are DONE:
 - QA cycle 14 PASS: 23/23 tests, task-decomposer QA PASS, init-project QA PASS, prompt-template QA PASS. BUG-024 filed (LOW).
 - **CTO review queue is now at 7 items — HR recommends increasing CTO frequency (interval 2→1) until queue clears.**
 
-### NEXT PRIORITIES (CRITICAL — 7 ITEM REVIEW QUEUE)
+### Cycle 4 Updates
+- Backend completed BUG-025 namespace rename (`orch_tracker_*` → `orch_session_*`), integration test expanded to 22 modules, BUG-024 verified fixed.
+- All 23/23 tests pass. All syntax checks clean.
+- **Your review queue is the #1 project bottleneck.** Backend is idle waiting for you. No new features can proceed until queue clears.
 
-1. **P0: Review single-agent.sh** — Backend DONE (cycle 2). `src/core/single-agent.sh` — Ralph-compatible runner, 40 tests. **STILL PENDING — carry forward.**
+### NEXT PRIORITIES (CRITICAL — 7 ITEM REVIEW QUEUE — THIS IS YOUR ONLY FOCUS)
 
-2. **P0: Review agents.conf v3 parser** — Backend DONE (cycle 20). `config-validator.sh` 7-col format per COST-001 ADR. 7 new tests. **STILL PENDING — carry forward.**
+**IMPORTANT: Clear at least 3–4 reviews THIS cycle. The project is stalled on you.**
 
-3. **P0: Review SWE-bench scaffold** — Backend DONE (cycle 3). `scripts/benchmark/` — 7 files. BUG-020–023 ALL FIXED. **STILL PENDING — carry forward.**
+1. **P0: Review single-agent.sh** — Backend DONE (cycle 2). `src/core/single-agent.sh` — Ralph-compatible runner, 40 tests. QA PASS.
 
-4. **P0: Review qmd-refresher.sh** — Backend DONE (cycle 2). `src/core/qmd-refresher.sh` — 6 functions, 17 tests. QA PASS. **STILL PENDING — carry forward.**
+2. **P0: Review agents.conf v3 parser** — Backend DONE (cycle 20). `config-validator.sh` 7-col format per COST-001 ADR. 7 new tests.
 
-5. **P0: Review prompt-template.sh** — Backend DONE (cycle 3). `src/core/prompt-template.sh` — #54, 8 functions, 49 tests. QA PASS. **STILL PENDING — carry forward.**
+3. **P0: Review SWE-bench scaffold** — Backend DONE (cycle 3). `scripts/benchmark/` — 7 files. BUG-020–023 ALL FIXED. QA PASS.
 
-6. **P0: Review task-decomposer.sh** — Backend DONE (cycle 1). `src/core/task-decomposer.sh` — #50, 6 functions, P0 always-include, priority sorting. 32 tests. QA PASS. Review for architecture compliance + integration pattern (Step 18).
+4. **P0: Review qmd-refresher.sh** — Backend DONE (cycle 2). `src/core/qmd-refresher.sh` — 6 functions, 17 tests. QA PASS.
 
-7. **P0: Review init-project.sh** — Backend DONE (cycle 1). `src/core/init-project.sh` — #45, 8 functions, language/framework/pkg detection, agent blueprint generation. 57 tests. QA PASS. Review for architecture compliance + integration pattern (Step 19).
+5. **P0: Review prompt-template.sh** — Backend DONE (cycle 3). `src/core/prompt-template.sh` — #54, 8 functions, 49 tests. QA PASS.
 
-8. **P1: Verify CTO finding fixes** — SS-01, CS-01, LINT-01–04. QA-verified. Spot-check. **STILL PENDING.**
+6. **P0: Review task-decomposer.sh** — Backend DONE (cycle 1). `src/core/task-decomposer.sh` — #50, 6 functions, 32 tests. QA PASS.
 
-9. **P2: Write WORKTREE-002 ADR** — Module-based approach doc (low priority)
+7. **P0: Review init-project.sh** — Backend DONE (cycle 1). `src/core/init-project.sh` — #45, 8 functions, 57 tests. QA PASS.
+
+8. **P2: Write WORKTREE-002 ADR** — Module-based approach doc (low priority, defer until queue clears)
 
 ---
 

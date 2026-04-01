@@ -329,10 +329,16 @@ When advising PM on new agent prompts, ensure they follow this structure:
 - [x] CTO review queue CRITICAL: 7 items (5 existing + 2 new). HR recommended increasing CTO frequency.
 - [x] v0.2.0 integration: CS wiring backlog now 11 items (added task-decomposer + init-project)
 
-### Current (Cycle 2+ — v0.2 Integration + Benchmarks)
+### Done (Cycle 4 — session 4)
+- [x] 06-backend: 22nd consecutive cycle as team MVP — BUG-025 namespace rename, integration test expansion to 22 modules
+- [x] BUG-024 VERIFIED FIXED, BUG-025 FIXED — both verified this cycle
+- [x] CTO review queue STILL at 7 items — remains the #1 bottleneck. PM escalated urgency in CTO prompt.
+- [x] All 23/23 tests pass, zero regressions
+
+### Current (Cycle 5+ — CTO Queue + v0.2 Integration)
+- [ ] Monitor CTO review queue: **7 pending reviews** — CRITICAL bottleneck. Backend idle until queue clears.
 - [ ] Monitor v0.2.0 integration progress (CS must integrate 3 remaining modules: dynamic-router, review-phase, worktree)
-- [ ] Monitor new scripts integration (CS must wire 5 scripts + single-agent + qmd-refresher + prompt-template + task-decomposer + init-project into auto-agent.sh)
-- [ ] Monitor CTO review queue: **7 pending reviews** (single-agent, v3 parser, SWE-bench scaffold, qmd-refresher, prompt-template, task-decomposer, init-project) — CRITICAL
+- [ ] Monitor new scripts integration (CS must wire remaining modules into auto-agent.sh)
 - [ ] Recommend reactivating 04-tauri-rust + 05-tauri-ui after benchmark sprint
 - [ ] Post-benchmark: prepare onboarding for 04-tauri-rust + 05-tauri-ui reactivation
-- [ ] Next team health review: Cycle 2
+- [ ] Next team health review: Cycle 5

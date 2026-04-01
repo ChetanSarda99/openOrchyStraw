@@ -5,7 +5,7 @@
 # Usage: bash scripts/pre-cycle-stats.sh [project_root]
 # Output: JSON to stdout + injects summary into shared context
 
-set -uo pipefail
+set -euo pipefail
 
 PROJECT_ROOT="${1:-$(cd "$(dirname "$0")/.." && pwd)}"
 CONF_FILE="$PROJECT_ROOT/scripts/agents.conf"
@@ -48,7 +48,7 @@ if command -v gh &>/dev/null; then
     total_open_issues=$(gh issue list --state open --limit 500 --json number -q 'length' 2>/dev/null || echo "?")
 fi
 
-recent_activity=$(git log --oneline --since="24 hours ago" 2>/dev/null | wc -l | tr -d ' ')
+recent_activity=$(git log --oneline --since="24 hours ago" 2>/dev/null | wc -l | tr -d ' ') || recent_activity=0
 
 # Check if site builds (quick)
 if [ -f "$PROJECT_ROOT/site/package.json" ]; then
@@ -83,7 +83,7 @@ for id in "${AGENT_IDS[@]}"; do
     for path in "${paths[@]}"; do
         [[ "$path" == !* ]] && continue
         [ -d "$PROJECT_ROOT/$path" ] || [ -f "$PROJECT_ROOT/$path" ] || continue
-        c=$(git -C "$PROJECT_ROOT" log --oneline --since="7 days ago" -- "$path" 2>/dev/null | wc -l | tr -d ' ')
+        c=$(git -C "$PROJECT_ROOT" log --oneline --since="7 days ago" -- "$path" 2>/dev/null | wc -l | tr -d ' ') || c=0
         commits_7d=$((commits_7d + c))
     done
 

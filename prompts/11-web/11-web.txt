@@ -240,7 +240,8 @@ Mintlify docs scaffolded in `site/docs/` (cycle 13):
 - **ALL REMAINING WORK BLOCKED ON CS:** Mintlify GitHub connection
 - v0.2.0 ALL GATES PASS — CTO 8/8, QA 8/8, Security 6/6 APPROVED. Only CS integration remains.
 - Backend shipped task-decomposer.sh (#50) + init-project.sh (#45) — cycle 1. 23/23 tests pass. CTO review queue at 7 items.
-- No web blockers removed. STANDBY until unblocked
+- Cycle 4 (2026-03-31): No web blockers removed. CTO review queue still at 7 items. v0.2.0 integration still pending CS.
+- STANDBY until unblocked
 
 **When unblocked:**
 1. Pixel Agents demo embed — waiting for Phase 2 completion

@@ -32,6 +32,32 @@
 | 3 | 2026-03-30 | 06,09,13,03 | prompt-template.sh (#54, 49 tests), QA cycle 13 (BUG-019 CLOSED, SWE-bench CONDITIONAL PASS, BUG-020–023), 21/21 suite |
 | 4 | 2026-03-30 | 06,13,03 | BUG-020/021/022/023 ALL FIXED (SWE-bench security), 4 issues CLOSED, 21/21 tests pass |
 | 1 | 2026-03-30 | 06,09,13,03 | task-decomposer.sh (#50, 32 tests) + init-project.sh (#45, 57 tests), QA cycle 14 PASS, v0.3.0 ALL MODULES BUILT |
+| 4 | 2026-03-31 | 06,03 | BUG-025 namespace rename (session-tracker), integration test 8→22 modules, BUG-024 verified, 23/23 tests pass |
+
+---
+
+## WHAT SHIPPED — Cycle 4 (2026-03-31 18:40–18:55)
+
+### 06-Backend
+- **BUG-025 FIXED:** session-tracker namespace rename `orch_tracker_*` → `orch_session_*` — resolves collision with cycle-tracker.sh
+- Integration test expanded from 8 to 22 modules (all v0.1–v0.3 modules sourced and verified)
+- test-session-tracker.sh updated for new namespace
+- INTEGRATION-GUIDE.md updated with new function names
+- Minor portability fixes in efficiency scripts (agent-health-report, commit-summary, post-cycle-router, pre-cycle-stats, pre-pm-lint)
+- BUG-024 VERIFIED FIXED: `ralph-baseline.sh` already uses `${TMPDIR:-/tmp}`
+- Full test suite: 23/23 PASS, zero regressions
+
+### 03-PM (this cycle)
+- Committed cycle 4 backend work (74dd956)
+- Updated all 9 agent prompts with cycle 4 status
+- Escalated CTO review queue urgency (7 items — primary bottleneck)
+- Session tracker updated
+- 99-me reviewed — no new items needed
+
+### Blockers
+- **CTO review queue: 7 items** — Backend idle, no new features until queue clears
+- **CS integration: v0.2.0 modules** — 3 modules need wiring into auto-agent.sh (dynamic-router, review-phase, worktree)
+- **CS: Mintlify connection** — Web agent standby
 
 ---
 

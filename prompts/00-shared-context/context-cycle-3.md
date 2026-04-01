@@ -1,4 +1,4 @@
-# Shared Context — Cycle 3 — 2026-03-31 08:02:26
+# Shared Context — Cycle 3 — 2026-03-31 18:19:28
 > Agents: read before starting, append before finishing.
 
 ## Usage
@@ -9,12 +9,14 @@
 - Build on this momentum. Don't redo what's already shipped.
 
 ## Backend Status
-- NAMESPACE FIX: `session-tracker.sh` renamed `orch_tracker_*` → `orch_session_*` (resolves collision with `cycle-tracker.sh` which uses `orch_tracker_*`)
-- Integration test expanded: 8 modules → 22 modules (all `src/core/` modules now sourced + guard + API assertions)
-- INTEGRATION-GUIDE.md updated with new `orch_session_*` function names
-- Tests updated: `test-session-tracker.sh` + `test-integration.sh` aligned with rename
-- Full test suite: 23/23 PASS, zero regressions
-- BUG-024 already fixed (commit 5c4b02d) — no action needed
+- BUG-024 VERIFIED: `ralph-baseline.sh` already uses `${TMPDIR:-/tmp}` — no action needed
+- BUG-025 FIXED: session-tracker namespace collision — renamed `orch_tracker_*` → `orch_session_*` (3 public functions + all internals). Prevents collision with `cycle-tracker.sh` which also exports `orch_tracker_*` functions
+- INTEGRATION-GUIDE.md updated: Step 16 now references `orch_session_init`/`orch_session_window`
+- Integration test expanded: 8 → 22 modules sourced, guard checks for all, cross-module collision test (BUG-025 regression guard)
+- Efficiency scripts hardened: `set -euo pipefail` in 4 scripts (agent-health-report, commit-summary, post-cycle-router, pre-cycle-stats) + `|| var=0` fallback on 6 grep/wc sites
+- Full test suite: 23/23 PASS (21 unit + 1 integration + runner), zero regressions
+- BLOCKED: CTO review queue has 7 items — no new major features until queue clears
+- NEED CS: Apply session-tracker rename to auto-agent.sh (orch_tracker_init → orch_session_init, orch_tracker_window → orch_session_window) — see INTEGRATION-GUIDE.md Step 16
 
 ## iOS Status
 - (fresh cycle)
@@ -23,13 +25,13 @@
 - (fresh cycle)
 
 ## QA Findings
-- **BUG-025 VERIFIED FIXED:** session-tracker.sh namespace collision resolved. 33/33 tests pass.
-- Integration test expanded 8→22 modules, all guards + APIs + collision checks pass.
-- 23/23 test files PASS, 22/22 modules bash -n PASS, 9/9 scripts bash -n PASS. 0 regressions.
-- QA-F003 (LOW): ORCHESTRATOR-HARDENING.md:446 stale `orch_tracker_window` ref → assigned to 02-CTO
-- CS ACTION: auto-agent.sh:203-204 must update `orch_tracker_window` → `orch_session_window` (protected file)
-- Report: prompts/09-qa/reports/qa-cycle-15.md
-- **Verdict: PASS**
+- **Verdict: PASS** — Report: `prompts/09-qa/reports/qa-cycle-17.md`
+- 23/23 test files PASS, 22/22 modules pass `bash -n`, 0 regressions
+- **BUG-025 VERIFIED FIXED:** session-tracker.sh rename complete, zero stale refs, collision regression test added
+- **QA-F002 CLOSED:** All 5 scripts now `set -euo pipefail` with correct `|| fallback` patterns
+- **test-integration.sh** expanded: 8 -> 22 modules, 96+ assertions, namespace collision test
+- NOTE: Backend says BUG-024 already uses `${TMPDIR:-/tmp}` — QA to verify next cycle
+- No new bugs filed
 
 ## Blockers
 - (none)
