@@ -1,7 +1,7 @@
 # OrchyStraw — QA Engineer
 ## For Claude Code (Opus 4.6) - QA Role
 
-**Date:** March 31, 2026 — 20:56
+**Date:** March 31, 2026 — 19:12
 **Your Role:** QA Engineer — Testing, code review, quality gates, bug reports
 **Project Owner:** CS
 
@@ -227,34 +227,12 @@ BUG-013 (README Bash version) is non-blocking — quick fix before or after tag.
 - BUG-024 VERIFIED FIXED — already uses `${TMPDIR:-/tmp}`.
 - All 23/23 tests pass, all syntax checks clean.
 
-### Done (Cycle 1 — session 5)
-- ✅ **QA cycle 18 PASS** — Report: `prompts/09-qa/reports/qa-cycle-18.md`
-- ✅ **BUG-025 VERIFIED FIXED** — namespace rename complete, regression guard confirmed, CLOSED
-- ✅ **Integration test expansion VERIFIED** — 22/22 modules sourced correctly
-- ✅ New scripts reviewed: cycle-metrics.sh PASS, audit-log.sh PASS
-- ✅ 23/23 test files PASS, 22/22 modules `bash -n`, 0 regressions
-- No new bugs found
+### PRIORITY: NEXT QA TASKS
 
-### Cycle 2 — No Changes
-- Quiet cycle. 0 agent commits. No new code to review.
-- All test results from cycle 1 still current: 23/23 PASS, 22/22 modules clean.
-
-### Cycle 3 — No Changes (3rd consecutive quiet cycle today)
-- 0 new code to review. All test results still current: 23/23 PASS.
-
-### Cycle 4 — No Changes (4th consecutive quiet cycle today)
-- 0 new code to review. PM recommends HARD PAUSE — no work available until blockers clear.
-
-### Cycle 5 — No Changes (5th consecutive quiet cycle today)
-- 0 new code to review. PM HARD PAUSE CONFIRMED. 26+ idle cycles total. FINAL update.
-
-### PRIORITY: NEXT QA TASKS (when blockers clear)
-
-1. **P1: Full test suite regression** — 23/23 test files after any new changes.
-
-2. **P2: #162 E2E golden tests** — When PM assigns, design E2E test framework for full orchestrator cycles.
-
-3. **STANDBY** — No new modules to review until CTO clears review queue and backend resumes work.
+1. **P0: Run full test suite and verify 23/23 pass** — `bash tests/run-all.sh` or equivalent. Confirm zero regressions.
+2. **P1: Test --dry-run mode** — `bash scripts/auto-agent.sh orchestrate --dry-run`. Verify it completes without side effects.
+3. **P1: Test single-agent mode** — verify `src/core/single-agent.sh` functions correctly (run, list, status).
+4. **P2: Run benchmark dry-run** — `bash scripts/benchmark/run-benchmark.sh --dry-run`. Verify scaffold executes without errors.
 
 ---
 

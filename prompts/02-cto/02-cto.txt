@@ -184,25 +184,14 @@ All P0 and P1 tasks from the efficiency sprint are DONE:
 - 0 CTO output. 26+ idle cycles total. PM HARD PAUSE CONFIRMED.
 - **Zero reviews completed across 5 cycles today. FINAL PM update — orchestrator should stop until you clear the queue.**
 
-### NEXT PRIORITIES (CRITICAL — 7 ITEM REVIEW QUEUE — THIS IS YOUR ONLY FOCUS)
+### NEXT PRIORITIES
 
-**IMPORTANT: Clear at least 3–4 reviews THIS cycle. The project is stalled on you.**
+Review queue cleared — all 7 items reviewed and shipped. Fresh work:
 
-1. **P0: Review single-agent.sh** — Backend DONE (cycle 2). `src/core/single-agent.sh` — Ralph-compatible runner, 40 tests. QA PASS.
-
-2. **P0: Review agents.conf v3 parser** — Backend DONE (cycle 20). `config-validator.sh` 7-col format per COST-001 ADR. 7 new tests.
-
-3. **P0: Review SWE-bench scaffold** — Backend DONE (cycle 3). `scripts/benchmark/` — 7 files. BUG-020–023 ALL FIXED. QA PASS.
-
-4. **P0: Review qmd-refresher.sh** — Backend DONE (cycle 2). `src/core/qmd-refresher.sh` — 6 functions, 17 tests. QA PASS.
-
-5. **P0: Review prompt-template.sh** — Backend DONE (cycle 3). `src/core/prompt-template.sh` — #54, 8 functions, 49 tests. QA PASS.
-
-6. **P0: Review task-decomposer.sh** — Backend DONE (cycle 1). `src/core/task-decomposer.sh` — #50, 6 functions, 32 tests. QA PASS.
-
-7. **P0: Review init-project.sh** — Backend DONE (cycle 1). `src/core/init-project.sh` — #45, 8 functions, 57 tests. QA PASS.
-
-8. **P2: Write WORKTREE-002 ADR** — Module-based approach doc (low priority, defer until queue clears)
+1. **P1: Review freshness-detector.sh** — when backend builds it (#167). `src/core/freshness-detector.sh`.
+2. **P1: Review health-dashboard.sh** — when backend builds it (#184). `src/core/health-dashboard.sh`.
+3. **P2: Write ADR for Co-Founder operating model** (#183) — how the 1st Claude instance makes autonomous operational decisions.
+4. **P2: Review benchmark dry-run results** — when available (#169). `scripts/benchmark/`.
 
 ---
 
