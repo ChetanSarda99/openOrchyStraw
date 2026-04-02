@@ -66,9 +66,9 @@ examples/                — Sample agents.conf
 ### v0.1.0 — Hardened Release (DONE — ready to tag)
 All 8 core modules built, tested, integrated. QA PASS. Security FULL PASS. CTO approved.
 
-### v0.2.0 — Smart Cycle System (ALL GATES PASS — awaiting integration)
-9 modules with 278 tests. CTO 8/8, QA 8/8, Security 6/6. 6/9 wired into auto-agent.sh.
-Remaining: dynamic-router.sh, review-phase.sh, worktree.sh.
+### v0.2.0 — Smart Cycle System (FULLY WIRED)
+9 modules with 278 tests. CTO 8/8, QA 8/8, Security 6/6. All 9/9 wired into auto-agent.sh.
+26/26 tests pass. Ready to tag.
 
 ### Next Up
 1. Tag v0.1.0

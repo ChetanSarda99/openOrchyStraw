@@ -71,8 +71,20 @@ _load_instances() {
                 [[ "$limit" -gt 0 ]] && [[ "$count" -ge "$limit" ]] && break
             done
             ;;
+        featurebench)
+            local tasks_file="$CUSTOM_DIR/featurebench-tasks.jsonl"
+            [[ -f "$tasks_file" ]] || _die "featurebench tasks not found: $tasks_file"
+            local count=0
+            while IFS= read -r line; do
+                [[ -z "$line" ]] && continue
+                [[ "$line" == \#* ]] && continue
+                instances+=("$line")
+                count=$(( count + 1 ))
+                [[ "$limit" -gt 0 ]] && [[ "$count" -ge "$limit" ]] && break
+            done < "$tasks_file"
+            ;;
         *)
-            _die "unknown suite: $suite (valid: custom, swebench-lite, swebench)"
+            _die "unknown suite: $suite (valid: custom, swebench-lite, swebench, featurebench)"
             ;;
     esac
 
@@ -169,7 +181,7 @@ _usage() {
 Usage: run-benchmark.sh [OPTIONS]
 
 Options:
-  --suite <name>       Suite to run: custom, swebench-lite, swebench (required)
+  --suite <name>       Suite to run: custom, swebench-lite, swebench, featurebench (required)
   --limit <N>          Max instances to run (default: 10)
   --model <name>       Model for agents: sonnet, opus, haiku (default: sonnet)
   --agents <N>         Agents per instance (default: 1)
@@ -224,7 +236,7 @@ main() {
         esac
     done
 
-    [[ -n "$suite" ]] || _die "missing --suite (use: custom, swebench-lite, swebench)"
+    [[ -n "$suite" ]] || _die "missing --suite (use: custom, swebench-lite, swebench, featurebench)"
 
     _check_deps
 

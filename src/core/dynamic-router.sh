@@ -506,6 +506,18 @@ orch_router_model_name() {
     fi
 }
 
+# orch_router_model_fallback <model_name>
+#   Returns the next cheaper model for fallback retries.
+#   opus -> sonnet -> haiku -> "" (no fallback).
+orch_router_model_fallback() {
+    local model="${1:?orch_router_model_fallback: model required}"
+    case "$model" in
+        opus|claude-opus-4-6)       printf 'sonnet\n' ;;
+        sonnet|claude-sonnet-4-6)   printf 'haiku\n' ;;
+        *)                          printf '' ;;
+    esac
+}
+
 # orch_router_dump
 #   Debug: print all router state.
 orch_router_dump() {
