@@ -269,10 +269,11 @@ orch_single_get_config() {
         agent_id="$(_orch_single_trim "${fields[0]:-}")"
 
         if [[ "$agent_id" == "$target_id" ]]; then
-            local prompt="$(_orch_single_trim "${fields[1]:-}")"
-            local ownership="$(_orch_single_trim "${fields[2]:-}")"
-            local label="$(_orch_single_trim "${fields[4]:-}")"
-            local model="$(_orch_single_trim "${fields[5]:-opus}")"
+            local prompt ownership label model
+            prompt="$(_orch_single_trim "${fields[1]:-}")"
+            ownership="$(_orch_single_trim "${fields[2]:-}")"
+            label="$(_orch_single_trim "${fields[4]:-}")"
+            model="$(_orch_single_trim "${fields[5]:-opus}")"
             echo "${prompt}|${ownership}|${label}|${model}"
             return 0
         fi
@@ -357,14 +358,16 @@ orch_single_report() {
 
     echo "  Skipped modules:"
     local IFS='|'
-    local -a skip_arr=($_ORCH_SINGLE_SKIP_MODULES)
+    local -a skip_arr
+    read -ra skip_arr <<< "$_ORCH_SINGLE_SKIP_MODULES"
     for mod in "${skip_arr[@]}"; do
         printf '    - %s\n' "$mod"
     done
     echo ""
 
     echo "  Active modules:"
-    local -a keep_arr=($_ORCH_SINGLE_KEEP_MODULES)
+    local -a keep_arr
+    read -ra keep_arr <<< "$_ORCH_SINGLE_KEEP_MODULES"
     for mod in "${keep_arr[@]}"; do
         printf '    + %s\n' "$mod"
     done

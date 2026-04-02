@@ -25,7 +25,7 @@ set -uo pipefail
 
 PROJECT_ROOT="$(cd "$(dirname "$0")/.." && pwd)"
 SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
-cd "$PROJECT_ROOT"
+cd "$PROJECT_ROOT" || exit 1
 
 # ── Core modules (v0.1) ──────────────────────────────────────────────────
 if [ -d "$PROJECT_ROOT/src/core" ]; then
@@ -82,7 +82,8 @@ mkdir -p "$BACKUP_DIR" "$PM_LOG_DIR"
 
 timestamp() { date '+%Y-%m-%d %H:%M:%S'; }
 log() {
-    local msg="[$(timestamp)] $1"
+    local msg
+    msg="[$(timestamp)] $1"
     echo "$msg"
     echo "$msg" >> "$CYCLE_LOG"
 }
@@ -167,16 +168,19 @@ parse_config() {
 run_agent() {
     local agent_id=$1
     local prompt_file="$PROJECT_ROOT/${AGENT_PROMPTS[$agent_id]}"
-    local agent_log_dir="$(dirname "$prompt_file")/logs"
+    local agent_log_dir
+    agent_log_dir="$(dirname "$prompt_file")/logs"
     mkdir -p "$agent_log_dir"
-    local log_file="$agent_log_dir/${agent_id}-$(date '+%Y%m%d-%H%M%S').log"
+    local log_file
+    log_file="$agent_log_dir/${agent_id}-$(date '+%Y%m%d-%H%M%S').log"
 
     if [ ! -f "$prompt_file" ]; then
         log "[$agent_id] ERROR: Prompt not found: $prompt_file"
         return 1
     fi
 
-    local lines=$(wc -l < "$prompt_file")
+    local lines
+    lines=$(wc -l < "$prompt_file")
     if [ "$lines" -lt 30 ]; then
         log "[$agent_id] ERROR: Prompt too short ($lines lines) — skipping"
         return 1
@@ -249,7 +253,8 @@ run_agent() {
     [[ -n "$agent_model" ]] && log "[$agent_id] Used model: $agent_model"
 
     local exit_code=$?
-    local log_size=$(wc -c < "$log_file" 2>/dev/null || echo 0)
+    local log_size
+    log_size=$(wc -c < "$log_file" 2>/dev/null || echo 0)
 
     # v0.2: model fallback — retry with cheaper model on failure (#160)
     if [[ "$exit_code" -ne 0 && "$(type -t orch_router_model_fallback)" == "function" ]]; then
@@ -284,7 +289,8 @@ run_agent() {
 
 create_cycle_branch() {
     local cycle_num=$1
-    local branch_name="auto/cycle-${cycle_num}-$(date '+%m%d-%H%M')"
+    local branch_name
+    branch_name="auto/cycle-${cycle_num}-$(date '+%m%d-%H%M')"
     git checkout -b "$branch_name" 2>/dev/null
     # IMPORTANT: log to stderr so $() capture only gets the branch name
     log "Created branch: $branch_name" >&2
@@ -342,7 +348,8 @@ detect_rogue_writes() {
     )
 
     # Find all modified/untracked files
-    local all_changes=$(git diff --name-only 2>/dev/null; git ls-files --others --exclude-standard 2>/dev/null)
+    local all_changes
+    all_changes=$(git diff --name-only 2>/dev/null; git ls-files --others --exclude-standard 2>/dev/null)
 
     if [ -z "$all_changes" ]; then return 0; fi
 
@@ -416,7 +423,8 @@ detect_rogue_writes() {
 merge_cycle_branch() {
     local branch_name=$1
     local cycle_num=$2
-    local commit_count=$(git log --oneline main.."$branch_name" 2>/dev/null | wc -l | tr -d ' ')
+    local commit_count
+    commit_count=$(git log --oneline main.."$branch_name" 2>/dev/null | wc -l | tr -d ' ')
 
     if [ "$commit_count" -gt 0 ]; then
         git checkout main 2>/dev/null
@@ -453,7 +461,8 @@ merge_cycle_branch() {
 # ============================================
 
 run_pm() {
-    local log_file="$PM_LOG_DIR/01-pm-$(date '+%Y%m%d-%H%M%S').log"
+    local log_file
+    log_file="$PM_LOG_DIR/01-pm-$(date '+%Y%m%d-%H%M%S').log"
     local cycle_num=$1
 
     log "[01-PM] Starting autonomous review (cycle $cycle_num)..."
@@ -576,7 +585,8 @@ run_pm() {
 # ============================================
 
 backup_prompts() {
-    local dir="$BACKUP_DIR/cycle-$(date '+%Y%m%d-%H%M%S')"
+    local dir
+    dir="$BACKUP_DIR/cycle-$(date '+%Y%m%d-%H%M%S')"
     mkdir -p "$dir"
     for id in "${AGENT_IDS[@]}"; do
         cp "$PROJECT_ROOT/${AGENT_PROMPTS[$id]}" "$dir/" 2>/dev/null
@@ -594,10 +604,12 @@ backup_prompts() {
 }
 
 validate_prompts() {
-    local latest_backup=$(ls -td "$BACKUP_DIR/"* 2>/dev/null | head -1)
+    local latest_backup
+    latest_backup=$(ls -td "$BACKUP_DIR/"* 2>/dev/null | head -1)
     for id in "${AGENT_IDS[@]}"; do
         local f="$PROJECT_ROOT/${AGENT_PROMPTS[$id]}"
-        local dir=$(dirname "$f")
+        local dir
+        dir=$(dirname "$f")
 
         # Ensure directory exists (PM may have deleted it)
         if [ ! -d "$dir" ]; then
@@ -690,7 +702,7 @@ case "${1:-help}" in
             usage_file="$PROMPTS_DIR/00-shared-context/usage.txt"
             bash "$PROJECT_ROOT/scripts/check-usage.sh" 2>/dev/null
             if [ -f "$usage_file" ]; then
-                usage_pct=$(cat "$usage_file" 2>/dev/null | grep -oP '\d+' | head -1)
+                usage_pct=$(grep -oP '\d+' "$usage_file" 2>/dev/null | head -1)
                 if [ -n "$usage_pct" ] && [ "$usage_pct" -ge 70 ] 2>/dev/null; then
                     log "PAUSED: Claude Code usage at ${usage_pct}% (threshold: 70%)"
                     notify "Paused: usage at ${usage_pct}% — waiting for reset" "warning"
@@ -929,7 +941,7 @@ CTXEOF
                     fi
                 done
                 if [[ ${#_committed_agents[@]} -gt 0 ]]; then
-                    _review_usage_pct=$(cat "$usage_file" 2>/dev/null | grep -oP '\d+' | head -1 || echo 0)
+                    _review_usage_pct=$(grep -oP '\d+' "$usage_file" 2>/dev/null | head -1 || echo 0)
                     if orch_review_should_run "${_review_usage_pct:-0}" 2>/dev/null; then
                         orch_review_plan "$CYCLE" "${_committed_agents[@]}" 2>/dev/null
                         log "Review phase: $(orch_review_summary 2>/dev/null)"
