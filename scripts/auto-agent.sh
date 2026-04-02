@@ -36,7 +36,7 @@ fi
 
 # ── Smart cycle modules (v0.2) ──────────────────────────────────────────
 if [ -d "$PROJECT_ROOT/src/core" ]; then
-    for mod in signal-handler cycle-tracker conditional-activation differential-context session-tracker prompt-compression dynamic-router review-phase worktree; do
+    for mod in signal-handler cycle-tracker conditional-activation differential-context session-tracker prompt-compression dynamic-router review-phase worktree quality-gates; do
         [ -f "$PROJECT_ROOT/src/core/${mod}.sh" ] && source "$PROJECT_ROOT/src/core/${mod}.sh"
     done
 fi
@@ -186,6 +186,12 @@ run_agent() {
 
     local context_file="$PROMPTS_DIR/00-shared-context/context.md"
 
+    # Resolve model before piping (subshell can't export vars back)
+    local agent_model=""
+    if [[ "$(type -t orch_router_model)" == "function" ]]; then
+        agent_model=$(orch_router_model "$agent_id" 2>/dev/null) || true
+    fi
+
     {
         # Inject shared context (v0.2: filtered per-agent if available)
         if [ -f "$context_file" ] && [ "$(wc -l < "$context_file")" -gt 5 ]; then
@@ -231,14 +237,37 @@ run_agent() {
         echo "Example: '- NEED: GET /api/search endpoint from backend'"
         echo "Example: '- BREAKING: Changed API response format for /users endpoint'"
         echo "Do NOT clear the file. Only APPEND under the right section."
-    } | claude \
-        -p \
-        --dangerously-skip-permissions \
-        --output-format text \
-        > "$log_file" 2>&1
+    } | {
+        # v0.2: model tiering — pass agent-specific model if router available
+        local -a claude_args=(-p --dangerously-skip-permissions --output-format text)
+        if [[ -n "$agent_model" && "$agent_model" != "default" ]]; then
+            claude_args+=(--model "$agent_model")
+        fi
+        claude "${claude_args[@]}"
+    } > "$log_file" 2>&1
+
+    [[ -n "$agent_model" ]] && log "[$agent_id] Used model: $agent_model"
 
     local exit_code=$?
     local log_size=$(wc -c < "$log_file" 2>/dev/null || echo 0)
+
+    # v0.2: model fallback — retry with cheaper model on failure (#160)
+    if [[ "$exit_code" -ne 0 && "$(type -t orch_router_model_fallback)" == "function" ]]; then
+        local current_model="${agent_model:-}"
+        while [[ "$exit_code" -ne 0 && -n "$current_model" ]]; do
+            local fallback
+            fallback=$(orch_router_model_fallback "$current_model" 2>/dev/null)
+            [[ -z "$fallback" ]] && break
+            local fallback_flag
+            fallback_flag=$(printf '%s' "$fallback" | sed 's/opus/claude-opus-4-6/;s/sonnet/claude-sonnet-4-6/;s/haiku/claude-haiku-4-5/')
+            log "[$agent_id] Retrying with fallback model: $fallback ($fallback_flag)"
+            claude -p --dangerously-skip-permissions --output-format text --model "$fallback_flag" \
+                < "$prompt_file" > "$log_file" 2>&1
+            exit_code=$?
+            current_model="$fallback"
+        done
+        log_size=$(wc -c < "$log_file" 2>/dev/null || echo 0)
+    fi
 
     if [ "$exit_code" -ne 0 ]; then
         log "[$agent_id] WARNING: Exit code $exit_code"
@@ -623,6 +652,14 @@ case "${1:-help}" in
         CYCLE=1
         declare -a AGENT_PIDS=()
 
+        # ── Initialize dynamic router (v0.2: model tiering + routing) ──
+        if [[ "$(type -t orch_router_init)" == "function" ]]; then
+            orch_router_init "$CONF_FILE" 2>/dev/null
+            _router_state="$PROJECT_ROOT/.orchystraw/router-state.json"
+            [ -f "$_router_state" ] && orch_router_load_state "$_router_state" 2>/dev/null
+            log "Dynamic router initialized"
+        fi
+
         echo "╔══════════════════════════════════════════════════╗"
         echo "║  orchystraw v3 — ${#AGENT_IDS[@]} agents configured     ║"
         echo "║  Max: ${MAX_CYCLES:-∞} cycles │ No delay between cycles   ║"
@@ -742,6 +779,11 @@ CTXEOF
                 [ -f "$context_file" ] && orch_activation_set_context "$(cat "$context_file")" 2>/dev/null
             fi
 
+            # Worktree isolation: per-agent git worktrees
+            if [[ "$(type -t orch_worktree_init)" == "function" ]]; then
+                orch_worktree_init "$PROJECT_ROOT" 2>/dev/null
+            fi
+
             # Differential context: per-agent context filtering
             if [[ "$(type -t orch_diffctx_init)" == "function" ]]; then
                 orch_diffctx_init "$CONF_FILE" 2>/dev/null
@@ -762,7 +804,24 @@ CTXEOF
                             continue
                         fi
                     fi
-                    run_agent "$id" &
+                    # v0.2: worktree isolation — agent gets its own checkout
+                    _use_worktree=false
+                    if [[ "$(type -t orch_worktree_enabled)" == "function" ]] && orch_worktree_enabled 2>/dev/null; then
+                        if orch_worktree_create "$id" "$CYCLE" 2>/dev/null; then
+                            _use_worktree=true
+                        fi
+                    fi
+
+                    # v0.2: wrap with timeout if available
+                    if [[ "$_use_worktree" == true ]]; then
+                        _wt_path=$(orch_worktree_path "$id" "$CYCLE" 2>/dev/null)
+                        (cd "$_wt_path" && run_agent "$id") &
+                    elif [[ "$(type -t orch_run_with_timeout)" == "function" ]]; then
+                        _agent_timeout=$(orch_get_agent_timeout "$id" 2>/dev/null || echo 600)
+                        orch_run_with_timeout "$_agent_timeout" run_agent "$id" &
+                    else
+                        run_agent "$id" &
+                    fi
                     AGENT_PIDS+=($!)
                     AGENTS_RUN=$((AGENTS_RUN + 1))
                 else
@@ -796,6 +855,43 @@ CTXEOF
 
             log "Agents finished ($AGENT_FAILURES/$AGENTS_RUN failed)"
 
+            # v0.2: Update router state with agent outcomes
+            if [[ "$(type -t orch_router_update)" == "function" ]]; then
+                for id in "${AGENT_IDS[@]}"; do
+                    interval="${AGENT_INTERVALS[$id]}"
+                    [ "$interval" -eq 0 ] && continue
+                    if [ $((CYCLE % interval)) -eq 0 ] || [ "$CYCLE" -eq 1 ]; then
+                        _agent_log_dir="$(dirname "$PROJECT_ROOT/${AGENT_PROMPTS[$id]}")/logs"
+                        _latest_log=$(ls -t "$_agent_log_dir/${id}-"*.log 2>/dev/null | head -1)
+                        _outcome="success"
+                        if [[ -n "$_latest_log" ]]; then
+                            _lsize=$(wc -c < "$_latest_log" 2>/dev/null || echo 0)
+                            [[ "$_lsize" -lt 100 ]] && _outcome="skip"
+                        else
+                            _outcome="fail"
+                        fi
+                        orch_router_update "$id" "$_outcome" "$CYCLE" 2>/dev/null
+                    fi
+                done
+            fi
+
+            # v0.2: Merge worktrees back into cycle branch
+            if [[ "$(type -t orch_worktree_enabled)" == "function" ]] && orch_worktree_enabled 2>/dev/null; then
+                for id in "${AGENT_IDS[@]}"; do
+                    interval="${AGENT_INTERVALS[$id]}"
+                    [ "$interval" -eq 0 ] && continue
+                    if [ $((CYCLE % interval)) -eq 0 ] || [ "$CYCLE" -eq 1 ]; then
+                        orch_worktree_merge "$id" "$CYCLE" 2>/dev/null && log "[$id] Worktree merged"
+                    fi
+                done
+                orch_worktree_cleanup "$CYCLE" 2>/dev/null
+            fi
+
+            # ── Step 2.5: Quality gates — validate agent output before commit (#145) ──
+            if [[ "$(type -t orch_quality_init)" == "function" ]]; then
+                orch_quality_init "$PROJECT_ROOT" "$CONF_FILE" 2>/dev/null
+            fi
+
             # ── Step 3: Commit agent work by ownership (on feature branch) ──
             COMMITS=0
             for id in "${AGENT_IDS[@]}"; do
@@ -803,12 +899,44 @@ CTXEOF
                 # Skip coordinator (interval=0) — PM commits handled separately
                 [ "$interval" -eq 0 ] && continue
                 if [ $((CYCLE % interval)) -eq 0 ] || [ "$CYCLE" -eq 1 ]; then
+                    # v0.2: quality gate check before commit
+                    if [[ "$(type -t orch_quality_check)" == "function" ]]; then
+                        _qg_log_dir="$(dirname "$PROJECT_ROOT/${AGENT_PROMPTS[$id]}")/logs"
+                        _qg_log=$(ls -t "$_qg_log_dir/${id}-"*.log 2>/dev/null | head -1)
+                        if ! orch_quality_check "$id" "$_qg_log" 2>/dev/null; then
+                            log "[$id] Quality gate FAILED — skipping commit"
+                            continue
+                        fi
+                    fi
                     commit_by_ownership "$id" && COMMITS=$((COMMITS + 1))
                 fi
             done
 
             if [ "$COMMITS" -eq 0 ]; then
                 log "No commits this cycle (agents ran but produced no file changes)"
+            fi
+
+            # ── Step 3.4: Review phase (v0.2: QA auto-review of agent work) ──
+            if [[ "$(type -t orch_review_init)" == "function" ]]; then
+                orch_review_init "$CONF_FILE" "$PM_LOG_DIR" 2>/dev/null
+                # Build list of agents that committed this cycle
+                _committed_agents=()
+                for id in "${AGENT_IDS[@]}"; do
+                    interval="${AGENT_INTERVALS[$id]}"
+                    [ "$interval" -eq 0 ] && continue
+                    if [ $((CYCLE % interval)) -eq 0 ] || [ "$CYCLE" -eq 1 ]; then
+                        _committed_agents+=("$id")
+                    fi
+                done
+                if [[ ${#_committed_agents[@]} -gt 0 ]]; then
+                    _review_usage_pct=$(cat "$usage_file" 2>/dev/null | grep -oP '\d+' | head -1 || echo 0)
+                    if orch_review_should_run "${_review_usage_pct:-0}" 2>/dev/null; then
+                        orch_review_plan "$CYCLE" "${_committed_agents[@]}" 2>/dev/null
+                        log "Review phase: $(orch_review_summary 2>/dev/null)"
+                    else
+                        log "Review phase skipped (usage too high)"
+                    fi
+                fi
             fi
 
             # ── Step 3.5: Detect rogue writes + post-commit scans ──
@@ -936,6 +1064,12 @@ PEOF
             git add prompts/ 2>/dev/null
             git diff --cached --quiet 2>/dev/null || git commit -m "chore: auto-update all prompts — cycle $CYCLE ($total files, $component_count components)" 2>/dev/null
             log "All prompts auto-updated: $total files, $component_count components"
+
+            # ── Step 5.8: Persist router state ──
+            if [[ "$(type -t orch_router_save_state)" == "function" ]]; then
+                mkdir -p "$PROJECT_ROOT/.orchystraw"
+                orch_router_save_state "$PROJECT_ROOT/.orchystraw/router-state.json" 2>/dev/null
+            fi
 
             # ── Step 6: Cycle metrics + complete ──
             [ -x "$SCRIPT_DIR/cycle-metrics.sh" ] && bash "$SCRIPT_DIR/cycle-metrics.sh" "$CYCLE" "$COMMITS" "$PROJECT_ROOT" 2>/dev/null

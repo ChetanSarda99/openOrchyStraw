@@ -44,6 +44,7 @@ if [[ -f "$AUDIT_FILE" ]]; then
         agent=""
         dur=0
         tok=0
+        prev=""
         for field in $(echo "$line" | tr '{},:"' ' '); do
             case "$prev" in
                 agent) agent="$field" ;;

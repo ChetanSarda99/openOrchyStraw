@@ -86,6 +86,7 @@ run_instance() {
 
     local id repo_url commit issue_text test_command
     id="$(printf '%s' "$instance_json" | jq -r '.instance_id // .id')"
+    id="$(printf '%s' "$id" | sed 's/[^a-zA-Z0-9_-]/_/g')"
     repo_url="$(printf '%s' "$instance_json" | jq -r '.repo_url // ("https://github.com/" + .repo + ".git")')"
     commit="$(printf '%s' "$instance_json" | jq -r '.base_commit // .commit')"
     issue_text="$(printf '%s' "$instance_json" | jq -r '.problem_statement // .issue_text')"
@@ -141,7 +142,7 @@ run_instance() {
         if ! _validate_test_command "$test_command"; then
             eval_status="error"
             _err "skipping unsafe test_command for $id"
-        elif (cd "$workspace" && bash -c "$test_command" >/dev/null 2>&1); then
+        elif (cd "$workspace" && read -ra cmd_array <<< "$test_command" && "${cmd_array[@]}" >/dev/null 2>&1); then
             eval_status="pass"; tests_passed=1
         else
             eval_status="fail"

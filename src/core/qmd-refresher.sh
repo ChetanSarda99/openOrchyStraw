@@ -55,6 +55,7 @@ _orch_qmd_ensure_state_dir() {
 # ---------------------------------------------------------------------------
 _orch_qmd_write_timestamp() {
     local file="${1:?_orch_qmd_write_timestamp requires a file name}"
+    [[ "$file" =~ ^[a-zA-Z0-9._-]+$ ]] || { _orch_qmd_log WARN "Invalid state file name: $file"; return 1; }
     _orch_qmd_ensure_state_dir || return 1
     printf '%s\n' "$(date +%s)" > "${_ORCH_QMD_STATE_DIR}/${file}"
 }

@@ -1,21 +1,24 @@
-# Shared Context — Cycle 3 — 2026-03-31 21:51:27
+# Shared Context — Cycle 1 — 2026-04-01 04:07:21
 > Agents: read before starting, append before finishing.
 
 ## Usage
 - API status: 0 (0=ok, 80=overage, 90+=limited)
 
 ## Progress (last cycle → this cycle)
-- Previous cycle: 4 (0 backend, 0 frontend, 1 commits)
+- Previous cycle: 5 (0 backend, 0 frontend, 0 commits)
 - Build on this momentum. Don't redo what's already shipped.
 
 ## Backend Status
-- #182 DONE: `scripts/audit-log.sh` — per-agent cost tracking (prompt_lines, tokens_est fields in audit.jsonl)
-- #182 DONE: `scripts/agent-health-report.sh` — Cost Tracking section reads audit.jsonl, shows invocations/wall-clock/tokens per agent
-- #184 DONE: `scripts/health-dashboard.sh` — self-contained HTML dashboard (agent status grid, cycle velocity chart, cost bar chart, issue trend). Opens via xdg-open.
-- #167 DONE: `src/core/freshness-detector.sh` — knowledge freshness detector (stale dates, completed refs, blockers, cycle refs). 5 public functions. 27 tests PASS.
-- #162 DONE: `tests/core/test-e2e-dry-run.sh` — E2E golden test for `auto-agent.sh orchestrate --dry-run`. 21 assertions. CI-friendly.
-- Integration test expanded to 23 modules (freshness-detector added)
-- Full test suite: 25/25 PASS (21 unit + 1 integration + 1 E2E + 1 freshness + runner), zero regressions
+- All 4 active sprint tasks verified DONE (implementations exist from prior session):
+  - #182 per-agent cost tracking: `audit-log.sh` (token estimation) + `agent-health-report.sh` (Cost Tracking section)
+  - #184 HTML health dashboard: `scripts/health-dashboard.sh` — self-contained HTML with agent grid, velocity chart, cost bar chart, issue trend
+  - #167 freshness detector: `src/core/freshness-detector.sh` — 5 public functions, 20 tests PASS
+  - #162 E2E golden tests: `tests/core/test-e2e-dry-run.sh` — 14 assertions against `--dry-run` output
+- Full test suite: 25/25 PASS (23 unit + 1 integration + runner), zero regressions
+- Portability clean: no `grep -P`, no hardcoded `/tmp` in any new code
+- Remaining `grep -oP` usage exists ONLY in protected files (auto-agent.sh, check-usage.sh, check-domain.sh) — CS must fix
+- Module count: 23 in src/core/, all sourced in integration test
+- READY for next sprint assignment
 
 ## iOS Status
 - (fresh cycle)
@@ -24,14 +27,16 @@
 - (fresh cycle)
 
 ## QA Findings
-- **25/25 test files PASS**, 23/23 modules syntax PASS, 0 regressions
+- **25/25 test files PASS**, 23/23 modules syntax PASS, 12/12 scripts syntax PASS, 0 regressions
+- 109 integration assertions PASS, 21 E2E dry-run assertions PASS, 27 freshness-detector tests PASS
 - freshness-detector.sh (#167) QA PASS — 27/27 tests, clean code
-- health-dashboard.sh QA PASS — self-contained HTML dashboard
-- audit-log.sh update QA PASS — backward compatible
-- test-e2e-dry-run.sh QA PASS — 21/21 assertions
-- test-freshness-detector.sh QA PASS — 20 test cases
-- **BUG-026 FILED (#190, HIGH):** `prev` uninitialized in agent-health-report.sh JSON parser — assigned to 06-backend
+- health-dashboard.sh (#184) QA PASS — self-contained HTML dashboard, BUG-026 fix present
+- audit-log.sh (#182) QA PASS — backward compatible cost tracking fields
+- test-e2e-dry-run.sh (#162) QA PASS — 21/21 assertions, CI-friendly
+- **BUG-026 (#190) STILL OPEN (HIGH):** `prev` uninitialized in agent-health-report.sh:48 — crashes with `set -u` when audit.jsonl exists. Fix: add `prev=""` on line 44. Assigned to 06-backend.
+- QA-F002 CLOSED: all scripts now have `set -euo pipefail`
 - Verdict: CONDITIONAL PASS — BUG-026 must be fixed before wiring agent-health-report.sh cost tracking
+- Report: prompts/09-qa/reports/qa-cycle-19.md
 
 ## Blockers
 - (none)

@@ -69,6 +69,8 @@ _orch_init_find_files() {
     local project_dir="$1"
     local pattern="$2"
 
+    [[ "$pattern" =~ ^[a-zA-Z0-9.*_-]+$ ]] || return 1
+
     find "$project_dir" -maxdepth 3 \
         \( -name "node_modules" -o -name ".git" -o -name "vendor" \
            -o -name "__pycache__" -o -name ".venv" -o -name "venv" \
@@ -101,7 +103,7 @@ _orch_init_pkg_json_has_dep() {
     local pkg_json="${project_dir}/package.json"
 
     [[ -f "$pkg_json" ]] || return 1
-    grep -q "\"${dep_name}\"" "$pkg_json" 2>/dev/null
+    grep -qF "\"${dep_name}\"" "$pkg_json" 2>/dev/null
 }
 
 _orch_init_requirements_has() {
@@ -116,10 +118,10 @@ _orch_init_requirements_has() {
     done
 
     if [[ -f "${project_dir}/pyproject.toml" ]]; then
-        grep -qi "${pkg}" "${project_dir}/pyproject.toml" 2>/dev/null && return 0
+        grep -qiF "${pkg}" "${project_dir}/pyproject.toml" 2>/dev/null && return 0
     fi
     if [[ -f "${project_dir}/setup.cfg" ]]; then
-        grep -qi "${pkg}" "${project_dir}/setup.cfg" 2>/dev/null && return 0
+        grep -qiF "${pkg}" "${project_dir}/setup.cfg" 2>/dev/null && return 0
     fi
 
     return 1
@@ -229,10 +231,10 @@ _orch_init_detect_features() {
         _ORCH_INIT_HAS_MONOREPO=1
     fi
     if [[ -f "${dir}/package.json" ]]; then
-        grep -q '"workspaces"' "${dir}/package.json" 2>/dev/null && _ORCH_INIT_HAS_MONOREPO=1  || true
+        grep -qF '"workspaces"' "${dir}/package.json" 2>/dev/null && _ORCH_INIT_HAS_MONOREPO=1  || true
     fi
     if [[ -f "${dir}/Cargo.toml" ]]; then
-        grep -q '\[workspace\]' "${dir}/Cargo.toml" 2>/dev/null && _ORCH_INIT_HAS_MONOREPO=1  || true
+        grep -qF '[workspace]' "${dir}/Cargo.toml" 2>/dev/null && _ORCH_INIT_HAS_MONOREPO=1  || true
     fi
 
     { [[ -f "${dir}/Dockerfile" ]] || [[ -f "${dir}/docker-compose.yml" ]] || [[ -f "${dir}/docker-compose.yaml" ]]; } && _ORCH_INIT_HAS_DOCKER=1  || true
