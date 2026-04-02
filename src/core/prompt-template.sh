@@ -69,7 +69,6 @@ _orch_tpl_safe_path() {
         return 1
     fi
 
-    local full_path="$base_dir/$path"
     local resolved
     resolved=$(cd "$base_dir" 2>/dev/null && realpath -m "$path" 2>/dev/null) || {
         _orch_tpl_log ERROR "Cannot resolve path: $path"

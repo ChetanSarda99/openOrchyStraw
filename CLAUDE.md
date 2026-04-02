@@ -39,7 +39,7 @@ prompts/                 — All agent prompts and shared files
   99-me/                 — Human action items
 
 scripts/                 — Orchestrator (auto-agent.sh) + helper scripts
-src/core/                — Core orchestration modules (17 bash modules, 278 tests)
+src/core/                — Core orchestration modules (24 bash modules)
 src/pixel/               — Pixel Agents JSONL emitter + integration
 
 site/                    — Landing page (Next.js 15 + shadcn/ui v4)
@@ -47,7 +47,7 @@ site/                    — Landing page (Next.js 15 + shadcn/ui v4)
   out/                   — Static build output (deployed to GitHub Pages)
 
 tests/                   — Test files
-  core/                  — 19 test scripts + runner
+  core/                  — 26 test scripts + runner
 
 docs/                    — Documentation
   architecture/          — ADRs and technical specs (14 files)
@@ -67,16 +67,19 @@ examples/                — Sample agents.conf
 All 8 core modules built, tested, integrated. QA PASS. Security FULL PASS. CTO approved.
 
 ### v0.2.0 — Smart Cycle System (FULLY WIRED)
-9 modules with 278 tests. CTO 8/8, QA 8/8, Security 6/6. All 9/9 wired into auto-agent.sh.
-26/26 tests pass. Ready to tag.
+10 modules wired into auto-agent.sh. CTO 8/8, QA 8/8, Security 6/6.
+26/26 test scripts pass. Ready to tag.
+
+### v0.3.0 — Extended Modules (IN PROGRESS)
+5 modules built and wired: single-agent, qmd-refresher, prompt-template, task-decomposer, init-project.
+1 module (freshness-detector) built but not yet wired.
 
 ### Next Up
-1. Tag v0.1.0
-2. Wire remaining v0.2.0 modules + efficiency scripts
-3. v0.3.0 — Token optimization (#50, #53, #54)
-4. Pixel Agents integration
-5. Tauri desktop app
-6. Benchmarks & distribution
+1. Tag v0.1.0 + v0.2.0
+2. Wire freshness-detector + token optimization (#50, #53, #54)
+3. Pixel Agents integration
+4. Tauri desktop app
+5. Benchmarks & distribution
 
 ## Stack Reference Docs (LOCKED — read before building)
 

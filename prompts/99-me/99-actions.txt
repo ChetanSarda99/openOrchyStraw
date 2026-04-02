@@ -8,26 +8,9 @@
 ## PENDING — Work through by priority
 
 ### P0 — Ship & Distribute
-- [ ] **Push to origin** — `git push origin main --tags` (v0.1.0 tag is local only)
+- [ ] **Demo GIF (#131)** — needed for HN launch. No GIF exists yet.
 - [ ] **Run benchmark dry-run** — `bash scripts/benchmark/run-benchmark.sh --dry-run`
-- [ ] **Demo GIF (#131)** — needed for HN launch
-
-### P0.5 — Namespace Fix in auto-agent.sh
-- [ ] **BUG-025: Update auto-agent.sh calls** — Module renamed `orch_tracker_*` → `orch_session_*` (committed 74dd956). CS must update auto-agent.sh call sites: `orch_tracker_window` → `orch_session_window`, `orch_tracker_init` → `orch_session_init` (lines 203-204).
-
-### P0.5 — Wire Module Functions into auto-agent.sh Execution Path
-Modules are sourced but their functions are never called from the main loop.
-These need actual integration (not just `source`):
-- [ ] **#88 Wire timeout** — wrap `run_agent()` claude call with `orch_run_with_timeout`. Currently agents run indefinitely.
-- [ ] **#90 Wire --dry-run** — add CLI flag parsing + call `orch_dry_run_report`. Currently no --dry-run support.
-- [ ] **#145 Wire review-phase** — call `orch_review_*` after agent runs for QA gate. Currently dormant.
-- [ ] **#147 Wire model tiering end-to-end** — add model column to agents.conf, pass `--model "$(orch_router_model $id)"` to claude CLI.
-- [ ] **#168 Wire worktree** — add `--worktree` flag, call `orch_worktree_create/merge` in execution loop. Currently agents share main checkout.
-
-### P0 — STOP ORCHESTRATOR (NEW — Cycle 5)
-- [ ] **HARD PAUSE the orchestrator** — 5 consecutive quiet cycles today, 26+ idle cycles total, ~45 wasted agent invocations today alone. Nothing will change until the items below are done.
-- [ ] **Clear CTO review queue (7 items)** — single-agent.sh, v3 parser, SWE-bench scaffold, qmd-refresher.sh, prompt-template.sh, task-decomposer.sh, init-project.sh. CS can batch-review or run CTO agent manually with focused prompt.
-- [ ] **Wire v0.2.0 modules into auto-agent.sh** — see P0.5 section below for specifics
+- [ ] **Tag v0.2.0** — CLAUDE.md says v0.2.0 is fully wired (9/9 modules, 278 tests, CTO 8/8, QA 8/8, Security 6/6). Tag it.
 
 ### P1 — Incomplete Features
 - [ ] **#169 Benchmark completion** — featurebench suite missing, standalone run-comparison.sh and run-featurebench.sh needed
@@ -46,8 +29,13 @@ These need actual integration (not just `source`):
 
 ## DONE
 
+- [x] **2026-04-02** Verified all P0.5 wiring items complete in auto-agent.sh. Updated actions file to reflect reality.
+- [x] **2026-03-31** v0.2.0 modules FULLY WIRED into auto-agent.sh: timeout (#88), dry-run (#90), review-phase (#145), model tiering (#147), worktree (#168), session tracker (BUG-025), conditional activation, differential context, quality gates. All use guarded `type -t` checks.
+- [x] **2026-03-31** STOP ORCHESTRATOR resolved — CTO review queue cleared, v0.2.0 modules wired, orchestrator unblocked.
 - [x] **2026-03-31** Closed 20 completed + 4 obsolete issues. Fixed 4 bugs (BUG-024, #151, #156, #158). Reopened 7 genuinely incomplete issues.
-- [x] **2026-03-30** v0.1.0 TAGGED (6a02462). All 22 modules wired (sourced). 5 efficiency scripts wired. 23/23 tests pass.
+- [x] **2026-03-31** BUG-025 fixed — `orch_tracker_*` renamed to `orch_session_*` in auto-agent.sh (zero `orch_tracker_` references remain).
+- [x] **2026-03-30** v0.1.0 TAGGED (6a02462) and PUSHED to origin (confirmed on remote).
+- [x] **2026-03-30** All 22 modules wired (sourced). 5 efficiency scripts wired. 23/23 tests pass.
 - [x] **2026-03-30** 10 bugs fixed: BUG-013, QA-F001, SS-01, CS-01, LINT-01-04, BUG-012. Shared resources synced (22 modules).
 - [x] **2026-03-30** CLAUDE.md rewritten, .gitignore cleaned, agents.conf symlinked, orphans removed.
 - [x] **2026-03-30** ~12 agent cycles ran: single-agent.sh, benchmark framework, qmd-refresher, prompt-template, task-decomposer, init-project built.
