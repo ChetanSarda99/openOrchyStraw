@@ -1,6 +1,7 @@
 #!/usr/bin/env bash
 # prompt-template.sh — Template inheritance for agent prompts
 # v0.3.0: #54 — reduce prompt duplication via base template + agent overlays
+# v0.4.0: Jinja2-style conditionals, default values, template composition/mixins
 #
 # Agent prompts share identical sections (PROTECTED FILES, Git Safety, Auto-Cycle,
 # shared context instructions). Maintaining these across 9+ prompts is error-prone.
@@ -9,9 +10,13 @@
 #
 # Template syntax:
 #   {{VAR_NAME}}              — replaced with variable value (set via orch_tpl_set)
+#   {{VAR_NAME|default}}      — replaced with value, or "default" if unset (v0.4)
 #   <!-- include: path.md --> — replaced with file contents (relative to template dir)
 #   <!-- begin: BLOCK -->     — start of named block (overridable by overlay)
 #   <!-- end: BLOCK -->       — end of named block
+#   {% if VAR_NAME %}...{% endif %}            — conditional section (v0.4)
+#   {% if VAR_NAME %}...{% else %}...{% endif %} — if/else (v0.4)
+#   <!-- mixin: path.md -->   — include as a composable mixin (v0.4)
 #
 # Inheritance model:
 #   base.md defines shared sections + named blocks
@@ -27,6 +32,10 @@
 #   orch_tpl_validate         — check for unresolved placeholders
 #   orch_tpl_list_vars        — list all {{VAR}} placeholders in a file
 #   orch_tpl_stats            — print template stats (sections, vars, includes)
+#   orch_tpl_resolve_conditionals — process {% if %}...{% endif %} blocks (v0.4)
+#   orch_tpl_resolve_defaults — process {{VAR|default}} syntax (v0.4)
+#   orch_tpl_add_mixin        — register a mixin template (v0.4)
+#   orch_tpl_resolve_mixins   — resolve <!-- mixin: path --> directives (v0.4)
 
 [[ -n "${_ORCH_PROMPT_TEMPLATE_LOADED:-}" ]] && return 0
 _ORCH_PROMPT_TEMPLATE_LOADED=1
@@ -37,6 +46,7 @@ declare -g -A _ORCH_TPL_VARS=()            # "VAR_NAME" -> value
 declare -g -A _ORCH_TPL_BLOCKS=()          # "BLOCK_NAME" -> content (from overlay)
 declare -g _ORCH_TPL_MAX_INCLUDE_DEPTH=5   # prevent infinite include recursion
 declare -g _ORCH_TPL_MAX_FILE_SIZE=102400   # 100KB max per included file
+declare -g -A _ORCH_TPL_MIXINS=()          # v0.4: "mixin_name" -> file path
 
 # ── Helpers ──
 
@@ -501,4 +511,268 @@ orch_tpl_stats() {
     printf '  variables:  %d unique\n' "$var_count"
     printf '  includes:   %d\n' "$include_count"
     printf '  base size:  ~%d tokens (%d chars)\n' "$base_tokens" "$base_chars"
+}
+
+# ===========================================================================
+# v0.4.0 — Jinja2-style Conditionals, Default Values, Template Composition
+# ===========================================================================
+
+# ---------------------------------------------------------------------------
+# orch_tpl_resolve_defaults — process {{VAR|default_value}} syntax
+#
+# If VAR is set in _ORCH_TPL_VARS, use it. Otherwise use the default.
+# Also handles plain {{VAR}} by leaving them for _orch_tpl_substitute_vars.
+# ---------------------------------------------------------------------------
+orch_tpl_resolve_defaults() {
+    local text="$1"
+    local result="$text"
+
+    # Match {{VAR_NAME|default_value}} — pipe separates var from default
+    while [[ "$result" =~ \{\{([A-Za-z_][A-Za-z0-9_]*)\|([^}]*)\}\} ]]; do
+        local var_name="${BASH_REMATCH[1]}"
+        local default_val="${BASH_REMATCH[2]}"
+        local full_match="{{${var_name}|${default_val}}}"
+
+        if [[ -n "${_ORCH_TPL_VARS[$var_name]+x}" ]]; then
+            result="${result/"$full_match"/"${_ORCH_TPL_VARS[$var_name]}"}"
+        else
+            result="${result/"$full_match"/"$default_val"}"
+        fi
+    done
+
+    printf '%s' "$result"
+}
+
+# ---------------------------------------------------------------------------
+# orch_tpl_resolve_conditionals — process {% if VAR %}...{% endif %} blocks
+#
+# Supports:
+#   {% if VAR_NAME %}content{% endif %}
+#   {% if VAR_NAME %}content{% else %}alt_content{% endif %}
+#   {% if !VAR_NAME %}content{% endif %}  (negation)
+#
+# A variable is "truthy" if it exists in _ORCH_TPL_VARS and is non-empty.
+# ---------------------------------------------------------------------------
+orch_tpl_resolve_conditionals() {
+    local text="$1"
+    local result=""
+    local -a lines=()
+
+    # Split text into lines
+    while IFS= read -r line; do
+        lines+=("$line")
+    done <<< "$text"
+
+    local i=0
+    local n=${#lines[@]}
+
+    while [[ $i -lt $n ]]; do
+        local line="${lines[$i]}"
+
+        # Check for {% if VAR %} or {% if !VAR %}
+        if [[ "$line" =~ ^[[:space:]]*\{%[[:space:]]*if[[:space:]]+([\!]?)([A-Za-z_][A-Za-z0-9_]*)[[:space:]]*%\}[[:space:]]*$ ]]; then
+            local negate="${BASH_REMATCH[1]}"
+            local cond_var="${BASH_REMATCH[2]}"
+            local if_content=""
+            local else_content=""
+            local in_else=false
+            local depth=1
+
+            i=$((i + 1))
+            while [[ $i -lt $n && $depth -gt 0 ]]; do
+                local inner="${lines[$i]}"
+
+                # Nested if
+                if [[ "$inner" =~ ^[[:space:]]*\{%[[:space:]]*if[[:space:]] ]]; then
+                    depth=$((depth + 1))
+                fi
+
+                # endif
+                if [[ "$inner" =~ ^[[:space:]]*\{%[[:space:]]*endif[[:space:]]*%\}[[:space:]]*$ ]]; then
+                    depth=$((depth - 1))
+                    if [[ $depth -eq 0 ]]; then
+                        i=$((i + 1))
+                        break
+                    fi
+                fi
+
+                # else (only at depth 1)
+                if [[ $depth -eq 1 ]] && [[ "$inner" =~ ^[[:space:]]*\{%[[:space:]]*else[[:space:]]*%\}[[:space:]]*$ ]]; then
+                    in_else=true
+                    i=$((i + 1))
+                    continue
+                fi
+
+                if [[ "$in_else" == "true" ]]; then
+                    else_content+="$inner"$'\n'
+                else
+                    if_content+="$inner"$'\n'
+                fi
+                i=$((i + 1))
+            done
+
+            # Evaluate condition
+            local var_val="${_ORCH_TPL_VARS[$cond_var]:-}"
+            local is_truthy=false
+            [[ -n "$var_val" ]] && is_truthy=true
+
+            if [[ -n "$negate" ]]; then
+                [[ "$is_truthy" == "true" ]] && is_truthy=false || is_truthy=true
+            fi
+
+            if [[ "$is_truthy" == "true" ]]; then
+                result+="$if_content"
+            else
+                result+="$else_content"
+            fi
+        else
+            result+="$line"$'\n'
+            i=$((i + 1))
+        fi
+    done
+
+    printf '%s' "$result"
+}
+
+# ---------------------------------------------------------------------------
+# orch_tpl_add_mixin — register a named mixin template
+# Args: $1 — mixin name, $2 — file path (relative to template dir or absolute)
+# ---------------------------------------------------------------------------
+orch_tpl_add_mixin() {
+    local name="${1:?orch_tpl_add_mixin: name required}"
+    local path="${2:?orch_tpl_add_mixin: path required}"
+
+    if [[ "$path" != /* ]]; then
+        local resolved
+        resolved=$(_orch_tpl_safe_path "$path") || return 1
+        path="$resolved"
+    fi
+
+    if [[ ! -f "$path" ]]; then
+        _orch_tpl_log ERROR "Mixin file not found: $path"
+        return 1
+    fi
+
+    _ORCH_TPL_MIXINS["$name"]="$path"
+}
+
+# ---------------------------------------------------------------------------
+# orch_tpl_resolve_mixins — resolve <!-- mixin: name --> directives
+#
+# Unlike includes, mixins are referenced by registered name (not path).
+# Mixins also get variable substitution applied to their content.
+# ---------------------------------------------------------------------------
+orch_tpl_resolve_mixins() {
+    local text="$1"
+    local result=""
+
+    while IFS= read -r line; do
+        if [[ "$line" =~ ^[[:space:]]*\<!--[[:space:]]*mixin:[[:space:]]*(.*[^[:space:]])[[:space:]]*--\>[[:space:]]*$ ]]; then
+            local mixin_name
+            mixin_name=$(_orch_tpl_trim "${BASH_REMATCH[1]}")
+
+            local mixin_path="${_ORCH_TPL_MIXINS[$mixin_name]:-}"
+            if [[ -z "$mixin_path" ]]; then
+                _orch_tpl_log WARN "Mixin not registered: $mixin_name"
+                result+="<!-- ERROR: mixin not found: $mixin_name -->"$'\n'
+                continue
+            fi
+
+            if [[ ! -f "$mixin_path" ]]; then
+                result+="<!-- ERROR: mixin file missing: $mixin_name -->"$'\n'
+                continue
+            fi
+
+            local mixin_content
+            mixin_content=$(cat "$mixin_path") || {
+                result+="<!-- ERROR: cannot read mixin: $mixin_name -->"$'\n'
+                continue
+            }
+
+            # Apply variable substitution to mixin content
+            mixin_content=$(_orch_tpl_substitute_vars "$mixin_content")
+            result+="$mixin_content"$'\n'
+        else
+            result+="$line"$'\n'
+        fi
+    done <<< "$text"
+
+    printf '%s' "$result"
+}
+
+# ---------------------------------------------------------------------------
+# orch_tpl_render_v2 — enhanced render with v0.4 features
+#
+# Processing order:
+#   1. Parse overlay blocks
+#   2. Apply blocks (overlay overrides base defaults)
+#   3. Resolve includes
+#   4. Resolve mixins
+#   5. Resolve conditionals
+#   6. Resolve defaults ({{VAR|default}})
+#   7. Substitute variables ({{VAR}})
+# ---------------------------------------------------------------------------
+orch_tpl_render_v2() {
+    local base_file="${1:?orch_tpl_render_v2: base_file required}"
+    local overlay_file="${2:-}"
+
+    # Resolve base file path
+    local base_path
+    if [[ "$base_file" == /* ]]; then
+        base_path="$base_file"
+    else
+        base_path=$(_orch_tpl_safe_path "$base_file") || return 1
+    fi
+
+    if [[ ! -f "$base_path" ]]; then
+        _orch_tpl_log ERROR "Base template not found: $base_file"
+        return 1
+    fi
+
+    local base_text
+    base_text=$(cat "$base_path") || {
+        _orch_tpl_log ERROR "Cannot read base template: $base_file"
+        return 1
+    }
+
+    # Parse overlay blocks if overlay provided
+    _ORCH_TPL_BLOCKS=()
+    if [[ -n "$overlay_file" ]]; then
+        local overlay_path
+        if [[ "$overlay_file" == /* ]]; then
+            overlay_path="$overlay_file"
+        else
+            overlay_path=$(_orch_tpl_safe_path "$overlay_file") || return 1
+        fi
+
+        if [[ ! -f "$overlay_path" ]]; then
+            _orch_tpl_log ERROR "Overlay file not found: $overlay_file"
+            return 1
+        fi
+
+        local overlay_text
+        overlay_text=$(cat "$overlay_path") || {
+            _orch_tpl_log ERROR "Cannot read overlay: $overlay_file"
+            return 1
+        }
+
+        # Extract variable assignments from overlay
+        while IFS= read -r line; do
+            if [[ "$line" =~ ^[[:space:]]*([A-Za-z_][A-Za-z0-9_]*)=(.*)$ ]]; then
+                _ORCH_TPL_VARS["${BASH_REMATCH[1]}"]="${BASH_REMATCH[2]}"
+            fi
+        done <<< "$overlay_text"
+
+        _orch_tpl_parse_overlay_blocks "$overlay_text"
+    fi
+
+    local result
+    result=$(_orch_tpl_apply_blocks "$base_text")
+    result=$(orch_tpl_resolve_includes "$result")
+    result=$(orch_tpl_resolve_mixins "$result")
+    result=$(orch_tpl_resolve_conditionals "$result")
+    result=$(orch_tpl_resolve_defaults "$result")
+    result=$(_orch_tpl_substitute_vars "$result")
+
+    printf '%s' "$result"
 }
