@@ -6,6 +6,12 @@
 # managers, test frameworks, and CI/CD config. Generates a suggested
 # agents.conf and scaffold prompt files based on what was found.
 #
+# v0.4.0 additions:
+#   - Interactive mode (orch_init_interactive) — guided setup wizard
+#   - Template marketplace (orch_init_list_templates / orch_init_apply_template)
+#   - Auto-detect existing OrchyStraw structure (orch_init_detect_existing)
+#   - Migration support (orch_init_migrate) — upgrade v0.2→v0.3→v0.4 configs
+#
 # Usage:
 #   source src/core/init-project.sh
 #
@@ -13,6 +19,13 @@
 #   orch_init_report
 #   orch_init_generate_conf  "/path/to/output/agents.conf"
 #   orch_init_generate_prompts "/path/to/output/prompts"
+#
+#   # v0.4 features:
+#   orch_init_interactive "/path/to/project"     # guided wizard
+#   orch_init_detect_existing "/path/to/project"  # check for existing setup
+#   orch_init_list_templates                       # available templates
+#   orch_init_apply_template "fullstack-saas"      # apply a preset
+#   orch_init_migrate "/path/to/project"           # upgrade config format
 #
 # Requires: bash 5.0+
 # =============================================================================
@@ -38,6 +51,11 @@ declare -ga _ORCH_INIT_SUGGESTED_AGENTS=()
 
 # Directories to exclude from scanning
 readonly _ORCH_INIT_EXCLUDE_DIRS="node_modules .git vendor __pycache__ .venv venv dist build target .next .nuxt"
+
+# v0.4: Template marketplace presets
+declare -gA _ORCH_INIT_TEMPLATES=()
+declare -g  _ORCH_INIT_EXISTING_VERSION=""
+declare -g  _ORCH_INIT_INTERACTIVE_MODE=0
 
 # ---------------------------------------------------------------------------
 # Internal helpers
@@ -687,4 +705,275 @@ orch_init_has_feature() {
             return 1
             ;;
     esac
+}
+
+# ===========================================================================
+# v0.4.0 — Interactive Mode, Template Marketplace, Existing Detection, Migration
+# ===========================================================================
+
+# ---------------------------------------------------------------------------
+# orch_init_detect_existing — check if project already has OrchyStraw setup
+#
+# Looks for agents.conf, prompts/, src/core/, CLAUDE.md
+# Returns: 0 if existing setup found, 1 if fresh project
+# Sets: _ORCH_INIT_EXISTING_VERSION
+# ---------------------------------------------------------------------------
+orch_init_detect_existing() {
+    local project_dir="${1:?orch_init_detect_existing requires a project directory}"
+
+    _ORCH_INIT_EXISTING_VERSION=""
+    local signals=0
+
+    [[ -f "${project_dir}/agents.conf" ]] && signals=$((signals + 1))
+    [[ -d "${project_dir}/prompts" ]] && signals=$((signals + 1))
+    [[ -d "${project_dir}/src/core" ]] && signals=$((signals + 1))
+    [[ -f "${project_dir}/CLAUDE.md" ]] && signals=$((signals + 1))
+
+    if [[ $signals -eq 0 ]]; then
+        _orch_init_log "no existing OrchyStraw setup detected"
+        return 1
+    fi
+
+    # Detect version by checking for version-specific features
+    if [[ -f "${project_dir}/agents.conf" ]]; then
+        local col_count
+        col_count=$(grep -v '^#' "${project_dir}/agents.conf" 2>/dev/null | grep -v '^$' | head -1 | awk -F'|' '{print NF}')
+
+        if [[ "${col_count:-0}" -ge 9 ]]; then
+            _ORCH_INIT_EXISTING_VERSION="0.4"
+        elif [[ "${col_count:-0}" -ge 8 ]]; then
+            _ORCH_INIT_EXISTING_VERSION="0.3"
+        elif [[ "${col_count:-0}" -ge 5 ]]; then
+            _ORCH_INIT_EXISTING_VERSION="0.2"
+        else
+            _ORCH_INIT_EXISTING_VERSION="0.1"
+        fi
+    fi
+
+    _orch_init_log "existing OrchyStraw setup detected (v${_ORCH_INIT_EXISTING_VERSION:-unknown}, ${signals}/4 signals)"
+    return 0
+}
+
+# ---------------------------------------------------------------------------
+# orch_init_existing_version — get detected version string
+# ---------------------------------------------------------------------------
+orch_init_existing_version() {
+    echo "${_ORCH_INIT_EXISTING_VERSION:-}"
+}
+
+# ---------------------------------------------------------------------------
+# Template Marketplace — predefined project templates
+# ---------------------------------------------------------------------------
+
+# _orch_init_register_templates — populate built-in templates
+_orch_init_register_templates() {
+    _ORCH_INIT_TEMPLATES=()
+
+    # Each template: "name" -> "description|languages|agents_pattern"
+    _ORCH_INIT_TEMPLATES["solo-dev"]="Single developer with one agent|any|ceo,backend,qa"
+    _ORCH_INIT_TEMPLATES["fullstack-saas"]="Full-stack SaaS with frontend + backend + devops|typescript,python|ceo,cto,pm,backend,frontend,qa,devops,security"
+    _ORCH_INIT_TEMPLATES["api-service"]="Backend API microservice|python,go,rust|ceo,cto,pm,backend,qa,devops,security"
+    _ORCH_INIT_TEMPLATES["mobile-app"]="Mobile app with iOS/Android|swift,kotlin|ceo,cto,pm,ios,android,qa,security"
+    _ORCH_INIT_TEMPLATES["data-pipeline"]="Data engineering pipeline|python|ceo,cto,pm,backend,data-eng,qa"
+    _ORCH_INIT_TEMPLATES["monorepo"]="Monorepo with multiple packages|typescript|ceo,cto,pm,backend,frontend,infra,qa,devops,security"
+    _ORCH_INIT_TEMPLATES["open-source"]="Open source library|any|ceo,backend,qa,docs"
+    _ORCH_INIT_TEMPLATES["cli-tool"]="Command-line tool|rust,go,python|ceo,backend,qa,docs"
+}
+
+# ---------------------------------------------------------------------------
+# orch_init_list_templates — list available templates
+# Outputs: one template per line "name|description"
+# ---------------------------------------------------------------------------
+orch_init_list_templates() {
+    _orch_init_register_templates
+
+    local name
+    for name in $(printf '%s\n' "${!_ORCH_INIT_TEMPLATES[@]}" | sort); do
+        local entry="${_ORCH_INIT_TEMPLATES[$name]}"
+        local desc="${entry%%|*}"
+        printf '%s|%s\n' "$name" "$desc"
+    done
+}
+
+# ---------------------------------------------------------------------------
+# orch_init_apply_template — apply a template preset to the scan results
+#
+# Overrides _ORCH_INIT_SUGGESTED_AGENTS with the template's agent list.
+# Args: $1 — template name
+# Returns: 0 on success, 1 if template not found
+# ---------------------------------------------------------------------------
+orch_init_apply_template() {
+    local template_name="${1:?orch_init_apply_template requires a template name}"
+    _orch_init_register_templates
+
+    local entry="${_ORCH_INIT_TEMPLATES[$template_name]:-}"
+    if [[ -z "$entry" ]]; then
+        _orch_init_err "unknown template: ${template_name}"
+        _orch_init_err "available: $(printf '%s ' "${!_ORCH_INIT_TEMPLATES[@]}")"
+        return 1
+    fi
+
+    local agents_csv
+    agents_csv=$(echo "$entry" | awk -F'|' '{print $3}')
+
+    _ORCH_INIT_SUGGESTED_AGENTS=()
+    local agent_num=1
+    local IFS=','
+    local -a agent_names
+    read -ra agent_names <<< "$agents_csv"
+
+    local role_map_ceo="CEO — strategy & vision|docs/strategy/|3"
+    local role_map_cto="CTO — architecture|docs/architecture/|2"
+    local role_map_pm="PM — coordination|prompts/|0"
+    local role_map_backend="Backend — core logic|src/ lib/|1"
+    local role_map_frontend="Frontend — UI|app/ components/ src/|1"
+    local role_map_qa="QA — testing & quality|tests/|3"
+    local role_map_devops="DevOps — CI/CD & infrastructure|.github/|2"
+    local role_map_security="Security — threat modeling|reports/|3"
+    local role_map_ios="iOS — mobile app|ios/|1"
+    local role_map_android="Android — mobile app|android/|1"
+    local role_map_infra="Infrastructure — monorepo & tooling|packages/ tools/|2"
+    local role_map_docs="Docs — documentation|docs/|2"
+    local role_map_data_eng="Data Engineering — pipelines|pipelines/ data/|1"
+
+    for agent in "${agent_names[@]}"; do
+        agent="${agent#"${agent%%[![:space:]]*}"}"
+        agent="${agent%"${agent##*[![:space:]]}"}"
+        local varname="role_map_${agent//-/_}"
+        local role_str="${!varname:-${agent} — ${agent}|src/|1}"
+
+        local id_num
+        id_num=$(printf '%02d' $agent_num)
+        _ORCH_INIT_SUGGESTED_AGENTS+=("${id_num}-${agent}|${role_str}")
+        agent_num=$((agent_num + 1))
+    done
+
+    _orch_init_log "applied template: ${template_name} (${#_ORCH_INIT_SUGGESTED_AGENTS[@]} agents)"
+    return 0
+}
+
+# ---------------------------------------------------------------------------
+# orch_init_migrate — migrate older agents.conf format to current version
+#
+# Handles:
+#   v0.1/v0.2 (5-column) → v0.3+ (5-column, unchanged format but validated)
+#   Adds missing fields with sensible defaults
+#
+# Args: $1 — path to agents.conf
+# Outputs: migrated content to stdout
+# Returns: 0 on success
+# ---------------------------------------------------------------------------
+orch_init_migrate() {
+    local conf_file="${1:?orch_init_migrate requires a config file path}"
+
+    if [[ ! -f "$conf_file" ]]; then
+        _orch_init_err "config file not found: ${conf_file}"
+        return 1
+    fi
+
+    local migrated=0
+
+    while IFS= read -r line; do
+        # Pass through comments and empty lines
+        if [[ "$line" =~ ^[[:space:]]*# ]] || [[ -z "${line// /}" ]]; then
+            printf '%s\n' "$line"
+            continue
+        fi
+
+        local col_count
+        col_count=$(echo "$line" | awk -F'|' '{print NF}')
+
+        if [[ "$col_count" -lt 5 ]]; then
+            # Old format: id | prompt | ownership (3 cols) → add interval + label
+            IFS='|' read -ra fields <<< "$line"
+            local id="${fields[0]:-}"
+            local prompt="${fields[1]:-}"
+            local ownership="${fields[2]:-}"
+            id="${id#"${id%%[![:space:]]*}"}"
+            id="${id%"${id##*[![:space:]]}"}"
+            printf '%s | %s | %s | 1 | %s\n' "$id" "$prompt" "$ownership" "$id"
+            migrated=1
+        else
+            printf '%s\n' "$line"
+        fi
+    done < "$conf_file"
+
+    if [[ $migrated -eq 1 ]]; then
+        _orch_init_log "migrated config format to v0.3+"
+    else
+        _orch_init_log "config already in current format"
+    fi
+
+    return 0
+}
+
+# ---------------------------------------------------------------------------
+# orch_init_interactive — guided setup wizard (non-TTY safe)
+#
+# When stdin is a TTY, prompts the user for choices.
+# When not a TTY, uses auto-detection defaults.
+#
+# Args: $1 — project directory
+# Returns: 0 on success
+# Sets: all _ORCH_INIT_* state, ready for generate_conf/generate_prompts
+# ---------------------------------------------------------------------------
+orch_init_interactive() {
+    local project_dir="${1:?orch_init_interactive requires a project directory}"
+    _ORCH_INIT_INTERACTIVE_MODE=1
+
+    # Step 1: Check for existing setup
+    if orch_init_detect_existing "$project_dir"; then
+        local ver
+        ver=$(orch_init_existing_version)
+        printf '\n  Existing OrchyStraw setup detected (v%s)\n' "$ver"
+        printf '  Options: [s]can and merge, [f]resh start, [m]igrate config\n'
+
+        if [[ -t 0 ]]; then
+            local choice
+            read -r -p '  Choice [s/f/m]: ' choice < /dev/tty
+            case "${choice:-s}" in
+                f|F) _orch_init_reset ;;
+                m|M)
+                    if [[ -f "${project_dir}/agents.conf" ]]; then
+                        printf '\n  Migrated config:\n'
+                        orch_init_migrate "${project_dir}/agents.conf"
+                        printf '\n'
+                    fi
+                    ;;
+            esac
+        fi
+    fi
+
+    # Step 2: Scan project
+    orch_init_scan "$project_dir"
+
+    # Step 3: Template selection (if TTY)
+    if [[ -t 0 ]]; then
+        printf '\n  Available templates:\n'
+        local templates
+        templates=$(orch_init_list_templates)
+        local idx=0
+        local -a tpl_names=()
+        while IFS='|' read -r name desc; do
+            idx=$((idx + 1))
+            printf '    %d) %s — %s\n' "$idx" "$name" "$desc"
+            tpl_names+=("$name")
+        done <<< "$templates"
+        printf '    0) Auto-detect (use scan results)\n'
+
+        local tpl_choice
+        read -r -p '  Template [0]: ' tpl_choice < /dev/tty
+        if [[ -n "$tpl_choice" && "$tpl_choice" != "0" ]] && [[ "$tpl_choice" =~ ^[0-9]+$ ]]; then
+            local sel_idx=$((tpl_choice - 1))
+            if [[ $sel_idx -ge 0 && $sel_idx -lt ${#tpl_names[@]} ]]; then
+                orch_init_apply_template "${tpl_names[$sel_idx]}"
+            fi
+        fi
+    fi
+
+    # Step 4: Report
+    orch_init_report
+    _ORCH_INIT_INTERACTIVE_MODE=0
+
+    return 0
 }
