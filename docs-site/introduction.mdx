@@ -1,0 +1,82 @@
+---
+title: "Introduction"
+description: "Get multiple AI agents working on the same codebase. Markdown prompts + bash script. No framework, no dependencies."
+---
+
+# OrchyStraw
+
+**Multi-agent AI coding orchestration.** Define agents in a config file, give each a markdown prompt, and let the orchestrator manage cycles, file ownership, and coordination.
+
+Works with Claude Code, Codex, Gemini, Aider, Windsurf, Cursor -- anything that takes a prompt.
+
+## What It Does
+
+OrchyStraw reads `agents.conf`, spawns AI agents with their prompt files, manages cycles, and coordinates work via shared context files.
+
+Each cycle:
+
+<Steps>
+  <Step title="Run agents">
+    The orchestrator runs each agent in sequence, respecting cycle intervals (every cycle, every 2nd cycle, etc.)
+  </Step>
+  <Step title="Enforce ownership">
+    Agents can only write to files they own. A backend agent cannot touch frontend files.
+  </Step>
+  <Step title="Commit separately">
+    Each agent's work is committed separately with clear attribution.
+  </Step>
+  <Step title="PM reviews">
+    The PM agent runs last, reviews all work, updates prompts for the next cycle.
+  </Step>
+  <Step title="Next cycle">
+    Prompts are backed up, progress is tracked, and the next cycle begins.
+  </Step>
+</Steps>
+
+## Key Features
+
+<CardGroup cols={2}>
+  <Card title="File Ownership" icon="lock">
+    Agents can only write to paths they own. Prevents cross-contamination.
+  </Card>
+  <Card title="Auto-Cycle" icon="rotate">
+    PM reviews and updates prompts. Next cycle starts automatically.
+  </Card>
+  <Card title="Smart Routing" icon="route">
+    Dynamic agent routing with model tiering and dependency-aware scheduling.
+  </Card>
+  <Card title="Git Integration" icon="code-branch">
+    Feature branches per cycle, commits per agent, auto-merge.
+  </Card>
+  <Card title="Worktree Isolation" icon="shield">
+    Each agent runs in its own git worktree. No conflicts.
+  </Card>
+  <Card title="Token Optimization" icon="gauge">
+    Prompt compression, conditional activation, differential context -- only send what each agent needs.
+  </Card>
+</CardGroup>
+
+## Architecture
+
+OrchyStraw is built as composable bash modules with zero external dependencies:
+
+- **8 foundation modules** (v0.1.0): logging, error handling, cycle state, timeouts, locking, config validation, signals, dry-run
+- **7 smart-cycle modules** (v0.2.0): dynamic routing, review phase, worktree isolation, prompt compression, conditional activation, differential context, session tracking
+- **5 extended modules** (v0.3.0): single-agent mode, QMD refresher, prompt templates, task decomposition, project initialization
+
+## Requirements
+
+- Bash 5.0+ (macOS: `brew install bash`)
+- Git
+- An AI CLI that accepts a prompt: `claude -p`, `codex`, `gemini`, `aider`, etc.
+
+## Next Steps
+
+<CardGroup cols={2}>
+  <Card title="Quickstart" icon="rocket" href="/quickstart">
+    Get running in 5 minutes.
+  </Card>
+  <Card title="How Agents Work" icon="users" href="/concepts/agents">
+    Understand agent configuration and lifecycle.
+  </Card>
+</CardGroup>

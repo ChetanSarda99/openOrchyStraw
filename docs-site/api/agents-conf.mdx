@@ -1,0 +1,137 @@
+---
+title: "agents.conf Reference"
+description: "Complete format reference for the OrchyStraw agent configuration file."
+---
+
+# agents.conf Format Reference
+
+The `agents.conf` file defines your agent team. It lives in the project root and is read by the orchestrator each cycle.
+
+## Basic Format (v1 -- 5 columns)
+
+```
+id | prompt_path | ownership | interval | label
+```
+
+```bash agents.conf
+# Comments start with #
+03-pm        | prompts/03-pm/03-pm.txt       | prompts/ docs/  | 0 | PM Coordinator
+06-backend   | prompts/06-backend/06-backend.txt | src/ scripts/ | 1 | Backend Developer
+09-qa        | prompts/09-qa/09-qa.txt           | tests/         | 3 | QA Engineer
+```
+
+### Column Reference
+
+| Column | Required | Description |
+|--------|----------|-------------|
+| **id** | Yes | Unique agent identifier. Convention: `NN-role` (e.g., `06-backend`). |
+| **prompt_path** | Yes | Relative path to the agent's markdown prompt file. |
+| **ownership** | Yes | Space-separated list of paths the agent can write to. |
+| **interval** | Yes | Cycle frequency: `0` = coordinator (runs last), `1` = every cycle, `N` = every Nth cycle. |
+| **label** | Yes | Human-readable name for logs and reports. |
+
+## Extended Format (v2 -- 8 columns)
+
+Adds priority, dependencies, and review assignments.
+
+```
+id | prompt_path | ownership | interval | label | priority | depends_on | reviews
+```
+
+```bash agents.conf
+06-backend   | prompts/06-backend/06-backend.txt | src/core/  | 1 | Backend | 10 | none         | none
+08-pixel     | prompts/08-pixel/08-pixel.txt     | src/pixel/ | 2 | Pixel   | 6  | none         | none
+09-qa        | prompts/09-qa/09-qa.txt           | tests/     | 3 | QA      | 5  | 06-backend   | 06-backend,08-pixel
+02-cto       | prompts/02-cto/02-cto.txt         | docs/      | 2 | CTO     | 7  | 06-backend   | 06-backend
+03-pm        | prompts/03-pm/03-pm.txt           | prompts/   | 0 | PM      | 0  | all          | none
+```
+
+### Additional Columns
+
+| Column | Default | Description |
+|--------|---------|-------------|
+| **priority** | `5` | Numeric priority (higher = runs earlier). Used by dynamic router. |
+| **depends_on** | `none` | Comma-separated agent IDs this agent depends on. `all` = depends on all others. `none` = no dependencies. |
+| **reviews** | `none` | Comma-separated agent IDs this agent reviews. Enables the review phase for those agents. |
+
+## Extended Format (v2+ -- 9 columns)
+
+Adds a model column for per-agent model selection.
+
+```
+id | prompt_path | ownership | interval | label | priority | depends_on | reviews | model
+```
+
+```bash agents.conf
+06-backend | prompts/06-backend/... | src/ | 1 | Backend | 10 | none | none | opus
+09-qa      | prompts/09-qa/...      | tests/ | 3 | QA    | 5  | 06-backend | 06-backend | sonnet
+03-pm      | prompts/03-pm/...      | prompts/ | 0 | PM  | 0  | all | none | haiku
+```
+
+### Model Column
+
+| Value | Description |
+|-------|-------------|
+| `opus` | Most capable model. For complex tasks. |
+| `sonnet` | Balanced model. Default for most agents. |
+| `haiku` | Fast, cheap model. For simple/repetitive tasks. |
+
+<Warning>
+The model column is advisory. The actual model used depends on your AI CLI configuration and available models.
+</Warning>
+
+## Cost-Optimized Format (v3 -- 7 columns)
+
+Adds max_tokens for per-agent token budgets.
+
+```
+id | prompt_path | ownership | interval | label | model | max_tokens
+```
+
+```bash agents.conf
+06-backend | prompts/06-backend/... | src/ | 1 | Backend | opus   | 200000
+09-qa      | prompts/09-qa/...      | tests/ | 3 | QA    | sonnet | 100000
+03-pm      | prompts/03-pm/...      | prompts/ | 0 | PM  | haiku  | 50000
+```
+
+<Note>
+`max_tokens` below 10000 triggers a warning (truncation risk). Non-numeric and zero values are rejected.
+</Note>
+
+## Rules
+
+<Warning>
+**agents.conf is a protected file.** Agents cannot modify it. Only humans edit this file.
+</Warning>
+
+- Lines starting with `#` are comments
+- Empty lines are ignored
+- Fields are separated by ` | ` (pipe with surrounding spaces)
+- All formats are backward-compatible (the validator auto-detects column count)
+- Agent IDs must be unique
+- Ownership paths are relative to the project root
+
+## Example: Minimal 3-Agent Setup
+
+```bash agents.conf
+# Minimal team: developer + QA + PM
+03-pm      | prompts/03-pm/03-pm.txt     | prompts/ docs/ | 0 | PM
+06-dev     | prompts/06-dev/06-dev.txt    | src/ scripts/  | 1 | Developer
+09-qa      | prompts/09-qa/09-qa.txt      | tests/         | 3 | QA
+```
+
+## Example: Full 10-Agent Team
+
+```bash agents.conf
+# Full team with priorities, dependencies, and reviews
+01-ceo     | prompts/01-ceo/01-ceo.txt     | docs/strategy/     | 3 | CEO       | 1  | none       | none
+02-cto     | prompts/02-cto/02-cto.txt     | docs/architecture/ | 2 | CTO       | 7  | 06-backend | 06-backend
+03-pm      | prompts/03-pm/03-pm.txt       | prompts/ docs/     | 0 | PM        | 0  | all        | none
+06-backend | prompts/06-backend/...        | src/core/ scripts/ | 1 | Backend   | 10 | none       | none
+07-ios     | prompts/07-ios/07-ios.txt     | ios/               | 1 | iOS       | 8  | none       | none
+08-pixel   | prompts/08-pixel/08-pixel.txt | src/pixel/         | 2 | Pixel     | 6  | none       | none
+09-qa      | prompts/09-qa/09-qa.txt       | tests/             | 3 | QA        | 5  | 06-backend | 06-backend,07-ios,08-pixel
+10-security| prompts/10-security/...       | reports/           | 5 | Security  | 3  | none       | none
+11-web     | prompts/11-web/11-web.txt     | site/              | 1 | Web       | 8  | none       | none
+13-hr      | prompts/13-hr/13-hr.txt       | docs/team/         | 3 | HR        | 2  | none       | none
+```

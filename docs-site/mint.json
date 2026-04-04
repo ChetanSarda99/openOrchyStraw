@@ -1,0 +1,55 @@
+{
+  "$schema": "https://mintlify.com/schema.json",
+  "name": "OrchyStraw",
+  "logo": {
+    "dark": "/logo/dark.svg",
+    "light": "/logo/light.svg"
+  },
+  "favicon": "/favicon.svg",
+  "colors": {
+    "primary": "#F97316",
+    "light": "#FB923C",
+    "dark": "#EA580C",
+    "background": {
+      "dark": "#0a0a0a"
+    }
+  },
+  "topbarLinks": [
+    {
+      "name": "GitHub",
+      "url": "https://github.com/ChetanSarda99/openOrchyStraw"
+    }
+  ],
+  "topbarCtaButton": {
+    "name": "Get Started",
+    "url": "/quickstart"
+  },
+  "navigation": [
+    {
+      "group": "Getting Started",
+      "pages": [
+        "introduction",
+        "quickstart"
+      ]
+    },
+    {
+      "group": "Concepts",
+      "pages": [
+        "concepts/agents",
+        "concepts/orchestrator",
+        "concepts/modules"
+      ]
+    },
+    {
+      "group": "Reference",
+      "pages": [
+        "api/agents-conf"
+      ]
+    }
+  ],
+  "footer": {
+    "socials": {
+      "github": "https://github.com/ChetanSarda99/openOrchyStraw"
+    }
+  }
+}
