@@ -1,14 +1,19 @@
 #!/bin/bash
 # ============================================
-# orchystraw Orchestrator v3
+# orchystraw Orchestrator v4
 # Configurable agents, PM self-update, per-agent intervals
 # ============================================
 #
 # Usage:
 #   ./scripts/auto-agent.sh orchestrate [max-cycles=10]
 #   ./scripts/auto-agent.sh orchestrate --dry-run
+#   ./scripts/auto-agent.sh orchestrate --cost-limit 5.00
+#   ./scripts/auto-agent.sh orchestrate --max-parallel 3
+#   ./scripts/auto-agent.sh orchestrate --watch
 #   ./scripts/auto-agent.sh run <agent-id>
+#   ./scripts/auto-agent.sh run --agent "Backend Developer"
 #   ./scripts/auto-agent.sh list
+#   ./scripts/auto-agent.sh status
 #
 # Monitor: /monitor prompts/01-pm/logs/orchestrator.log
 #
@@ -16,10 +21,11 @@
 #
 # Architecture:
 #   1. Read agents.conf for agent list + intervals
-#   2. Run eligible agents in parallel (based on cycle interval)
+#   2. Run eligible agents in parallel (based on cycle interval, max-parallel cap)
 #   3. Script commits work by file ownership (no git races)
 #   4. PM reviews, writes new prompts, updates itself
-#   5. Backup, validate, repeat
+#   5. Cycle summary: agents run, tokens, cost, files changed, tests
+#   6. Backup, validate, repeat
 
 set -uo pipefail
 
@@ -48,7 +54,7 @@ if [ -d "$PROJECT_ROOT/src/core" ]; then
     done
 fi
 
-if [[ -n "${2:-}" && "${2:-}" != "--"* ]]; then
+if [[ -n "${2:-}" && "${2:-}" =~ ^[0-9]+$ ]]; then
     MAX_CYCLES="$2"
 elif [[ -n "${ORCH_MAX_CYCLES:-}" ]]; then
     MAX_CYCLES="$ORCH_MAX_CYCLES"
@@ -73,6 +79,18 @@ else
 fi
 EMPTY_CYCLES=0
 MAX_EMPTY_CYCLES=3
+
+# ── v4 flags ────────────────────────────────────────────────────────────
+COST_LIMIT=""          # --cost-limit: stop when cumulative cost exceeds (dollars)
+MAX_PARALLEL=0         # --max-parallel: cap concurrent agents (0=unlimited)
+WATCH_MODE=false       # --watch: file-change triggered mode
+AGENT_BY_NAME=""       # --agent: resolve agent by label name
+CUMULATIVE_COST=0      # running total in microdollars
+CUMULATIVE_TOKENS=0    # running total tokens across all cycles
+CUMULATIVE_FILES=0     # running total files changed
+CUMULATIVE_AGENTS_RUN=0 # running total agents invoked
+CYCLE_TEST_PASS=0
+CYCLE_TEST_FAIL=0
 
 mkdir -p "$BACKUP_DIR" "$PM_LOG_DIR"
 
@@ -123,6 +141,264 @@ cleanup() {
     exit 1
 }
 trap cleanup INT TERM
+
+# ============================================
+# v4 HELPERS
+# ============================================
+
+# Resolve agent ID from label name (case-insensitive partial match)
+resolve_agent_by_name() {
+    local name="$1"
+    local name_lower
+    name_lower=$(echo "$name" | tr '[:upper:]' '[:lower:]')
+    for id in "${AGENT_IDS[@]}"; do
+        local label_lower
+        label_lower=$(echo "${AGENT_LABELS[$id]}" | tr '[:upper:]' '[:lower:]')
+        if [[ "$label_lower" == *"$name_lower"* ]]; then
+            echo "$id"
+            return 0
+        fi
+    done
+    return 1
+}
+
+# Estimate cost from agent log (tokens * rate)
+estimate_agent_cost() {
+    local log_file="$1"
+    local tokens=0
+    [[ ! -f "$log_file" ]] && echo "0 0" && return
+    local size
+    size=$(wc -c < "$log_file" 2>/dev/null | tr -d '[:space:]')
+    # Rough estimate: ~4 chars per token, input+output
+    tokens=$(( size / 4 ))
+    # Sonnet ~$3/MTok input + $15/MTok output, avg ~$9/MTok
+    # microdollars = tokens * 9 / 1000
+    local cost_micro=$(( tokens * 9 / 1000 ))
+    echo "$tokens $cost_micro"
+}
+
+# Check if cost limit exceeded
+check_cost_limit() {
+    if [[ -n "$COST_LIMIT" ]]; then
+        # Convert dollar limit to microdollars
+        local limit_micro
+        limit_micro=$(echo "$COST_LIMIT" | awk '{printf "%d", $1 * 1000000}')
+        if [[ "$CUMULATIVE_COST" -ge "$limit_micro" ]]; then
+            local cost_display
+            cost_display=$(awk "BEGIN{printf \"%.2f\", $CUMULATIVE_COST / 1000000}")
+            log "COST LIMIT REACHED: \$$cost_display >= \$$COST_LIMIT — stopping"
+            notify "Cost limit reached: \$$cost_display >= \$$COST_LIMIT" "warning"
+            return 1
+        fi
+    fi
+    return 0
+}
+
+# Print cycle summary
+print_cycle_summary() {
+    local cycle_num="$1" agents_run="$2" commits="$3"
+    local cost_display
+    cost_display=$(awk "BEGIN{printf \"%.4f\", $CUMULATIVE_COST / 1000000}")
+    local test_result="n/a"
+    if [[ "$CYCLE_TEST_PASS" -gt 0 || "$CYCLE_TEST_FAIL" -gt 0 ]]; then
+        test_result="${CYCLE_TEST_PASS} pass / ${CYCLE_TEST_FAIL} fail"
+    fi
+
+    echo ""
+    echo "┌──────────────────────────────────────────────────┐"
+    echo "│              CYCLE $cycle_num SUMMARY                     │"
+    echo "├──────────────────────────────────────────────────┤"
+    printf "│  Agents run:    %-33s│\n" "$agents_run"
+    printf "│  Commits:       %-33s│\n" "$commits"
+    printf "│  Est. tokens:   %-33s│\n" "$CUMULATIVE_TOKENS"
+    printf "│  Est. cost:     %-33s│\n" "\$$cost_display"
+    printf "│  Files changed: %-33s│\n" "$CUMULATIVE_FILES"
+    printf "│  Tests:         %-33s│\n" "$test_result"
+    echo "└──────────────────────────────────────────────────┘"
+    echo ""
+}
+
+# Run tests and capture pass/fail counts
+run_cycle_tests() {
+    CYCLE_TEST_PASS=0
+    CYCLE_TEST_FAIL=0
+    local test_runner="$PROJECT_ROOT/tests/core/run-tests.sh"
+    if [[ -x "$test_runner" ]]; then
+        local test_output
+        test_output=$(bash "$test_runner" 2>&1) || true
+        CYCLE_TEST_PASS=$(echo "$test_output" | grep -c "PASS" 2>/dev/null || echo 0)
+        CYCLE_TEST_FAIL=$(echo "$test_output" | grep -c "FAIL" 2>/dev/null || echo 0)
+        log "Tests: $CYCLE_TEST_PASS pass, $CYCLE_TEST_FAIL fail"
+    fi
+}
+
+# Watch mode: monitor files and trigger relevant agents
+run_watch_mode() {
+    log "WATCH MODE — monitoring for file changes (Ctrl+C to stop)"
+    notify "Watch mode started — monitoring file changes"
+
+    local last_hash=""
+    while true; do
+        local current_hash
+        current_hash=$(git -C "$PROJECT_ROOT" diff --stat 2>/dev/null | md5sum 2>/dev/null | cut -d' ' -f1)
+        current_hash="${current_hash}$(git -C "$PROJECT_ROOT" ls-files --others --exclude-standard 2>/dev/null | md5sum 2>/dev/null | cut -d' ' -f1)"
+
+        if [[ "$current_hash" != "$last_hash" && -n "$last_hash" ]]; then
+            local changed_files
+            changed_files=$(git -C "$PROJECT_ROOT" diff --name-only 2>/dev/null; git -C "$PROJECT_ROOT" ls-files --others --exclude-standard 2>/dev/null)
+            log "WATCH: Changes detected"
+
+            # Match changed files to agent ownership
+            for id in "${AGENT_IDS[@]}"; do
+                local interval="${AGENT_INTERVALS[$id]}"
+                [[ "$interval" -eq 0 ]] && continue
+                local ownership="${AGENT_OWNERSHIP[$id]}"
+                IFS=' ' read -ra own_paths <<< "$ownership"
+                local matched=false
+                for path in "${own_paths[@]}"; do
+                    [[ "$path" == !* ]] && continue
+                    if echo "$changed_files" | grep -q "^${path}"; then
+                        matched=true
+                        break
+                    fi
+                done
+                if [[ "$matched" == true ]]; then
+                    log "WATCH: Triggering $id (${AGENT_LABELS[$id]}) — owns changed files"
+                    run_agent "$id" &
+                    wait $! 2>/dev/null || true
+                    commit_by_ownership "$id" 2>/dev/null || true
+                fi
+            done
+        fi
+        last_hash="$current_hash"
+        sleep 5
+    done
+}
+
+# Show current cycle state without running anything
+show_status() {
+    parse_config
+    echo "╔══════════════════════════════════════════════════╗"
+    echo "║  orchystraw v4 — STATUS                         ║"
+    echo "╚══════════════════════════════════════════════════╝"
+    echo ""
+
+    # Current branch
+    local branch
+    branch=$(git -C "$PROJECT_ROOT" branch --show-current 2>/dev/null || echo "unknown")
+    echo "  Branch: $branch"
+    echo "  Config: $CONF_FILE"
+    echo ""
+
+    # Agent status
+    echo "  AGENTS (${#AGENT_IDS[@]} configured):"
+    echo "  ─────────────────────────────────────────"
+    local state_file="$PROJECT_ROOT/.orchystraw/router-state.txt"
+    declare -A LAST_OUTCOME=()
+    if [[ -f "$state_file" ]]; then
+        while IFS='|' read -r sid _p outcome _ei _es; do
+            [[ "$sid" =~ ^# ]] && continue
+            [[ -z "$sid" ]] && continue
+            LAST_OUTCOME["$sid"]="$outcome"
+        done < "$state_file"
+    fi
+
+    for id in "${AGENT_IDS[@]}"; do
+        local interval="${AGENT_INTERVALS[$id]}"
+        local label="${AGENT_LABELS[$id]}"
+        local status="${LAST_OUTCOME[$id]:-unknown}"
+        local indicator="?"
+        case "$status" in
+            success) indicator="+" ;;
+            fail)    indicator="!" ;;
+            skip)    indicator="-" ;;
+        esac
+        local log_dir="$(dirname "$PROJECT_ROOT/${AGENT_PROMPTS[$id]}")/logs"
+        local last_log
+        last_log=$(ls -t "$log_dir/${id}-"*.log 2>/dev/null | head -1)
+        local last_run="never"
+        if [[ -n "$last_log" ]]; then
+            last_run=$(date -r "$last_log" '+%Y-%m-%d %H:%M' 2>/dev/null || echo "unknown")
+        fi
+        printf "  [%s] %-14s %-22s int=%-2s last=%s\n" "$indicator" "$id" "$label" "$interval" "$last_run"
+    done
+    echo ""
+
+    # Audit totals
+    local audit_file="$PROJECT_ROOT/.orchystraw/audit.jsonl"
+    if [[ -f "$audit_file" ]]; then
+        local total_inv=0 total_tok=0 total_cost=0
+        while IFS= read -r line; do
+            [[ -z "$line" ]] && continue
+            local tok=0 cost="" prev=""
+            for field in $(echo "$line" | tr '{},:"' ' '); do
+                case "$prev" in
+                    tokens_est) tok="$field" ;;
+                    cost_estimate) cost="$field" ;;
+                esac
+                prev="$field"
+            done
+            total_inv=$((total_inv + 1))
+            total_tok=$((total_tok + tok))
+            if [[ -n "$cost" ]]; then
+                local cn="${cost//[^0-9]/}"
+                cn="${cn:-0}"
+                cn=$(( 10#$cn ))
+                total_cost=$((total_cost + cn))
+            fi
+        done < "$audit_file"
+        local cost_disp
+        cost_disp=$(printf '$0.%06d' "$total_cost")
+        echo "  TOTALS (all time):"
+        echo "  ─────────────────────────────────────────"
+        echo "    Invocations: $total_inv"
+        echo "    Tokens:      $total_tok"
+        echo "    Est. cost:   $cost_disp"
+    fi
+
+    # Recent cycle log
+    echo ""
+    echo "  RECENT LOG:"
+    echo "  ─────────────────────────────────────────"
+    tail -10 "$CYCLE_LOG" 2>/dev/null | sed 's/^/    /' || echo "    (no log yet)"
+    echo ""
+}
+
+# Improved error messages with suggestions
+agent_error_suggest() {
+    local agent_id="$1" exit_code="$2" log_file="$3"
+    local suggestions=""
+
+    if [[ "$exit_code" -eq 1 ]]; then
+        if grep -qiE "rate.limit|429|too many requests" "$log_file" 2>/dev/null; then
+            suggestions="Rate limited. Try: (1) increase agent interval in agents.conf, (2) use --cost-limit, (3) switch to a cheaper model via dynamic-router"
+        elif grep -qiE "prompt.*not found|no such file" "$log_file" 2>/dev/null; then
+            suggestions="Prompt file missing. Check: (1) agents.conf path for $agent_id, (2) run 'ls \$PROJECT_ROOT/${AGENT_PROMPTS[$agent_id]:-}'"
+        elif grep -qiE "permission denied" "$log_file" 2>/dev/null; then
+            suggestions="Permission denied. Try: (1) chmod +x on script files, (2) check file ownership"
+        elif grep -qiE "command not found|not recognized" "$log_file" 2>/dev/null; then
+            suggestions="Missing command. Try: (1) install claude CLI, (2) check PATH, (3) run 'which claude'"
+        elif grep -qiE "timeout|timed out" "$log_file" 2>/dev/null; then
+            suggestions="Agent timed out. Try: (1) increase timeout in agent-timeout.sh, (2) simplify the agent prompt, (3) split task into subtasks"
+        elif grep -qiE "context.*length|too long|token limit" "$log_file" 2>/dev/null; then
+            suggestions="Context too long. Try: (1) enable prompt-compression, (2) reduce shared context, (3) trim session tracker history"
+        else
+            suggestions="General failure. Check: (1) $log_file for details, (2) agent prompt for errors, (3) git status for conflicts"
+        fi
+    elif [[ "$exit_code" -eq 2 ]]; then
+        suggestions="Misuse of shell builtin. Check: (1) bash version (need 5.0+), (2) syntax errors in prompt"
+    elif [[ "$exit_code" -eq 126 ]]; then
+        suggestions="Command not executable. Try: chmod +x on the relevant script"
+    elif [[ "$exit_code" -eq 127 ]]; then
+        suggestions="Command not found. Install missing dependency or check PATH"
+    elif [[ "$exit_code" -eq 137 ]]; then
+        suggestions="Killed (OOM or SIGKILL). Try: (1) reduce parallel agents, (2) increase system memory, (3) use --max-parallel"
+    fi
+
+    if [[ -n "$suggestions" ]]; then
+        log "[$agent_id] SUGGESTION: $suggestions"
+    fi
+}
 
 # ============================================
 # CONFIG PARSER
@@ -289,11 +565,22 @@ run_agent() {
 
     if [ "$exit_code" -ne 0 ]; then
         log "[$agent_id] WARNING: Exit code $exit_code"
+        agent_error_suggest "$agent_id" "$exit_code" "$log_file"
     elif [ "$log_size" -lt 100 ]; then
         log "[$agent_id] WARNING: Tiny output ($log_size bytes)"
+        log "[$agent_id] SUGGESTION: Agent produced minimal output. Check: (1) prompt has enough content, (2) shared context is not empty, (3) claude CLI is working"
     else
         log "[$agent_id] Finished ($log_size bytes output)"
     fi
+
+    # v4: Track cumulative cost/tokens
+    local _est
+    _est=$(estimate_agent_cost "$log_file")
+    local _tok _cost_m
+    _tok=$(echo "$_est" | cut -d' ' -f1)
+    _cost_m=$(echo "$_est" | cut -d' ' -f2)
+    CUMULATIVE_TOKENS=$((CUMULATIVE_TOKENS + _tok))
+    CUMULATIVE_COST=$((CUMULATIVE_COST + _cost_m))
 }
 
 # ============================================
@@ -673,7 +960,27 @@ fi
 
 case "${1:-help}" in
     orchestrate)
+        # v4: Parse orchestrate-specific flags
+        shift  # remove 'orchestrate'
+        while [[ $# -gt 0 ]]; do
+            case "$1" in
+                --cost-limit)  COST_LIMIT="$2"; shift 2 ;;
+                --max-parallel) MAX_PARALLEL="$2"; shift 2 ;;
+                --watch)       WATCH_MODE=true; shift ;;
+                --dry-run)     shift ;;  # handled by dry-run module
+                [0-9]*)        MAX_CYCLES="$1"; shift ;;
+                *)             shift ;;  # skip unknown
+            esac
+        done
+
         parse_config
+
+        # v4: watch mode — monitor file changes instead of cycle loop
+        if [[ "$WATCH_MODE" == true ]]; then
+            run_watch_mode
+            exit 0
+        fi
+
         CYCLE=1
         declare -a AGENT_PIDS=()
 
@@ -827,6 +1134,8 @@ CTXEOF
             fi
 
             # ── Step 2: Run eligible agents in parallel (on feature branch) ──
+            # v4: max-parallel cap — use process pool pattern when limit set
+            _running_agents=0
             for id in "${AGENT_IDS[@]}"; do
                 interval="${AGENT_INTERVALS[$id]}"
                 # interval=0 means coordinator — skip in worker loop (runs via run_pm)
@@ -840,6 +1149,14 @@ CTXEOF
                             continue
                         fi
                     fi
+
+                    # v4: wait if max-parallel reached (process pool pattern)
+                    if [[ "$MAX_PARALLEL" -gt 0 && "$_running_agents" -ge "$MAX_PARALLEL" ]]; then
+                        log "Max parallel ($MAX_PARALLEL) reached — waiting for a slot..."
+                        wait -n 2>/dev/null || true
+                        _running_agents=$((_running_agents - 1))
+                    fi
+
                     # v0.2: worktree isolation — agent gets its own checkout
                     _use_worktree=false
                     if [[ "$(type -t orch_worktree_enabled)" == "function" ]] && orch_worktree_enabled 2>/dev/null; then
@@ -860,6 +1177,7 @@ CTXEOF
                     fi
                     AGENT_PIDS+=($!)
                     AGENTS_RUN=$((AGENTS_RUN + 1))
+                    _running_agents=$((_running_agents + 1))
                 else
                     log "[$id] Skipping (runs every $interval cycles)"
                 fi
@@ -1107,10 +1425,26 @@ PEOF
                 orch_router_save_state "$PROJECT_ROOT/.orchystraw/router-state.json" 2>/dev/null
             fi
 
-            # ── Step 6: Cycle metrics + complete ──
+            # ── Step 6: Run tests + cycle metrics + summary ──
+            run_cycle_tests
+
+            # Track cumulative files changed
+            local _cycle_files
+            _cycle_files=$(git -C "$PROJECT_ROOT" diff --name-only HEAD~"${COMMITS:-1}" 2>/dev/null | wc -l | tr -d ' ') || _cycle_files=0
+            CUMULATIVE_FILES=$((CUMULATIVE_FILES + _cycle_files))
+            CUMULATIVE_AGENTS_RUN=$((CUMULATIVE_AGENTS_RUN + AGENTS_RUN))
+
             [ -x "$SCRIPT_DIR/cycle-metrics.sh" ] && bash "$SCRIPT_DIR/cycle-metrics.sh" "$CYCLE" "$COMMITS" "$PROJECT_ROOT" 2>/dev/null
             log "CYCLE $CYCLE DONE — $COMMITS commits | ${ts_count} TS + ${swift_count} Swift files"
             notify "Cycle $CYCLE done — $COMMITS commits"
+
+            # v4: Print cycle summary
+            print_cycle_summary "$CYCLE" "$AGENTS_RUN" "$COMMITS"
+
+            # v4: Check cost limit
+            if ! check_cost_limit; then
+                break
+            fi
 
             if [ "$MAX_CYCLES" -gt 0 ] && [ "$CYCLE" -ge "$MAX_CYCLES" ]; then
                 log "Max cycles reached ($CYCLE/$MAX_CYCLES)"
@@ -1122,11 +1456,43 @@ PEOF
             # Brief pause for git to settle, then continue immediately
             sleep 5
         done
+
+        # Final summary across all cycles
+        echo ""
+        echo "╔══════════════════════════════════════════════════╗"
+        echo "║            ORCHESTRATION COMPLETE                ║"
+        echo "╠══════════════════════════════════════════════════╣"
+        local _final_cost
+        _final_cost=$(awk "BEGIN{printf \"%.4f\", $CUMULATIVE_COST / 1000000}")
+        printf "║  Total cycles:      %-29s║\n" "$((CYCLE))"
+        printf "║  Total agents run:  %-29s║\n" "$CUMULATIVE_AGENTS_RUN"
+        printf "║  Total tokens:      %-29s║\n" "$CUMULATIVE_TOKENS"
+        printf "║  Total est. cost:   %-29s║\n" "\$$_final_cost"
+        printf "║  Total files:       %-29s║\n" "$CUMULATIVE_FILES"
+        echo "╚══════════════════════════════════════════════════╝"
         ;;
 
     run)
         parse_config
-        AGENT="${2:?Usage: ./scripts/auto-agent.sh run <agent-id>}"
+        shift  # remove 'run'
+        # v4: support --agent "name" flag
+        if [[ "${1:-}" == "--agent" ]]; then
+            AGENT_BY_NAME="${2:?Usage: ./scripts/auto-agent.sh run --agent \"Agent Label\"}"
+            AGENT=$(resolve_agent_by_name "$AGENT_BY_NAME") || {
+                echo "ERROR: No agent matching '$AGENT_BY_NAME'"
+                echo ""
+                echo "Available agents:"
+                for id in "${AGENT_IDS[@]}"; do
+                    echo "  $id — ${AGENT_LABELS[$id]}"
+                done
+                echo ""
+                echo "SUGGESTION: Use a partial name match, e.g. --agent backend, --agent QA, --agent security"
+                exit 1
+            }
+            echo "Resolved '$AGENT_BY_NAME' → $AGENT (${AGENT_LABELS[$AGENT]})"
+        else
+            AGENT="${1:?Usage: ./scripts/auto-agent.sh run <agent-id> | run --agent \"name\"}"
+        fi
         run_agent "$AGENT"
         ;;
 
@@ -1143,13 +1509,22 @@ PEOF
         done
         ;;
 
+    status)
+        show_status
+        ;;
+
     *)
-        echo "orchystraw Orchestrator v3"
+        echo "orchystraw Orchestrator v4"
         echo ""
         echo "  orchestrate [max-cycles=10]                   PM-driven loop (no delay)"
         echo "  orchestrate --dry-run                         Preview what would run"
-        echo "  run <agent-id>                             Single agent once"
-        echo "  list                                       Show configured agents"
+        echo "  orchestrate --cost-limit 5.00                 Stop when est. cost exceeds \$5"
+        echo "  orchestrate --max-parallel 3                  Cap concurrent agents"
+        echo "  orchestrate --watch                           File-change triggered mode"
+        echo "  run <agent-id>                                Single agent once"
+        echo "  run --agent \"Backend Developer\"                Run agent by name"
+        echo "  list                                          Show configured agents"
+        echo "  status                                        Show cycle state (no run)"
         echo ""
         echo "Config:  scripts/agents.conf"
         echo "Logs:    prompts/<agent>/logs/"
