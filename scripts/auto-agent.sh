@@ -43,7 +43,7 @@ fi
 
 # ── Extended modules (v0.3) ─────────────────────────────────────────────
 if [ -d "$PROJECT_ROOT/src/core" ]; then
-    for mod in single-agent qmd-refresher prompt-template task-decomposer init-project; do
+    for mod in single-agent qmd-refresher prompt-template task-decomposer init-project freshness-detector; do
         [ -f "$PROJECT_ROOT/src/core/${mod}.sh" ] && source "$PROJECT_ROOT/src/core/${mod}.sh"
     done
 fi
@@ -800,6 +800,17 @@ CTXEOF
             if [[ "$(type -t orch_diffctx_init)" == "function" ]]; then
                 orch_diffctx_init "$CONF_FILE" 2>/dev/null
                 [ -f "$context_file" ] && orch_diffctx_parse "$context_file" 2>/dev/null
+            fi
+
+            # ── Step 1.8: Freshness check on prompts ──
+            if [[ "$(type -t orch_freshness_init)" == "function" ]]; then
+                orch_freshness_init 7 2>/dev/null
+                orch_freshness_scan "$PROJECT_ROOT/prompts" 2>/dev/null
+                local stale_count
+                stale_count=$(orch_freshness_stale_count 2>/dev/null)
+                if [[ "$stale_count" -gt 0 ]]; then
+                    log "[freshness] $stale_count stale references found in prompts/"
+                fi
             fi
 
             # ── Step 2: Run eligible agents in parallel (on feature branch) ──
