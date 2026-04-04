@@ -98,6 +98,21 @@ All 8 core modules built, tested, integrated. QA PASS. Security FULL PASS. CTO a
 - **Docs site:** Mintlify (same as Claude Code docs + Conductor docs)
 - **Shared:** shadcn/ui v4, Tailwind v4, Lucide React, JetBrains Mono, Inter/Geist, dark mode (#0a0a0a)
 
+## Quality Pipeline
+Every significant feature follows this research-first workflow:
+1. **Research** — Research online best practices BEFORE implementing. Don't use stale AI knowledge.
+2. **Design** — Plan approach based on research. Reference the Landing Page Design Guide for site/ work.
+3. **Implement** — Build it. No external dependencies for core (bash + markdown).
+4. **Test** — Run `tests/core/run_tests.sh`. Don't merge with failing tests.
+5. **QA** — 09-qa-code reviews code, 09-qa-visual reviews site.
+6. **Deploy** — Tag, push, deploy site to GitHub Pages.
+
+**References:**
+- `~/Projects/shared/docs/BEST-PRACTICES-2026.md` — Domain best practices (multi-agent AI, Node.js, open source marketing)
+- `~/Projects/shared/docs/LANDING-PAGE-DESIGN-GUIDE-2026.md` — UI/UX patterns for the landing page
+
+**Claude fallback:** If primary AI call fails, try alternate model. Never let a single API failure block the pipeline.
+
 ## Rules
 1. **Read your prompt first** — it has your current tasks
 2. **Read your reference doc** — locked stack decisions per surface
