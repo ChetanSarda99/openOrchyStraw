@@ -1,12 +1,17 @@
 #!/usr/bin/env bash
 # conditional-activation.sh — Skip agents with no actual work
-# v0.2.0: #48 — check owned-path changes, context mentions, PM force flags
+# v0.3.0: #48 — check owned-path changes, context mentions, PM force flags
+#         v0.3 adds: dependency graph activation, event-driven triggers,
+#         cooldown periods, activation history tracking
 #
 # Complements the dynamic router (interval-based scheduling) with work-based
 # activation. Even if an agent is interval-eligible, skip it if:
 #   - No files changed in its owned paths since last run
 #   - No mentions/requests for it in shared context
 #   - No PM force flag set
+#   - No dependency activated (v0.3)
+#   - No event trigger fired (v0.3)
+#   - Agent is in cooldown period (v0.3)
 #
 # This avoids wasting API tokens on agents that will produce empty cycles.
 #
@@ -17,6 +22,11 @@
 #   orch_activation_set_changed    — feed changed-files list for a cycle
 #   orch_activation_set_context    — feed shared context content for mention scan
 #   orch_activation_stats          — print activation summary for all agents
+#   orch_activation_add_trigger    — register an event-driven trigger (v0.3)
+#   orch_activation_fire_event     — fire a named event (v0.3)
+#   orch_activation_set_cooldown   — set cooldown period for agent (v0.3)
+#   orch_activation_set_deps       — set dependency agents (v0.3)
+#   orch_activation_dep_activated  — check if any dependency was activated (v0.3)
 
 [[ -n "${_ORCH_CONDITIONAL_ACTIVATION_LOADED:-}" ]] && return 0
 _ORCH_CONDITIONAL_ACTIVATION_LOADED=1
@@ -29,6 +39,22 @@ declare -g -a _ORCH_ACTIVATION_AGENTS=()       # ordered agent list
 declare -g _ORCH_ACTIVATION_CHANGED_FILES=""   # newline-separated changed files
 declare -g _ORCH_ACTIVATION_CONTEXT=""         # shared context content for mention scan
 declare -g _ORCH_ACTIVATION_LOADED=false
+
+# v0.3 Dependency graph state
+declare -g -A _ORCH_ACTIVATION_DEPS=()         # agent_id -> "dep1 dep2" (space-separated)
+
+# v0.3 Event-driven triggers: "event_name" -> "agent1 agent2" (space-separated)
+declare -g -A _ORCH_ACTIVATION_TRIGGERS=()
+# Fired events for this cycle
+declare -g -A _ORCH_ACTIVATION_FIRED_EVENTS=() # event_name -> 1
+
+# v0.3 Cooldown state
+declare -g -A _ORCH_ACTIVATION_COOLDOWN_UNTIL=()  # agent_id -> epoch timestamp when cooldown ends
+declare -g -A _ORCH_ACTIVATION_COOLDOWN_SECS=()   # agent_id -> cooldown duration in seconds
+
+# v0.3 Activation history
+declare -g -A _ORCH_ACTIVATION_HISTORY_COUNT=()    # agent_id -> total activation count
+declare -g -A _ORCH_ACTIVATION_LAST_ACTIVATED=()   # agent_id -> cycle number of last activation
 
 # ── Helpers ──
 
@@ -141,6 +167,10 @@ orch_activation_init() {
     _ORCH_ACTIVATION_OWNERSHIP=()
     _ORCH_ACTIVATION_REASON=()
     _ORCH_ACTIVATION_DECISION=()
+    _ORCH_ACTIVATION_DEPS=()
+    _ORCH_ACTIVATION_FIRED_EVENTS=()
+    _ORCH_ACTIVATION_HISTORY_COUNT=()
+    _ORCH_ACTIVATION_LAST_ACTIVATED=()
 
     while IFS= read -r raw_line; do
         [[ -z "${raw_line// /}" ]] && continue
@@ -148,11 +178,12 @@ orch_activation_init() {
         trimmed=$(_orch_activation_trim "$raw_line")
         [[ "$trimmed" == \#* ]] && continue
 
-        IFS='|' read -r f_id f_prompt f_ownership f_interval f_label _ <<< "$raw_line"
+        IFS='|' read -r f_id f_prompt f_ownership f_interval f_label f_priority f_deps _ <<< "$raw_line"
 
         f_id=$(_orch_activation_trim "$f_id")
         f_ownership=$(_orch_activation_trim "$f_ownership")
         f_interval=$(_orch_activation_trim "$f_interval")
+        f_deps=$(_orch_activation_trim "${f_deps:-}")
 
         [[ -z "$f_id" ]] && continue
 
@@ -161,6 +192,11 @@ orch_activation_init() {
 
         _ORCH_ACTIVATION_AGENTS+=("$f_id")
         _ORCH_ACTIVATION_OWNERSHIP["$f_id"]="$f_ownership"
+
+        # v0.3: parse dependencies
+        if [[ -n "$f_deps" && "$f_deps" != "none" ]]; then
+            _ORCH_ACTIVATION_DEPS["$f_id"]="${f_deps//,/ }"
+        fi
     done < "$conf_file"
 
     _ORCH_ACTIVATION_LOADED=true
@@ -194,11 +230,28 @@ orch_activation_check() {
         return 0  # Fail-open: run if not initialized
     }
 
+    # v0.3: Check cooldown first — if in cooldown, skip unless forced
+    if [[ "$force_flag" != "1" ]]; then
+        local cooldown_until="${_ORCH_ACTIVATION_COOLDOWN_UNTIL[$agent_id]:-0}"
+        if [[ "$cooldown_until" -gt 0 ]]; then
+            local now
+            now=$(date +%s)
+            if [[ "$now" -lt "$cooldown_until" ]]; then
+                local remaining=$(( cooldown_until - now ))
+                _ORCH_ACTIVATION_DECISION["$agent_id"]="skip"
+                _ORCH_ACTIVATION_REASON["$agent_id"]="In cooldown (${remaining}s remaining)"
+                _orch_activation_log INFO "$agent_id: SKIPPED (cooldown, ${remaining}s left)"
+                return 1
+            fi
+        fi
+    fi
+
     # PM force override — always run
     if [[ "$force_flag" == "1" ]]; then
         _ORCH_ACTIVATION_DECISION["$agent_id"]="run"
         _ORCH_ACTIVATION_REASON["$agent_id"]="PM force flag set"
         _orch_activation_log INFO "$agent_id: ACTIVATED (PM force)"
+        _orch_activation_record_activation "$agent_id"
         return 0
     fi
 
@@ -207,6 +260,7 @@ orch_activation_check() {
         _ORCH_ACTIVATION_DECISION["$agent_id"]="run"
         _ORCH_ACTIVATION_REASON["$agent_id"]="Changed files in owned paths"
         _orch_activation_log INFO "$agent_id: ACTIVATED (owned files changed)"
+        _orch_activation_record_activation "$agent_id"
         return 0
     fi
 
@@ -215,12 +269,31 @@ orch_activation_check() {
         _ORCH_ACTIVATION_DECISION["$agent_id"]="run"
         _ORCH_ACTIVATION_REASON["$agent_id"]="Mentioned in shared context"
         _orch_activation_log INFO "$agent_id: ACTIVATED (context mention)"
+        _orch_activation_record_activation "$agent_id"
+        return 0
+    fi
+
+    # v0.3 Check 3: dependency was activated this cycle
+    if _orch_activation_dep_activated_internal "$agent_id"; then
+        _ORCH_ACTIVATION_DECISION["$agent_id"]="run"
+        _ORCH_ACTIVATION_REASON["$agent_id"]="Dependency agent was activated"
+        _orch_activation_log INFO "$agent_id: ACTIVATED (dependency triggered)"
+        _orch_activation_record_activation "$agent_id"
+        return 0
+    fi
+
+    # v0.3 Check 4: event trigger fired
+    if _orch_activation_has_event_trigger "$agent_id"; then
+        _ORCH_ACTIVATION_DECISION["$agent_id"]="run"
+        _ORCH_ACTIVATION_REASON["$agent_id"]="Event trigger fired"
+        _orch_activation_log INFO "$agent_id: ACTIVATED (event trigger)"
+        _orch_activation_record_activation "$agent_id"
         return 0
     fi
 
     # No work detected — skip
     _ORCH_ACTIVATION_DECISION["$agent_id"]="skip"
-    _ORCH_ACTIVATION_REASON["$agent_id"]="No changes in owned paths, no context mentions"
+    _ORCH_ACTIVATION_REASON["$agent_id"]="No changes in owned paths, no context mentions, no triggers"
     _orch_activation_log INFO "$agent_id: SKIPPED (no work detected)"
     return 1
 }
@@ -256,4 +329,161 @@ orch_activation_stats() {
     done
 
     printf 'totals: %d run, %d skip\n' "$run_count" "$skip_count"
+}
+
+# ══════════════════════════════════════════════════
+# v0.3 Internal Helpers
+# ══════════════════════════════════════════════════
+
+# Record an activation for history tracking
+_orch_activation_record_activation() {
+    local agent_id="$1"
+    _ORCH_ACTIVATION_HISTORY_COUNT["$agent_id"]=$(( ${_ORCH_ACTIVATION_HISTORY_COUNT[$agent_id]:-0} + 1 ))
+}
+
+# Check if any dependency of this agent was activated this cycle
+_orch_activation_dep_activated_internal() {
+    local agent_id="$1"
+    local deps="${_ORCH_ACTIVATION_DEPS[$agent_id]:-}"
+
+    [[ -z "$deps" ]] && return 1
+
+    local dep
+    for dep in $deps; do
+        if [[ "${_ORCH_ACTIVATION_DECISION[$dep]:-}" == "run" ]]; then
+            return 0
+        fi
+    done
+
+    return 1
+}
+
+# Check if any event trigger for this agent has fired
+_orch_activation_has_event_trigger() {
+    local agent_id="$1"
+
+    for event in "${!_ORCH_ACTIVATION_TRIGGERS[@]}"; do
+        # Skip events that haven't fired
+        [[ -z "${_ORCH_ACTIVATION_FIRED_EVENTS[$event]+x}" ]] && continue
+
+        # Check if this agent is in the trigger's target list
+        local targets="${_ORCH_ACTIVATION_TRIGGERS[$event]}"
+        local target
+        for target in $targets; do
+            [[ "$target" == "$agent_id" ]] && return 0
+        done
+    done
+
+    return 1
+}
+
+# ══════════════════════════════════════════════════
+# v0.3 Public API: Event-Driven Triggers
+# ══════════════════════════════════════════════════
+
+# orch_activation_add_trigger <event_name> <agent_ids...>
+#   Register agents to activate when event_name fires.
+#   agent_ids: space-separated list of agent IDs.
+orch_activation_add_trigger() {
+    local event_name="${1:?orch_activation_add_trigger: event_name required}"
+    shift
+    local agents="$*"
+
+    [[ -z "$agents" ]] && {
+        _orch_activation_log WARN "No agents specified for trigger '$event_name'"
+        return 1
+    }
+
+    _ORCH_ACTIVATION_TRIGGERS["$event_name"]="$agents"
+    _orch_activation_log INFO "Trigger registered: $event_name -> $agents"
+    return 0
+}
+
+# orch_activation_fire_event <event_name>
+#   Fire a named event. All agents registered for this event will be activated
+#   when orch_activation_check is called.
+orch_activation_fire_event() {
+    local event_name="${1:?orch_activation_fire_event: event_name required}"
+    _ORCH_ACTIVATION_FIRED_EVENTS["$event_name"]=1
+    _orch_activation_log INFO "Event fired: $event_name"
+    return 0
+}
+
+# orch_activation_clear_events
+#   Clear all fired events (call at start of each cycle).
+orch_activation_clear_events() {
+    _ORCH_ACTIVATION_FIRED_EVENTS=()
+}
+
+# ══════════════════════════════════════════════════
+# v0.3 Public API: Cooldown Periods
+# ══════════════════════════════════════════════════
+
+# orch_activation_set_cooldown <agent_id> <seconds>
+#   Set a cooldown period. Agent won't activate for <seconds> after this call.
+#   Useful after errors or rate limits to prevent thrashing.
+orch_activation_set_cooldown() {
+    local agent_id="${1:?orch_activation_set_cooldown: agent_id required}"
+    local seconds="${2:?orch_activation_set_cooldown: seconds required}"
+
+    [[ ! "$seconds" =~ ^[0-9]+$ ]] && {
+        _orch_activation_log WARN "Invalid cooldown seconds: $seconds"
+        return 1
+    }
+
+    local now
+    now=$(date +%s)
+    _ORCH_ACTIVATION_COOLDOWN_UNTIL["$agent_id"]=$(( now + seconds ))
+    _ORCH_ACTIVATION_COOLDOWN_SECS["$agent_id"]="$seconds"
+    _orch_activation_log INFO "$agent_id: cooldown set for ${seconds}s (until $(( now + seconds )))"
+    return 0
+}
+
+# orch_activation_clear_cooldown <agent_id>
+#   Clear cooldown for an agent immediately.
+orch_activation_clear_cooldown() {
+    local agent_id="${1:?orch_activation_clear_cooldown: agent_id required}"
+    _ORCH_ACTIVATION_COOLDOWN_UNTIL["$agent_id"]=0
+    _ORCH_ACTIVATION_COOLDOWN_SECS["$agent_id"]=0
+}
+
+# orch_activation_in_cooldown <agent_id>
+#   Returns 0 if agent is currently in cooldown, 1 otherwise.
+orch_activation_in_cooldown() {
+    local agent_id="${1:?orch_activation_in_cooldown: agent_id required}"
+    local cooldown_until="${_ORCH_ACTIVATION_COOLDOWN_UNTIL[$agent_id]:-0}"
+
+    [[ "$cooldown_until" -eq 0 ]] && return 1
+
+    local now
+    now=$(date +%s)
+    [[ "$now" -lt "$cooldown_until" ]]
+}
+
+# ══════════════════════════════════════════════════
+# v0.3 Public API: Dependency Graph
+# ══════════════════════════════════════════════════
+
+# orch_activation_set_deps <agent_id> <dep_agents...>
+#   Set dependency agents. When any dep is activated, this agent also activates.
+orch_activation_set_deps() {
+    local agent_id="${1:?orch_activation_set_deps: agent_id required}"
+    shift
+    _ORCH_ACTIVATION_DEPS["$agent_id"]="$*"
+}
+
+# orch_activation_dep_activated <agent_id>
+#   Check if any dependency of agent_id was activated this cycle.
+#   Returns 0 if yes, 1 if no.
+orch_activation_dep_activated() {
+    local agent_id="${1:?orch_activation_dep_activated: agent_id required}"
+    _orch_activation_dep_activated_internal "$agent_id"
+}
+
+# orch_activation_history <agent_id>
+#   Print activation history for an agent.
+orch_activation_history() {
+    local agent_id="${1:?orch_activation_history: agent_id required}"
+    local count="${_ORCH_ACTIVATION_HISTORY_COUNT[$agent_id]:-0}"
+    printf '%s: %d activations\n' "$agent_id" "$count"
 }

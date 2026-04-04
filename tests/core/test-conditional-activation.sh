@@ -174,6 +174,96 @@ pass "T24: empty changed files -> skip"
 [[ "${_ORCH_ACTIVATION_DECISION[06-backend]}" == "skip" ]] || fail "T25: decision not stored"
 pass "T25: decision stored in state"
 
+# ══════════════════════════════════════
+# v0.3 Tests: Dependencies, Triggers, Cooldowns
+# ══════════════════════════════════════
+
+# Reset state for v0.3 tests
+orch_activation_init "$TEST_DIR/agents.conf"
+orch_activation_set_changed ""
+orch_activation_set_context ""
+
+# ── Test 26: Dependency activation ──
+orch_activation_set_deps "09-qa" "06-backend"
+# First activate backend (via file change)
+orch_activation_set_changed "src/core/router.sh"
+orch_activation_check "06-backend" || fail "T26a: backend should activate"
+# Now QA should activate because its dependency (backend) activated
+orch_activation_set_changed ""  # no QA files changed
+orch_activation_check "09-qa" || fail "T26b: qa should activate (dependency)"
+reason=$(orch_activation_reason "09-qa")
+[[ "$reason" == *"Dependency"* || "$reason" == *"dependency"* ]] || fail "T26c: reason should mention dependency, got '$reason'"
+pass "T26: dependency activation works"
+
+# ── Test 27: No dependency activation when dep not activated ──
+orch_activation_init "$TEST_DIR/agents.conf"
+orch_activation_set_changed ""
+orch_activation_set_context ""
+orch_activation_set_deps "09-qa" "06-backend"
+# Don't activate backend
+orch_activation_check "09-qa" && fail "T27: qa should skip when dep not activated"
+pass "T27: no false dependency activation"
+
+# ── Test 28: Event trigger ──
+orch_activation_init "$TEST_DIR/agents.conf"
+orch_activation_set_changed ""
+orch_activation_set_context ""
+orch_activation_add_trigger "deploy" "06-backend" "09-qa"
+orch_activation_fire_event "deploy"
+orch_activation_check "06-backend" || fail "T28a: backend should activate on deploy event"
+orch_activation_check "09-qa" || fail "T28b: qa should activate on deploy event"
+pass "T28: event trigger activates registered agents"
+
+# ── Test 29: Unfired event doesn't activate ──
+orch_activation_init "$TEST_DIR/agents.conf"
+orch_activation_set_changed ""
+orch_activation_set_context ""
+orch_activation_add_trigger "release" "06-backend"
+# Don't fire the event
+orch_activation_check "06-backend" && fail "T29: should skip when event not fired"
+pass "T29: unfired event doesn't activate"
+
+# ── Test 30: Clear events between cycles ──
+orch_activation_init "$TEST_DIR/agents.conf"
+orch_activation_set_changed ""
+orch_activation_set_context ""
+orch_activation_add_trigger "test-event" "06-backend"
+orch_activation_fire_event "test-event"
+orch_activation_clear_events
+orch_activation_check "06-backend" && fail "T30: cleared event should not activate"
+pass "T30: clear_events prevents activation"
+
+# ── Test 31: Cooldown blocks activation ──
+orch_activation_init "$TEST_DIR/agents.conf"
+orch_activation_set_changed "src/core/router.sh"
+orch_activation_set_context ""
+orch_activation_set_cooldown "06-backend" 3600  # 1 hour cooldown
+orch_activation_check "06-backend" && fail "T31: should skip during cooldown"
+reason_cd=$(orch_activation_reason "06-backend")
+[[ "$reason_cd" == *"cooldown"* || "$reason_cd" == *"Cooldown"* ]] || fail "T31b: reason should mention cooldown, got '$reason_cd'"
+pass "T31: cooldown blocks activation"
+
+# ── Test 32: Force overrides cooldown ──
+orch_activation_check "06-backend" "1" || fail "T32: PM force should override cooldown"
+pass "T32: PM force overrides cooldown"
+
+# ── Test 33: Clear cooldown ──
+orch_activation_clear_cooldown "06-backend"
+orch_activation_check "06-backend" || fail "T33: should activate after cooldown cleared"
+pass "T33: clear_cooldown allows activation"
+
+# ── Test 34: in_cooldown check ──
+orch_activation_set_cooldown "09-qa" 3600
+orch_activation_in_cooldown "09-qa" || fail "T34a: should be in cooldown"
+orch_activation_clear_cooldown "09-qa"
+orch_activation_in_cooldown "09-qa" && fail "T34b: should not be in cooldown after clear"
+pass "T34: in_cooldown correctly reports state"
+
+# ── Test 35: Activation history tracking ──
+count="${_ORCH_ACTIVATION_HISTORY_COUNT[06-backend]:-0}"
+[[ "$count" -gt 0 ]] || fail "T35: activation count should be > 0, got $count"
+pass "T35: activation history tracked ($count activations)"
+
 # ── Summary ──
 echo ""
 echo "═══════════════════════════════════════"
