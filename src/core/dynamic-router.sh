@@ -1,6 +1,8 @@
 #!/usr/bin/env bash
 # dynamic-router.sh — Dynamic agent routing with dependency-aware parallel groups
-# v0.2.0: #41 (dynamic routing), #43 (dependency-aware parallel), #46 (model tiering)
+# v0.3.0: #41 (dynamic routing), #43 (dependency-aware parallel), #46 (model tiering)
+#         v0.3 adds: cost-aware routing, latency tracking, quality scoring,
+#         automatic tier promotion/demotion based on agent performance history
 #
 # Parses agents.conf (v1 5-col, v2 8-col, or v2+ 9-col with model), builds a
 # dependency graph, resolves execution groups via topological sort, and decides
@@ -16,6 +18,12 @@
 #   orch_router_save_state     — persist router state to file
 #   orch_router_model          — get resolved model for an agent (#46)
 #   orch_router_dump           — debug: print parsed config
+#   orch_router_record_cost    — record token cost for a run
+#   orch_router_record_latency — record execution latency for a run
+#   orch_router_record_quality — record quality score for a run
+#   orch_router_cost_report    — print per-agent and total cost summary
+#   orch_router_auto_tier      — auto promote/demote model tier based on quality
+#   orch_router_agent_score    — get composite quality score for an agent
 
 [[ -n "${_ORCH_DYNAMIC_ROUTER_LOADED:-}" ]] && return 0
 _ORCH_DYNAMIC_ROUTER_LOADED=1
@@ -42,6 +50,34 @@ declare -g -A _ORCH_MODEL_FLAGS=(
     [haiku]="claude-haiku-4-5"
 )
 declare -g -a _ORCH_VALID_MODELS=(opus sonnet haiku)
+
+# v0.3 Cost-aware routing state
+declare -g -A _ORCH_ROUTER_COST_TOTAL=()      # agent_id -> cumulative token cost
+declare -g -A _ORCH_ROUTER_COST_LAST=()        # agent_id -> last run token cost
+declare -g -A _ORCH_ROUTER_RUN_COUNT=()        # agent_id -> number of completed runs
+
+# v0.3 Latency tracking state
+declare -g -A _ORCH_ROUTER_LATENCY_TOTAL=()    # agent_id -> cumulative latency (seconds)
+declare -g -A _ORCH_ROUTER_LATENCY_LAST=()     # agent_id -> last run latency (seconds)
+declare -g -A _ORCH_ROUTER_LATENCY_P95=()      # agent_id -> p95 latency estimate (EMA)
+
+# v0.3 Quality scoring state
+declare -g -A _ORCH_ROUTER_QUALITY_TOTAL=()    # agent_id -> cumulative quality score
+declare -g -A _ORCH_ROUTER_QUALITY_LAST=()     # agent_id -> last quality score (0-100)
+declare -g -A _ORCH_ROUTER_QUALITY_AVG=()      # agent_id -> rolling avg quality (0-100)
+
+# v0.3 Auto-tier thresholds
+declare -g _ORCH_TIER_PROMOTE_THRESHOLD="${ORCH_TIER_PROMOTE_THRESHOLD:-85}"
+declare -g _ORCH_TIER_DEMOTE_THRESHOLD="${ORCH_TIER_DEMOTE_THRESHOLD:-40}"
+declare -g _ORCH_TIER_MIN_RUNS="${ORCH_TIER_MIN_RUNS:-3}"
+declare -g -A _ORCH_ROUTER_TIER_LOCKED=()      # agent_id -> 1 if tier is locked (no auto-change)
+
+# v0.3 Cost per token by model (USD per 1M tokens, input estimate)
+declare -g -A _ORCH_MODEL_COST_PER_M=(
+    [opus]=15.00
+    [sonnet]=3.00
+    [haiku]=0.25
+)
 
 # ── Helpers ──
 
@@ -82,6 +118,16 @@ orch_router_init() {
     _ORCH_ROUTER_MODEL=()
     _ORCH_ROUTER_PM_FORCE=()
     _ORCH_ROUTER_GROUPS=()
+    _ORCH_ROUTER_COST_TOTAL=()
+    _ORCH_ROUTER_COST_LAST=()
+    _ORCH_ROUTER_RUN_COUNT=()
+    _ORCH_ROUTER_LATENCY_TOTAL=()
+    _ORCH_ROUTER_LATENCY_LAST=()
+    _ORCH_ROUTER_LATENCY_P95=()
+    _ORCH_ROUTER_QUALITY_TOTAL=()
+    _ORCH_ROUTER_QUALITY_LAST=()
+    _ORCH_ROUTER_QUALITY_AVG=()
+    _ORCH_ROUTER_TIER_LOCKED=()
 
     while IFS= read -r raw_line; do
         [[ -z "${raw_line// /}" ]] && continue
@@ -117,6 +163,16 @@ orch_router_init() {
         _ORCH_ROUTER_LAST_OUTCOME["$f_id"]="none"
         _ORCH_ROUTER_CONSEC_EMPTY["$f_id"]=0
         _ORCH_ROUTER_PM_FORCE["$f_id"]=0
+        _ORCH_ROUTER_COST_TOTAL["$f_id"]=0
+        _ORCH_ROUTER_COST_LAST["$f_id"]=0
+        _ORCH_ROUTER_RUN_COUNT["$f_id"]=0
+        _ORCH_ROUTER_LATENCY_TOTAL["$f_id"]=0
+        _ORCH_ROUTER_LATENCY_LAST["$f_id"]=0
+        _ORCH_ROUTER_LATENCY_P95["$f_id"]=0
+        _ORCH_ROUTER_QUALITY_TOTAL["$f_id"]=0
+        _ORCH_ROUTER_QUALITY_LAST["$f_id"]=0
+        _ORCH_ROUTER_QUALITY_AVG["$f_id"]=0
+        _ORCH_ROUTER_TIER_LOCKED["$f_id"]=0
     done < "$conf_file"
 
     _ORCH_ROUTER_LOADED=true
@@ -390,59 +446,7 @@ orch_router_update() {
     esac
 }
 
-# orch_router_save_state <state_file>
-#   Persist router state to a simple key=value file.
-orch_router_save_state() {
-    local state_file="${1:?orch_router_save_state: state_file required}"
-
-    if ! mkdir -p "$(dirname "$state_file")"; then
-        _orch_router_log ERROR "Failed to create state directory for: $state_file"
-        return 1
-    fi
-
-    {
-        printf '# dynamic-router state — %s\n' "$(date '+%Y-%m-%d %H:%M:%S')"
-        for id in "${_ORCH_ROUTER_AGENTS[@]}"; do
-            printf '%s|%s|%s|%s|%s\n' \
-                "$id" \
-                "${_ORCH_ROUTER_LAST_RUN[$id]:-0}" \
-                "${_ORCH_ROUTER_LAST_OUTCOME[$id]:-none}" \
-                "${_ORCH_ROUTER_EFF_INTERVAL[$id]:-${_ORCH_ROUTER_INTERVAL[$id]:-1}}" \
-                "${_ORCH_ROUTER_CONSEC_EMPTY[$id]:-0}"
-        done
-    } > "$state_file" || {
-        _orch_router_log ERROR "Failed to write state file: $state_file"
-        return 1
-    }
-}
-
-# orch_router_load_state <state_file>
-#   Restore router state from file. Call AFTER orch_router_init.
-orch_router_load_state() {
-    local state_file="${1:?orch_router_load_state: state_file required}"
-
-    [[ ! -f "$state_file" ]] && return 0  # no state yet — use defaults
-
-    while IFS= read -r line; do
-        [[ -z "$line" || "$line" == \#* ]] && continue
-
-        IFS='|' read -r id last_run last_outcome eff_interval consec_empty <<< "$line"
-        id=$(_orch_router_trim "$id")
-
-        # Only restore state for agents we know about
-        [[ -z "${_ORCH_ROUTER_INTERVAL[$id]+x}" ]] && continue
-
-        # DR-01: validate numeric fields before restoring
-        [[ ! "$last_run" =~ ^[0-9]+$ ]] && continue
-        [[ ! "$eff_interval" =~ ^[0-9]+$ ]] && continue
-        [[ ! "$consec_empty" =~ ^[0-9]+$ ]] && continue
-
-        _ORCH_ROUTER_LAST_RUN["$id"]="$last_run"
-        _ORCH_ROUTER_LAST_OUTCOME["$id"]="$last_outcome"
-        _ORCH_ROUTER_EFF_INTERVAL["$id"]="$eff_interval"
-        _ORCH_ROUTER_CONSEC_EMPTY["$id"]="$consec_empty"
-    done < "$state_file"
-}
+# (save_state and load_state moved to v0.3 section below with extended fields)
 
 # orch_router_model <agent_id>
 #   Get the resolved model for an agent. Respects overrides:
@@ -608,4 +612,284 @@ orch_router_dump() {
             "${_ORCH_ROUTER_MODEL[$id]:-$_ORCH_DEFAULT_MODEL}" \
             "${_ORCH_ROUTER_DEPENDS[$id]:-none}"
     done
+}
+
+# ══════════════════════════════════════════════════
+# v0.3 Cost-Aware Routing
+# ══════════════════════════════════════════════════
+
+# orch_router_record_cost <agent_id> <tokens>
+#   Record token cost for a completed run.
+orch_router_record_cost() {
+    local agent_id="${1:?orch_router_record_cost: agent_id required}"
+    local tokens="${2:?orch_router_record_cost: tokens required}"
+
+    [[ ! "$tokens" =~ ^[0-9]+$ ]] && {
+        _orch_router_log WARN "Invalid token count for $agent_id: $tokens"
+        return 1
+    }
+
+    _ORCH_ROUTER_COST_LAST["$agent_id"]="$tokens"
+    _ORCH_ROUTER_COST_TOTAL["$agent_id"]=$(( ${_ORCH_ROUTER_COST_TOTAL[$agent_id]:-0} + tokens ))
+    _ORCH_ROUTER_RUN_COUNT["$agent_id"]=$(( ${_ORCH_ROUTER_RUN_COUNT[$agent_id]:-0} + 1 ))
+    return 0
+}
+
+# orch_router_record_latency <agent_id> <seconds>
+#   Record execution latency for a completed run. Updates EMA-based p95 estimate.
+orch_router_record_latency() {
+    local agent_id="${1:?orch_router_record_latency: agent_id required}"
+    local seconds="${2:?orch_router_record_latency: seconds required}"
+
+    [[ ! "$seconds" =~ ^[0-9]+$ ]] && {
+        _orch_router_log WARN "Invalid latency for $agent_id: $seconds"
+        return 1
+    }
+
+    _ORCH_ROUTER_LATENCY_LAST["$agent_id"]="$seconds"
+    _ORCH_ROUTER_LATENCY_TOTAL["$agent_id"]=$(( ${_ORCH_ROUTER_LATENCY_TOTAL[$agent_id]:-0} + seconds ))
+
+    # EMA-based p95 estimate: track the max-leaning exponential moving average
+    # alpha=0.3 for responsiveness; bias toward higher values for p95 approximation
+    local prev_p95="${_ORCH_ROUTER_LATENCY_P95[$agent_id]:-0}"
+    if [[ "$prev_p95" -eq 0 ]]; then
+        _ORCH_ROUTER_LATENCY_P95["$agent_id"]="$seconds"
+    else
+        # Integer EMA: new = prev + alpha*(sample - prev), bias up for p95
+        local sample="$seconds"
+        [[ "$sample" -gt "$prev_p95" ]] && sample=$(( sample + (sample - prev_p95) / 2 ))
+        local new_p95=$(( prev_p95 + (sample - prev_p95) * 3 / 10 ))
+        [[ "$new_p95" -lt 1 ]] && new_p95=1
+        _ORCH_ROUTER_LATENCY_P95["$agent_id"]="$new_p95"
+    fi
+
+    return 0
+}
+
+# orch_router_record_quality <agent_id> <score>
+#   Record quality score (0-100) for a completed run. Updates rolling average.
+orch_router_record_quality() {
+    local agent_id="${1:?orch_router_record_quality: agent_id required}"
+    local score="${2:?orch_router_record_quality: score required}"
+
+    [[ ! "$score" =~ ^[0-9]+$ ]] && {
+        _orch_router_log WARN "Invalid quality score for $agent_id: $score"
+        return 1
+    }
+    [[ "$score" -gt 100 ]] && score=100
+
+    _ORCH_ROUTER_QUALITY_LAST["$agent_id"]="$score"
+    _ORCH_ROUTER_QUALITY_TOTAL["$agent_id"]=$(( ${_ORCH_ROUTER_QUALITY_TOTAL[$agent_id]:-0} + score ))
+
+    local run_count="${_ORCH_ROUTER_RUN_COUNT[$agent_id]:-1}"
+    [[ "$run_count" -lt 1 ]] && run_count=1
+    _ORCH_ROUTER_QUALITY_AVG["$agent_id"]=$(( ${_ORCH_ROUTER_QUALITY_TOTAL[$agent_id]} / run_count ))
+
+    return 0
+}
+
+# orch_router_agent_score <agent_id>
+#   Print composite quality score (0-100) for an agent. -1 if no data.
+orch_router_agent_score() {
+    local agent_id="${1:?orch_router_agent_score: agent_id required}"
+    local run_count="${_ORCH_ROUTER_RUN_COUNT[$agent_id]:-0}"
+
+    if [[ "$run_count" -eq 0 ]]; then
+        printf '%d\n' "-1"
+        return 0
+    fi
+
+    printf '%d\n' "${_ORCH_ROUTER_QUALITY_AVG[$agent_id]:-0}"
+}
+
+# orch_router_cost_report
+#   Print per-agent cost summary with model cost estimates.
+orch_router_cost_report() {
+    [[ "$_ORCH_ROUTER_LOADED" != "true" ]] && return 1
+
+    printf 'cost-aware routing report:\n'
+    printf '%-12s %-7s %-10s %-10s %-8s %-6s %-8s %s\n' \
+        "AGENT" "MODEL" "TOKENS" "LAST_TOK" "RUNS" "Q_AVG" "P95_LAT" "EST_COST"
+
+    local grand_total_cost=0
+
+    for id in "${_ORCH_ROUTER_AGENTS[@]}"; do
+        local model="${_ORCH_ROUTER_MODEL[$id]:-$_ORCH_DEFAULT_MODEL}"
+        local total_tokens="${_ORCH_ROUTER_COST_TOTAL[$id]:-0}"
+        local last_tokens="${_ORCH_ROUTER_COST_LAST[$id]:-0}"
+        local runs="${_ORCH_ROUTER_RUN_COUNT[$id]:-0}"
+        local q_avg="${_ORCH_ROUTER_QUALITY_AVG[$id]:-0}"
+        local p95="${_ORCH_ROUTER_LATENCY_P95[$id]:-0}"
+
+        # Estimate cost in USD (tokens / 1M * cost_per_M)
+        local cost_per_m="${_ORCH_MODEL_COST_PER_M[$model]:-3.00}"
+        # Integer math: cost_cents = tokens * cost_per_m_cents / 1000000
+        local cost_per_m_cents
+        cost_per_m_cents=$(printf '%.0f' "$(echo "$cost_per_m * 100" | bc 2>/dev/null || echo "300")")
+        local est_cost_cents=$(( total_tokens * cost_per_m_cents / 1000000 ))
+        grand_total_cost=$((grand_total_cost + est_cost_cents))
+
+        local est_display
+        if [[ "$est_cost_cents" -lt 100 ]]; then
+            est_display="\$0.${est_cost_cents}"
+        else
+            est_display="\$$(( est_cost_cents / 100 )).$(printf '%02d' $(( est_cost_cents % 100 )))"
+        fi
+
+        printf '%-12s %-7s %-10s %-10s %-8s %-6s %-8s %s\n' \
+            "$id" "$model" "$total_tokens" "$last_tokens" "$runs" "$q_avg" "${p95}s" "$est_display"
+    done
+
+    local grand_display
+    if [[ "$grand_total_cost" -lt 100 ]]; then
+        grand_display="\$0.${grand_total_cost}"
+    else
+        grand_display="\$$(( grand_total_cost / 100 )).$(printf '%02d' $(( grand_total_cost % 100 )))"
+    fi
+    printf 'total estimated cost: %s\n' "$grand_display"
+}
+
+# orch_router_lock_tier <agent_id>
+#   Lock an agent's model tier (prevent auto-promotion/demotion).
+orch_router_lock_tier() {
+    local agent_id="${1:?orch_router_lock_tier: agent_id required}"
+    _ORCH_ROUTER_TIER_LOCKED["$agent_id"]=1
+}
+
+# orch_router_unlock_tier <agent_id>
+#   Unlock an agent's model tier (allow auto-promotion/demotion).
+orch_router_unlock_tier() {
+    local agent_id="${1:?orch_router_unlock_tier: agent_id required}"
+    _ORCH_ROUTER_TIER_LOCKED["$agent_id"]=0
+}
+
+# orch_router_auto_tier <agent_id>
+#   Auto-promote or demote model tier based on quality score history.
+#   Returns 0 if tier changed, 1 if no change.
+#   Promotion: avg quality >= PROMOTE_THRESHOLD for MIN_RUNS → demote to cheaper model
+#   Demotion: avg quality <= DEMOTE_THRESHOLD for MIN_RUNS → promote to better model
+#   (High quality = agent does fine on cheaper model; low quality = needs better model)
+orch_router_auto_tier() {
+    local agent_id="${1:?orch_router_auto_tier: agent_id required}"
+
+    # Skip locked agents
+    [[ "${_ORCH_ROUTER_TIER_LOCKED[$agent_id]:-0}" == "1" ]] && return 1
+
+    local run_count="${_ORCH_ROUTER_RUN_COUNT[$agent_id]:-0}"
+    [[ "$run_count" -lt "$_ORCH_TIER_MIN_RUNS" ]] && return 1
+
+    local q_avg="${_ORCH_ROUTER_QUALITY_AVG[$agent_id]:-50}"
+    local current_model="${_ORCH_ROUTER_MODEL[$agent_id]:-$_ORCH_DEFAULT_MODEL}"
+
+    # High quality → save cost by using cheaper model
+    if [[ "$q_avg" -ge "$_ORCH_TIER_PROMOTE_THRESHOLD" ]]; then
+        local cheaper
+        cheaper=$(orch_router_model_fallback "$current_model" 2>/dev/null)
+        if [[ -n "$cheaper" ]]; then
+            _ORCH_ROUTER_MODEL["$agent_id"]="$cheaper"
+            _orch_router_log INFO "Auto-tier: $agent_id demoted $current_model → $cheaper (quality=$q_avg >= $_ORCH_TIER_PROMOTE_THRESHOLD)"
+            return 0
+        fi
+    fi
+
+    # Low quality → use more capable model
+    if [[ "$q_avg" -le "$_ORCH_TIER_DEMOTE_THRESHOLD" ]]; then
+        local better=""
+        case "$current_model" in
+            haiku|claude-haiku-4-5)   better="sonnet" ;;
+            sonnet|claude-sonnet-4-6) better="opus" ;;
+        esac
+        if [[ -n "$better" ]]; then
+            _ORCH_ROUTER_MODEL["$agent_id"]="$better"
+            _orch_router_log INFO "Auto-tier: $agent_id promoted $current_model → $better (quality=$q_avg <= $_ORCH_TIER_DEMOTE_THRESHOLD)"
+            return 0
+        fi
+    fi
+
+    return 1
+}
+
+# orch_router_save_state — updated to include v0.3 fields
+# Override the v0.2 version with extended format
+orch_router_save_state() {
+    local state_file="${1:?orch_router_save_state: state_file required}"
+
+    if ! mkdir -p "$(dirname "$state_file")"; then
+        _orch_router_log ERROR "Failed to create state directory for: $state_file"
+        return 1
+    fi
+
+    {
+        printf '# dynamic-router state v0.3 — %s\n' "$(date '+%Y-%m-%d %H:%M:%S')"
+        for id in "${_ORCH_ROUTER_AGENTS[@]}"; do
+            printf '%s|%s|%s|%s|%s|%s|%s|%s|%s|%s|%s|%s\n' \
+                "$id" \
+                "${_ORCH_ROUTER_LAST_RUN[$id]:-0}" \
+                "${_ORCH_ROUTER_LAST_OUTCOME[$id]:-none}" \
+                "${_ORCH_ROUTER_EFF_INTERVAL[$id]:-${_ORCH_ROUTER_INTERVAL[$id]:-1}}" \
+                "${_ORCH_ROUTER_CONSEC_EMPTY[$id]:-0}" \
+                "${_ORCH_ROUTER_COST_TOTAL[$id]:-0}" \
+                "${_ORCH_ROUTER_RUN_COUNT[$id]:-0}" \
+                "${_ORCH_ROUTER_LATENCY_TOTAL[$id]:-0}" \
+                "${_ORCH_ROUTER_LATENCY_P95[$id]:-0}" \
+                "${_ORCH_ROUTER_QUALITY_TOTAL[$id]:-0}" \
+                "${_ORCH_ROUTER_QUALITY_AVG[$id]:-0}" \
+                "${_ORCH_ROUTER_MODEL[$id]:-$_ORCH_DEFAULT_MODEL}"
+        done
+    } > "$state_file" || {
+        _orch_router_log ERROR "Failed to write state file: $state_file"
+        return 1
+    }
+}
+
+# orch_router_load_state — updated to handle v0.3 extended format
+# Backward compatible: extra fields are optional.
+orch_router_load_state() {
+    local state_file="${1:?orch_router_load_state: state_file required}"
+
+    [[ ! -f "$state_file" ]] && return 0
+
+    while IFS= read -r line; do
+        [[ -z "$line" || "$line" == \#* ]] && continue
+
+        IFS='|' read -r id last_run last_outcome eff_interval consec_empty \
+            cost_total run_count latency_total latency_p95 quality_total quality_avg saved_model <<< "$line"
+        id=$(_orch_router_trim "$id")
+
+        [[ -z "${_ORCH_ROUTER_INTERVAL[$id]+x}" ]] && continue
+
+        # DR-01: validate numeric fields before restoring
+        [[ ! "$last_run" =~ ^[0-9]+$ ]] && continue
+        [[ ! "$eff_interval" =~ ^[0-9]+$ ]] && continue
+        [[ ! "$consec_empty" =~ ^[0-9]+$ ]] && continue
+
+        _ORCH_ROUTER_LAST_RUN["$id"]="$last_run"
+        _ORCH_ROUTER_LAST_OUTCOME["$id"]="$last_outcome"
+        _ORCH_ROUTER_EFF_INTERVAL["$id"]="$eff_interval"
+        _ORCH_ROUTER_CONSEC_EMPTY["$id"]="$consec_empty"
+
+        # v0.3 fields (optional — backward compat with v0.2 state files)
+        if [[ -n "${cost_total:-}" && "$cost_total" =~ ^[0-9]+$ ]]; then
+            _ORCH_ROUTER_COST_TOTAL["$id"]="$cost_total"
+        fi
+        if [[ -n "${run_count:-}" && "$run_count" =~ ^[0-9]+$ ]]; then
+            _ORCH_ROUTER_RUN_COUNT["$id"]="$run_count"
+        fi
+        if [[ -n "${latency_total:-}" && "$latency_total" =~ ^[0-9]+$ ]]; then
+            _ORCH_ROUTER_LATENCY_TOTAL["$id"]="$latency_total"
+        fi
+        if [[ -n "${latency_p95:-}" && "$latency_p95" =~ ^[0-9]+$ ]]; then
+            _ORCH_ROUTER_LATENCY_P95["$id"]="$latency_p95"
+        fi
+        if [[ -n "${quality_total:-}" && "$quality_total" =~ ^[0-9]+$ ]]; then
+            _ORCH_ROUTER_QUALITY_TOTAL["$id"]="$quality_total"
+        fi
+        if [[ -n "${quality_avg:-}" && "$quality_avg" =~ ^[0-9]+$ ]]; then
+            _ORCH_ROUTER_QUALITY_AVG["$id"]="$quality_avg"
+        fi
+        if [[ -n "${saved_model:-}" ]]; then
+            saved_model=$(_orch_router_trim "$saved_model")
+            [[ -n "$saved_model" ]] && _ORCH_ROUTER_MODEL["$id"]="$saved_model"
+        fi
+    done < "$state_file"
 }
