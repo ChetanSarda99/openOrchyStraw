@@ -246,7 +246,9 @@ orch_mem_count() {
         local memfile="$_ORCH_MEM_DIR/${t}.mem"
         [[ ! -f "$memfile" ]] && continue
         local agent_count
-        agent_count=$(grep -c "|${agent}|" "$memfile" 2>/dev/null || echo 0)
+        agent_count=$(grep -c "|${agent}|" "$memfile" 2>/dev/null || true)
+        agent_count="${agent_count//[^0-9]/}"
+        agent_count="${agent_count:-0}"
         count=$((count + agent_count))
     done
 
@@ -294,6 +296,8 @@ orch_mem_gc() {
         tmpfile=$(mktemp)
         local before_count
         before_count=$(wc -l < "$memfile")
+        before_count="${before_count//[^0-9]/}"
+        before_count="${before_count:-0}"
 
         while IFS= read -r record; do
             [[ -z "$record" ]] && continue
@@ -305,7 +309,9 @@ orch_mem_gc() {
         done < "$memfile"
 
         local after_count
-        after_count=$(wc -l < "$tmpfile" 2>/dev/null || echo 0)
+        after_count=$(wc -l < "$tmpfile" 2>/dev/null || true)
+        after_count="${after_count//[^0-9]/}"
+        after_count="${after_count:-0}"
         pruned=$(( pruned + before_count - after_count ))
 
         mv "$tmpfile" "$memfile"
@@ -340,7 +346,7 @@ orch_mem_export() {
             iso=$(echo "$record" | cut -d'|' -f2)
             agent=$(echo "$record" | cut -d'|' -f3)
             content=$(echo "$record" | cut -d'|' -f5-)
-            printf '- [%s] **%s**: %s\n' "$iso" "$agent" "$content"
+            printf -- '- [%s] **%s**: %s\n' "$iso" "$agent" "$content"
         done < "$memfile"
 
         printf '\n'
