@@ -8,15 +8,16 @@ Multi-agent AI coding orchestration. Markdown prompts + bash script. No framewor
 
 ## Agent Team
 
-### Active Agents (9 — configured in agents.conf)
+### Active Agents (10 — configured in agents.conf)
 | ID | Role | Owns | Interval | Notes |
 |----|------|------|----------|-------|
 | 01-ceo | CEO | docs/strategy/ | 3 | Vision & market direction |
 | 02-cto | CTO | docs/architecture/ | 2 | Architecture & standards |
-| 03-pm | PM | prompts/ docs/ | 0 (last) | Coordination, runs LAST each cycle |
+| 03-pm | PM | prompts/ docs/ | 0 (last) | Coordination + issue creation from QA findings, runs LAST each cycle |
 | 06-backend | Backend | scripts/ src/core/ | 1 | Core orchestrator engine |
 | 08-pixel | Pixel Agents | src/pixel/ | 2 | Visual agent visualization layer |
-| 09-qa | QA | tests/ | 3 | Testing & quality gates |
+| 09-qa-code | QA Code Review | tests/ reports/ | 3 | Code quality, test coverage, security, functionality |
+| 09-qa-visual | QA Visual Audit | reports/visual/ | 3 | Playwright/Chrome DevTools visual audit — screenshots, layout, responsiveness, accessibility |
 | 10-security | Security | (read-only) | 5 | Security audits |
 | 11-web | Web Dev | site/ | 1 | Landing page + docs site |
 | 13-hr | HR | docs/team/ prompts/13-hr/ | 3 | Team health & composition |
@@ -88,6 +89,8 @@ All 8 core modules built, tested, integrated. QA PASS. Security FULL PASS. CTO a
 | Tauri Desktop App | `docs/references/TAURI-STACK.md` | 04-tauri-rust, 05-tauri-ui |
 | Landing Page | `docs/references/LANDING-PAGE-STACK.md` | 11-web |
 | Documentation Site | `docs/references/DOCS-STACK.md` | 11-web |
+| Design Guide | `~/Projects/shared/docs/LANDING-PAGE-DESIGN-GUIDE-2026.md` | 11-web, 09-qa-visual |
+| Best Practices | `~/Projects/shared/docs/BEST-PRACTICES-2026.md` | all agents |
 
 ### Summary
 - **Tauri app:** dannysmith/tauri-template → React 19 + shadcn/ui v4 + Zustand + TanStack Query + tauri-specta
