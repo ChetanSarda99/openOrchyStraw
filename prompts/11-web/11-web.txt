@@ -19,8 +19,7 @@ Multi-agent AI coding orchestration. Markdown prompts + bash script. No framewor
 - "Get multiple AI agents working on the same codebase"
 - "Multi-agent AI orchestration. No framework. No dependencies."
 
-**Repo:** https://github.com/ChetanSarda99/OrchyStraw
-**Public repo:** https://github.com/ChetanSarda99/openOrchyStraw
+**Repo:** https://github.com/ChetanSarda99/openOrchyStraw
 
 ---
 
@@ -194,64 +193,35 @@ After any integration: append to `docs/tech-registry/registry.md`.
 
 ---
 
-## What's DONE (Cycle 1–14)
+## What's DONE
 
-- ✅ Landing page MVP complete in `site/` — Next.js 16 + Tailwind v4 + Framer Motion + Lucide React
-- ✅ All 6 sections: Hero (terminal demo), Supported Tools, How It Works, Features Grid, FAQ, Footer
-- ✅ Dark mode first (#0a0a0a), accent orange (#f97316), Geist fonts
-- ✅ Static export configured, build verified
-- ✅ GitHub Pages deployment configured: `.github/workflows/deploy-site.yml`
-- ✅ `basePath: "/openOrchyStraw"` added to `next.config.ts`
-- ✅ Pages URL: https://chetansarda99.github.io/openOrchyStraw/
-- ✅ Deploy triggers on push to main touching `site/`
-- ✅ Fixed hero + footer CTA links: OrchyStraw (private) → openOrchyStraw (public repo)
-- ✅ Added SEO meta tags: keywords, authors, twitter card, metadataBase, openGraph
-- ✅ Build verified clean (Next.js 16.2, static export, basePath /openOrchyStraw/)
-- ✅ Animated terminal demo in hero — lines reveal sequentially via Framer Motion (cycle 14)
-- ✅ Fixed agents.conf format in 4 docs pages — correct format: `id | prompt_path | ownership | interval | label` (cycle 14)
-- ✅ Responsive polish (cycle 15) — all 6 sections mobile-optimized: responsive padding/text/grid, smooth scrolling, font smoothing
+### Landing Page (site/) -- COMPLETE
+- Landing page in `site/` -- Next.js 16 + Tailwind v4 + Framer Motion + Lucide React
+- 10 sections: Navbar, Hero (terminal demo), Supported Tools, Demo, How It Works, Features, Comparison, Testimonials, FAQ, CTA, Footer
+- Dark mode first (#0a0a0a), accent orange (#f97316), Geist fonts
+- Sticky navbar with mobile hamburger menu, smooth-scroll anchor links
+- Interactive demo section with copyable code blocks
+- Comparison table: OrchyStraw vs AutoGen vs CrewAI vs Ralph
+- Testimonials placeholder (early adopter quotes)
+- CTA section with gradient border
+- Static export configured, GitHub Pages deployment
+- Hero badge updated to v0.2.0
+
+### Docs Site (docs-site/) -- Mintlify -- 8 PAGES
+- introduction.mdx, quickstart.mdx
+- concepts/agents.mdx, concepts/orchestrator.mdx, concepts/modules.mdx, concepts/best-practices.mdx, concepts/examples.mdx
+- api/agents-conf.mdx, api/cli.mdx
+- mint.json navigation updated
 
 ## Current Tasks
 
-### Deploy CONFIRMED LIVE ✅
-GitHub Pages live at https://chetansarda99.github.io/openOrchyStraw/ (2 successful runs).
-
-### Phase 2 — Docs Site (Mintlify) — IN PROGRESS
-Mintlify docs scaffolded in `site/docs/` (cycle 13):
-- ✅ 12 MDX pages: introduction, quickstart, configuration, writing-prompts, shared-context, auto-cycle, pixel-agents, faq, contributing, changelog, examples/basic, examples/full-team
-- ✅ `mint.json` config with nav, theme, colors
-- ✅ All Mintlify0 components preserved (Steps, Cards, Tabs, Accordions)
-- ✅ Landing page build verified clean (no regressions)
-- ✅ Fixed agents.conf format in docs (cycle 14) — removed nonexistent `cli_command` field and `PM` interval
-  - Updated: configuration.mdx, quickstart.mdx, examples/basic.mdx, examples/full-team.mdx
-  - Correct format: `id | prompt_path | ownership | interval | label`
-
-**Next:**
-1. **CS needs to connect Mintlify to GitHub** for auto-deploy from `site/docs/`
-2. Polish MDX content — ensure all code examples are current with v0.1.0
-3. Add search integration via Mintlify built-in
-4. Add logo/branding when assets are ready
-
-### Phase 3 — Polish (IN PROGRESS)
-- ✅ Terminal animation in hero — animated lines reveal sequentially via Framer Motion (cycle 14)
-- ✅ Responsive polish — all 6 sections mobile-optimized (cycle 15): responsive padding, text sizes, grid gaps, smooth scrolling, font smoothing
-- ✅ Cleaned up 5 unused starter SVGs from site/public/ (cycle 16): next.svg, vercel.svg, globe.svg, window.svg, file.svg
-- Build verified clean (Next.js 16.2, static export, 1.2MB output)
-- **ALL REMAINING WORK BLOCKED ON CS:** Mintlify GitHub connection
-- v0.2.0 ALL GATES PASS — CTO 8/8, QA 8/8, Security 6/6 APPROVED. Only CS integration remains.
-- Backend shipped task-decomposer.sh (#50) + init-project.sh (#45) — cycle 1. 23/23 tests pass. CTO review queue at 7 items.
-- Cycle 4 (2026-03-31): No web blockers removed. CTO review queue still at 7 items. v0.2.0 integration still pending CS.
-- Cycle 1s5 (2026-03-31): No changes. Still blocked on CS Mintlify connection.
-- Cycle 2 (2026-03-31): Another quiet cycle — 0 agent commits. Still blocked on CS Mintlify connection.
-- Cycle 3 (2026-03-31): 3rd quiet cycle today. Still blocked on CS Mintlify connection.
-- Cycle 4 (2026-03-31): 4th quiet cycle. PM recommends HARD PAUSE on orchestrator. Still blocked on CS Mintlify connection.
-- Cycle 5 (2026-03-31): 5th quiet cycle. PM HARD PAUSE CONFIRMED. 26+ idle cycles. FINAL update. Still blocked on CS Mintlify connection.
-- STANDBY until unblocked
-
-**When unblocked:**
-1. Pixel Agents demo embed — waiting for Phase 2 completion
-2. Analytics (Plausible or similar, privacy-respecting)
-3. Performance audit — Lighthouse score, bundle size optimization
+### Phase 4 -- Polish & Expand
+1. Add logo/branding assets when ready
+2. Pixel Agents demo embed on landing page
+3. Analytics (Plausible or similar, privacy-respecting)
+4. Performance audit -- Lighthouse score, bundle size optimization
+5. Add more docs pages: troubleshooting, contributing guide, changelog
+6. Polish MDX content -- ensure code examples match v0.2.0
 
 ---
 

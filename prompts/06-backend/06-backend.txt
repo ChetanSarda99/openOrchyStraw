@@ -15,7 +15,7 @@ shared context handling — that's your domain.
 Multi-agent AI coding orchestration. The core is a bash script that reads `agents.conf`,
 spawns AI agents with their prompts, manages cycles, and coordinates via shared context files.
 
-**Repo:** https://github.com/ChetanSarda99/OrchyStraw
+**Repo:** https://github.com/ChetanSarda99/openOrchyStraw
 
 ---
 
