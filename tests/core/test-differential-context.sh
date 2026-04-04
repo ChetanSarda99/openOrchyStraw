@@ -354,6 +354,97 @@ mappings_out=$(orch_diffctx_list_mappings)
 [[ "$mappings_out" == *"*"* ]] || fail "T42: mappings should show universal (*)"
 pass "T42: list_mappings output correct"
 
+# ══════════════════════════════════════
+# v0.3 Tests: Relevance Scoring, Budget Filter, Sliding Window
+# ══════════════════════════════════════
+
+# ── Test 43: Relevance scoring ──
+orch_diffctx_init "$TEST_DIR/agents-v2.conf"
+orch_diffctx_parse "$TEST_DIR/context.md"
+# Call directly (not in subshell) so state persists
+orch_diffctx_score_sections "06-backend" > /dev/null
+# At least one section should have a score > 0
+has_positive=false
+for ((t43i = 0; t43i < _ORCH_DIFFCTX_SEC_COUNT; t43i++)); do
+    s="${_ORCH_DIFFCTX_RELEVANCE[06-backend:$t43i]:-0}"
+    [[ "$s" -gt 0 ]] && has_positive=true
+done
+[[ "$has_positive" == true ]] || fail "T43: backend should have at least one positive score"
+pass "T43: relevance scoring works"
+
+# ── Test 44: PM gets max scores ──
+orch_diffctx_score_sections "03-pm" > /dev/null
+pm_score="${_ORCH_DIFFCTX_RELEVANCE[03-pm:0]:-0}"
+[[ "$pm_score" -eq 100 ]] || fail "T44: PM should have score 100, got $pm_score"
+pass "T44: PM gets max relevance scores"
+
+# ── Test 45: Find an excluded section and verify low score ──
+found_low=false
+for ((t45i = 0; t45i < _ORCH_DIFFCTX_SEC_COUNT; t45i++)); do
+    k="${_ORCH_DIFFCTX_SEC_KEYS[$t45i]}"
+    m="${_ORCH_DIFFCTX_MAPPINGS[$k]:-}"
+    if [[ -n "$m" && "$m" != "*" ]] && ! echo "$m" | grep -q "06-backend"; then
+        s="${_ORCH_DIFFCTX_RELEVANCE[06-backend:$t45i]:-0}"
+        [[ "$s" -le 30 ]] && found_low=true && break
+    fi
+done
+[[ "$found_low" == true ]] || fail "T45: backend should have low score for excluded sections"
+pass "T45: excluded sections have low relevance"
+
+# ── Test 46: Budget filter produces output ──
+budget_out=$(orch_diffctx_budget_filter "06-backend" 500)
+[[ -n "$budget_out" ]] || fail "T46: budget filter should produce output"
+pass "T46: budget filter produces output"
+
+# ── Test 47: Budget filter fits within limit ──
+budget_chars=${#budget_out}
+budget_tokens=$(( (budget_chars + 3) / 4 ))
+[[ "$budget_tokens" -le 550 ]] || fail "T47: budget filter should fit within ~500 tokens (got $budget_tokens)"
+pass "T47: budget filter respects token limit ($budget_tokens tokens)"
+
+# ── Test 48: Zero budget falls back to regular filter ──
+zero_out=$(orch_diffctx_budget_filter "06-backend" 0)
+regular_out=$(orch_diffctx_filter "06-backend")
+[[ "$zero_out" == "$regular_out" ]] || fail "T48: zero budget should equal regular filter"
+pass "T48: zero budget falls back to regular filter"
+
+# ── Test 49: Sliding window with recent history ──
+history_text="## Cycle 10
+### 06-Backend (this cycle)
+Completed router upgrade.
+
+### 09-QA (this cycle)
+All tests pass.
+
+## Cycle 8
+### 06-Backend (this cycle)
+Started router work.
+
+### 11-Web (this cycle)
+Updated landing page.
+
+## Cycle 3
+### 06-Backend (this cycle)
+Old backend work.
+
+### 11-Web (this cycle)
+Old web work.
+"
+window_out=$(orch_diffctx_sliding_window "06-backend" "$history_text" 10)
+# Recent cycle should be included
+[[ "$window_out" == *"Completed router upgrade"* ]] || fail "T49a: recent cycle should be in window"
+pass "T49: sliding window preserves recent history"
+
+# ── Test 50: PM gets all history in sliding window ──
+pm_window=$(orch_diffctx_sliding_window "03-pm" "$history_text" 10)
+[[ "$pm_window" == *"Old web work"* ]] || fail "T50: PM should see all history"
+pass "T50: PM gets full history in sliding window"
+
+# ── Test 51: Empty history handled ──
+empty_window=$(orch_diffctx_sliding_window "06-backend" "" 10)
+[[ -z "$empty_window" ]] || fail "T51: empty history should produce empty output"
+pass "T51: empty history handled in sliding window"
+
 # ── Summary ──
 echo ""
 echo "================================"

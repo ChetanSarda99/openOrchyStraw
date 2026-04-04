@@ -1,6 +1,8 @@
 #!/usr/bin/env bash
 # differential-context.sh — Per-agent relevant context filtering
-# v0.2.5: #49 — filter shared context to only sections each agent needs
+# v0.3.0: #49 — filter shared context to only sections each agent needs
+#         v0.3 adds: relevance scoring, context budget allocation,
+#         sliding window with importance weighting, section aging
 #
 # Shared context (context.md) contains sections for all surfaces:
 # Backend Status, iOS Status, Design Status, QA Findings, Blockers, Notes.
@@ -21,6 +23,9 @@
 #   orch_diffctx_filter         — return filtered context for a given agent
 #   orch_diffctx_filter_history — filter cross-cycle history for agent relevance
 #   orch_diffctx_stats          — print per-agent token savings estimate
+#   orch_diffctx_score_sections — relevance scoring per section per agent (v0.3)
+#   orch_diffctx_budget_filter  — filter to fit within token budget (v0.3)
+#   orch_diffctx_sliding_window — sliding window history with importance weighting (v0.3)
 
 [[ -n "${_ORCH_DIFFCTX_LOADED:-}" ]] && return 0
 _ORCH_DIFFCTX_LOADED=1
@@ -33,6 +38,23 @@ declare -g -A _ORCH_DIFFCTX_SEC_HEADERS=() # "N" -> raw header text
 declare -g _ORCH_DIFFCTX_SEC_COUNT=0
 declare -g -A _ORCH_DIFFCTX_DEPS=()        # agent_id -> "dep1 dep2 ..." (dependency agents)
 declare -g _ORCH_DIFFCTX_INITIALIZED=false
+
+# v0.3 Relevance scoring state
+declare -g -A _ORCH_DIFFCTX_RELEVANCE=()    # "agent:N" -> relevance score (0-100)
+
+# v0.3 Context budget (tokens)
+declare -g _ORCH_DIFFCTX_BUDGET="${ORCH_DIFFCTX_BUDGET:-0}"  # 0 = unlimited
+
+# v0.3 Sliding window config
+declare -g _ORCH_DIFFCTX_WINDOW_SIZE="${ORCH_DIFFCTX_WINDOW_SIZE:-5}"     # keep last N cycles
+declare -g _ORCH_DIFFCTX_RECENCY_WEIGHT="${ORCH_DIFFCTX_RECENCY_WEIGHT:-20}"  # bonus per cycle of recency
+
+# v0.3 Importance weights for scoring
+declare -g -A _ORCH_DIFFCTX_IMPORTANCE=(
+    [universal]=80
+    [role-mapped]=60
+    [unmapped]=40
+)
 
 # ── Helpers ──
 
@@ -461,4 +483,229 @@ orch_diffctx_list_mappings() {
     for key in $(printf '%s\n' "${!_ORCH_DIFFCTX_MAPPINGS[@]}" | sort); do
         printf '  %-35s → %s\n' "$key" "${_ORCH_DIFFCTX_MAPPINGS[$key]}"
     done
+}
+
+# ══════════════════════════════════════════════════
+# v0.3 Relevance Scoring
+# ══════════════════════════════════════════════════
+
+# orch_diffctx_score_sections <agent_id>
+#   Compute relevance score (0-100) for each section relative to an agent.
+#   Scoring factors: mapping match, keyword overlap, section position (recency).
+#   Stores results in _ORCH_DIFFCTX_RELEVANCE and prints breakdown.
+orch_diffctx_score_sections() {
+    local agent_id="${1:?orch_diffctx_score_sections: agent_id required}"
+
+    [[ "$_ORCH_DIFFCTX_INITIALIZED" != "true" ]] && return 1
+    [[ "$_ORCH_DIFFCTX_SEC_COUNT" -eq 0 ]] && return 1
+
+    local agent_label
+    agent_label=$(_orch_diffctx_agent_label "$agent_id")
+
+    printf 'relevance scores for %s:\n' "$agent_id"
+    printf '%-4s %-30s %-12s %s\n' "IDX" "SECTION" "MAPPING" "SCORE"
+
+    local i
+    for ((i = 0; i < _ORCH_DIFFCTX_SEC_COUNT; i++)); do
+        local key="${_ORCH_DIFFCTX_SEC_KEYS[$i]}"
+        local header="${_ORCH_DIFFCTX_SEC_HEADERS[$i]}"
+        local content="${_ORCH_DIFFCTX_SECTIONS[$i]}"
+        local mapping="${_ORCH_DIFFCTX_MAPPINGS[$key]:-}"
+        local score=0
+        local mapping_type="unmapped"
+
+        # PM gets everything at max score
+        if [[ "$agent_label" == "pm" ]]; then
+            score=100
+            mapping_type="pm-all"
+        elif [[ -z "$mapping" ]]; then
+            # Unmapped: base score 40 (fail-open)
+            score="${_ORCH_DIFFCTX_IMPORTANCE[unmapped]}"
+            mapping_type="unmapped"
+        elif [[ "$mapping" == "*" ]]; then
+            # Universal: high relevance
+            score="${_ORCH_DIFFCTX_IMPORTANCE[universal]}"
+            mapping_type="universal"
+        elif _orch_diffctx_in_list "$agent_id" "$mapping"; then
+            # Directly mapped: high relevance
+            score="${_ORCH_DIFFCTX_IMPORTANCE[role-mapped]}"
+            mapping_type="role-mapped"
+        else
+            # Not in mapping: low relevance
+            score=10
+            mapping_type="excluded"
+        fi
+
+        # Bonus: content mentions the agent
+        local content_lower="${content,,}"
+        if [[ "$content_lower" == *"${agent_id,,}"* || "$content_lower" == *"${agent_label,,}"* ]]; then
+            score=$(( score + 15 ))
+        fi
+
+        # Cap at 100
+        [[ "$score" -gt 100 ]] && score=100
+
+        _ORCH_DIFFCTX_RELEVANCE["$agent_id:$i"]="$score"
+
+        printf '%-4d %-30s %-12s %d\n' "$i" "${header:0:30}" "$mapping_type" "$score"
+    done
+}
+
+# orch_diffctx_budget_filter <agent_id> [budget_tokens]
+#   Filter context sections for an agent, fitting within a token budget.
+#   Sections are sorted by relevance score (highest first).
+#   Outputs sections until budget is exhausted.
+orch_diffctx_budget_filter() {
+    local agent_id="${1:?orch_diffctx_budget_filter: agent_id required}"
+    local budget="${2:-$_ORCH_DIFFCTX_BUDGET}"
+
+    [[ "$_ORCH_DIFFCTX_SEC_COUNT" -eq 0 ]] && return 1
+
+    # Ensure scores are computed
+    local has_scores=true
+    if [[ -z "${_ORCH_DIFFCTX_RELEVANCE[$agent_id:0]+x}" ]]; then
+        orch_diffctx_score_sections "$agent_id" >/dev/null
+    fi
+
+    # If no budget, use regular filter
+    if [[ "$budget" -le 0 ]]; then
+        orch_diffctx_filter "$agent_id"
+        return $?
+    fi
+
+    # Build sorted index by score (descending)
+    local -a sorted_indices=()
+    sorted_indices=($(for ((i = 0; i < _ORCH_DIFFCTX_SEC_COUNT; i++)); do
+        printf '%s %d\n' "${_ORCH_DIFFCTX_RELEVANCE[$agent_id:$i]:-0}" "$i"
+    done | sort -rn -k1 | awk '{print $2}'))
+
+    local budget_remaining="$budget"
+    local included=0
+    local excluded=0
+
+    for idx in "${sorted_indices[@]}"; do
+        local content="${_ORCH_DIFFCTX_SECTIONS[$idx]}"
+        local char_count=${#content}
+        local tokens=$(( (char_count + 3) / 4 ))
+        local score="${_ORCH_DIFFCTX_RELEVANCE[$agent_id:$idx]:-0}"
+
+        # Skip sections with score <= 10 (not relevant)
+        [[ "$score" -le 10 ]] && { excluded=$((excluded + 1)); continue; }
+
+        if [[ "$tokens" -le "$budget_remaining" ]]; then
+            printf '%s' "$content"
+            budget_remaining=$((budget_remaining - tokens))
+            included=$((included + 1))
+        else
+            excluded=$((excluded + 1))
+        fi
+    done
+
+    _orch_diffctx_log INFO "$agent_id: budget filter included $included, excluded $excluded sections (${budget_remaining} tokens remaining)"
+}
+
+# ══════════════════════════════════════════════════
+# v0.3 Sliding Window with Importance Weighting
+# ══════════════════════════════════════════════════
+
+# orch_diffctx_sliding_window <agent_id> <history_content> [current_cycle]
+#   Apply a sliding window to cross-cycle history, keeping only the most recent
+#   and most important entries. Combines recency weighting with relevance.
+#   - Recent cycles get full detail
+#   - Older cycles get only high-importance entries (blockers, errors, mentions)
+#   - Cycles beyond window_size are dropped entirely
+orch_diffctx_sliding_window() {
+    local agent_id="${1:?orch_diffctx_sliding_window: agent_id required}"
+    local history_content="${2:-}"
+    local current_cycle="${3:-0}"
+
+    [[ -z "$history_content" ]] && return 0
+
+    local window_size="$_ORCH_DIFFCTX_WINDOW_SIZE"
+    local agent_label
+    agent_label=$(_orch_diffctx_agent_label "$agent_id")
+
+    # PM gets everything
+    if [[ "$agent_label" == "pm" ]]; then
+        printf '%s' "$history_content"
+        return 0
+    fi
+
+    local output=""
+    local current_block=""
+    local current_cycle_num=0
+    local in_cycle_header=false
+    local block_importance=0
+
+    while IFS= read -r line; do
+        # Detect cycle headers: "## Cycle N" or "## cycle-N"
+        if [[ "$line" =~ ^##[[:space:]]+[Cc]ycle.*([0-9]+) ]]; then
+            # Flush previous block
+            if [[ -n "$current_block" && "$block_importance" -gt 0 ]]; then
+                output+="$current_block"
+            fi
+
+            current_cycle_num="${BASH_REMATCH[1]}"
+            current_block="$line"$'\n'
+            in_cycle_header=true
+
+            # Compute age-based importance
+            local age=0
+            if [[ "$current_cycle" -gt 0 && "$current_cycle_num" -gt 0 ]]; then
+                age=$(( current_cycle - current_cycle_num ))
+            fi
+
+            if [[ "$age" -gt "$window_size" ]]; then
+                block_importance=0  # Too old, drop
+            elif [[ "$age" -le 2 ]]; then
+                block_importance=100  # Very recent, keep all
+            else
+                block_importance=$(( 100 - (age * _ORCH_DIFFCTX_RECENCY_WEIGHT) ))
+                [[ "$block_importance" -lt 0 ]] && block_importance=0
+            fi
+
+        elif [[ "$line" =~ ^##[[:space:]]+(.*) ]]; then
+            # Other ## headers
+            if [[ -n "$current_block" && "$block_importance" -gt 0 ]]; then
+                output+="$current_block"
+            fi
+            current_block="$line"$'\n'
+            block_importance=50  # Default importance for non-cycle headers
+
+        elif [[ "$line" =~ ^###[[:space:]]+(.*) ]]; then
+            # Agent entry header — check relevance
+            if [[ -n "$current_block" && "$block_importance" -gt 0 ]]; then
+                output+="$current_block"
+            fi
+            current_block="$line"$'\n'
+            local entry_header="${BASH_REMATCH[1],,}"
+
+            # Boost importance if it mentions our agent or is PM
+            if [[ "$entry_header" == *"${agent_id,,}"* || "$entry_header" == *"$agent_label"* || "$entry_header" == *"pm"* ]]; then
+                block_importance=$(( block_importance + 30 ))
+            fi
+            # Boost for blocker/error mentions
+            if [[ "$entry_header" == *"blocker"* || "$entry_header" == *"error"* ]]; then
+                block_importance=$(( block_importance + 20 ))
+            fi
+        else
+            current_block+="$line"$'\n'
+
+            # Boost importance for high-signal content
+            local line_lower="${line,,}"
+            if [[ "$line_lower" == *"blocker"* || "$line_lower" == *"blocking"* || "$line_lower" == *"error"* || "$line_lower" == *"failed"* ]]; then
+                block_importance=$(( block_importance + 10 ))
+            fi
+            if [[ "$line_lower" == *"${agent_id,,}"* || "$line_lower" == *"$agent_label"* ]]; then
+                block_importance=$(( block_importance + 10 ))
+            fi
+        fi
+    done <<< "$history_content"
+
+    # Flush last block
+    if [[ -n "$current_block" && "$block_importance" -gt 0 ]]; then
+        output+="$current_block"
+    fi
+
+    printf '%s' "$output"
 }
