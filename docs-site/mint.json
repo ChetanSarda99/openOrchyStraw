@@ -37,13 +37,16 @@
       "pages": [
         "concepts/agents",
         "concepts/orchestrator",
-        "concepts/modules"
+        "concepts/modules",
+        "concepts/best-practices",
+        "concepts/examples"
       ]
     },
     {
       "group": "Reference",
       "pages": [
-        "api/agents-conf"
+        "api/agents-conf",
+        "api/cli"
       ]
     }
   ],

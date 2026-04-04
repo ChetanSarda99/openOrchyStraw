@@ -1,0 +1,138 @@
+---
+title: "Best Practices"
+description: "Patterns and anti-patterns for multi-agent orchestration with OrchyStraw."
+---
+
+# Best Practices
+
+Lessons learned from running multi-agent orchestration on real codebases.
+
+## Agent Design
+
+### Keep prompts focused
+
+Each agent should have a clear, narrow role. A "fullstack developer" agent that owns everything defeats the purpose of multi-agent orchestration.
+
+```
+# Good: focused ownership
+06-backend | ... | src/core/ scripts/ | 1 | Backend Dev
+11-web     | ... | site/              | 1 | Web Dev
+
+# Bad: overlapping ownership
+06-fullstack | ... | src/ site/ scripts/ tests/ | 1 | Fullstack Dev
+```
+
+### Use the PM pattern
+
+Always have a coordinator agent (interval=0) that runs last. This agent reviews all changes, updates prompts, and maintains shared context. Without it, agents drift.
+
+### Start small, scale up
+
+Begin with 2-3 agents. Add more only when you see clear role separation:
+
+1. **Minimal**: Developer + PM
+2. **Standard**: Backend + Frontend + QA + PM
+3. **Full**: CEO + CTO + Backend + Frontend + QA + Security + PM
+
+## Prompt Writing
+
+### Structure prompts consistently
+
+Every agent prompt should follow this structure:
+
+```markdown
+# Role Name
+
+You are the [role] for [project].
+
+## Context
+[Read shared context, relevant docs]
+
+## Current Tasks
+1. [Highest priority task]
+2. [Next task]
+
+## File Ownership
+You own: [paths]
+You never touch: [paths]
+
+## Rules
+- [Agent-specific constraints]
+```
+
+### Keep tasks actionable
+
+Bad: "Improve the codebase"
+Good: "Add input validation to the /api/users endpoint. Return 400 for missing email field."
+
+### Reference shared context
+
+Every agent prompt should instruct the agent to read shared context first and write status when done:
+
+```markdown
+## Before starting
+1. Read prompts/00-shared-context/context.md
+2. Check if any blockers affect your work
+
+## When done
+Append your status to shared context:
+- What you changed
+- Any blockers for other agents
+```
+
+## Orchestration
+
+### Use dry-run before real cycles
+
+Always preview before running agents:
+
+```bash
+bash scripts/auto-agent.sh orchestrate 3 --dry-run
+```
+
+### Set appropriate intervals
+
+Not every agent needs to run every cycle:
+
+| Role | Recommended interval |
+|------|---------------------|
+| Core developers | 1 (every cycle) |
+| Architects, CTO | 2 (every other) |
+| QA, CEO, HR | 3 (every 3rd) |
+| Security auditor | 5 (every 5th) |
+| PM coordinator | 0 (every cycle, last) |
+
+### Monitor empty cycles
+
+If agents produce no changes for multiple cycles, something is wrong:
+- Prompts may be too vague
+- Tasks may already be complete
+- File ownership may be blocking needed changes
+
+The cycle tracker module detects this automatically.
+
+## Anti-Patterns
+
+<Warning>
+These patterns lead to problems. Avoid them.
+</Warning>
+
+### Overlapping ownership
+
+Two agents writing to the same files causes merge conflicts. If you need shared files, use a coordinator agent to manage them.
+
+### Prompts that reference other agents' files
+
+An agent should not read files it does not own unless they are explicitly shared (like shared context). This creates hidden dependencies.
+
+### Skipping the PM cycle
+
+Without a coordinator reviewing and updating prompts, agents repeat the same work or drift from the project goals.
+
+### Too many agents too soon
+
+Each agent costs tokens. Start with the minimum viable team and add agents when the workload justifies it.
+
+### Giant prompts
+
+Large prompts waste tokens and confuse the model. Use prompt compression (v0.2.0) to split prompts into stable/dynamic tiers, and only resend stable sections when they change.

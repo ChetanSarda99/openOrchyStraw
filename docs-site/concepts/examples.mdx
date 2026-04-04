@@ -1,0 +1,117 @@
+---
+title: "Examples"
+description: "Real-world agent configurations for different project types."
+---
+
+# Example Configurations
+
+Ready-to-use agent setups for common project types.
+
+## SaaS Application
+
+A typical SaaS monorepo with frontend, backend, and infrastructure.
+
+```bash agents.conf
+# SaaS team: 5 agents
+03-pm      | prompts/03-pm/03-pm.txt           | prompts/ docs/ | 0 | PM
+06-backend | prompts/06-backend/06-backend.txt | src/api/       | 1 | Backend Dev
+11-web     | prompts/11-web/11-web.txt         | src/app/       | 1 | Frontend Dev
+09-qa      | prompts/09-qa/09-qa.txt           | tests/         | 2 | QA Engineer
+10-infra   | prompts/10-infra/10-infra.txt     | infra/         | 3 | DevOps
+```
+
+**Why this works:**
+- Backend and frontend run every cycle with separate file ownership
+- QA runs every other cycle to test accumulated changes
+- DevOps runs every 3rd cycle for infrastructure updates
+- PM coordinates every cycle
+
+## API-Only Service
+
+A focused backend service with no frontend.
+
+```bash agents.conf
+# API team: 3 agents
+03-pm      | prompts/03-pm/03-pm.txt           | prompts/ docs/ | 0 | PM
+06-backend | prompts/06-backend/06-backend.txt | src/ scripts/  | 1 | API Developer
+09-qa      | prompts/09-qa/09-qa.txt           | tests/         | 2 | QA Engineer
+```
+
+## Content / Documentation Site
+
+A docs-heavy project where content quality matters.
+
+```bash agents.conf
+# Content team: 4 agents
+03-pm      | prompts/03-pm/03-pm.txt       | prompts/       | 0 | PM
+11-web     | prompts/11-web/11-web.txt     | src/ public/   | 1 | Web Developer
+14-content | prompts/14-content/14-content.txt | content/ docs/ | 1 | Content Writer
+09-qa      | prompts/09-qa/09-qa.txt       | tests/         | 3 | QA / Editor
+```
+
+## Large Monorepo (10+ Agents)
+
+A complex project with specialized roles, dependencies, and reviews.
+
+```bash agents.conf
+# Full team with priorities and dependencies (v2 format)
+01-ceo     | prompts/01-ceo/01-ceo.txt     | docs/strategy/     | 3 | CEO       | 1  | none       | none
+02-cto     | prompts/02-cto/02-cto.txt     | docs/architecture/ | 2 | CTO       | 7  | 06-backend | 06-backend
+03-pm      | prompts/03-pm/03-pm.txt       | prompts/ docs/     | 0 | PM        | 0  | all        | none
+06-backend | prompts/06-backend/06-backend.txt | src/core/      | 1 | Backend   | 10 | none       | none
+07-mobile  | prompts/07-mobile/07-mobile.txt   | mobile/        | 1 | Mobile    | 8  | none       | none
+08-data    | prompts/08-data/08-data.txt       | src/data/      | 2 | Data Eng  | 6  | none       | none
+09-qa      | prompts/09-qa/09-qa.txt           | tests/         | 3 | QA        | 5  | 06-backend | 06-backend,07-mobile
+10-security| prompts/10-security/10-security.txt| reports/      | 5 | Security  | 3  | none       | none
+11-web     | prompts/11-web/11-web.txt         | site/          | 1 | Web       | 8  | none       | none
+13-hr      | prompts/13-hr/13-hr.txt           | docs/team/     | 3 | HR        | 2  | none       | none
+```
+
+**Dependency graph:**
+- CTO depends on Backend (reviews architecture after implementation)
+- QA depends on Backend (tests after code is written)
+- QA reviews Backend and Mobile changes
+- PM depends on all (runs last, coordinates everything)
+
+## Solo Developer with AI Team
+
+Even solo developers benefit from multi-agent orchestration.
+
+```bash agents.conf
+# Solo augmented: developer does the work, AI assists
+03-pm   | prompts/03-pm/03-pm.txt   | prompts/      | 0 | PM
+06-dev  | prompts/06-dev/06-dev.txt | src/ scripts/ | 1 | Developer
+09-qa   | prompts/09-qa/09-qa.txt   | tests/        | 2 | QA
+```
+
+<Tip>
+Start with the simplest configuration that fits your project. You can always add agents later. Each additional agent costs tokens per cycle.
+</Tip>
+
+## Prompt Template
+
+A starter prompt that works for any agent role:
+
+```markdown prompts/06-dev/06-dev.txt
+# Developer
+
+You are the lead developer for [project name].
+
+## Before Starting
+1. Read prompts/00-shared-context/context.md
+2. Check for blockers or feedback from other agents
+
+## Current Sprint
+- [ ] Task 1: [specific, actionable description]
+- [ ] Task 2: [specific, actionable description]
+
+## File Ownership
+You own: src/ scripts/
+You never touch: site/ prompts/ (except shared context)
+
+## When Done
+Append to prompts/00-shared-context/context.md:
+- What you changed and why
+- Any blockers for other agents
+- Questions for the PM
+```
