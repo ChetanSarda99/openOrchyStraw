@@ -25,7 +25,7 @@ export function Hero() {
         {/* Badge */}
         <div className="mb-6 inline-flex items-center gap-2 rounded-full border border-card-border bg-card px-3 py-1 text-xs text-muted sm:mb-8 sm:px-4 sm:py-1.5 sm:text-sm">
           <Terminal className="h-3.5 w-3.5" />
-          <span className="font-mono">v0.1.0</span>
+          <span className="font-mono">v0.2.0</span>
           <span className="text-card-border">|</span>
           <span>Open Source</span>
         </div>
