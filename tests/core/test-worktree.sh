@@ -298,6 +298,117 @@ assert_true "T37c: seq-a.txt in repo" test -f "$TEST_REPO/seq-a.txt"
 assert_true "T37d: seq-b.txt in repo" test -f "$TEST_REPO/seq-b.txt"
 
 # ══════════════════════════════════════
+# v0.3 Tests: Conflict Detection, Merge Strategies, Cleanup Policies
+# ══════════════════════════════════════
+
+# T38-T39: Conflict detection
+wt_ca=$(orch_worktree_path "detect-a" "50")
+wt_cb=$(orch_worktree_path "detect-b" "50")
+orch_worktree_create "detect-a" "50" >/dev/null
+orch_worktree_create "detect-b" "50" >/dev/null
+
+echo "conflict-file" > "$wt_ca/shared.txt"
+git -C "$wt_ca" add shared.txt
+git -C "$wt_ca" commit -m "detect-a: shared" >/dev/null 2>&1
+
+echo "conflict-file-2" > "$wt_cb/shared.txt"
+git -C "$wt_cb" add shared.txt
+git -C "$wt_cb" commit -m "detect-b: shared" >/dev/null 2>&1
+
+conflicts=$(orch_worktree_detect_conflicts "detect-a" "50" "detect-b" "50" 2>/dev/null)
+assert_eq "T38: conflict detected on shared.txt" "shared.txt" "$conflicts"
+
+# Non-conflicting pair
+wt_nc=$(orch_worktree_path "noconflict-a" "50")
+orch_worktree_create "noconflict-a" "50" >/dev/null
+echo "unique" > "$wt_nc/unique-nc.txt"
+git -C "$wt_nc" add unique-nc.txt
+git -C "$wt_nc" commit -m "noconflict" >/dev/null 2>&1
+
+assert_fail "T39: no conflict for non-overlapping branches" \
+    orch_worktree_detect_conflicts "detect-a" "50" "noconflict-a" "50"
+
+orch_worktree_cleanup "50"
+
+# T40-T42: Merge with strategy=theirs
+wt_ta=$(orch_worktree_path "strat-a" "60")
+wt_tb=$(orch_worktree_path "strat-b" "60")
+orch_worktree_create "strat-a" "60" >/dev/null
+orch_worktree_create "strat-b" "60" >/dev/null
+
+echo "main-version" > "$wt_ta/strat-file.txt"
+git -C "$wt_ta" add strat-file.txt
+git -C "$wt_ta" commit -m "strat-a: add" >/dev/null 2>&1
+
+echo "agent-version" > "$wt_tb/strat-file.txt"
+git -C "$wt_tb" add strat-file.txt
+git -C "$wt_tb" commit -m "strat-b: add" >/dev/null 2>&1
+
+assert_ok "T40: merge strat-a auto" orch_worktree_merge_strategy "strat-a" "60" "auto"
+assert_ok "T41: merge strat-b theirs (no conflict with -X theirs)" orch_worktree_merge_strategy "strat-b" "60" "theirs"
+
+strat_content=$(cat "$TEST_REPO/strat-file.txt")
+assert_eq "T42: theirs wins" "agent-version" "$strat_content"
+
+# T43: Merge with strategy=ours
+wt_oa=$(orch_worktree_path "ours-a" "61")
+orch_worktree_create "ours-a" "61" >/dev/null
+echo "agent-wants-this" > "$wt_oa/strat-file.txt"
+git -C "$wt_oa" add strat-file.txt
+git -C "$wt_oa" commit -m "ours-a: modify" >/dev/null 2>&1
+
+assert_ok "T43: merge with strategy=ours succeeds" orch_worktree_merge_strategy "ours-a" "61" "ours"
+
+# T44: Merge strategy=manual detects conflict and aborts
+wt_ma=$(orch_worktree_path "manual-a" "62")
+wt_mb=$(orch_worktree_path "manual-b" "62")
+orch_worktree_create "manual-a" "62" >/dev/null
+orch_worktree_create "manual-b" "62" >/dev/null
+
+echo "manual-ver-a" > "$wt_ma/manual.txt"
+git -C "$wt_ma" add manual.txt
+git -C "$wt_ma" commit -m "manual-a" >/dev/null 2>&1
+
+echo "manual-ver-b" > "$wt_mb/manual.txt"
+git -C "$wt_mb" add manual.txt
+git -C "$wt_mb" commit -m "manual-b" >/dev/null 2>&1
+
+assert_ok "T44a: first manual merge succeeds" orch_worktree_merge_strategy "manual-a" "62" "manual"
+assert_fail "T44b: second manual merge detects conflict" orch_worktree_merge_strategy "manual-b" "62" "manual"
+
+git -C "$TEST_REPO" merge --abort 2>/dev/null || true
+orch_worktree_cleanup "62"
+
+# T45: Worktree status doesn't crash
+orch_worktree_create "status-test" "70" >/dev/null
+status_out=$(orch_worktree_status 2>/dev/null)
+assert_true "T45: status output contains agent name" echo "$status_out" | grep -q "status-test"
+orch_worktree_cleanup "70"
+
+# T46: Enforce max count
+# Note: enforce_max_count modifies global state, so can't capture output in $()
+_ORCH_WORKTREE_MAX_COUNT=2
+orch_worktree_create "max-a" "80" >/dev/null
+_ORCH_WORKTREE_CREATED_AT["$(orch_worktree_path "max-a" "80")"]=$(( $(date +%s) - 100 ))
+orch_worktree_create "max-b" "80" >/dev/null
+_ORCH_WORKTREE_CREATED_AT["$(orch_worktree_path "max-b" "80")"]=$(( $(date +%s) - 50 ))
+orch_worktree_create "max-c" "80" >/dev/null
+assert_eq "T46a: 3 active before enforce" "3" "${#_ORCH_WORKTREE_ACTIVE[@]}"
+orch_worktree_enforce_max_count >/dev/null
+assert_eq "T46b: 2 active after enforce" "2" "${#_ORCH_WORKTREE_ACTIVE[@]}"
+_ORCH_WORKTREE_MAX_COUNT=20
+orch_worktree_cleanup "80"
+
+# T47: Unknown strategy rejected (needs existing worktree with commits)
+orch_worktree_create "yolo-test" "99" >/dev/null
+wt_yolo=$(orch_worktree_path "yolo-test" "99")
+echo "yolo" > "$wt_yolo/yolo.txt"
+git -C "$wt_yolo" add yolo.txt
+git -C "$wt_yolo" commit -m "yolo" >/dev/null 2>&1
+assert_fail "T47: unknown strategy fails" orch_worktree_merge_strategy "yolo-test" "99" "yolo"
+orch_worktree_cleanup "99"
+
+# ══════════════════════════════════════
 # Results
 # ══════════════════════════════════════
 TOTAL=$((PASS + FAIL))
