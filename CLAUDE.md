@@ -105,10 +105,19 @@ All 8 core modules built, tested, integrated. QA PASS. Security FULL PASS. CTO a
 7. **Use Edit, not Write** — for prompt updates (preserve structure)
 8. **Check the PM's prioritized backlog** — prompts/03-pm/03-pm.txt has the full ordered issue list
 
-## Shared Resources
-- **Image Generation:** `~/Projects/shared/scripts/generate-image.sh` — AI image gen (Gemini free / OpenAI DALL-E)
-- **Batch Images:** `~/Projects/shared/scripts/batch-generate-images.sh` — Batch image gen from prompt files
-- **Telegram:** `~/Projects/shared/scripts/send-telegram.sh` — Send messages via Bot API
-- **OrchyStraw Core:** `~/Projects/shared/orchystraw-core/` — Reusable orchestration modules (logger, error handler, cycle state, timeouts, lock file, config validator, signal handler, dry-run, cycle tracker, bash version gate)
-- **OrchyStraw Templates:** `~/Projects/shared/orchystraw-templates/` — Agent design reference, anti-patterns, knowledge repos, sample agents.conf
-- **Synced State:** `~/Projects/shared/shared-state/` — Cross-project health, alerts, API usage
+## Shared System (~/Projects/shared/)
+Shared scripts, modules, and cross-project state. See `~/Projects/shared/CLAUDE.md` for full docs.
+
+**Key paths:**
+- **Scripts:** `~/Projects/shared/scripts/` (image gen, Telegram alerts, batch tools)
+- **OrchyStraw:** `~/Projects/shared/orchystraw-core/` (orchestration modules) + `orchystraw-templates/`
+- **Notion guide:** `~/Projects/shared/NOTION-GUIDE.md` (DB IDs, routing rules)
+- **Infra docs:** `~/Projects/shared/infra/` (machines, network, services, API keys)
+
+**Cross-project state** (Syncthing-synced across Asus, Lenovo, MacBook):
+`~/Projects/shared/shared-state/` is a symlink → `~/Sync/shared-state/`.
+- `claude-activity/` — ACTIVITY-LOG.md, PROJECT-STATUS.md, DECISIONS.md
+- `memory/` — structured cross-instance memory (architecture, decisions, playbooks)
+- Health, alerts, API usage JSON files
+
+**Protocol:** Read activity log + project status at session start. Update after significant work.
