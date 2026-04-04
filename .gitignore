@@ -1,4 +1,27 @@
-# OS
+# Security — secrets & credentials
+.env
+.env.*
+.env.local
+!.env.example
+*.pem
+*.key
+*.p12
+*.pfx
+credentials.json
+token.json
+secrets.json
+service-account*.json
+*secret*.json
+.claude/channels/
+
+# Dependencies
+node_modules/
+__pycache__/
+*.pyc
+.venv/
+venv/
+
+# OS junk
 .DS_Store
 Thumbs.db
 
@@ -6,14 +29,19 @@ Thumbs.db
 logs/
 *.log
 
+# Local databases
+*.sqlite
+*.db
+
+# Syncthing
+.syncthing*
+~syncthing~*
+
 # Backups
 prompts/00-backup/
 
 # Lock files
 .orchystraw.lock
-
-# Node
-node_modules/
 
 # Site build artifacts
 site/.next/
@@ -22,14 +50,3 @@ site/out/
 # Private runtime data
 prompts/*/logs/
 .orchystraw/
-
-# Secrets & credentials
-.env
-.env.*
-*.pem
-*.key
-*.p12
-*.pfx
-credentials.json
-service-account*.json
-*secret*.json
