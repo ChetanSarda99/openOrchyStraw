@@ -2,23 +2,36 @@
 
 :root {
   --background: #0a0a0a;
-  --foreground: #ededed;
-  --muted: #a1a1aa;
-  --accent: #f97316;
+  --foreground: hsl(0 0% 98%);
+  --text-secondary: hsl(0 0% 72%);
+  --text-tertiary: hsl(0 0% 45%);
+  --text-quaternary: hsl(0 0% 28%);
+  --accent: #10b981;
   --accent-foreground: #0a0a0a;
-  --card: #141414;
-  --card-border: #262626;
-  --ring: #f97316;
+  --card: hsl(0 0% 8%);
+  --card-border: hsl(0 0% 14%);
+  --card-border-hover: hsl(0 0% 22%);
+  --ring: #10b981;
+
+  --font-size-hero: clamp(2.5rem, 5vw + 1rem, 4.5rem);
+  --font-size-h2: clamp(1.75rem, 3vw + 0.5rem, 2.75rem);
+  --font-size-h3: clamp(1.25rem, 2vw + 0.25rem, 1.5rem);
+  --font-size-body: clamp(1rem, 1vw + 0.5rem, 1.125rem);
+  --font-size-small: 0.875rem;
+  --font-size-micro: 0.75rem;
 }
 
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
-  --color-muted: var(--muted);
+  --color-text-secondary: var(--text-secondary);
+  --color-text-tertiary: var(--text-tertiary);
+  --color-text-quaternary: var(--text-quaternary);
   --color-accent: var(--accent);
   --color-accent-foreground: var(--accent-foreground);
   --color-card: var(--card);
   --color-card-border: var(--card-border);
+  --color-card-border-hover: var(--card-border-hover);
   --color-ring: var(--ring);
   --font-sans: var(--font-geist-sans);
   --font-mono: var(--font-geist-mono);
@@ -39,4 +52,19 @@ body {
 ::selection {
   background: var(--accent);
   color: var(--accent-foreground);
+}
+
+.hero-gradient {
+  background: linear-gradient(180deg, #fff 40%, hsl(0 0% 60%) 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.hero-glow {
+  background: radial-gradient(
+    ellipse 50% 50% at 50% 0%,
+    hsl(160 84% 39% / 0.12) 0%,
+    transparent 70%
+  );
 }
