@@ -292,6 +292,105 @@ else
 fi
 
 # ══════════════════════════════════════
+# v0.3 Tests: Rubrics, Consensus, Findings
+# ══════════════════════════════════════
+
+# Test 37: Rubric template generates output
+rubric_out=$(orch_review_rubric "06-backend")
+assert "T37a: rubric has dimension table" '[[ "$rubric_out" == *"Dimension"* ]]'
+assert "T37b: rubric has correctness" '[[ "$rubric_out" == *"correctness"* ]]'
+assert "T37c: rubric has security" '[[ "$rubric_out" == *"security"* ]]'
+assert "T37d: rubric has severity examples" '[[ "$rubric_out" == *"CRITICAL"* ]]'
+
+# Test 38: Custom dimensions
+orch_review_set_dimensions "logic" "style" "testing"
+assert "T38: custom dimensions set" '[[ "${#_ORCH_REVIEW_DIMENSIONS[@]}" -eq 3 ]]'
+rubric_custom=$(orch_review_rubric "test")
+assert "T38b: custom dimension in rubric" '[[ "$rubric_custom" == *"logic"* ]]'
+# Reset to defaults
+_ORCH_REVIEW_DIMENSIONS=(correctness security performance readability standards)
+
+# Test 39: Record rubric score
+orch_review_record_score "09-qa" "06-backend" "correctness" 4
+assert "T39a: score recorded" '[[ "${_ORCH_REVIEW_SCORES[09-qa|06-backend|correctness]}" == "4" ]]'
+# Invalid score rejected
+if orch_review_record_score "09-qa" "06-backend" "security" 6 2>/dev/null; then
+    echo "FAIL: T39b invalid score should be rejected"
+    (( FAIL++ )) || true
+else
+    (( PASS++ )) || true
+fi
+
+# Test 40: Multiple reviewer scores
+orch_review_record_score "09-qa" "06-backend" "security" 5
+orch_review_record_score "09-qa" "06-backend" "performance" 3
+orch_review_record_score "02-cto" "06-backend" "correctness" 3
+orch_review_record_score "02-cto" "06-backend" "security" 4
+summary_rubric=$(orch_review_rubric_summary "06-backend")
+assert "T40: rubric summary has dimensions" '[[ "$summary_rubric" == *"correctness"* ]]'
+
+# Test 41: Consensus — unanimous approve
+_ORCH_REVIEW_VERDICTS=()
+_ORCH_REVIEW_VERDICTS["09-qa|06-backend"]="approve"
+_ORCH_REVIEW_VERDICTS["02-cto|06-backend"]="approve"
+consensus=$(orch_review_consensus "06-backend")
+assert "T41: unanimous approve" '[[ "$consensus" == "approve" ]]'
+
+# Test 42: Consensus — any request-changes with no approve = request-changes
+_ORCH_REVIEW_VERDICTS=()
+_ORCH_REVIEW_VERDICTS["09-qa|06-backend"]="request-changes"
+_ORCH_REVIEW_VERDICTS["02-cto|06-backend"]="request-changes"
+consensus2=$(orch_review_consensus "06-backend")
+assert "T42: all request-changes" '[[ "$consensus2" == "request-changes" ]]'
+
+# Test 43: Consensus — mixed
+_ORCH_REVIEW_VERDICTS=()
+_ORCH_REVIEW_VERDICTS["09-qa|06-backend"]="approve"
+_ORCH_REVIEW_VERDICTS["02-cto|06-backend"]="request-changes"
+consensus3=$(orch_review_consensus "06-backend")
+assert "T43: mixed verdict" '[[ "$consensus3" == "mixed" ]]'
+
+# Test 44: Consensus — no reviews
+consensus4=$(orch_review_consensus "ghost-agent")
+assert "T44: no reviews" '[[ "$consensus4" == "no-reviews" ]]'
+
+# Test 45: Record individual finding
+_ORCH_REVIEW_FINDING_LIST=()
+orch_review_record_finding "critical" "09-qa" "06-backend" "SQL injection in user input handler"
+orch_review_record_finding "major" "09-qa" "06-backend" "Missing error handling in API call"
+orch_review_record_finding "minor" "02-cto" "06-backend" "Variable naming inconsistency"
+orch_review_record_finding "suggestion" "02-cto" "06-backend" "Consider adding retry logic"
+assert "T45: 4 findings recorded" '[[ "${#_ORCH_REVIEW_FINDING_LIST[@]}" -eq 4 ]]'
+
+# Test 46: Invalid severity rejected
+if orch_review_record_finding "blocker" "09-qa" "06-backend" "test" 2>/dev/null; then
+    echo "FAIL: T46 invalid severity should be rejected"
+    (( FAIL++ )) || true
+else
+    (( PASS++ )) || true
+fi
+
+# Test 47: Findings by severity
+findings_out=$(orch_review_findings_by_severity "06-backend")
+assert "T47a: critical findings shown" '[[ "$findings_out" == *"CRITICAL"* ]]'
+assert "T47b: major findings shown" '[[ "$findings_out" == *"MAJOR"* ]]'
+assert "T47c: SQL injection in output" '[[ "$findings_out" == *"SQL injection"* ]]'
+
+# Test 48: Finding count
+crit_count=$(orch_review_finding_count "critical" "06-backend")
+assert "T48a: 1 critical finding" '[[ "$crit_count" == "1" ]]'
+total_count=$(orch_review_finding_count "" "06-backend")
+assert "T48b: 4 total findings" '[[ "$total_count" == "4" ]]'
+
+# Test 49: Feedback template
+_ORCH_REVIEW_CYCLE=5
+feedback=$(orch_review_feedback_template "06-backend")
+assert "T49a: feedback has consensus" '[[ "$feedback" == *"Consensus"* ]]'
+assert "T49b: feedback has findings" '[[ "$feedback" == *"Findings"* ]]'
+assert "T49c: feedback has actions" '[[ "$feedback" == *"Required Actions"* ]]'
+assert "T49d: feedback mentions critical count" '[[ "$feedback" == *"critical"* ]]'
+
+# ══════════════════════════════════════
 # Results
 # ══════════════════════════════════════
 echo ""

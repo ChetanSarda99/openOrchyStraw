@@ -1,6 +1,8 @@
 #!/usr/bin/env bash
 # review-phase.sh — Advisory review phase for agent diffs
-# v0.2.0 Phase 2: #40 (Loop Review & Critique) per REVIEW-001 ADR
+# v0.3.0 Phase 2: #40 (Loop Review & Critique) per REVIEW-001 ADR
+#         v0.3 adds: structured rubrics, multi-reviewer consensus,
+#         actionable feedback templates, severity classification
 #
 # After agents commit, selected reviewers critique diffs. Reviews are
 # advisory — they never block the merge. The PM reads review output and
@@ -13,6 +15,11 @@
 #   orch_review_record    — record a review verdict
 #   orch_review_summary   — aggregate verdicts, write summary
 #   orch_review_should_run — cost guard: check if reviews should execute
+#   orch_review_rubric    — generate structured review rubric (v0.3)
+#   orch_review_consensus — compute multi-reviewer consensus (v0.3)
+#   orch_review_feedback_template — generate actionable feedback (v0.3)
+#   orch_review_record_finding    — record individual finding with severity (v0.3)
+#   orch_review_findings_by_severity — list findings grouped by severity (v0.3)
 
 [[ -n "${_ORCH_REVIEW_PHASE_LOADED:-}" ]] && return 0
 _ORCH_REVIEW_PHASE_LOADED=1
@@ -25,6 +32,19 @@ declare -g -a _ORCH_REVIEW_PLAN=()       # "reviewer:target" pairs for this cycl
 declare -g _ORCH_REVIEW_CYCLE=0
 declare -g _ORCH_REVIEW_OUTPUT_DIR=""
 declare -g _ORCH_REVIEW_INITIALIZED=false
+
+# v0.3 Structured rubric state
+declare -g -A _ORCH_REVIEW_SCORES=()       # "reviewer|target|dimension" -> score (1-5)
+declare -g -a _ORCH_REVIEW_DIMENSIONS=()   # list of review dimensions
+
+# v0.3 Individual findings with severity
+declare -g -a _ORCH_REVIEW_FINDING_LIST=() # indexed findings: "severity|reviewer|target|description"
+
+# v0.3 Default review dimensions (can be overridden)
+_ORCH_REVIEW_DIMENSIONS=(correctness security performance readability standards)
+
+# v0.3 Severity levels
+declare -g -a _ORCH_REVIEW_SEVERITIES=(critical major minor suggestion note)
 
 # ── Helpers ──
 
@@ -307,4 +327,288 @@ orch_review_get_reviewers() {
     for reviewer in "${!_ORCH_REVIEW_MAP[@]}"; do
         printf '%s\n' "$reviewer"
     done
+}
+
+# ══════════════════════════════════════════════════
+# v0.3 Structured Rubrics
+# ══════════════════════════════════════════════════
+
+# orch_review_rubric [target_id]
+#   Generate a structured review rubric template. Output is markdown suitable
+#   for inclusion in the review context sent to a reviewer agent.
+orch_review_rubric() {
+    local target="${1:-agent}"
+
+    printf '## Structured Review Rubric\n'
+    printf 'Rate each dimension 1-5 (1=critical issues, 5=excellent):\n\n'
+
+    printf '| Dimension | Score (1-5) | Notes |\n'
+    printf '|-----------|-------------|-------|\n'
+
+    for dim in "${_ORCH_REVIEW_DIMENSIONS[@]}"; do
+        local guidance=""
+        case "$dim" in
+            correctness)  guidance="Logic bugs, edge cases, error handling" ;;
+            security)     guidance="Auth, injection, secrets, OWASP patterns" ;;
+            performance)  guidance="Hot paths, complexity, resource usage" ;;
+            readability)  guidance="Naming, structure, comments, complexity" ;;
+            standards)    guidance="Project conventions, ownership rules, style" ;;
+            *)            guidance="Custom dimension" ;;
+        esac
+        printf '| **%s** | _/5 | %s |\n' "$dim" "$guidance"
+    done
+
+    printf '\n'
+    printf '%s\n' '## Findings (use severity prefixes)'
+    printf '%s\n' '- [CRITICAL] <description> — Must fix before merge, breaks functionality'
+    printf '%s\n' '- [MAJOR] <description> — Should fix, significant quality issue'
+    printf '%s\n' '- [MINOR] <description> — Nice to fix, minor quality concern'
+    printf '%s\n' '- [SUGGESTION] <description> — Optional improvement idea'
+    printf '%s\n\n' '- [NOTE] <description> — Informational observation'
+
+    printf '%s\n' '## Action Items'
+    printf '%s\n' 'List specific, actionable items the agent should address:'
+    printf '%s\n\n' '1. | 2. | 3. '
+
+    printf '%s\n' '## Summary Verdict'
+    printf '%s\n' '**Verdict:** approve | request-changes | comment'
+    printf '%s\n' '**Confidence:** high | medium | low'
+    printf '%s\n' '**Summary:** <1-2 sentences>'
+}
+
+# orch_review_set_dimensions <dimension1> <dimension2> ...
+#   Override the default review dimensions.
+orch_review_set_dimensions() {
+    _ORCH_REVIEW_DIMENSIONS=("$@")
+}
+
+# orch_review_record_score <reviewer_id> <target_id> <dimension> <score>
+#   Record a rubric score for a specific dimension (1-5).
+orch_review_record_score() {
+    local reviewer="${1:?record_score: reviewer required}"
+    local target="${2:?record_score: target required}"
+    local dimension="${3:?record_score: dimension required}"
+    local score="${4:?record_score: score required}"
+
+    [[ ! "$score" =~ ^[1-5]$ ]] && {
+        _orch_review_log WARN "Invalid rubric score: $score (must be 1-5)"
+        return 1
+    }
+
+    _ORCH_REVIEW_SCORES["${reviewer}|${target}|${dimension}"]="$score"
+    return 0
+}
+
+# orch_review_rubric_summary <target_id>
+#   Print rubric score summary for a target across all reviewers.
+orch_review_rubric_summary() {
+    local target="${1:?rubric_summary: target required}"
+
+    printf '### Rubric Summary: %s\n' "$target"
+    printf '| Dimension | '
+
+    # Collect reviewers who reviewed this target
+    local -a reviewers=()
+    local key
+    for key in "${!_ORCH_REVIEW_SCORES[@]}"; do
+        if [[ "$key" == *"|${target}|"* ]]; then
+            local rev="${key%%|*}"
+            local found=false
+            local r
+            for r in "${reviewers[@]+"${reviewers[@]}"}"; do
+                [[ "$r" == "$rev" ]] && found=true
+            done
+            [[ "$found" == false ]] && reviewers+=("$rev")
+        fi
+    done
+
+    for rev in "${reviewers[@]+"${reviewers[@]}"}"; do
+        printf '%s | ' "$rev"
+    done
+    printf 'Avg |\n'
+
+    printf '%s' '|---|'
+    for _ in "${reviewers[@]+"${reviewers[@]}"}"; do printf '%s' '---|'; done
+    printf '%s\n' '---|'
+
+    for dim in "${_ORCH_REVIEW_DIMENSIONS[@]}"; do
+        printf '| %s | ' "$dim"
+        local total=0 count=0
+        for rev in "${reviewers[@]+"${reviewers[@]}"}"; do
+            local score="${_ORCH_REVIEW_SCORES[${rev}|${target}|${dim}]:-}"
+            if [[ -n "$score" ]]; then
+                printf '%s | ' "$score"
+                total=$((total + score))
+                count=$((count + 1))
+            else
+                printf '%s' '- | '
+            fi
+        done
+        if [[ "$count" -gt 0 ]]; then
+            local avg_val
+            avg_val=$(echo "scale=1; $total / $count" | bc 2>/dev/null || echo "$((total / count))")
+            printf '%s |\n' "$avg_val"
+        else
+            printf '%s\n' '- |'
+        fi
+    done
+}
+
+# ══════════════════════════════════════════════════
+# v0.3 Multi-Reviewer Consensus
+# ══════════════════════════════════════════════════
+
+# orch_review_consensus <target_id>
+#   Compute consensus across all reviewers for a target.
+#   Returns: approve (all approve), request-changes (any request-changes),
+#   mixed (disagreement), comment (only comments).
+#   Prints the consensus verdict.
+orch_review_consensus() {
+    local target="${1:?consensus: target required}"
+
+    local approvals=0 changes=0 comments=0 total=0
+
+    for key in "${!_ORCH_REVIEW_VERDICTS[@]}"; do
+        if [[ "$key" == *"|${target}" ]]; then
+            local verdict="${_ORCH_REVIEW_VERDICTS[$key]}"
+            total=$((total + 1))
+            case "$verdict" in
+                approve) approvals=$((approvals + 1)) ;;
+                request-changes) changes=$((changes + 1)) ;;
+                comment) comments=$((comments + 1)) ;;
+            esac
+        fi
+    done
+
+    if [[ "$total" -eq 0 ]]; then
+        printf 'no-reviews\n'
+        return 0
+    fi
+
+    if [[ "$changes" -gt 0 ]]; then
+        if [[ "$approvals" -gt 0 ]]; then
+            printf 'mixed\n'
+        else
+            printf 'request-changes\n'
+        fi
+    elif [[ "$approvals" -eq "$total" ]]; then
+        printf 'approve\n'
+    elif [[ "$comments" -eq "$total" ]]; then
+        printf 'comment\n'
+    else
+        printf 'mixed\n'
+    fi
+}
+
+# ══════════════════════════════════════════════════
+# v0.3 Individual Findings with Severity
+# ══════════════════════════════════════════════════
+
+# orch_review_record_finding <severity> <reviewer_id> <target_id> <description>
+#   Record a single finding with severity classification.
+#   severity: critical | major | minor | suggestion | note
+orch_review_record_finding() {
+    local severity="${1:?record_finding: severity required}"
+    local reviewer="${2:?record_finding: reviewer required}"
+    local target="${3:?record_finding: target required}"
+    local description="${4:?record_finding: description required}"
+
+    # Validate severity
+    local valid=false
+    local s
+    for s in "${_ORCH_REVIEW_SEVERITIES[@]}"; do
+        [[ "$s" == "$severity" ]] && valid=true
+    done
+    [[ "$valid" == false ]] && {
+        _orch_review_log WARN "Invalid severity: $severity"
+        return 1
+    }
+
+    _ORCH_REVIEW_FINDING_LIST+=("${severity}|${reviewer}|${target}|${description}")
+    return 0
+}
+
+# orch_review_findings_by_severity [target_id]
+#   Print findings grouped by severity. If target_id given, filter to that target.
+orch_review_findings_by_severity() {
+    local filter_target="${1:-}"
+
+    for sev in "${_ORCH_REVIEW_SEVERITIES[@]}"; do
+        local has_findings=false
+        local finding
+        for finding in "${_ORCH_REVIEW_FINDING_LIST[@]+"${_ORCH_REVIEW_FINDING_LIST[@]}"}"; do
+            IFS='|' read -r f_sev f_rev f_target f_desc <<< "$finding"
+            [[ "$f_sev" != "$sev" ]] && continue
+            [[ -n "$filter_target" && "$f_target" != "$filter_target" ]] && continue
+
+            if [[ "$has_findings" == false ]]; then
+                printf '### %s\n' "${sev^^}"
+                has_findings=true
+            fi
+            printf '%s\n' "- [${sev^^}] $f_desc (reviewer: $f_rev, target: $f_target)"
+        done
+        if [[ "$has_findings" == true ]]; then printf '\n'; fi
+    done
+}
+
+# orch_review_finding_count [severity] [target_id]
+#   Count findings matching severity and/or target. Both optional filters.
+orch_review_finding_count() {
+    local filter_sev="${1:-}"
+    local filter_target="${2:-}"
+    local count=0
+
+    local finding
+    for finding in "${_ORCH_REVIEW_FINDING_LIST[@]+"${_ORCH_REVIEW_FINDING_LIST[@]}"}"; do
+        IFS='|' read -r f_sev f_rev f_target f_desc <<< "$finding"
+        [[ -n "$filter_sev" && "$f_sev" != "$filter_sev" ]] && continue
+        [[ -n "$filter_target" && "$f_target" != "$filter_target" ]] && continue
+        count=$((count + 1))
+    done
+
+    printf '%d\n' "$count"
+}
+
+# orch_review_feedback_template <target_id>
+#   Generate a structured, actionable feedback template combining
+#   verdicts, rubric scores, and findings for PM consumption.
+orch_review_feedback_template() {
+    local target="${1:?feedback_template: target required}"
+
+    printf '# Review Feedback: %s — Cycle %s\n\n' "$target" "$_ORCH_REVIEW_CYCLE"
+
+    # Consensus
+    local consensus
+    consensus=$(orch_review_consensus "$target")
+    printf '**Consensus:** %s\n\n' "$consensus"
+
+    # Verdicts by reviewer
+    printf '## Reviewer Verdicts\n'
+    for key in "${!_ORCH_REVIEW_VERDICTS[@]}"; do
+        if [[ "$key" == *"|${target}" ]]; then
+            local reviewer="${key%%|*}"
+            printf '%s\n' "- **${reviewer}:** ${_ORCH_REVIEW_VERDICTS[$key]}"
+        fi
+    done
+    printf '\n'
+
+    # Findings by severity
+    printf '## Findings\n'
+    orch_review_findings_by_severity "$target"
+
+    # Action items summary
+    local critical_count major_count
+    critical_count=$(orch_review_finding_count "critical" "$target")
+    major_count=$(orch_review_finding_count "major" "$target")
+
+    printf '## Required Actions\n'
+    if [[ "$critical_count" -gt 0 ]]; then
+        printf '**BLOCKING:** %d critical finding(s) must be resolved before merge.\n' "$critical_count"
+    fi
+    if [[ "$major_count" -gt 0 ]]; then
+        printf '**RECOMMENDED:** %d major finding(s) should be addressed.\n' "$major_count"
+    fi
+    if [[ "$critical_count" -eq 0 && "$major_count" -eq 0 ]]; then
+        printf 'No blocking or major issues found.\n'
+    fi
 }
