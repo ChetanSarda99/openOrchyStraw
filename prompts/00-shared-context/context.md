@@ -1,45 +1,45 @@
-# Shared Context — Cycle 1 — 2026-04-01 04:07:21
+# Shared Context — Cycle 2 — 2026-04-03 17:30:00
 > Agents: read before starting, append before finishing.
 
 ## Usage
 - API status: 0 (0=ok, 80=overage, 90+=limited)
 
-## Progress (last cycle → this cycle)
-- Previous cycle: 5 (0 backend, 0 frontend, 0 commits)
-- Build on this momentum. Don't redo what's already shipped.
+## Progress (last cycle -> this cycle)
+- Previous cycle: 5 agents ran, 4 commits produced
+- 5-cycle orchestration sprint: benchmark suite, docs site, demo script, test expansion, PM update
+- All 3 P0/P1 priorities from 99-actions.txt addressed: demo, benchmark, docs site
 
-## Backend Status
-- All 4 active sprint tasks verified DONE (implementations exist from prior session):
-  - #182 per-agent cost tracking: `audit-log.sh` (token estimation) + `agent-health-report.sh` (Cost Tracking section)
-  - #184 HTML health dashboard: `scripts/health-dashboard.sh` — self-contained HTML with agent grid, velocity chart, cost bar chart, issue trend
-  - #167 freshness detector: `src/core/freshness-detector.sh` — 5 public functions, 20 tests PASS
-  - #162 E2E golden tests: `tests/core/test-e2e-dry-run.sh` — 14 assertions against `--dry-run` output
-- Full test suite: 25/25 PASS (23 unit + 1 integration + runner), zero regressions
-- Portability clean: no `grep -P`, no hardcoded `/tmp` in any new code
-- Remaining `grep -oP` usage exists ONLY in protected files (auto-agent.sh, check-usage.sh, check-domain.sh) — CS must fix
-- Module count: 23 in src/core/, all sourced in integration test
-- READY for next sprint assignment
+## Backend Status (Cycles 1+3)
+- Orchestration benchmark runner DONE: `scripts/benchmark/run-orchestration-bench.sh` — measures per-agent wall time, token estimates, files changed, commit counts across N cycles. JSON + markdown output.
+- Benchmark comparison tool DONE: `scripts/benchmark/run-comparison.sh` — diffs two runs, text/markdown/json output, per-agent deltas.
+- Demo script DONE: `scripts/demo/run-demo.sh` — self-contained demo with 3 agents (PM, Developer, QA), simulates 2 cycles with colorful terminal output. Zero API calls.
+- Demo recorder DONE: `scripts/demo/record-demo.sh` ��� wraps asciinema/script for terminal capture, ready for GIF conversion.
+- All new scripts follow project conventions: set -euo pipefail, bash 5.0+ check, no external deps.
+- BUG-026 STILL OPEN (from prior cycle)
 
-## iOS Status
-- (fresh cycle)
+## Web Status (Cycle 2)
+- Mintlify docs site foundation DONE: `docs-site/` directory with 7 files
+  - `mint.json` — Mintlify config with OrchyStraw branding (orange #F97316), navigation, topbar
+  - `introduction.mdx` — project overview with feature cards
+  - `quickstart.mdx` — 5-minute guide (clone, configure agents.conf, write prompts, run)
+  - `concepts/agents.mdx` — agent lifecycle, ownership, intervals, communication
+  - `concepts/orchestrator.mdx` — auto-agent.sh cycle anatomy, smart features
+  - `concepts/modules.mdx` — all 20+ modules documented with accordions
+  - `api/agents-conf.mdx` — full format reference (v1/v2/v2+/v3)
+- Ready for CS to connect Mintlify to GitHub for auto-deploy
 
-## Design Status
-- (fresh cycle)
-
-## QA Findings
-- **25/25 test files PASS**, 23/23 modules syntax PASS, 12/12 scripts syntax PASS, 0 regressions
-- 109 integration assertions PASS, 21 E2E dry-run assertions PASS, 27 freshness-detector tests PASS
-- freshness-detector.sh (#167) QA PASS — 27/27 tests, clean code
-- health-dashboard.sh (#184) QA PASS — self-contained HTML dashboard, BUG-026 fix present
-- audit-log.sh (#182) QA PASS — backward compatible cost tracking fields
-- test-e2e-dry-run.sh (#162) QA PASS — 21/21 assertions, CI-friendly
-- **BUG-026 (#190) STILL OPEN (HIGH):** `prev` uninitialized in agent-health-report.sh:48 — crashes with `set -u` when audit.jsonl exists. Fix: add `prev=""` on line 44. Assigned to 06-backend.
-- QA-F002 CLOSED: all scripts now have `set -euo pipefail`
-- Verdict: CONDITIONAL PASS — BUG-026 must be fixed before wiring agent-health-report.sh cost tracking
-- Report: prompts/09-qa/reports/qa-cycle-19.md
+## QA Status (Cycle 4)
+- 42 new extended v0.2.0 tests DONE: `tests/core/test-v020-extended.sh`
+  - Dynamic-router model selection: 7 tests (per-agent config, env overrides, CLI override precedence)
+  - Review-phase QA gate: 10 tests (init, plan filtering, verdict recording, path traversal rejection)
+  - Worktree isolation: 10 tests (create, branch, merge, cleanup, non-git rejection)
+  - Prompt-compression tiering: 15 tests (classify, stable/dynamic detection, hash round-trip, compress modes)
+- All 42/42 pass. No regressions to existing suite.
+- Pre-existing failures: test-e2e-dry-run.sh (15 failures — output format mismatch), test-prompt-template.sh (partial) — both pre-date this sprint.
 
 ## Blockers
-- (none)
+- BUG-026 (#190) STILL OPEN — `prev` uninitialized in agent-health-report.sh:48
 
 ## Notes
-- (none)
+- Demo script ready for GIF recording — run `bash scripts/demo/run-demo.sh` and capture
+- Docs site needs Mintlify GitHub connection for deployment

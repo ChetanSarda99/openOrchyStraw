@@ -8,15 +8,18 @@
 ## PENDING — Work through by priority
 
 ### P0 — Ship & Distribute
-- [ ] **Demo GIF (#131)** — needed for HN launch. No GIF exists yet.
-- [ ] **Run benchmark dry-run** — `bash scripts/benchmark/run-benchmark.sh --dry-run`
+- [x] **Demo GIF (#131)** — DONE: `scripts/demo/run-demo.sh` + `scripts/demo/record-demo.sh` created. Run demo, record with asciinema, convert to GIF with `agg`.
+- [ ] **Record actual GIF** — Run `bash scripts/demo/record-demo.sh`, convert to GIF, add to README
+- [ ] **Run benchmark dry-run** — `bash scripts/benchmark/run-orchestration-bench.sh --project-dir . --dry-run`
 - [ ] **Tag v0.2.0** — CLAUDE.md says v0.2.0 is fully wired (9/9 modules, 278 tests, CTO 8/8, QA 8/8, Security 6/6). Tag it.
 
 ### P1 — Incomplete Features
-- [ ] **#169 Benchmark completion** — featurebench suite missing, standalone run-comparison.sh and run-featurebench.sh needed
-- [ ] **#121 Docs site** — Mintlify per DOCS-STACK.md. Landing page exists but docs site has zero implementation.
-- [ ] **Connect Mintlify to GitHub** — needed for docs auto-deploy
-- [ ] **Logo/branding assets** — web agent needs logo in assets/branding/
+- [x] **#169 Benchmark completion** — DONE: `run-orchestration-bench.sh` (standalone orchestration benchmark) + `run-comparison.sh` (compare two runs). Original SWE-bench runner also exists.
+- [x] **#121 Docs site foundation** — DONE: `docs-site/` with mint.json + 6 MDX pages (intro, quickstart, 3 concepts, 1 API ref)
+- [ ] **Connect Mintlify to GitHub** — needed for docs auto-deploy. Go to mintlify.com/start, point to `docs-site/`
+- [ ] **Logo/branding assets** — web agent needs logo SVGs in `docs-site/logo/`
+- [ ] **BUG-026 (#190)** — `prev` uninitialized in agent-health-report.sh:48. Fix: add `prev=""` on line 44.
+- [ ] **Fix pre-existing test failures** — test-e2e-dry-run.sh (output format mismatch), test-prompt-template.sh (partial)
 
 ### P2 — Future Product
 - [ ] Tauri desktop app (#97-101)
@@ -29,6 +32,7 @@
 
 ## DONE
 
+- [x] **2026-04-03** 5-cycle orchestration sprint: benchmark suite (run-orchestration-bench.sh + run-comparison.sh), Mintlify docs site (7 files), demo script (run-demo.sh + record-demo.sh), 42 extended v0.2.0 tests, PM update.
 - [x] **2026-04-02** Verified all P0.5 wiring items complete in auto-agent.sh. Updated actions file to reflect reality.
 - [x] **2026-03-31** v0.2.0 modules FULLY WIRED into auto-agent.sh: timeout (#88), dry-run (#90), review-phase (#145), model tiering (#147), worktree (#168), session tracker (BUG-025), conditional activation, differential context, quality gates. All use guarded `type -t` checks.
 - [x] **2026-03-31** STOP ORCHESTRATOR resolved — CTO review queue cleared, v0.2.0 modules wired, orchestrator unblocked.

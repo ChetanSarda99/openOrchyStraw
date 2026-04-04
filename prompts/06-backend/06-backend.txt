@@ -269,15 +269,21 @@ Only non-blocking item: BUG-013 (README says "Bash 4+" should be "Bash 5+").
 - ✅ BUG-024 VERIFIED FIXED: `ralph-baseline.sh` already uses `${TMPDIR:-/tmp}`
 - ✅ Full test suite: 23/23 PASS, zero regressions
 
+### Done (Cycle 1+3 — session 5, 2026-04-03)
+- Orchestration benchmark runner: `scripts/benchmark/run-orchestration-bench.sh` — per-agent metrics across N cycles, JSON + markdown
+- Benchmark comparison: `scripts/benchmark/run-comparison.sh` — diffs two runs, text/markdown/json output
+- Demo script: `scripts/demo/run-demo.sh` — self-contained 3-agent simulation with colorful output
+- Demo recorder: `scripts/demo/record-demo.sh` — asciinema/script wrapper for terminal capture
+
 ### ACTIVE — Current Sprint
 
-1. **P0: #182 Per-agent cost tracking** — Add cost/token tracking to audit-log.sh output. Track per-agent: invocation count, wall-clock seconds, estimated tokens (prompt line count * ~4 tokens/line). Surface in agent-health-report.sh output. Data goes to .orchystraw/audit.jsonl.
+1. **P0: BUG-026 (#190)** — Fix `prev` uninitialized in `agent-health-report.sh:48`. Add `prev=""` on line 44. Crashes with `set -u` when audit.jsonl exists.
 
-2. **P0: #184 HTML health dashboard** — Create `scripts/health-dashboard.sh` that reads .orchystraw/metrics.jsonl + .orchystraw/audit.jsonl and generates a self-contained HTML file. Show: agent status grid, cycle velocity chart (commits over time), cost per agent bar chart, issue count trend. Open in browser with `xdg-open`.
+2. **P0: Fix test-e2e-dry-run.sh** — 15 assertions fail due to output format mismatch with current auto-agent.sh dry-run output. Update expected patterns to match actual output.
 
-3. **P1: #167 Knowledge freshness detector** — Create `src/core/freshness-detector.sh` that scans prompt files for stale references (dates >7 days old, references to closed issues, mentions of completed work). Output a staleness report. This prevents the exact problem that caused cycles to go stagnant.
+3. **P1: Fix test-prompt-template.sh** — Partial failures. Debug and fix.
 
-4. **P1: #162 E2E golden tests** — Create a CI-friendly test that runs `auto-agent.sh orchestrate --dry-run` and validates the output format. Add to tests/core/.
+4. **P1: #182/#184 — Wire cost tracking** — Existing implementations need BUG-026 fix first. After fix, verify agent-health-report.sh and health-dashboard.sh work end-to-end.
 
 ---
 
