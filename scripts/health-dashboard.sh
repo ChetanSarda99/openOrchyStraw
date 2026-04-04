@@ -322,6 +322,118 @@ TABLEEOF
 
 echo "Dashboard written to: $OUTPUT"
 
+# ── ASCII Terminal Charts (printed to stdout for quick CLI view) ──
+echo ""
+echo "╔══════════════════════════════════════════════════════════════════╗"
+echo "║              OrchyStraw Health — Terminal View                  ║"
+echo "╚══════════════════════════════════════════════════════════════════╝"
+echo ""
+
+# ASCII bar chart helper: render_bar <label> <value> <max_value> <bar_width> [suffix]
+render_bar() {
+    local label="$1" value="$2" max_val="$3" bar_width="${4:-40}" suffix="${5:-}"
+    local filled=0
+    if [[ "$max_val" -gt 0 ]]; then
+        filled=$(( value * bar_width / max_val ))
+    fi
+    [[ "$filled" -gt "$bar_width" ]] && filled="$bar_width"
+    local empty=$(( bar_width - filled ))
+    local bar=""
+    for (( b=0; b<filled; b++ )); do bar+="█"; done
+    for (( b=0; b<empty; b++ )); do bar+="░"; done
+    printf "  %-14s │%s│ %s%s\n" "$label" "$bar" "$value" "$suffix"
+}
+
+# Cost per agent bar chart
+echo "  COST PER AGENT (est. microdollars)"
+echo "  ──────────────────────────────────────────────────────"
+max_cost=0
+for id in "${AGENTS[@]}"; do
+    c="${A_COST[$id]:-0}"
+    [[ "$c" -gt "$max_cost" ]] && max_cost="$c"
+done
+if [[ "$max_cost" -gt 0 ]]; then
+    for id in "${AGENTS[@]}"; do
+        render_bar "$id" "${A_COST[$id]:-0}" "$max_cost" 40 "μ\$"
+    done
+else
+    echo "    (no cost data)"
+fi
+echo ""
+
+# Tokens per agent bar chart
+echo "  TOKENS PER AGENT (estimated)"
+echo "  ──────────────────────────────────────────────────────"
+max_tok=0
+for id in "${AGENTS[@]}"; do
+    t="${A_TOK[$id]:-0}"
+    [[ "$t" -gt "$max_tok" ]] && max_tok="$t"
+done
+if [[ "$max_tok" -gt 0 ]]; then
+    for id in "${AGENTS[@]}"; do
+        render_bar "$id" "${A_TOK[$id]:-0}" "$max_tok" 40
+    done
+else
+    echo "    (no token data)"
+fi
+echo ""
+
+# Cycle velocity bar chart (commits per cycle)
+if [[ ${#M_CYCLES[@]} -gt 0 ]]; then
+    echo "  CYCLE VELOCITY (commits per cycle)"
+    echo "  ──────────────────────────────────────────────────────"
+    max_cm=0
+    for i in "${!M_CYCLES[@]}"; do
+        cm="${M_COMMITS[$i]:-0}"
+        [[ "$cm" -gt "$max_cm" ]] && max_cm="$cm"
+    done
+    if [[ "$max_cm" -gt 0 ]]; then
+        for i in "${!M_CYCLES[@]}"; do
+            render_bar "C${M_CYCLES[$i]}" "${M_COMMITS[$i]:-0}" "$max_cm" 40
+        done
+    else
+        echo "    (no commit data)"
+    fi
+    echo ""
+
+    # Issues trend (inline sparkline-style)
+    echo "  ISSUES TREND"
+    echo "  ──────────────────────────────────────────────────────"
+    max_is=0
+    for i in "${!M_CYCLES[@]}"; do
+        is="${M_ISSUES[$i]:-0}"
+        is="${is:-0}"
+        [[ "$is" -gt "$max_is" ]] && max_is="$is"
+    done
+    if [[ "$max_is" -gt 0 ]]; then
+        for i in "${!M_CYCLES[@]}"; do
+            is="${M_ISSUES[$i]:-0}"
+            is="${is:-0}"
+            render_bar "C${M_CYCLES[$i]}" "$is" "$max_is" 40 " issues"
+        done
+    else
+        echo "    (no issue data)"
+    fi
+    echo ""
+fi
+
+# Agent status grid (compact)
+echo "  AGENT STATUS"
+echo "  ──────────────────────────────────────────────────────"
+for id in "${AGENTS[@]}"; do
+    status="${AGENT_STATUS[$id]:-unknown}"
+    label="${AGENT_LABELS[$id]:-}"
+    inv="${A_INV[$id]:-0}"
+    indicator="?"
+    case "$status" in
+        success) indicator="+" ;;
+        fail)    indicator="!" ;;
+        skip)    indicator="-" ;;
+    esac
+    printf "  [%s] %-14s %-22s runs=%-3s\n" "$indicator" "$id" "$label" "$inv"
+done
+echo ""
+
 if [[ -t 1 ]] && command -v xdg-open &>/dev/null; then
     xdg-open "$OUTPUT" 2>/dev/null &
 fi
