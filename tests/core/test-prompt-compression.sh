@@ -306,6 +306,96 @@ mode=$(orch_prompt_mode_for_agent "test-agent")
 [[ "$mode" == "minimal" ]] || fail "T30: tiny budget should trigger minimal (got $mode)"
 pass "T30: tiny token budget -> minimal mode"
 
+# ══════════════════════════════════════
+# v0.3 Tests: Token Counting, Dedup, Budget Truncation
+# ══════════════════════════════════════
+
+# Reload for v0.3 functions
+orch_prompt_init 0
+orch_prompt_classify "test-agent" "$TEST_DIR/test-prompt.txt"
+
+# ── Test 31: count_tokens chars method ──
+tok_chars=$(orch_prompt_count_tokens "Hello world, this is a test" "chars")
+[[ "$tok_chars" -gt 0 ]] || fail "T31: chars token count should be > 0"
+pass "T31: count_tokens chars method works ($tok_chars tokens)"
+
+# ── Test 32: count_tokens words method ──
+tok_words=$(orch_prompt_count_tokens "Hello world this is a test" "words")
+[[ "$tok_words" -gt 0 ]] || fail "T32: words token count should be > 0"
+# 6 words * 1.3 = ~8 tokens
+[[ "$tok_words" -ge 6 && "$tok_words" -le 12 ]] || fail "T32: words method should give 6-12 for 6 words, got $tok_words"
+pass "T32: count_tokens words method works ($tok_words tokens)"
+
+# ── Test 33: count_tokens empty string ──
+tok_empty=$(orch_prompt_count_tokens "" "chars")
+[[ "$tok_empty" == "0" ]] || fail "T33: empty string should be 0 tokens, got $tok_empty"
+pass "T33: count_tokens handles empty string"
+
+# ── Test 34: section_tokens computes per-section counts ──
+section_out=$(orch_prompt_section_tokens "test-agent")
+[[ "$section_out" == *"total:"* ]] || fail "T34: section_tokens should show total"
+[[ "$section_out" == *"tokens"* ]] || fail "T34: section_tokens should mention tokens"
+pass "T34: section_tokens outputs per-section breakdown"
+
+# ── Test 35: Dedup on non-duplicate sections ──
+dedup_count=$(orch_prompt_dedup_sections "test-agent")
+# The test prompt has unique sections, so dedup should find 0
+[[ "$dedup_count" == "0" ]] || fail "T35: unique sections should produce 0 dedup, got $dedup_count"
+pass "T35: dedup finds 0 duplicates in unique sections"
+
+# ── Test 36: Dedup detects similar content ──
+cat > "$TEST_DIR/dedup-prompt.txt" << 'DEDUP'
+## Tech Stack
+The tech stack includes Bash, Python, and Git for orchestration.
+Testing uses bash unit tests with assertions.
+
+## Stack Reference
+The stack reference includes Bash, Python, and Git for orchestration.
+Testing uses bash unit tests with assertions.
+
+## Current Tasks
+Complete the integration tests and fix bugs.
+DEDUP
+orch_prompt_classify "dedup-agent" "$TEST_DIR/dedup-prompt.txt"
+dedup_count2=$(orch_prompt_dedup_sections "dedup-agent")
+[[ "$dedup_count2" -ge 1 ]] || fail "T36: near-identical sections should produce >= 1 dedup, got $dedup_count2"
+pass "T36: dedup detects similar sections ($dedup_count2 found)"
+
+# ── Test 37: Budget truncation respects token limit ──
+orch_prompt_init 200
+orch_prompt_classify "budget-agent" "$TEST_DIR/test-prompt.txt"
+budget_out=$(orch_prompt_truncate_to_budget "budget-agent" 200)
+budget_tokens=$(orch_prompt_count_tokens "$budget_out")
+# Should be roughly within budget (allow some overshoot from truncation rounding)
+[[ "$budget_tokens" -le 280 ]] || fail "T37: budget output should be <= 280 tokens (200+margin), got $budget_tokens"
+pass "T37: budget truncation fits within limit ($budget_tokens tokens)"
+
+# ── Test 38: Budget mode in compress ──
+_ORCH_PROMPT_TOKEN_BUDGET=300
+budget_compressed=$(orch_prompt_compress "budget-agent" "budget")
+[[ -n "$budget_compressed" ]] || fail "T38: budget compress should produce output"
+pass "T38: compress mode=budget produces output"
+
+# ── Test 39: Standard mode skips dedup sections ──
+orch_prompt_classify "dedup-agent" "$TEST_DIR/dedup-prompt.txt"
+orch_prompt_dedup_sections "dedup-agent" >/dev/null
+full_out=$(orch_prompt_compress "dedup-agent" "full")
+std_out=$(orch_prompt_compress "dedup-agent" "standard")
+full_len=${#full_out}
+std_len=${#std_out}
+[[ "$std_len" -lt "$full_len" ]] || fail "T39: standard with dedup should be shorter than full ($std_len vs $full_len)"
+pass "T39: standard mode skips deduplicated sections"
+
+# ── Test 40: Similarity of identical texts = 100 ──
+sim=$(_orch_prompt_similarity "hello world foo bar" "hello world foo bar")
+[[ "$sim" == "100" ]] || fail "T40: identical texts should have 100% similarity, got $sim"
+pass "T40: identical text similarity = 100%"
+
+# ── Test 41: Similarity of completely different texts = 0 ──
+sim2=$(_orch_prompt_similarity "alpha beta gamma" "one two three")
+[[ "$sim2" == "0" ]] || fail "T41: completely different texts should have 0% similarity, got $sim2"
+pass "T41: different text similarity = 0%"
+
 # ── Summary ──
 echo ""
 echo "═══════════════════════════════════════"

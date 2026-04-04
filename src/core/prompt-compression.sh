@@ -1,6 +1,8 @@
 #!/usr/bin/env bash
 # prompt-compression.sh — Tiered prompt loading for token savings
-# v0.2.0: #47 — classify prompt sections, compress stable content on repeat runs
+# v0.3.0: #47 — classify prompt sections, compress stable content on repeat runs
+#         v0.3 adds: precise token counting, semantic deduplication, priority-based
+#         truncation with budget enforcement, per-section token tracking
 #
 # Agent prompts contain sections that rarely change (tech stack, ownership, rules)
 # and sections that change every cycle (tasks, status, done list). By classifying
@@ -16,6 +18,7 @@
 #   full      — All sections, all tiers (first run or when stable sections change)
 #   standard  — Stable sections condensed to 1-line summaries, dynamic+reference in full
 #   minimal   — Dynamic sections only (emergency token budget)
+#   budget    — Priority-based truncation to fit within token budget (v0.3)
 #
 # Provides:
 #   orch_prompt_init             — configure known section patterns
@@ -26,6 +29,10 @@
 #   orch_prompt_load_hashes      — load previous stable hashes from state file
 #   orch_prompt_save_hashes      — persist stable hashes to state file
 #   orch_prompt_mode_for_agent   — decide mode based on hash comparison + budget
+#   orch_prompt_count_tokens     — precise token counting with multiple methods (v0.3)
+#   orch_prompt_dedup_sections   — semantic deduplication of similar sections (v0.3)
+#   orch_prompt_truncate_to_budget — priority-based truncation to fit budget (v0.3)
+#   orch_prompt_section_tokens   — get token count per section (v0.3)
 
 [[ -n "${_ORCH_PROMPT_COMPRESSION_LOADED:-}" ]] && return 0
 _ORCH_PROMPT_COMPRESSION_LOADED=1
@@ -39,6 +46,24 @@ declare -g -A _ORCH_PROMPT_SEC_COUNT=()    # agent -> number of sections parsed
 declare -g -A _ORCH_PROMPT_STABLE_HASH=()  # agent -> hash of all stable sections combined
 declare -g -A _ORCH_PROMPT_PREV_HASH=()    # agent -> previous run's stable hash
 declare -g _ORCH_PROMPT_TOKEN_BUDGET=0     # max tokens per agent (0 = unlimited)
+
+# v0.3 Per-section token counts and priority
+declare -g -A _ORCH_PROMPT_SEC_TOKENS=()   # "agent:N" -> token count for section
+declare -g -A _ORCH_PROMPT_SEC_PRIORITY=() # "agent:N" -> priority (1=highest, 10=lowest)
+declare -g -A _ORCH_PROMPT_DEDUP_MAP=()    # "agent:N" -> "agent:M" if N is duplicate of M
+
+# v0.3 Tier priorities (lower = higher priority, kept first during truncation)
+declare -g -A _ORCH_PROMPT_TIER_PRIORITY=(
+    [dynamic]=1
+    [reference]=5
+    [stable]=8
+)
+
+# v0.3 Token counting method: chars (fast, ~4 chars/token) | words (medium, ~1.3 tokens/word)
+declare -g _ORCH_PROMPT_TOKEN_METHOD="${ORCH_PROMPT_TOKEN_METHOD:-chars}"
+
+# v0.3 Deduplication similarity threshold (0-100, percentage of shared words)
+declare -g _ORCH_PROMPT_DEDUP_THRESHOLD="${ORCH_PROMPT_DEDUP_THRESHOLD:-70}"
 
 # Known header patterns → tier classification
 # These match common OrchyStraw prompt section headers
@@ -192,55 +217,7 @@ orch_prompt_classify() {
     return 0
 }
 
-# orch_prompt_compress <agent_id> <mode>
-#   Output the compressed prompt for the given mode.
-#   mode: full | standard | minimal
-orch_prompt_compress() {
-    local agent_id="${1:?orch_prompt_compress: agent_id required}"
-    local mode="${2:-standard}"
-    local sec_count="${_ORCH_PROMPT_SEC_COUNT[$agent_id]:-0}"
-
-    if [[ "$sec_count" -eq 0 ]]; then
-        _orch_prompt_log WARN "No sections classified for $agent_id — call orch_prompt_classify first"
-        return 1
-    fi
-
-    local i
-    for ((i = 0; i < sec_count; i++)); do
-        local header="${_ORCH_PROMPT_SEC_HEADERS[$agent_id:$i]}"
-        local content="${_ORCH_PROMPT_SECTIONS[$agent_id:$i]}"
-        local tier="${_ORCH_PROMPT_SEC_TIER[$agent_id:$i]}"
-
-        case "$mode" in
-            full)
-                # Output everything
-                printf '%s' "$content"
-                ;;
-            standard)
-                case "$tier" in
-                    stable)
-                        # Condense: just the header + one-line summary
-                        printf '## %s\n' "$header"
-                        printf '[Stable section — unchanged since last run. See full prompt for details.]\n\n'
-                        ;;
-                    dynamic|reference)
-                        printf '%s' "$content"
-                        ;;
-                esac
-                ;;
-            minimal)
-                case "$tier" in
-                    dynamic)
-                        printf '%s' "$content"
-                        ;;
-                    stable|reference)
-                        # Skip entirely
-                        ;;
-                esac
-                ;;
-        esac
-    done
-}
+# (orch_prompt_compress moved to v0.3 section below with budget mode support)
 
 # orch_prompt_estimate_tokens <text>
 #   Rough token estimate. Claude tokenizer averages ~4 chars per token for English.
@@ -407,4 +384,287 @@ orch_prompt_stats() {
     printf '  reference: %d sections, ~%d tokens (%d%%)\n' "$reference_count" "$(( (reference_chars + 3) / 4 ))" "$reference_pct"
     printf '  total:     ~%d tokens\n' "$(( (total_chars + 3) / 4 ))"
     printf '  standard mode saves: ~%d tokens (%d%%)\n' "$(( (stable_chars + 3) / 4 ))" "$stable_pct"
+}
+
+# ══════════════════════════════════════════════════
+# v0.3 Precise Token Counting
+# ══════════════════════════════════════════════════
+
+# orch_prompt_count_tokens <text> [method]
+#   Count tokens using the specified method.
+#   Methods: chars (~4 chars/token), words (~1.3 tokens/word)
+#   Reads from stdin if no text argument given.
+orch_prompt_count_tokens() {
+    local text=""
+    local method="${2:-$_ORCH_PROMPT_TOKEN_METHOD}"
+
+    if [[ $# -gt 0 && -n "$1" ]]; then
+        text="$1"
+    else
+        text=$(cat)
+    fi
+
+    [[ -z "$text" ]] && { printf '0\n'; return 0; }
+
+    case "$method" in
+        chars)
+            local char_count=${#text}
+            printf '%d\n' "$(( (char_count + 3) / 4 ))"
+            ;;
+        words)
+            # Word-based: ~1.3 tokens per word (accounts for subword tokenization)
+            local word_count
+            word_count=$(printf '%s' "$text" | wc -w)
+            word_count="${word_count// /}"
+            printf '%d\n' "$(( (word_count * 13 + 9) / 10 ))"
+            ;;
+        *)
+            # Fallback to chars
+            local char_count=${#text}
+            printf '%d\n' "$(( (char_count + 3) / 4 ))"
+            ;;
+    esac
+}
+
+# orch_prompt_section_tokens <agent_id>
+#   Compute and cache token counts for each section. Prints section-by-section breakdown.
+orch_prompt_section_tokens() {
+    local agent_id="${1:?orch_prompt_section_tokens: agent_id required}"
+    local sec_count="${_ORCH_PROMPT_SEC_COUNT[$agent_id]:-0}"
+    local total=0
+
+    local i
+    for ((i = 0; i < sec_count; i++)); do
+        local content="${_ORCH_PROMPT_SECTIONS[$agent_id:$i]}"
+        local tokens
+        tokens=$(orch_prompt_count_tokens "$content")
+        _ORCH_PROMPT_SEC_TOKENS["$agent_id:$i"]="$tokens"
+
+        # Assign priority based on tier
+        local tier="${_ORCH_PROMPT_SEC_TIER[$agent_id:$i]}"
+        _ORCH_PROMPT_SEC_PRIORITY["$agent_id:$i"]="${_ORCH_PROMPT_TIER_PRIORITY[$tier]:-5}"
+
+        local header="${_ORCH_PROMPT_SEC_HEADERS[$agent_id:$i]}"
+        printf '  [%d] %-30s %-10s %d tokens (pri=%s)\n' \
+            "$i" "$header" "$tier" "$tokens" "${_ORCH_PROMPT_SEC_PRIORITY[$agent_id:$i]}"
+
+        total=$((total + tokens))
+    done
+
+    printf '  total: %d tokens\n' "$total"
+}
+
+# ══════════════════════════════════════════════════
+# v0.3 Semantic Deduplication
+# ══════════════════════════════════════════════════
+
+# _orch_prompt_word_set <text>
+#   Extract unique lowercase words from text (for similarity comparison).
+_orch_prompt_word_set() {
+    local text="${1,,}"
+    # Remove punctuation, extract words
+    printf '%s' "$text" | tr -cs 'a-z0-9' '\n' | sort -u | tr '\n' ' '
+}
+
+# _orch_prompt_similarity <text_a> <text_b>
+#   Compute word-level Jaccard similarity (0-100).
+_orch_prompt_similarity() {
+    local text_a="$1"
+    local text_b="$2"
+
+    local words_a words_b
+    words_a=$(_orch_prompt_word_set "$text_a")
+    words_b=$(_orch_prompt_word_set "$text_b")
+
+    [[ -z "$words_a" || -z "$words_b" ]] && { printf '0'; return; }
+
+    # Count intersection and union
+    local -A set_a=() set_b=()
+    local w
+    for w in $words_a; do set_a["$w"]=1; done
+    for w in $words_b; do set_b["$w"]=1; done
+
+    local intersection=0 union=0
+    for w in "${!set_a[@]}"; do
+        union=$((union + 1))
+        [[ -n "${set_b[$w]+x}" ]] && intersection=$((intersection + 1))
+    done
+    for w in "${!set_b[@]}"; do
+        [[ -z "${set_a[$w]+x}" ]] && union=$((union + 1))
+    done
+
+    [[ "$union" -eq 0 ]] && { printf '0'; return; }
+    printf '%d' "$(( intersection * 100 / union ))"
+}
+
+# orch_prompt_dedup_sections <agent_id>
+#   Find and mark semantically duplicate sections. Duplicates are marked in
+#   _ORCH_PROMPT_DEDUP_MAP. Returns count of duplicates found.
+orch_prompt_dedup_sections() {
+    local agent_id="${1:?orch_prompt_dedup_sections: agent_id required}"
+    local sec_count="${_ORCH_PROMPT_SEC_COUNT[$agent_id]:-0}"
+    local threshold="${_ORCH_PROMPT_DEDUP_THRESHOLD}"
+    local dedup_count=0
+
+    # Clear previous dedup map for this agent
+    local i
+    for ((i = 0; i < sec_count; i++)); do
+        unset "_ORCH_PROMPT_DEDUP_MAP[$agent_id:$i]"
+    done
+
+    # Compare all pairs (O(n^2) but section count is small, typically <15)
+    local j
+    for ((i = 0; i < sec_count; i++)); do
+        # Skip if already marked as duplicate
+        [[ -n "${_ORCH_PROMPT_DEDUP_MAP[$agent_id:$i]+x}" ]] && continue
+
+        local content_i="${_ORCH_PROMPT_SECTIONS[$agent_id:$i]}"
+        [[ ${#content_i} -lt 20 ]] && continue  # skip tiny sections
+
+        for ((j = i + 1; j < sec_count; j++)); do
+            [[ -n "${_ORCH_PROMPT_DEDUP_MAP[$agent_id:$j]+x}" ]] && continue
+
+            local content_j="${_ORCH_PROMPT_SECTIONS[$agent_id:$j]}"
+            [[ ${#content_j} -lt 20 ]] && continue
+
+            local sim
+            sim=$(_orch_prompt_similarity "$content_i" "$content_j")
+
+            if [[ "$sim" -ge "$threshold" ]]; then
+                _ORCH_PROMPT_DEDUP_MAP["$agent_id:$j"]="$agent_id:$i"
+                _orch_prompt_log INFO "Dedup: section $j (~${sim}% similar to $i) for $agent_id"
+                dedup_count=$((dedup_count + 1))
+            fi
+        done
+    done
+
+    printf '%d\n' "$dedup_count"
+}
+
+# ══════════════════════════════════════════════════
+# v0.3 Priority-Based Truncation
+# ══════════════════════════════════════════════════
+
+# orch_prompt_truncate_to_budget <agent_id> <max_tokens>
+#   Output prompt truncated to fit within max_tokens budget.
+#   Keeps sections in priority order (dynamic first, then reference, then stable).
+#   Skips deduplicated sections. Truncates last-included section if needed.
+orch_prompt_truncate_to_budget() {
+    local agent_id="${1:?orch_prompt_truncate_to_budget: agent_id required}"
+    local max_tokens="${2:?orch_prompt_truncate_to_budget: max_tokens required}"
+    local sec_count="${_ORCH_PROMPT_SEC_COUNT[$agent_id]:-0}"
+
+    [[ "$sec_count" -eq 0 ]] && return 1
+
+    # Ensure section tokens are computed
+    local i
+    for ((i = 0; i < sec_count; i++)); do
+        if [[ -z "${_ORCH_PROMPT_SEC_TOKENS[$agent_id:$i]+x}" ]]; then
+            local content="${_ORCH_PROMPT_SECTIONS[$agent_id:$i]}"
+            _ORCH_PROMPT_SEC_TOKENS["$agent_id:$i"]=$(orch_prompt_count_tokens "$content")
+        fi
+        if [[ -z "${_ORCH_PROMPT_SEC_PRIORITY[$agent_id:$i]+x}" ]]; then
+            local tier="${_ORCH_PROMPT_SEC_TIER[$agent_id:$i]}"
+            _ORCH_PROMPT_SEC_PRIORITY["$agent_id:$i"]="${_ORCH_PROMPT_TIER_PRIORITY[$tier]:-5}"
+        fi
+    done
+
+    # Build sorted index by priority (ascending = highest priority first)
+    local -a sorted_indices=()
+    sorted_indices=($(for ((i = 0; i < sec_count; i++)); do
+        printf '%s %d\n' "${_ORCH_PROMPT_SEC_PRIORITY[$agent_id:$i]:-5}" "$i"
+    done | sort -n -k1 | awk '{print $2}'))
+
+    local budget_remaining="$max_tokens"
+    local included=0
+
+    for idx in "${sorted_indices[@]}"; do
+        # Skip deduplicated sections
+        [[ -n "${_ORCH_PROMPT_DEDUP_MAP[$agent_id:$idx]+x}" ]] && continue
+
+        local tokens="${_ORCH_PROMPT_SEC_TOKENS[$agent_id:$idx]}"
+        local content="${_ORCH_PROMPT_SECTIONS[$agent_id:$idx]}"
+
+        if [[ "$tokens" -le "$budget_remaining" ]]; then
+            printf '%s' "$content"
+            budget_remaining=$((budget_remaining - tokens))
+            included=$((included + 1))
+        elif [[ "$budget_remaining" -gt 50 ]]; then
+            # Truncate this section to fit remaining budget
+            local max_chars=$(( budget_remaining * 4 ))  # ~4 chars per token
+            local header="${_ORCH_PROMPT_SEC_HEADERS[$agent_id:$idx]}"
+            printf '## %s\n' "$header"
+            # Take first max_chars of content (after header)
+            local body="${content#*$'\n'}"
+            printf '%s\n' "${body:0:$max_chars}"
+            printf '\n[...truncated to fit token budget]\n\n'
+            budget_remaining=0
+            included=$((included + 1))
+            break
+        else
+            # Not enough budget for any meaningful content
+            break
+        fi
+    done
+
+    _orch_prompt_log INFO "Budget truncation for $agent_id: $included/$sec_count sections, ${budget_remaining} tokens remaining"
+}
+
+# orch_prompt_compress — updated to support "budget" mode (v0.3)
+# Extended the existing function by adding budget mode handling
+orch_prompt_compress() {
+    local agent_id="${1:?orch_prompt_compress: agent_id required}"
+    local mode="${2:-standard}"
+    local sec_count="${_ORCH_PROMPT_SEC_COUNT[$agent_id]:-0}"
+
+    if [[ "$sec_count" -eq 0 ]]; then
+        _orch_prompt_log WARN "No sections classified for $agent_id — call orch_prompt_classify first"
+        return 1
+    fi
+
+    # v0.3 budget mode delegates to truncation
+    if [[ "$mode" == "budget" ]]; then
+        local budget="${_ORCH_PROMPT_TOKEN_BUDGET}"
+        [[ "$budget" -le 0 ]] && budget=10000  # default budget if not set
+        orch_prompt_truncate_to_budget "$agent_id" "$budget"
+        return $?
+    fi
+
+    local i
+    for ((i = 0; i < sec_count; i++)); do
+        local header="${_ORCH_PROMPT_SEC_HEADERS[$agent_id:$i]}"
+        local content="${_ORCH_PROMPT_SECTIONS[$agent_id:$i]}"
+        local tier="${_ORCH_PROMPT_SEC_TIER[$agent_id:$i]}"
+
+        # v0.3: skip deduplicated sections in all modes except full
+        if [[ "$mode" != "full" && -n "${_ORCH_PROMPT_DEDUP_MAP[$agent_id:$i]+x}" ]]; then
+            continue
+        fi
+
+        case "$mode" in
+            full)
+                printf '%s' "$content"
+                ;;
+            standard)
+                case "$tier" in
+                    stable)
+                        printf '## %s\n' "$header"
+                        printf '[Stable section — unchanged since last run. See full prompt for details.]\n\n'
+                        ;;
+                    dynamic|reference)
+                        printf '%s' "$content"
+                        ;;
+                esac
+                ;;
+            minimal)
+                case "$tier" in
+                    dynamic)
+                        printf '%s' "$content"
+                        ;;
+                    stable|reference)
+                        ;;
+                esac
+                ;;
+        esac
+    done
 }
