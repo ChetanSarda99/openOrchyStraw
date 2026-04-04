@@ -37,6 +37,8 @@ AUDIT_FILE="$PROJECT_ROOT/.orchystraw/audit.jsonl"
 declare -A AUDIT_INVOCATIONS=()
 declare -A AUDIT_DURATION=()
 declare -A AUDIT_TOKENS=()
+declare -A AUDIT_COST=()
+declare -A AUDIT_MODEL=()
 
 if [[ -f "$AUDIT_FILE" ]]; then
     while IFS= read -r line; do
@@ -44,12 +46,16 @@ if [[ -f "$AUDIT_FILE" ]]; then
         agent=""
         dur=0
         tok=0
+        cost=""
+        model=""
         prev=""
         for field in $(echo "$line" | tr '{},:"' ' '); do
             case "$prev" in
                 agent) agent="$field" ;;
                 duration_s) dur="$field" ;;
                 tokens_est) tok="$field" ;;
+                cost_estimate) cost="$field" ;;
+                model) model="$field" ;;
             esac
             prev="$field"
         done
@@ -57,6 +63,15 @@ if [[ -f "$AUDIT_FILE" ]]; then
             AUDIT_INVOCATIONS["$agent"]=$(( ${AUDIT_INVOCATIONS["$agent"]:-0} + 1 ))
             AUDIT_DURATION["$agent"]=$(( ${AUDIT_DURATION["$agent"]:-0} + dur ))
             AUDIT_TOKENS["$agent"]=$(( ${AUDIT_TOKENS["$agent"]:-0} + tok ))
+            # Accumulate cost (strip leading 0. and treat as microdollars)
+            if [[ -n "$cost" ]]; then
+                cost_num="${cost//[^0-9]/}"
+                cost_num="${cost_num:-0}"
+                # Remove leading zeros for arithmetic
+                cost_num=$(( 10#$cost_num ))
+                AUDIT_COST["$agent"]=$(( ${AUDIT_COST["$agent"]:-0} + cost_num ))
+            fi
+            [[ -n "$model" ]] && AUDIT_MODEL["$agent"]="$model"
         fi
     done < "$AUDIT_FILE"
 fi
@@ -179,18 +194,25 @@ echo ""
 if [[ ${#AUDIT_INVOCATIONS[@]} -eq 0 ]]; then
     echo "- No audit data available (run cycles to populate .orchystraw/audit.jsonl)"
 else
-    echo "| Agent | Invocations | Wall-Clock (s) | Est. Tokens | Avg Tokens/Run |"
-    echo "|-------|------------|----------------|-------------|----------------|"
+    echo "| Agent | Model | Invocations | Wall-Clock (s) | Est. Tokens | Avg Tokens/Run | Est. Cost |"
+    echo "|-------|-------|------------|----------------|-------------|----------------|-----------|"
+    total_cost=0
     for id in "${AGENT_IDS[@]}"; do
         inv="${AUDIT_INVOCATIONS[$id]:-0}"
         dur="${AUDIT_DURATION[$id]:-0}"
         tok="${AUDIT_TOKENS[$id]:-0}"
+        cost_micro="${AUDIT_COST[$id]:-0}"
+        model="${AUDIT_MODEL[$id]:-—}"
         avg_tok=0
         if [[ $inv -gt 0 ]]; then
             avg_tok=$(( tok / inv ))
         fi
-        echo "| $id | $inv | $dur | $tok | $avg_tok |"
+        cost_display="\$0.$(printf '%06d' "$cost_micro")"
+        total_cost=$(( total_cost + cost_micro ))
+        echo "| $id | $model | $inv | $dur | $tok | $avg_tok | $cost_display |"
     done
+    echo ""
+    echo "**Total estimated cost:** \$0.$(printf '%06d' "$total_cost")"
 fi
 echo ""
 
