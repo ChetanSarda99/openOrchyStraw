@@ -232,3 +232,116 @@ done
 if [[ $orphan_prompts -eq 0 ]]; then
     echo "- All agent prompts exist"
 fi
+
+# ── Trend Analysis (compare last 5 cycles) ──
+echo ""
+echo "## Trend Analysis (Last 5 Cycles)"
+echo ""
+
+METRICS_FILE="$PROJECT_ROOT/.orchystraw/metrics.jsonl"
+if [[ -f "$METRICS_FILE" ]]; then
+    declare -a TREND_CYCLES=()
+    declare -a TREND_COMMITS=()
+    declare -a TREND_ISSUES=()
+    declare -a TREND_TS=()
+
+    while IFS= read -r line; do
+        [[ -z "$line" ]] && continue
+        cycle=0 commits=0 issues=0 ts=""
+        prev=""
+        for field in $(echo "$line" | tr '{},:"' ' '); do
+            case "$prev" in
+                cycle) cycle="$field" ;;
+                commits) commits="$field" ;;
+                issues_open) issues="$field" ;;
+                ts) ts="$field" ;;
+            esac
+            prev="$field"
+        done
+        TREND_CYCLES+=("$cycle")
+        TREND_COMMITS+=("$commits")
+        TREND_ISSUES+=("${issues//[^0-9]/}")
+        TREND_TS+=("$ts")
+    done < "$METRICS_FILE"
+
+    total_entries=${#TREND_CYCLES[@]}
+    start_idx=0
+    if [[ $total_entries -gt 5 ]]; then
+        start_idx=$((total_entries - 5))
+    fi
+
+    if [[ $total_entries -ge 2 ]]; then
+        echo "| Cycle | Commits | Issues | Trend (Commits) | Trend (Issues) |"
+        echo "|-------|---------|--------|-----------------|----------------|"
+
+        prev_commits=0
+        prev_issues=0
+        first=true
+        for (( i=start_idx; i<total_entries; i++ )); do
+            c="${TREND_CYCLES[$i]}"
+            cm="${TREND_COMMITS[$i]}"
+            is="${TREND_ISSUES[$i]:-0}"
+            cm="${cm:-0}"
+            is="${is:-0}"
+
+            commit_trend="—"
+            issue_trend="—"
+            if [[ "$first" == false ]]; then
+                if [[ "$cm" -gt "$prev_commits" ]]; then
+                    commit_trend="**UP** (+$((cm - prev_commits)))"
+                elif [[ "$cm" -lt "$prev_commits" ]]; then
+                    commit_trend="DOWN (-$((prev_commits - cm)))"
+                else
+                    commit_trend="FLAT"
+                fi
+                if [[ "$is" -gt "$prev_issues" ]]; then
+                    issue_trend="**UP** (+$((is - prev_issues)))"
+                elif [[ "$is" -lt "$prev_issues" ]]; then
+                    issue_trend="DOWN (-$((prev_issues - is)))"
+                else
+                    issue_trend="FLAT"
+                fi
+            fi
+            first=false
+            prev_commits="$cm"
+            prev_issues="$is"
+            echo "| $c | $cm | $is | $commit_trend | $issue_trend |"
+        done
+        echo ""
+
+        # Summary stats
+        sum_commits=0
+        sum_issues=0
+        count=0
+        for (( i=start_idx; i<total_entries; i++ )); do
+            cm="${TREND_COMMITS[$i]:-0}"
+            is="${TREND_ISSUES[$i]:-0}"
+            sum_commits=$((sum_commits + cm))
+            sum_issues=$((sum_issues + is))
+            count=$((count + 1))
+        done
+        if [[ $count -gt 0 ]]; then
+            avg_commits=$((sum_commits / count))
+            avg_issues=$((sum_issues / count))
+            echo "**5-cycle averages:** $avg_commits commits/cycle, $avg_issues open issues/cycle"
+        fi
+
+        # Velocity direction
+        oldest_commits="${TREND_COMMITS[$start_idx]:-0}"
+        newest_commits="${TREND_COMMITS[$((total_entries - 1))]:-0}"
+        if [[ "$newest_commits" -gt "$oldest_commits" ]]; then
+            echo ""
+            echo "**Velocity: ACCELERATING** — commit rate increasing over last 5 cycles"
+        elif [[ "$newest_commits" -lt "$oldest_commits" ]]; then
+            echo ""
+            echo "**Velocity: DECELERATING** — commit rate decreasing (check agent health)"
+        else
+            echo ""
+            echo "**Velocity: STABLE** — commit rate consistent"
+        fi
+    else
+        echo "- Not enough cycle data for trend analysis (need >= 2 cycles)"
+    fi
+else
+    echo "- No metrics data available (run cycles to populate .orchystraw/metrics.jsonl)"
+fi
