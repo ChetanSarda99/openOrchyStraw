@@ -1,0 +1,143 @@
+---
+title: "Quickstart"
+description: "Get OrchyStraw running in 5 minutes. Install, configure agents, run your first cycle."
+---
+
+# 5-Minute Quickstart
+
+Get multi-agent orchestration running on your codebase in 5 minutes.
+
+## Prerequisites
+
+- Bash 5.0+ (`bash --version` to check)
+- Git
+- An AI coding CLI (Claude Code, Codex, Aider, etc.)
+
+<Tip>
+On macOS, the default bash is 3.x. Install bash 5+ with `brew install bash`.
+</Tip>
+
+## Step 1: Clone the repo
+
+```bash
+git clone https://github.com/ChetanSarda99/openOrchyStraw.git
+cd openOrchyStraw
+```
+
+## Step 2: Create your agents.conf
+
+Create an `agents.conf` file in your project root. This defines your agent team.
+
+```bash agents.conf
+# Format: id | prompt_path | ownership | interval | label
+
+# Coordinator -- runs LAST each cycle
+03-pm        | prompts/03-pm/03-pm.txt       | prompts/ docs/  | 0 | PM Coordinator
+
+# Every-cycle workers
+06-backend   | prompts/06-backend/06-backend.txt | src/ scripts/ | 1 | Backend Developer
+11-web       | prompts/11-web/11-web.txt         | site/          | 1 | Web Developer
+
+# Less frequent
+09-qa        | prompts/09-qa/09-qa.txt           | tests/         | 3 | QA Engineer
+```
+
+<Note>
+**interval=0** means coordinator (runs last). **interval=1** means every cycle. **interval=3** means every 3rd cycle.
+</Note>
+
+## Step 3: Write agent prompts
+
+Each agent needs a markdown prompt file. Create the directory and file:
+
+```bash
+mkdir -p prompts/06-backend
+```
+
+```markdown prompts/06-backend/06-backend.txt
+# Backend Developer
+
+You are the backend developer for this project.
+
+## Your Tasks
+1. Read prompts/00-shared-context/context.md
+2. Implement the features listed below
+3. Write your status to shared context when done
+
+## Current Sprint
+- Build the REST API endpoints
+- Add input validation
+- Write unit tests
+
+## File Ownership
+You own: src/ scripts/
+You never touch: site/ prompts/ (except your own)
+```
+
+## Step 4: Create shared context
+
+```bash
+mkdir -p prompts/00-shared-context
+```
+
+```markdown prompts/00-shared-context/context.md
+# Shared Context -- Cycle 1
+> Agents: read before starting, append before finishing.
+
+## Progress
+- Fresh start. No previous cycles.
+
+## Blockers
+- (none)
+```
+
+## Step 5: Run your first cycle
+
+```bash
+# Dry run first (no actual AI calls)
+bash scripts/auto-agent.sh orchestrate 1 --dry-run
+
+# Run for real (1 cycle)
+bash scripts/auto-agent.sh orchestrate 1
+```
+
+The orchestrator will:
+1. Validate your `agents.conf`
+2. Run each agent in order (respecting intervals)
+3. Enforce file ownership
+4. Commit each agent's changes
+5. Run the PM agent last
+
+## What happens next?
+
+After the first cycle completes:
+- Each agent's work is committed with clear attribution
+- Shared context is updated with progress
+- The PM agent has reviewed and updated prompts for cycle 2
+
+Run more cycles:
+
+```bash
+# Run 5 cycles
+bash scripts/auto-agent.sh orchestrate 5
+
+# Run a single agent
+bash scripts/auto-agent.sh single 06-backend
+```
+
+## Next Steps
+
+<CardGroup cols={2}>
+  <Card title="How Agents Work" icon="users" href="/concepts/agents">
+    Deep dive into agent configuration, ownership, and lifecycle.
+  </Card>
+  <Card title="agents.conf Reference" icon="file-code" href="/api/agents-conf">
+    Full format reference for agents.conf.
+  </Card>
+  <Card title="Orchestrator" icon="gears" href="/concepts/orchestrator">
+    How auto-agent.sh manages cycles and coordination.
+  </Card>
+  <Card title="Core Modules" icon="puzzle-piece" href="/concepts/modules">
+    The 20+ bash modules that power OrchyStraw.
+  </Card>
+</CardGroup>

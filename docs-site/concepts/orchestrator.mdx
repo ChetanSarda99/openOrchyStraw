@@ -1,0 +1,123 @@
+---
+title: "Orchestrator"
+description: "How auto-agent.sh manages cycles, agents, and coordination."
+---
+
+# How the Orchestrator Works
+
+The orchestrator (`scripts/auto-agent.sh`) is the core engine. It reads your agent configuration, runs agents in sequence, enforces ownership, and manages the full cycle lifecycle.
+
+## Running the Orchestrator
+
+```bash
+# Run N cycles
+bash scripts/auto-agent.sh orchestrate 5
+
+# Dry run (preview without executing agents)
+bash scripts/auto-agent.sh orchestrate 3 --dry-run
+
+# Run a single agent
+bash scripts/auto-agent.sh single 06-backend
+```
+
+## Cycle Anatomy
+
+Each orchestration cycle follows this sequence:
+
+<Steps>
+  <Step title="Pre-cycle">
+    - Validate `agents.conf` format
+    - Check bash version (5.0+ required)
+    - Acquire lock file (prevent concurrent runs)
+    - Load cycle state (which cycle number, which agents ran last)
+    - Back up all prompt files
+  </Step>
+  <Step title="Agent routing">
+    - Determine which agents run this cycle (based on intervals)
+    - Apply conditional activation (skip idle agents)
+    - Resolve dependency ordering (agents that depend on others run after them)
+    - Select model tier per agent (if model column is configured)
+  </Step>
+  <Step title="Agent execution">
+    For each active agent:
+    1. Create git worktree (if enabled)
+    2. Assemble prompt (with compression and differential context)
+    3. Spawn the AI CLI with the prompt
+    4. Apply timeout (SIGTERM then SIGKILL)
+    5. Validate file ownership
+    6. Commit changes
+    7. Clean up worktree
+  </Step>
+  <Step title="Coordinator">
+    The interval-0 agent (PM) runs last:
+    - Reviews all changes from this cycle
+    - Updates prompts for next cycle
+    - Manages shared context
+  </Step>
+  <Step title="Post-cycle">
+    - Track cycle outcome (productive vs. empty)
+    - Update session history
+    - Adjust agent intervals based on activity (dynamic routing)
+    - Release lock file
+  </Step>
+</Steps>
+
+## Smart Cycle Features
+
+The orchestrator uses modular features that can be enabled independently:
+
+### Dynamic Routing
+
+Agents are sorted by priority and dependency graph. If agent B depends on agent A, A always runs first. The router also adjusts intervals based on agent productivity.
+
+### Worktree Isolation
+
+Each agent gets its own git worktree, preventing file conflicts between agents. Changes are merged back to the main branch after validation.
+
+### Prompt Compression
+
+Prompts are split into tiers:
+- **Stable**: Rarely changes (role description, rules). Sent in full only when changed.
+- **Dynamic**: Changes each cycle (tasks, shared context). Always sent.
+- **Reference**: Large reference docs. Sent in minimal mode when tokens are tight.
+
+### Review Phase
+
+A reviewer agent (typically QA) can inspect changes and issue verdicts:
+- **approve** -- changes are accepted
+- **request-changes** -- the agent re-runs with feedback
+- **comment** -- informational, no re-run
+
+A cost guard prevents more than 50% of cycle budget being spent on re-runs.
+
+### Conditional Activation
+
+Agents are skipped when there is nothing for them to do:
+- No files changed in their ownership paths
+- Not mentioned in shared context
+- No assigned tasks
+
+This can save significant token usage in large teams.
+
+## Error Handling
+
+The orchestrator handles failures gracefully:
+
+- **Agent timeout**: SIGTERM after configured timeout, SIGKILL after grace period
+- **Agent crash**: Error is logged, cycle continues with next agent
+- **Lock contention**: Second orchestrator instance exits immediately
+- **Signal handling**: SIGINT/SIGTERM triggers graceful shutdown (finish current agent, then stop)
+
+## Dry Run Mode
+
+The `--dry-run` flag previews what would happen without executing any agents:
+
+```bash
+bash scripts/auto-agent.sh orchestrate 3 --dry-run
+```
+
+This shows:
+- Which agents would run each cycle
+- File ownership assignments
+- Dependency ordering
+- Estimated token usage

@@ -1,0 +1,115 @@
+---
+title: "Agents"
+description: "How agents work in OrchyStraw -- configuration, file ownership, lifecycle, and communication."
+---
+
+# How Agents Work
+
+An agent in OrchyStraw is an AI coding assistant (Claude Code, Codex, Aider, etc.) that receives a markdown prompt and works on a specific part of your codebase.
+
+## Agent Lifecycle
+
+Each cycle, the orchestrator processes agents in this order:
+
+<Steps>
+  <Step title="Activation check">
+    The orchestrator checks if the agent should run this cycle based on its interval setting and conditional activation rules (file changes in owned paths, mentions in shared context).
+  </Step>
+  <Step title="Prompt assembly">
+    The agent's prompt file is loaded. Prompt compression may reduce token usage by only sending changed sections. Differential context filters shared context to relevant sections.
+  </Step>
+  <Step title="Execution">
+    The agent runs in its own git worktree (if worktree isolation is enabled). It reads its prompt, does its work, and writes to files it owns.
+  </Step>
+  <Step title="Ownership enforcement">
+    After execution, the orchestrator checks that the agent only modified files within its ownership paths. Changes outside ownership are reverted.
+  </Step>
+  <Step title="Commit">
+    Valid changes are committed with the agent's ID in the commit message.
+  </Step>
+  <Step title="Review (optional)">
+    If configured, a reviewer agent (typically QA) can inspect the changes and request re-runs.
+  </Step>
+</Steps>
+
+## Configuration
+
+Each agent is defined as a row in `agents.conf`:
+
+```
+06-backend | prompts/06-backend/06-backend.txt | src/ scripts/ | 1 | Backend Developer
+```
+
+The fields are:
+
+| Field | Description |
+|-------|-------------|
+| **id** | Unique identifier (e.g., `06-backend`). Used in commits, logs, routing. |
+| **prompt_path** | Path to the agent's markdown prompt file. |
+| **ownership** | Space-separated list of paths the agent can write to. |
+| **interval** | How often the agent runs: `1` = every cycle, `2` = every other, `0` = coordinator (last). |
+| **label** | Human-readable name for logs and reports. |
+
+<Tip>
+See the [agents.conf reference](/api/agents-conf) for the full format, including extended columns for priority, dependencies, reviews, and model selection.
+</Tip>
+
+## File Ownership
+
+Ownership is the core safety mechanism. Each agent declares the paths it can write to:
+
+```
+06-backend | ... | src/core/ scripts/ | ...
+11-web     | ... | site/              | ...
+09-qa      | ... | tests/             | ...
+```
+
+Rules:
+- An agent **can only create or modify files** under its ownership paths
+- Changes outside ownership are **automatically reverted**
+- Protected files (`auto-agent.sh`, `agents.conf`, `CLAUDE.md`) cannot be modified by any agent
+
+## Agent Communication
+
+Agents communicate through **shared context** -- a markdown file that all agents read and write to:
+
+```
+prompts/00-shared-context/context.md
+```
+
+Pattern:
+1. Agent reads shared context at the start of its run
+2. Agent does its work
+3. Agent appends its status to shared context
+4. Next agent reads the updated context
+
+This is how a QA agent can report a bug found in backend code, and the backend agent can pick it up in the next cycle.
+
+## Coordinator Agent
+
+The agent with `interval=0` is the **coordinator** (typically the PM). It runs last each cycle and:
+
+- Reviews all other agents' work
+- Updates agent prompts with new tasks
+- Manages the shared context for the next cycle
+- Tracks overall project progress
+
+## Intervals
+
+| Interval | Behavior | Use for |
+|----------|----------|---------|
+| `0` | Runs last (coordinator) | PM, project manager |
+| `1` | Every cycle | Core developers |
+| `2` | Every other cycle | CTO, architects |
+| `3` | Every 3rd cycle | QA, CEO, HR |
+| `5` | Every 5th cycle | Security audits |
+
+## Conditional Activation
+
+Even when an agent is scheduled to run (based on interval), it may be **skipped** if:
+
+- No files in its ownership paths have changed since its last run
+- It is not mentioned in the shared context
+- No issues are assigned to it
+
+This saves tokens and time. The PM agent always runs (never skipped).

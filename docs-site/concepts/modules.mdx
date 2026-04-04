@@ -1,0 +1,191 @@
+---
+title: "Core Modules"
+description: "Reference for the 20+ bash modules that power OrchyStraw orchestration."
+---
+
+# Core Modules
+
+OrchyStraw is built as composable bash modules in `src/core/`. Each module is sourced independently and exposes public functions with the `orch_` prefix.
+
+## Foundation (v0.1.0)
+
+These 8 modules form the base orchestration layer.
+
+<AccordionGroup>
+  <Accordion title="logger.sh -- Structured logging">
+    Leveled logging with color output. Levels: DEBUG, INFO, WARN, ERROR, FATAL.
+
+    ```bash
+    source src/core/logger.sh
+    orch_log INFO "Starting cycle 5"
+    orch_log WARN "Agent 06-backend timed out"
+    ```
+  </Accordion>
+
+  <Accordion title="error-handler.sh -- Crash handling and retries">
+    Tracks agent failures and implements retry logic with configurable max attempts.
+
+    ```bash
+    source src/core/error-handler.sh
+    orch_error_init
+    orch_error_record "06-backend" "timeout" "Agent exceeded 600s limit"
+    orch_error_should_retry "06-backend"  # returns 0 if retries remaining
+    ```
+  </Accordion>
+
+  <Accordion title="cycle-state.sh -- Persist and resume">
+    Saves and restores cycle state across orchestrator runs. Tracks which cycle number, which agents ran, and their outcomes.
+
+    ```bash
+    source src/core/cycle-state.sh
+    orch_state_init ".orchystraw"
+    orch_state_get "cycle_number"    # returns current cycle
+    orch_state_set "cycle_number" 5
+    ```
+  </Accordion>
+
+  <Accordion title="agent-timeout.sh -- Per-agent timeouts">
+    Runs commands with SIGTERM/SIGKILL timeouts. Configurable per agent.
+
+    ```bash
+    source src/core/agent-timeout.sh
+    orch_timeout_run 600 "claude -p prompts/06-backend/06-backend.txt"
+    ```
+  </Accordion>
+
+  <Accordion title="lock-file.sh -- Prevent concurrent runs">
+    flock-based locking to prevent multiple orchestrator instances from running simultaneously.
+
+    ```bash
+    source src/core/lock-file.sh
+    orch_lock_acquire ".orchystraw/orchestrator.lock" || exit 1
+    # ... run orchestration ...
+    orch_lock_release
+    ```
+  </Accordion>
+
+  <Accordion title="config-validator.sh -- agents.conf validation">
+    Validates agents.conf syntax. Supports v1 (5-column), v2 (8-column), v2+ (9-column), and v3 (7-column with model/max_tokens) formats.
+
+    ```bash
+    source src/core/config-validator.sh
+    orch_config_validate "agents.conf"  # exits non-zero on invalid
+    ```
+  </Accordion>
+
+  <Accordion title="signal-handler.sh -- Graceful shutdown">
+    Installs signal handlers for SIGINT/SIGTERM. Sets a SHUTTING_DOWN flag so the orchestrator can finish the current agent before stopping.
+
+    ```bash
+    source src/core/signal-handler.sh
+    orch_signal_init
+    # Check in loop: [[ "$ORCH_SHUTTING_DOWN" == "true" ]] && break
+    ```
+  </Accordion>
+
+  <Accordion title="dry-run.sh -- Preview mode">
+    Enables `--dry-run` flag for safe testing. When active, agent execution is skipped but all other logic runs.
+
+    ```bash
+    source src/core/dry-run.sh
+    orch_dryrun_init "--dry-run"
+    orch_dryrun_active && echo "Dry run mode"
+    ```
+  </Accordion>
+</AccordionGroup>
+
+## Smart Cycle (v0.2.0)
+
+These 7 modules add intelligence to the orchestration loop.
+
+<AccordionGroup>
+  <Accordion title="dynamic-router.sh -- Smart agent routing">
+    Dependency-aware scheduling with model tiering. Agents are sorted by priority and dependency graph. Model selection per agent (opus/sonnet/haiku).
+
+    Key functions: `orch_router_init`, `orch_router_order`, `orch_router_model`, `orch_router_should_run`
+  </Accordion>
+
+  <Accordion title="review-phase.sh -- QA gate">
+    Enables reviewer agents to inspect changes and issue verdicts (approve/request-changes/comment). Cost guard limits re-runs to 50% of cycle budget.
+
+    Key functions: `orch_review_init`, `orch_review_should_run`, `orch_review_record`, `orch_review_summary`
+  </Accordion>
+
+  <Accordion title="worktree.sh -- Git worktree isolation">
+    Each agent runs in its own git worktree. Prevents file conflicts. Includes path traversal protection.
+
+    Key functions: `orch_worktree_create`, `orch_worktree_merge`, `orch_worktree_cleanup`
+  </Accordion>
+
+  <Accordion title="prompt-compression.sh -- Token optimization">
+    Tiered prompt loading: full/standard/minimal modes. Hash-based change detection skips re-sending unchanged prompt sections.
+
+    Key functions: `orch_compress_init`, `orch_compress_load`, `orch_compress_stats`
+  </Accordion>
+
+  <Accordion title="conditional-activation.sh -- Skip idle agents">
+    Checks if an agent has work to do before running it. Examines file changes in ownership paths, shared context mentions, and assigned tasks.
+
+    Key functions: `orch_activation_should_run`, `orch_activation_reason`
+  </Accordion>
+
+  <Accordion title="differential-context.sh -- Per-agent context filtering">
+    Filters shared context to only include sections relevant to each agent. Cross-cycle history is windowed.
+
+    Key functions: `orch_diffctx_init`, `orch_diffctx_filter`, `orch_diffctx_sections`
+  </Accordion>
+
+  <Accordion title="session-tracker.sh -- Session history windowing">
+    Manages session history with configurable windowing: recent cycles in full detail, older cycles as summary rows.
+
+    Key functions: `orch_session_init`, `orch_session_record`, `orch_session_window`
+  </Accordion>
+</AccordionGroup>
+
+## Extended (v0.3.0)
+
+These modules add convenience features and project initialization.
+
+<AccordionGroup>
+  <Accordion title="single-agent.sh -- Single agent mode">
+    Run one agent outside the full orchestration loop. Useful for debugging or focused work.
+
+    ```bash
+    bash scripts/auto-agent.sh single 06-backend
+    ```
+  </Accordion>
+
+  <Accordion title="task-decomposer.sh -- Progressive task decomposition">
+    Extracts and prioritizes tasks from prompt files. P0 tasks are always included; lower priorities are deferred based on token budget.
+  </Accordion>
+
+  <Accordion title="init-project.sh -- Project analyzer">
+    Scans a project directory and generates an agents.conf blueprint. Detects languages, frameworks, package managers, test frameworks, and CI systems.
+
+    ```bash
+    source src/core/init-project.sh
+    orch_init_scan "/path/to/project"
+    orch_init_suggest_agents
+    orch_init_generate_conf > agents.conf
+    ```
+  </Accordion>
+
+  <Accordion title="prompt-template.sh -- Template inheritance">
+    Variable substitution and include directives for agent prompts. Named block inheritance lets child prompts override parent sections.
+  </Accordion>
+
+  <Accordion title="qmd-refresher.sh -- QMD auto-refresh">
+    Automatically refreshes QMD (Quick Markdown) index files each cycle. Keeps documentation indexes in sync with source changes.
+  </Accordion>
+</AccordionGroup>
+
+## Module Design Principles
+
+All modules follow these conventions:
+
+1. **Standalone**: Each module can be sourced independently
+2. **Namespaced**: All public functions use the `orch_` prefix
+3. **No side effects on source**: Modules don't execute code when sourced (except setting up variables)
+4. **Guard loaded**: Each module checks if it's already loaded to prevent double-sourcing
+5. **POSIX-ish**: Bash 5.0+ required, but avoids bashisms where POSIX alternatives exist
+6. **Tested**: Each module has a corresponding test file in `tests/core/`
