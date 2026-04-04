@@ -370,4 +370,114 @@ orch_router_update "06-backend" "success" 5
 orch_router_save_state "$TMPDIR_TEST/dr02-state/nested/state.txt"
 [[ -f "$TMPDIR_TEST/dr02-state/nested/state.txt" ]] || { echo "FAIL: T41 nested state file not created"; exit 1; }
 
-echo "test-dynamic-router.sh: ALL PASS (41 tests)"
+# ══════════════════════════════════════
+# v0.3 Tests: Cost-Aware Routing, Latency, Quality, Auto-Tier
+# ══════════════════════════════════════
+
+# Test 42: Record cost tracks tokens
+create_v2_model_conf
+_ORCH_DYNAMIC_ROUTER_LOADED="" ; source "$PROJECT_ROOT/src/core/dynamic-router.sh"
+orch_router_init "$TMPDIR_TEST/agents-model.conf"
+orch_router_record_cost "06-backend" 5000
+[[ "${_ORCH_ROUTER_COST_TOTAL[06-backend]}" == "5000" ]] || { echo "FAIL: T42a cost total not 5000"; exit 1; }
+[[ "${_ORCH_ROUTER_COST_LAST[06-backend]}" == "5000" ]] || { echo "FAIL: T42b cost last not 5000"; exit 1; }
+orch_router_record_cost "06-backend" 3000
+[[ "${_ORCH_ROUTER_COST_TOTAL[06-backend]}" == "8000" ]] || { echo "FAIL: T42c cumulative cost not 8000"; exit 1; }
+[[ "${_ORCH_ROUTER_RUN_COUNT[06-backend]}" == "2" ]] || { echo "FAIL: T42d run count not 2"; exit 1; }
+
+# Test 43: Record cost rejects non-numeric
+! orch_router_record_cost "06-backend" "abc" 2>/dev/null || { echo "FAIL: T43 non-numeric cost should fail"; exit 1; }
+
+# Test 44: Record latency and p95 tracking
+orch_router_record_latency "06-backend" 120
+[[ "${_ORCH_ROUTER_LATENCY_LAST[06-backend]}" == "120" ]] || { echo "FAIL: T44a latency last not 120"; exit 1; }
+[[ "${_ORCH_ROUTER_LATENCY_P95[06-backend]}" == "120" ]] || { echo "FAIL: T44b first p95 should equal sample"; exit 1; }
+orch_router_record_latency "06-backend" 60
+# p95 should stay biased high (EMA toward 120, not jump to 60)
+[[ "${_ORCH_ROUTER_LATENCY_P95[06-backend]}" -gt 60 ]] || { echo "FAIL: T44c p95 should stay above 60 after lower sample"; exit 1; }
+
+# Test 45: Record quality and rolling average
+orch_router_record_quality "06-backend" 80
+[[ "${_ORCH_ROUTER_QUALITY_LAST[06-backend]}" == "80" ]] || { echo "FAIL: T45a quality last not 80"; exit 1; }
+orch_router_record_quality "06-backend" 90
+# avg should be (80+90)/run_count. run_count incremented by record_cost, currently 2
+# quality_total = 170, runs = 2 → avg = 85
+local_avg="${_ORCH_ROUTER_QUALITY_AVG[06-backend]}"
+[[ "$local_avg" -ge 80 && "$local_avg" -le 90 ]] || { echo "FAIL: T45b quality avg should be 80-90, got $local_avg"; exit 1; }
+
+# Test 46: Quality score capped at 100
+orch_router_record_quality "09-qa" 150
+[[ "${_ORCH_ROUTER_QUALITY_LAST[09-qa]}" == "100" ]] || { echo "FAIL: T46 quality should cap at 100"; exit 1; }
+
+# Test 47: agent_score returns -1 for no data
+score=$(orch_router_agent_score "01-ceo")
+[[ "$score" == "-1" ]] || { echo "FAIL: T47 no-data agent score should be -1, got $score"; exit 1; }
+
+# Test 48: agent_score returns avg for agents with data
+score_be=$(orch_router_agent_score "06-backend")
+[[ "$score_be" -ge 0 ]] || { echo "FAIL: T48 backend score should be >= 0, got $score_be"; exit 1; }
+
+# Test 49: Auto-tier — high quality demotes to cheaper model
+# Set up: agent on opus with high quality
+orch_router_init "$TMPDIR_TEST/agents-model.conf"
+_ORCH_ROUTER_MODEL["09-qa"]="opus"
+_ORCH_ROUTER_RUN_COUNT["09-qa"]=5
+_ORCH_ROUTER_QUALITY_AVG["09-qa"]=90
+_ORCH_ROUTER_QUALITY_TOTAL["09-qa"]=450
+orch_router_auto_tier "09-qa"
+[[ "${_ORCH_ROUTER_MODEL[09-qa]}" == "sonnet" ]] || { echo "FAIL: T49 high quality should demote opus→sonnet, got ${_ORCH_ROUTER_MODEL[09-qa]}"; exit 1; }
+
+# Test 50: Auto-tier — low quality promotes to better model
+_ORCH_ROUTER_MODEL["13-hr"]="haiku"
+_ORCH_ROUTER_RUN_COUNT["13-hr"]=5
+_ORCH_ROUTER_QUALITY_AVG["13-hr"]=30
+_ORCH_ROUTER_QUALITY_TOTAL["13-hr"]=150
+orch_router_auto_tier "13-hr"
+[[ "${_ORCH_ROUTER_MODEL[13-hr]}" == "sonnet" ]] || { echo "FAIL: T50 low quality should promote haiku→sonnet, got ${_ORCH_ROUTER_MODEL[13-hr]}"; exit 1; }
+
+# Test 51: Auto-tier skips locked agents
+orch_router_lock_tier "06-backend"
+_ORCH_ROUTER_MODEL["06-backend"]="haiku"
+_ORCH_ROUTER_RUN_COUNT["06-backend"]=5
+_ORCH_ROUTER_QUALITY_AVG["06-backend"]=30
+! orch_router_auto_tier "06-backend" || { echo "FAIL: T51 locked agent should not change tier"; exit 1; }
+[[ "${_ORCH_ROUTER_MODEL[06-backend]}" == "haiku" ]] || { echo "FAIL: T51b model should stay haiku when locked"; exit 1; }
+orch_router_unlock_tier "06-backend"
+
+# Test 52: Auto-tier requires minimum runs
+_ORCH_ROUTER_RUN_COUNT["01-ceo"]=1
+_ORCH_ROUTER_QUALITY_AVG["01-ceo"]=95
+! orch_router_auto_tier "01-ceo" || { echo "FAIL: T52 too few runs should not trigger auto-tier"; exit 1; }
+
+# Test 53: Cost report doesn't crash
+orch_router_cost_report > /dev/null 2>&1 || { echo "FAIL: T53 cost report should not crash"; exit 1; }
+
+# Test 54: Save/load v0.3 state round-trips correctly
+orch_router_init "$TMPDIR_TEST/agents-model.conf"
+orch_router_record_cost "06-backend" 10000
+orch_router_record_latency "06-backend" 200
+orch_router_record_quality "06-backend" 75
+_ORCH_ROUTER_RUN_COUNT["06-backend"]=1
+orch_router_update "06-backend" "success" 1
+orch_router_save_state "$TMPDIR_TEST/v03-state.txt"
+[[ -f "$TMPDIR_TEST/v03-state.txt" ]] || { echo "FAIL: T54a v0.3 state file not created"; exit 1; }
+
+# Re-init and load
+orch_router_init "$TMPDIR_TEST/agents-model.conf"
+orch_router_load_state "$TMPDIR_TEST/v03-state.txt"
+[[ "${_ORCH_ROUTER_COST_TOTAL[06-backend]}" == "10000" ]] || { echo "FAIL: T54b cost_total not restored"; exit 1; }
+[[ "${_ORCH_ROUTER_RUN_COUNT[06-backend]}" == "1" ]] || { echo "FAIL: T54c run_count not restored"; exit 1; }
+[[ "${_ORCH_ROUTER_LATENCY_P95[06-backend]}" == "200" ]] || { echo "FAIL: T54d latency_p95 not restored"; exit 1; }
+[[ "${_ORCH_ROUTER_QUALITY_AVG[06-backend]}" == "75" ]] || { echo "FAIL: T54e quality_avg not restored"; exit 1; }
+
+# Test 55: Backward compat — v0.2 state file loads without error
+cat > "$TMPDIR_TEST/v02-state.txt" << 'EOF'
+# dynamic-router state — 2025-01-01 00:00:00
+06-backend|3|success|1|0
+09-qa|2|fail|1|0
+EOF
+orch_router_init "$TMPDIR_TEST/agents-model.conf"
+orch_router_load_state "$TMPDIR_TEST/v02-state.txt"
+[[ "${_ORCH_ROUTER_LAST_RUN[06-backend]}" == "3" ]] || { echo "FAIL: T55 v0.2 state should load into v0.3"; exit 1; }
+
+echo "test-dynamic-router.sh: ALL PASS (55 tests)"
