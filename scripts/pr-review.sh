@@ -145,7 +145,188 @@ if [[ -f "$CONF_FILE" ]]; then
     done <<< "$CHANGED_FILES"
 fi
 
-# ── Check 6: Large diff (too many changes in one commit) ──
+# ── Check 6: Unused imports (JS/TS/Python) ──
+while IFS= read -r file; do
+    [[ -z "$file" ]] && continue
+    filepath="$PROJECT_ROOT/$file"
+    [[ ! -f "$filepath" ]] && continue
+
+    case "$file" in
+        *.ts|*.tsx|*.js|*.jsx)
+            # Find import statements and check if the imported name is used elsewhere
+            while IFS= read -r import_line; do
+                [[ -z "$import_line" ]] && continue
+                # Extract imported names: import { Foo, Bar } from '...'
+                imported_names=$(echo "$import_line" | grep -oP '(?<=\{)[^}]+(?=\})' 2>/dev/null | tr ',' '\n' | sed 's/[[:space:]]//g; s/ as .*//') || true
+                # Also handle: import Foo from '...'
+                default_import=$(echo "$import_line" | grep -oP '(?<=import )\w+(?= from)' 2>/dev/null) || true
+                all_names="$imported_names $default_import"
+                for name in $all_names; do
+                    [[ -z "$name" ]] && continue
+                    [[ "$name" == "type" ]] && continue
+                    # Count occurrences (excluding the import line itself)
+                    local_count=$(grep -c "\b${name}\b" "$filepath" 2>/dev/null || echo 0)
+                    if [[ "$local_count" -le 1 ]]; then
+                        add_finding "INFO" "$file" "Possibly unused import: '$name'"
+                    fi
+                done
+            done < <(grep -nE "^import " "$filepath" 2>/dev/null)
+            ;;
+        *.py)
+            while IFS= read -r import_line; do
+                [[ -z "$import_line" ]] && continue
+                # from x import y, z
+                imported_names=$(echo "$import_line" | grep -oP '(?<=import )\w+' 2>/dev/null) || true
+                for name in $imported_names; do
+                    [[ -z "$name" ]] && continue
+                    local_count=$(grep -c "\b${name}\b" "$filepath" 2>/dev/null || echo 0)
+                    if [[ "$local_count" -le 1 ]]; then
+                        add_finding "INFO" "$file" "Possibly unused import: '$name'"
+                    fi
+                done
+            done < <(grep -nE "^(from |import )" "$filepath" 2>/dev/null)
+            ;;
+    esac
+done <<< "$CHANGED_FILES"
+
+# ── Check 7: Large functions (> 50 lines) ──
+while IFS= read -r file; do
+    [[ -z "$file" ]] && continue
+    filepath="$PROJECT_ROOT/$file"
+    [[ ! -f "$filepath" ]] && continue
+
+    case "$file" in
+        *.ts|*.tsx|*.js|*.jsx)
+            # Detect function declarations and count lines until closing brace
+            local func_name="" func_start=0 brace_depth=0 in_func=false
+            local line_num=0
+            while IFS= read -r code_line; do
+                line_num=$((line_num + 1))
+                if [[ "$in_func" == false ]]; then
+                    if echo "$code_line" | grep -qE '(function\s+\w+|const\s+\w+\s*=\s*(async\s*)?\(|^\s*(async\s+)?[a-zA-Z]+\s*\()' 2>/dev/null; then
+                        func_name=$(echo "$code_line" | grep -oP '(function\s+)\K\w+|(?<=const\s)\w+' 2>/dev/null | head -1) || func_name="anonymous"
+                        func_start=$line_num
+                        brace_depth=0
+                        in_func=true
+                    fi
+                fi
+                if [[ "$in_func" == true ]]; then
+                    local opens closes
+                    opens=$(echo "$code_line" | tr -cd '{' | wc -c)
+                    closes=$(echo "$code_line" | tr -cd '}' | wc -c)
+                    brace_depth=$((brace_depth + opens - closes))
+                    if [[ "$brace_depth" -le 0 && "$line_num" -gt "$func_start" ]]; then
+                        local func_length=$((line_num - func_start))
+                        if [[ "$func_length" -gt 50 ]]; then
+                            add_finding "WARNING" "$file" "Large function '$func_name' ($func_length lines at L${func_start}) — consider splitting"
+                        fi
+                        in_func=false
+                    fi
+                fi
+            done < "$filepath"
+            ;;
+        *.py)
+            local func_name="" func_start=0 func_indent=0 in_func=false
+            local line_num=0
+            while IFS= read -r code_line; do
+                line_num=$((line_num + 1))
+                if echo "$code_line" | grep -qE '^\s*def\s+\w+' 2>/dev/null; then
+                    if [[ "$in_func" == true ]]; then
+                        local func_length=$((line_num - func_start))
+                        if [[ "$func_length" -gt 50 ]]; then
+                            add_finding "WARNING" "$file" "Large function '$func_name' ($func_length lines at L${func_start}) — consider splitting"
+                        fi
+                    fi
+                    func_name=$(echo "$code_line" | grep -oP '(?<=def\s)\w+' 2>/dev/null) || func_name="unknown"
+                    func_start=$line_num
+                    func_indent=$(echo "$code_line" | grep -oP '^\s*' 2>/dev/null | wc -c)
+                    in_func=true
+                fi
+            done < "$filepath"
+            if [[ "$in_func" == true ]]; then
+                local func_length=$((line_num - func_start))
+                if [[ "$func_length" -gt 50 ]]; then
+                    add_finding "WARNING" "$file" "Large function '$func_name' ($func_length lines at L${func_start}) — consider splitting"
+                fi
+            fi
+            ;;
+        *.sh)
+            local func_name="" func_start=0 in_func=false
+            local line_num=0
+            while IFS= read -r code_line; do
+                line_num=$((line_num + 1))
+                if echo "$code_line" | grep -qE '^\s*\w+\s*\(\)\s*\{' 2>/dev/null; then
+                    if [[ "$in_func" == true ]]; then
+                        local func_length=$((line_num - func_start))
+                        if [[ "$func_length" -gt 50 ]]; then
+                            add_finding "WARNING" "$file" "Large function '$func_name' ($func_length lines at L${func_start}) — consider splitting"
+                        fi
+                    fi
+                    func_name=$(echo "$code_line" | grep -oP '^\s*\K\w+(?=\s*\(\))' 2>/dev/null) || func_name="unknown"
+                    func_start=$line_num
+                    in_func=true
+                fi
+            done < "$filepath"
+            if [[ "$in_func" == true ]]; then
+                local func_length=$((line_num - func_start))
+                if [[ "$func_length" -gt 50 ]]; then
+                    add_finding "WARNING" "$file" "Large function '$func_name' ($func_length lines at L${func_start}) — consider splitting"
+                fi
+            fi
+            ;;
+    esac
+done <<< "$CHANGED_FILES"
+
+# ── Check 8: Dead code patterns ──
+while IFS= read -r file; do
+    [[ -z "$file" ]] && continue
+    filepath="$PROJECT_ROOT/$file"
+    [[ ! -f "$filepath" ]] && continue
+
+    # Unreachable code after return/exit
+    case "$file" in
+        *.ts|*.tsx|*.js|*.jsx|*.py|*.sh)
+            file_diff=$(echo "$DIFF" | sed -n "/^diff.*${file//\//\\/}/,/^diff/p" 2>/dev/null) || true
+            added_lines=$(echo "$file_diff" | grep "^+" | grep -v "^+++" 2>/dev/null) || true
+
+            # Code after unconditional return/exit (simple pattern)
+            if echo "$added_lines" | grep -qE "^\+\s*(return|exit)\s" 2>/dev/null; then
+                # Check if line immediately after return has non-comment code
+                local prev_was_return=false
+                echo "$added_lines" | while IFS= read -r aline; do
+                    aline_clean="${aline#+}"
+                    if [[ "$prev_was_return" == true ]]; then
+                        if echo "$aline_clean" | grep -qE '^\s*[^#//\s}]' 2>/dev/null; then
+                            add_finding "INFO" "$file" "Possible dead code after return/exit statement"
+                            break
+                        fi
+                        prev_was_return=false
+                    fi
+                    if echo "$aline_clean" | grep -qE '^\s*(return|exit)\s' 2>/dev/null; then
+                        prev_was_return=true
+                    fi
+                done
+            fi
+
+            # Commented-out code blocks (3+ consecutive commented lines with code-like content)
+            local comment_streak=0
+            while IFS= read -r aline; do
+                aline_clean="${aline#+}"
+                if echo "$aline_clean" | grep -qE '^\s*(//|#)\s*[a-zA-Z].*[;(){}=]' 2>/dev/null; then
+                    comment_streak=$((comment_streak + 1))
+                else
+                    if [[ "$comment_streak" -ge 3 ]]; then
+                        add_finding "INFO" "$file" "Commented-out code block ($comment_streak lines) — consider removing"
+                        break
+                    fi
+                    comment_streak=0
+                fi
+            done <<< "$added_lines"
+            ;;
+    esac
+done <<< "$CHANGED_FILES"
+
+# ── Check 9: Large diff (too many changes in one commit) ──
 added_lines=$(echo "$DIFF" | grep -c "^+" 2>/dev/null) || added_lines=0
 removed_lines=$(echo "$DIFF" | grep -c "^-" 2>/dev/null) || removed_lines=0
 total_changes=$(( added_lines + removed_lines ))
