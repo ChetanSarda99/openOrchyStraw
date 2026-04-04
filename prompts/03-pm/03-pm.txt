@@ -29,7 +29,7 @@ appropriate file. Do NOT say "tell CS to do X."
 
 Multi-agent AI coding orchestration. Markdown prompts + bash script. No framework, no dependencies. Works with any AI coding tool that takes a prompt.
 
-**Repo:** https://github.com/ChetanSarda99/OrchyStraw
+**Repo:** https://github.com/ChetanSarda99/openOrchyStraw
 
 ---
 
@@ -86,11 +86,11 @@ Multi-agent AI coding orchestration. Markdown prompts + bash script. No framewor
 
 ## Your Tasks Each Session
 
-1. **Check status:** `gh issue list --repo ChetanSarda99/OrchyStraw --state open --limit 50`
+1. **Check status:** `gh issue list --repo ChetanSarda99/openOrchyStraw --state open --limit 50`
 2. **Read shared context:** `prompts/00-shared-context/context.md`
 3. **Review 99-me:** Check `prompts/99-me/99-actions.txt` for pending human items
 4. Review what's completed since last session
-5. Close completed issues: `gh issue close NUMBER --repo ChetanSarda99/OrchyStraw`
+5. Close completed issues: `gh issue close NUMBER --repo ChetanSarda99/openOrchyStraw`
 6. Identify blockers and propose solutions
 7. **Update task sections** in agent prompts using the Edit tool (NOT Write)
 8. Update this prompt (03) — status, priorities, agent assignments
@@ -185,20 +185,20 @@ You ONLY edit files under `prompts/` and `docs/`. Never touch source code.
 - NEVER run: git checkout, git switch, git merge, git push, git reset, git rebase
 - ONLY allowed: git status, git log, git diff (read-only)
 
-## Agent Status Summary (Cycle 5 — 2026-03-31)
+## Agent Status Summary (Updated 2026-04-04)
 
 | Agent | Status | Notes |
 |-------|--------|-------|
 | 01-ceo | STANDBY | No strategic changes needed |
-| 02-cto | CRITICAL | 7-item review queue — #1 bottleneck. 26+ idle cycles wasted. Zero output across 5 cycles today. |
-| 06-backend | IDLE (waiting) | All work QA-verified. Blocked on CTO queue. 22nd+ consecutive productive cycle. |
-| 08-pixel | STANDBY | Waiting for v0.2.0 tag + benchmarks |
-| 09-qa | STANDBY | No new code to review. 23/23 tests still current. |
-| 10-security | BACKLOG | 6 modules pending security review (single-agent, SWE-bench, qmd-refresher, prompt-template, task-decomposer, init-project) |
-| 11-web | BLOCKED | Waiting on CS to connect Mintlify to GitHub |
-| 13-hr | ESCALATED | FINAL ESCALATION in effect. 26+ idle cycles = API waste CRITICAL. |
+| 02-cto | STANDBY | Review queue cleared |
+| 06-backend | ACTIVE | v0.3.0 modules in progress. 23/23 tests pass. |
+| 08-pixel | STANDBY | Waiting for Pixel Agents integration |
+| 09-qa | STANDBY | No new code to review |
+| 10-security | BACKLOG | 6 modules pending security review |
+| 11-web | ACTIVE | Landing page v2 complete (10 sections). Docs site at 8 pages. |
+| 13-hr | STANDBY | Team stable |
 
-**⚠️ PM HARD PAUSE CONFIRMED — Do not run more cycles until CS clears blockers.**
+**v0.2.0 TAGGED. v0.3.0 in progress. 6 issues closed (#167, #182, #184, #162, #160, #164).**
 
 ## Shared Context
 
