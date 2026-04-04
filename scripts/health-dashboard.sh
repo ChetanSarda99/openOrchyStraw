@@ -53,11 +53,13 @@ declare -A A_INV=()
 declare -A A_DUR=()
 declare -A A_TOK=()
 declare -A A_FILES=()
+declare -A A_COST=()
+declare -A A_MODEL=()
 
 if [[ -f "$AUDIT_FILE" ]]; then
     while IFS= read -r line; do
         [[ -z "$line" ]] && continue
-        agent="" dur=0 tok=0 files=0
+        agent="" dur=0 tok=0 files=0 cost="" model=""
         prev=""
         for field in $(echo "$line" | tr '{},:"' ' '); do
             case "$prev" in
@@ -65,6 +67,8 @@ if [[ -f "$AUDIT_FILE" ]]; then
                 duration_s) dur="$field" ;;
                 tokens_est) tok="$field" ;;
                 files) files="$field" ;;
+                cost_estimate) cost="$field" ;;
+                model) model="$field" ;;
             esac
             prev="$field"
         done
@@ -73,6 +77,13 @@ if [[ -f "$AUDIT_FILE" ]]; then
             A_DUR["$agent"]=$(( ${A_DUR["$agent"]:-0} + dur ))
             A_TOK["$agent"]=$(( ${A_TOK["$agent"]:-0} + tok ))
             A_FILES["$agent"]=$(( ${A_FILES["$agent"]:-0} + files ))
+            if [[ -n "$cost" ]]; then
+                cost_num="${cost//[^0-9]/}"
+                cost_num="${cost_num:-0}"
+                cost_num=$(( 10#$cost_num ))
+                A_COST["$agent"]=$(( ${A_COST["$agent"]:-0} + cost_num ))
+            fi
+            [[ -n "$model" ]] && A_MODEL["$agent"]="$model"
         fi
     done < "$AUDIT_FILE"
 fi
@@ -123,15 +134,21 @@ for id in "${AGENTS[@]}"; do
         *)       color="#6b7280" ;;
     esac
 
+    model="${A_MODEL[$id]:-—}"
+    cost_micro="${A_COST[$id]:-0}"
+    cost_display="\$0.$(printf '%06d' "$cost_micro")"
+
     agent_grid_rows+="<tr>
 <td><span style=\"display:inline-block;width:10px;height:10px;border-radius:50%;background:${color};margin-right:6px\"></span>${id}</td>
 <td>${label}</td>
+<td>${model}</td>
 <td>${interval}</td>
 <td>${status}</td>
 <td>${inv}</td>
 <td>${dur}s</td>
 <td>${tok}</td>
 <td>${files}</td>
+<td>${cost_display}</td>
 <td>${streak}</td>
 </tr>"
 done
@@ -148,7 +165,7 @@ for i in "${!M_CYCLES[@]}"; do
     cycle_issues+="${issue_val:-0}"
 done
 
-# ── Build cost-per-agent JSON arrays ──
+# ── Build cost-per-agent JSON arrays (microdollars for chart) ──
 cost_labels=""
 cost_values=""
 first=1
@@ -156,7 +173,7 @@ for id in "${AGENTS[@]}"; do
     [[ $first -eq 0 ]] && { cost_labels+=","; cost_values+=","; }
     first=0
     cost_labels+="\"${id}\""
-    cost_values+="${A_TOK[$id]:-0}"
+    cost_values+="${A_COST[$id]:-0}"
 done
 
 # ── Write HTML ──
@@ -193,7 +210,7 @@ cat >> "$OUTPUT" << TABLEEOF
 <div class="card full">
 <h2>Agent Status Grid</h2>
 <table>
-<tr><th>Agent</th><th>Label</th><th>Interval</th><th>Status</th><th>Invocations</th><th>Wall-Clock</th><th>Est. Tokens</th><th>Files Changed</th><th>Empty Streak</th></tr>
+<tr><th>Agent</th><th>Label</th><th>Model</th><th>Interval</th><th>Status</th><th>Invocations</th><th>Wall-Clock</th><th>Est. Tokens</th><th>Files Changed</th><th>Est. Cost</th><th>Empty Streak</th></tr>
 ${agent_grid_rows}
 </table>
 </div>
@@ -204,7 +221,7 @@ ${agent_grid_rows}
 </div>
 
 <div class="card">
-<h2>Cost per Agent (Est. Tokens)</h2>
+<h2>Cost per Agent (Est. USD microdollars)</h2>
 <canvas id="costChart"></canvas>
 </div>
 
