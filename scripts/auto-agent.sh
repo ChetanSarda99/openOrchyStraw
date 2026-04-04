@@ -256,21 +256,34 @@ run_agent() {
     local log_size
     log_size=$(wc -c < "$log_file" 2>/dev/null || echo 0)
 
-    # v0.2: model fallback — retry with cheaper model on failure (#160)
-    if [[ "$exit_code" -ne 0 && "$(type -t orch_router_model_fallback)" == "function" ]]; then
-        local current_model="${agent_model:-}"
-        while [[ "$exit_code" -ne 0 && -n "$current_model" ]]; do
-            local fallback
-            fallback=$(orch_router_model_fallback "$current_model" 2>/dev/null)
-            [[ -z "$fallback" ]] && break
-            local fallback_flag
-            fallback_flag=$(printf '%s' "$fallback" | sed 's/opus/claude-opus-4-6/;s/sonnet/claude-sonnet-4-6/;s/haiku/claude-haiku-4-5/')
-            log "[$agent_id] Retrying with fallback model: $fallback ($fallback_flag)"
-            claude -p --dangerously-skip-permissions --output-format text --model "$fallback_flag" \
-                < "$prompt_file" > "$log_file" 2>&1
-            exit_code=$?
-            current_model="$fallback"
-        done
+    # v0.3: model fallback — retry with cheaper model on rate-limit (#160)
+    if [[ "$exit_code" -ne 0 && "$(type -t orch_router_is_rate_limited)" == "function" ]]; then
+        if orch_router_is_rate_limited "$log_file"; then
+            local current_model="${agent_model:-}"
+            # Map flag back to name if needed
+            case "$current_model" in
+                claude-opus-4-6)     current_model="opus" ;;
+                claude-sonnet-4-6)   current_model="sonnet" ;;
+                claude-haiku-4-5)    current_model="haiku" ;;
+            esac
+            while [[ "$exit_code" -ne 0 && -n "$current_model" ]]; do
+                local fallback
+                fallback=$(orch_router_model_fallback "$current_model" 2>/dev/null)
+                [[ -z "$fallback" ]] && break
+                local fallback_flag
+                fallback_flag=$(orch_router_fallback_flag "$fallback" 2>/dev/null)
+                log "[$agent_id] Rate-limited on $current_model, falling back to: $fallback ($fallback_flag)"
+                claude -p --dangerously-skip-permissions --output-format text --model "$fallback_flag" \
+                    < "$prompt_file" > "$log_file" 2>&1
+                exit_code=$?
+                agent_model="$fallback_flag"
+                if [[ "$exit_code" -ne 0 ]] && orch_router_is_rate_limited "$log_file"; then
+                    current_model="$fallback"
+                else
+                    break
+                fi
+            done
+        fi
         log_size=$(wc -c < "$log_file" 2>/dev/null || echo 0)
     fi
 

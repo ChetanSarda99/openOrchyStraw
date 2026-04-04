@@ -518,6 +518,79 @@ orch_router_model_fallback() {
     esac
 }
 
+# orch_router_is_rate_limited <log_file>
+#   Check if a log file contains rate-limit indicators.
+#   Returns 0 if rate-limited, 1 otherwise.
+orch_router_is_rate_limited() {
+    local log_file="${1:-}"
+    [[ -z "$log_file" || ! -f "$log_file" ]] && return 1
+    grep -qiE "rate.?limit|429|too many requests|overloaded|capacity|quota exceeded" "$log_file" 2>/dev/null
+}
+
+# orch_router_fallback_flag <model_name>
+#   Convert abstract model name to CLI flag. Convenience for fallback callers.
+orch_router_fallback_flag() {
+    local model="${1:?orch_router_fallback_flag: model required}"
+    if [[ -n "${_ORCH_MODEL_FLAGS[$model]+x}" ]]; then
+        printf '%s\n' "${_ORCH_MODEL_FLAGS[$model]}"
+    else
+        printf '%s\n' "$model"
+    fi
+}
+
+# orch_router_try_with_fallback <agent_id> <run_cmd_func> [max_attempts]
+#   Run a command function with automatic model fallback on rate-limit.
+#   run_cmd_func is called as: $run_cmd_func <model_flag> <log_file>
+#   Returns the exit code of the last attempt. Sets ORCH_FALLBACK_MODEL
+#   to the model name that was actually used.
+#   max_attempts defaults to 3 (primary + 2 fallbacks).
+declare -g ORCH_FALLBACK_MODEL=""
+orch_router_try_with_fallback() {
+    local agent_id="${1:?orch_router_try_with_fallback: agent_id required}"
+    local run_cmd="${2:?orch_router_try_with_fallback: run_cmd function required}"
+    local max_attempts="${3:-3}"
+    local log_file="${4:-/dev/null}"
+
+    local model_name
+    model_name=$(orch_router_model_name "$agent_id" 2>/dev/null) || model_name="opus"
+    local attempt=0
+    local exit_code=1
+
+    while [[ $attempt -lt $max_attempts ]]; do
+        local model_flag
+        model_flag=$(orch_router_fallback_flag "$model_name" 2>/dev/null) || model_flag="$model_name"
+        ORCH_FALLBACK_MODEL="$model_name"
+
+        if [[ $attempt -gt 0 ]]; then
+            _orch_router_log INFO "Fallback attempt $((attempt+1)): $agent_id using $model_name ($model_flag)"
+        fi
+
+        exit_code=0
+        $run_cmd "$model_flag" "$log_file" || exit_code=$?
+
+        if [[ $exit_code -eq 0 ]]; then
+            break
+        fi
+
+        # Check if it was a rate limit
+        if orch_router_is_rate_limited "$log_file"; then
+            local next_model
+            next_model=$(orch_router_model_fallback "$model_name" 2>/dev/null)
+            if [[ -z "$next_model" ]]; then
+                _orch_router_log WARN "No fallback available after $model_name for $agent_id"
+                break
+            fi
+            model_name="$next_model"
+        else
+            break
+        fi
+
+        attempt=$((attempt + 1))
+    done
+
+    return $exit_code
+}
+
 # orch_router_dump
 #   Debug: print all router state.
 orch_router_dump() {
