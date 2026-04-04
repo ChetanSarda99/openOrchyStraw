@@ -164,4 +164,132 @@ if ! orch_validate_config "$TEST_DIR/v3multi.conf" 2>/dev/null; then
     exit 1
 fi
 
+# --- New tests for upgraded features ---
+
+# Test 18: validate_field — string type
+err=$(orch_validate_field "hello" "string") || { echo "valid string should pass"; exit 1; }
+err=$(orch_validate_field "" "string" 2>/dev/null) && { echo "empty string should fail"; exit 1; }
+
+# Test 19: validate_field — integer type
+orch_validate_field "42" "integer" > /dev/null || { echo "valid integer should pass"; exit 1; }
+orch_validate_field "-5" "integer" > /dev/null || { echo "negative integer should pass"; exit 1; }
+if orch_validate_field "abc" "integer" > /dev/null 2>&1; then
+    echo "non-numeric should fail integer check"
+    exit 1
+fi
+
+# Test 20: validate_field — integer with range constraint
+orch_validate_field "5" "integer" "0:10" > /dev/null || { echo "5 should be in range 0:10"; exit 1; }
+if orch_validate_field "15" "integer" "0:10" > /dev/null 2>&1; then
+    echo "15 should fail range 0:10"
+    exit 1
+fi
+
+# Test 21: validate_field — boolean type
+orch_validate_field "true" "boolean" > /dev/null || { echo "'true' should be valid boolean"; exit 1; }
+orch_validate_field "yes" "boolean" > /dev/null || { echo "'yes' should be valid boolean"; exit 1; }
+orch_validate_field "0" "boolean" > /dev/null || { echo "'0' should be valid boolean"; exit 1; }
+if orch_validate_field "maybe" "boolean" > /dev/null 2>&1; then
+    echo "'maybe' should fail boolean check"
+    exit 1
+fi
+
+# Test 22: validate_field — enum type
+orch_validate_field "opus" "enum" "opus,sonnet,haiku" > /dev/null || { echo "'opus' should be valid enum"; exit 1; }
+if orch_validate_field "gpt4" "enum" "opus,sonnet,haiku" > /dev/null 2>&1; then
+    echo "'gpt4' should fail enum check"
+    exit 1
+fi
+
+# Test 23: validate_field — path type
+orch_validate_field "/tmp" "path" "exists" > /dev/null || { echo "/tmp should exist"; exit 1; }
+if orch_validate_field "/nonexistent/path" "path" "exists" > /dev/null 2>&1; then
+    echo "nonexistent path should fail exists check"
+    exit 1
+fi
+
+# Test 24: validate_field — float type
+orch_validate_field "3.14" "float" > /dev/null || { echo "3.14 should be valid float"; exit 1; }
+orch_validate_field "42" "float" > /dev/null || { echo "42 should be valid float"; exit 1; }
+if orch_validate_field "abc" "float" > /dev/null 2>&1; then
+    echo "'abc' should fail float check"
+    exit 1
+fi
+
+# Test 25: validate_field — string with length constraint
+orch_validate_field "hello" "string" "1:10" > /dev/null || { echo "'hello' should pass 1:10 length"; exit 1; }
+if orch_validate_field "hi" "string" "5:10" > /dev/null 2>&1; then
+    echo "'hi' should fail 5:10 length constraint"
+    exit 1
+fi
+
+# Test 26: schema validation
+cat > "$TEST_DIR/test.schema" <<'EOF'
+# field_index | field_name | type | required | default | constraint
+0 | id | string | yes | - | -
+1 | prompt | string | yes | - | -
+2 | interval | integer | yes | - | 0:100
+3 | label | string | yes | - | -
+EOF
+
+cat > "$TEST_DIR/schema-test.conf" <<'EOF'
+agent-1 | prompt.txt | 5 | Backend
+agent-2 | prompt.txt | 10 | Frontend
+EOF
+if ! orch_validate_schema "$TEST_DIR/schema-test.conf" "$TEST_DIR/test.schema" 2>/dev/null; then
+    echo "valid schema config should pass"
+    exit 1
+fi
+
+# Test 27: schema validation — integer out of range
+cat > "$TEST_DIR/schema-bad.conf" <<'EOF'
+agent-1 | prompt.txt | 200 | Backend
+EOF
+if orch_validate_schema "$TEST_DIR/schema-bad.conf" "$TEST_DIR/test.schema" 2>/dev/null; then
+    echo "integer out of range should fail schema validation"
+    exit 1
+fi
+
+# Test 28: schema validation — missing required field
+cat > "$TEST_DIR/schema-missing.conf" <<'EOF'
+ | prompt.txt | 5 | Backend
+EOF
+if orch_validate_schema "$TEST_DIR/schema-missing.conf" "$TEST_DIR/test.schema" 2>/dev/null; then
+    echo "missing required field should fail schema validation"
+    exit 1
+fi
+
+# Test 29: config defaults
+cat > "$TEST_DIR/defaults.txt" <<'EOF'
+# field_index | default_value
+2 | 1
+3 | Default Label
+EOF
+
+cat > "$TEST_DIR/defaults-test.conf" <<'EOF'
+agent-1 | prompt.txt |  | Backend
+agent-2 | prompt.txt | 5 |
+EOF
+output=$(orch_config_defaults "$TEST_DIR/defaults-test.conf" "$TEST_DIR/defaults.txt")
+echo "$output" | grep -q "agent-1" || { echo "defaults output should contain agent-1"; exit 1; }
+# The empty interval should get default value 1
+echo "$output" | head -1 | grep -q "1" || { echo "empty interval should get default 1"; exit 1; }
+# The empty label should get Default Label
+echo "$output" | tail -1 | grep -q "Default Label" || { echo "empty label should get default"; exit 1; }
+
+# Test 30: config_get
+cat > "$TEST_DIR/get-test.conf" <<'EOF'
+# comment
+agent-1 | prompt1.txt | src/ | 0 | Backend
+agent-2 | prompt2.txt | docs/ | 1 | Frontend
+EOF
+val=$(orch_config_get "$TEST_DIR/get-test.conf" "agent-1" 1)
+[[ "$val" == "prompt1.txt" ]] || { echo "config_get should return 'prompt1.txt', got '$val'"; exit 1; }
+val=$(orch_config_get "$TEST_DIR/get-test.conf" "agent-2" 4)
+[[ "$val" == "Frontend" ]] || { echo "config_get should return 'Frontend', got '$val'"; exit 1; }
+if orch_config_get "$TEST_DIR/get-test.conf" "nonexistent" 0 2>/dev/null; then
+    echo "config_get for missing agent should fail"
+    exit 1
+fi
+
 echo "config-validator: all tests passed"
