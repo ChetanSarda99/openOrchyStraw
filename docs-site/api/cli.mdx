@@ -1,0 +1,112 @@
+---
+title: "CLI Reference"
+description: "Complete command reference for the OrchyStraw orchestrator CLI."
+---
+
+# CLI Reference
+
+The OrchyStraw CLI is `scripts/auto-agent.sh`. All commands are run from the project root.
+
+## Commands
+
+### orchestrate
+
+Run multiple cycles of multi-agent orchestration.
+
+```bash
+bash scripts/auto-agent.sh orchestrate <cycles> [options]
+```
+
+**Arguments:**
+
+| Argument | Required | Description |
+|----------|----------|-------------|
+| `cycles` | Yes | Number of orchestration cycles to run (1-100). |
+
+**Options:**
+
+| Option | Description |
+|--------|-------------|
+| `--dry-run` | Preview mode. Shows which agents would run without executing them. |
+| `--config <path>` | Use a custom agents.conf path (default: `./agents.conf`). |
+
+**Examples:**
+
+```bash
+# Run 5 cycles
+bash scripts/auto-agent.sh orchestrate 5
+
+# Dry run 3 cycles
+bash scripts/auto-agent.sh orchestrate 3 --dry-run
+
+# Use a custom config file
+bash scripts/auto-agent.sh orchestrate 5 --config ./custom-agents.conf
+```
+
+### single
+
+Run a single agent outside the full orchestration loop.
+
+```bash
+bash scripts/auto-agent.sh single <agent-id> [options]
+```
+
+**Arguments:**
+
+| Argument | Required | Description |
+|----------|----------|-------------|
+| `agent-id` | Yes | The agent ID from agents.conf (e.g., `06-backend`). |
+
+**Examples:**
+
+```bash
+# Run the backend agent once
+bash scripts/auto-agent.sh single 06-backend
+
+# Dry run the QA agent
+bash scripts/auto-agent.sh single 09-qa --dry-run
+```
+
+### health
+
+Display the orchestrator health dashboard.
+
+```bash
+bash scripts/auto-agent.sh health
+```
+
+Shows:
+- Current cycle number
+- Agent status (last run, outcome)
+- Model and cost tracking per agent
+- Lock file status
+- Recent errors
+
+### version
+
+Print the current OrchyStraw version.
+
+```bash
+bash scripts/auto-agent.sh version
+```
+
+## Exit Codes
+
+| Code | Meaning |
+|------|---------|
+| `0` | All cycles completed successfully |
+| `1` | Configuration error (invalid agents.conf, missing prompt files) |
+| `2` | Lock contention (another orchestrator instance is running) |
+| `3` | Bash version too old (requires 5.0+) |
+| `130` | Interrupted by SIGINT (Ctrl+C) |
+| `143` | Terminated by SIGTERM |
+
+## Environment Variables
+
+| Variable | Default | Description |
+|----------|---------|-------------|
+| `ORCH_LOG_LEVEL` | `INFO` | Logging level: DEBUG, INFO, WARN, ERROR, FATAL |
+| `ORCH_STATE_DIR` | `.orchystraw` | Directory for state files, locks, and session history |
+| `ORCH_AI_CLI` | `claude -p` | The AI CLI command used to execute agents |
+| `ORCH_TIMEOUT` | `600` | Default agent timeout in seconds |
+| `ORCH_DRY_RUN` | `false` | Enable dry-run mode globally |
