@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # ============================================
-# OrchyStraw — Benchmark Runner (BENCH-001)
+# OrchyStraw — Benchmark Runner v2 (BENCH-001)
 # ============================================
 #
 # Main entry point for all benchmark suites.
@@ -9,9 +9,12 @@
 #   ./scripts/benchmark/run-benchmark.sh --suite custom --limit 5
 #   ./scripts/benchmark/run-benchmark.sh --suite swebench-lite --dry-run
 #   ./scripts/benchmark/run-benchmark.sh --suite custom --parallel 3
+#   ./scripts/benchmark/run-benchmark.sh --suite livecode --model opus --limit 10
+#   ./scripts/benchmark/run-benchmark.sh --suite terminal --limit 5
+#   ./scripts/benchmark/run-benchmark.sh --compare results/run-A.jsonl results/run-B.jsonl
 #   ./scripts/benchmark/run-benchmark.sh --report <results-dir>
 #
-# Suites: custom, swebench-lite, swebench, featurebench
+# Suites: custom, swebench-lite, swebench, featurebench, livecode, terminal, swtbench
 # See docs/architecture/BENCHMARK-ARCHITECTURE.md for full spec.
 
 set -euo pipefail
@@ -83,8 +86,47 @@ _load_instances() {
                 [[ "$limit" -gt 0 ]] && [[ "$count" -ge "$limit" ]] && break
             done < "$tasks_file"
             ;;
+        livecode)
+            # LiveCodeBench: competitive programming from LeetCode/Codeforces/AtCoder
+            local tasks_file="$CUSTOM_DIR/livecode-tasks.jsonl"
+            [[ -f "$tasks_file" ]] || _die "LiveCodeBench tasks not found: $tasks_file (download from LiveCodeBench repo)"
+            local count=0
+            while IFS= read -r line; do
+                [[ -z "$line" ]] && continue
+                [[ "$line" == \#* ]] && continue
+                instances+=("$line")
+                count=$(( count + 1 ))
+                [[ "$limit" -gt 0 ]] && [[ "$count" -ge "$limit" ]] && break
+            done < "$tasks_file"
+            ;;
+        terminal)
+            # Terminal-Bench: system admin, git ops, CI/CD debugging
+            local tasks_file="$CUSTOM_DIR/terminal-tasks.jsonl"
+            [[ -f "$tasks_file" ]] || _die "Terminal-Bench tasks not found: $tasks_file"
+            local count=0
+            while IFS= read -r line; do
+                [[ -z "$line" ]] && continue
+                [[ "$line" == \#* ]] && continue
+                instances+=("$line")
+                count=$(( count + 1 ))
+                [[ "$limit" -gt 0 ]] && [[ "$count" -ge "$limit" ]] && break
+            done < "$tasks_file"
+            ;;
+        swtbench)
+            # SWT-Bench: test generation and repair
+            local tasks_file="$CUSTOM_DIR/swtbench-tasks.jsonl"
+            [[ -f "$tasks_file" ]] || _die "SWT-Bench tasks not found: $tasks_file"
+            local count=0
+            while IFS= read -r line; do
+                [[ -z "$line" ]] && continue
+                [[ "$line" == \#* ]] && continue
+                instances+=("$line")
+                count=$(( count + 1 ))
+                [[ "$limit" -gt 0 ]] && [[ "$count" -ge "$limit" ]] && break
+            done < "$tasks_file"
+            ;;
         *)
-            _die "unknown suite: $suite (valid: custom, swebench-lite, swebench, featurebench)"
+            _die "unknown suite: $suite (valid: custom, swebench-lite, swebench, featurebench, livecode, terminal, swtbench)"
             ;;
     esac
 
@@ -176,12 +218,107 @@ _run_all() {
     printf '\n'
 }
 
+# ── Compare two result files side-by-side ──
+_compare_results() {
+    local file_a="$1" file_b="$2"
+    [[ -f "$file_a" ]] || _die "file not found: $file_a"
+    [[ -f "$file_b" ]] || _die "file not found: $file_b"
+
+    _log "Comparing: $file_a vs $file_b"
+    echo ""
+    echo "╔══════════════════════════════════════════════════════════════╗"
+    echo "║              BENCHMARK COMPARISON                          ║"
+    echo "╠══════════════════════════════════════════════════════════════╣"
+
+    # Parse each file for aggregate stats
+    for label_file in "A|$file_a" "B|$file_b"; do
+        local label="${label_file%%|*}"
+        local file="${label_file#*|}"
+        local total=0 passed=0 failed=0 total_dur=0 total_tok=0 total_cost=0
+        while IFS= read -r line; do
+            [[ -z "$line" ]] && continue
+            total=$((total + 1))
+            local status dur tok cost prev=""
+            status="" dur=0 tok=0 cost=0
+            for field in $(echo "$line" | tr '{},:"' ' '); do
+                case "$prev" in
+                    status) status="$field" ;;
+                    duration_s) dur="$field" ;;
+                    tokens) tok="$field" ;;
+                    cost_usd) cost="$field" ;;
+                esac
+                prev="$field"
+            done
+            [[ "$status" == "pass" || "$status" == "success" ]] && passed=$((passed + 1))
+            [[ "$status" == "fail" || "$status" == "error" ]] && failed=$((failed + 1))
+            total_dur=$((total_dur + dur))
+            total_tok=$((total_tok + tok))
+        done < "$file"
+        local pass_rate=0
+        [[ $total -gt 0 ]] && pass_rate=$((passed * 100 / total))
+        local avg_dur=0
+        [[ $total -gt 0 ]] && avg_dur=$((total_dur / total))
+
+        printf "║  Run %s: %-51s║\n" "$label" "$(basename "$file")"
+        printf "║    Instances: %-6s  Pass: %-6s  Fail: %-18s║\n" "$total" "$passed" "$failed"
+        printf "║    Pass rate: %-6s  Avg time: %-6s  Tokens: %-14s║\n" "${pass_rate}%" "${avg_dur}s" "$total_tok"
+    done
+
+    echo "╠══════════════════════════════════════════════════════════════╣"
+    echo "║  Per-instance comparison (matching IDs):                   ║"
+    echo "╚══════════════════════════════════════════════════════════════╝"
+    echo ""
+
+    # Per-instance diff
+    echo "| Instance | Run A | Run B | Delta (time) |"
+    echo "|----------|-------|-------|--------------|"
+    while IFS= read -r line_a; do
+        [[ -z "$line_a" ]] && continue
+        local id_a prev=""
+        for field in $(echo "$line_a" | tr '{},:"' ' '); do
+            [[ "$prev" == "instance_id" || "$prev" == "id" ]] && id_a="$field"
+            prev="$field"
+        done
+        [[ -z "${id_a:-}" ]] && continue
+        local line_b
+        line_b=$(grep "\"$id_a\"" "$file_b" 2>/dev/null | head -1) || continue
+        [[ -z "$line_b" ]] && continue
+        local st_a="" st_b="" dur_a=0 dur_b=0
+        prev=""
+        for field in $(echo "$line_a" | tr '{},:"' ' '); do
+            case "$prev" in status) st_a="$field" ;; duration_s) dur_a="$field" ;; esac
+            prev="$field"
+        done
+        prev=""
+        for field in $(echo "$line_b" | tr '{},:"' ' '); do
+            case "$prev" in status) st_b="$field" ;; duration_s) dur_b="$field" ;; esac
+            prev="$field"
+        done
+        local delta=$((dur_b - dur_a))
+        local sign="+"
+        [[ $delta -lt 0 ]] && sign="" # negative already has -
+        echo "| $id_a | $st_a | $st_b | ${sign}${delta}s |"
+    done < "$file_a"
+}
+
+# ── Warm-up: run a trivial instance to prime the model ──
+_warmup() {
+    local model="$1"
+    _log "warm-up: priming model=$model with trivial task..."
+    local warmup_task='{"instance_id":"warmup","task":"echo hello","expected":"hello"}'
+    local tmp="${TMPDIR:-/tmp}/orchystraw-warmup-$$.json"
+    printf '%s' "$warmup_task" > "$tmp"
+    run_instance "$tmp" "${TMPDIR:-/tmp}/orchystraw-warmup-ws" "$model" 1 30 > /dev/null 2>&1 || true
+    rm -f "$tmp"
+    _log "warm-up complete"
+}
+
 _usage() {
     cat <<'EOF'
 Usage: run-benchmark.sh [OPTIONS]
 
 Options:
-  --suite <name>       Suite to run: custom, swebench-lite, swebench, featurebench (required)
+  --suite <name>       Suite to run (required unless --compare/--report)
   --limit <N>          Max instances to run (default: 10)
   --model <name>       Model for agents: sonnet, opus, haiku (default: sonnet)
   --agents <N>         Agents per instance (default: 1)
@@ -190,25 +327,33 @@ Options:
   --timeout <secs>     Timeout per instance in seconds (default: 600)
   --resume             Skip instances with existing results
   --dry-run            Estimate cost and exit without running
+  --warmup             Run a trivial warm-up instance before the suite
   --output <dir>       Results directory (default: scripts/benchmark/results/)
   --report <dir>       Print formatted report from existing results dir
+  --compare <a> <b>    Compare two result files side-by-side
   --help               Show this help
 
 Suites:
   custom          Custom multi-file tasks (scripts/benchmark/custom/tasks.jsonl)
   swebench-lite   SWE-bench Lite tasks (scripts/benchmark/tasks/*.json)
   swebench        Full SWE-bench (requires swebench Python package)
+  featurebench    Feature implementation tasks
+  livecode        LiveCodeBench — competitive programming (LeetCode/Codeforces/AtCoder)
+  terminal        Terminal-Bench — system admin, git ops, CI/CD debugging
+  swtbench        SWT-Bench — test generation and repair
 
 Examples:
   ./run-benchmark.sh --suite custom --limit 5 --dry-run
   ./run-benchmark.sh --suite swebench-lite --limit 3 --model sonnet
-  ./run-benchmark.sh --suite custom --parallel 3 --timeout 300
+  ./run-benchmark.sh --suite livecode --limit 10 --model opus --warmup
+  ./run-benchmark.sh --suite terminal --parallel 3 --timeout 300
+  ./run-benchmark.sh --compare results/run1.jsonl results/run2.jsonl
 EOF
 }
 
 main() {
     local suite="" limit=10 model="sonnet" agents=1 max_cycles=5
-    local parallel=0 timeout=600 resume=0 dry_run=0
+    local parallel=0 timeout=600 resume=0 dry_run=0 do_warmup=0
     local output_dir="$DEFAULT_RESULTS"
 
     while [[ $# -gt 0 ]]; do
@@ -222,6 +367,7 @@ main() {
             --timeout)   timeout="$2"; shift 2 ;;
             --resume)    resume=1; shift ;;
             --dry-run)   dry_run=1; shift ;;
+            --warmup)    do_warmup=1; shift ;;
             --output)    output_dir="$2"; shift 2 ;;
             --report)
                 local rdir="$2"; shift 2
@@ -231,12 +377,17 @@ main() {
                 jq '.' "$latest"
                 exit 0
                 ;;
+            --compare)
+                local file_a="$2" file_b="$3"; shift 3
+                _compare_results "$file_a" "$file_b"
+                exit 0
+                ;;
             --help|-h)   _usage; exit 0 ;;
             *)           _die "unknown arg: $1" ;;
         esac
     done
 
-    [[ -n "$suite" ]] || _die "missing --suite (use: custom, swebench-lite, swebench, featurebench)"
+    [[ -n "$suite" ]] || _die "missing --suite (use: custom, swebench-lite, swebench, featurebench, livecode, terminal, swtbench)"
 
     _check_deps
 
@@ -252,8 +403,21 @@ main() {
         exit 0
     fi
 
+    # Warm-up: prime the model with a trivial task to reduce cold-start latency
+    if [[ "$do_warmup" -eq 1 ]]; then
+        _warmup "$model"
+    fi
+
+    local start_time
+    start_time=$(date +%s)
+
     _run_all "$suite" "$limit" "$model" "$agents" "$max_cycles" \
         "$parallel" "$timeout" "$resume" "$output_dir"
+
+    local end_time elapsed
+    end_time=$(date +%s)
+    elapsed=$((end_time - start_time))
+    _log "total wall-clock: ${elapsed}s"
 }
 
 main "$@"
