@@ -49,9 +49,15 @@ _orch_obs_log() {
 }
 
 _orch_obs_now_ms() {
-    # Epoch milliseconds (bash 5+ with printf, fallback to seconds*1000)
+    # Epoch milliseconds (bash 5+ EPOCHREALTIME has microseconds, fallback to seconds*1000)
     if [[ -n "${EPOCHREALTIME:-}" ]]; then
-        printf '%d' "${EPOCHREALTIME/./}"
+        # EPOCHREALTIME is like "1712345678.123456" — we want milliseconds
+        local secs="${EPOCHREALTIME%%.*}"
+        local frac="${EPOCHREALTIME#*.}"
+        # Pad/truncate fractional part to 3 digits (milliseconds)
+        frac="${frac:0:3}"
+        while [[ ${#frac} -lt 3 ]]; do frac="${frac}0"; done
+        printf '%s%s' "$secs" "$frac"
     else
         printf '%d000' "$(date '+%s')"
     fi

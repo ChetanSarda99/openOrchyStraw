@@ -79,15 +79,22 @@ _orch_tpl_safe_path() {
         return 1
     fi
 
-    local resolved
-    resolved=$(cd "$base_dir" 2>/dev/null && realpath -m "$path" 2>/dev/null) || {
-        _orch_tpl_log ERROR "Cannot resolve path: $path"
+    # Resolve both paths using cd+pwd to avoid MSYS2/Windows realpath mismatches
+    local resolved_base
+    resolved_base=$(cd "$base_dir" 2>/dev/null && pwd) || {
+        _orch_tpl_log ERROR "Cannot resolve base dir: $base_dir"
         return 1
     }
 
+    local resolved="${resolved_base}/${path}"
+
+    # Normalize (remove double slashes, handle .)
+    if command -v realpath &>/dev/null; then
+        resolved=$(realpath -m "$resolved" 2>/dev/null) || resolved="${resolved_base}/${path}"
+        resolved_base=$(realpath -m "$resolved_base" 2>/dev/null) || true
+    fi
+
     # Ensure resolved path is under base_dir
-    local resolved_base
-    resolved_base=$(realpath -m "$base_dir" 2>/dev/null) || return 1
     if [[ "$resolved" != "$resolved_base"* ]]; then
         _orch_tpl_log ERROR "Path escapes template dir: $path"
         return 1

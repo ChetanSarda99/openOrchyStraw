@@ -378,8 +378,12 @@ orch_freshness_drift() {
     prev_headings=$(echo "$prev_content" | grep -E '^##' | sort || true)
 
     local added_sections removed_sections
-    added_sections=$(comm -23 <(echo "$curr_headings") <(echo "$prev_headings") 2>/dev/null | wc -l || echo 0)
-    removed_sections=$(comm -13 <(echo "$curr_headings") <(echo "$prev_headings") 2>/dev/null | wc -l || echo 0)
+    added_sections=$(comm -23 <(echo "$curr_headings") <(echo "$prev_headings") 2>/dev/null | wc -l)
+    added_sections="${added_sections//[^0-9]/}"
+    added_sections="${added_sections:-0}"
+    removed_sections=$(comm -13 <(echo "$curr_headings") <(echo "$prev_headings") 2>/dev/null | wc -l)
+    removed_sections="${removed_sections//[^0-9]/}"
+    removed_sections="${removed_sections:-0}"
 
     if [[ "$added_sections" -gt 2 || "$removed_sections" -gt 2 ]]; then
         _ORCH_FRESHNESS_FINDINGS+=("DRIFT_STRUCTURE|${current_file}|0|Structural drift: ${added_sections} sections added, ${removed_sections} removed")
@@ -387,8 +391,12 @@ orch_freshness_drift() {
 
     # Compare task counts
     local curr_tasks prev_tasks
-    curr_tasks=$(echo "$curr_content" | grep -cE '^[[:space:]]*[-*][[:space:]]' || echo 0)
-    prev_tasks=$(echo "$prev_content" | grep -cE '^[[:space:]]*[-*][[:space:]]' || echo 0)
+    curr_tasks=$(echo "$curr_content" | grep -cE '^[[:space:]]*[-*][[:space:]]' 2>/dev/null || true)
+    curr_tasks="${curr_tasks//[^0-9]/}"
+    curr_tasks="${curr_tasks:-0}"
+    prev_tasks=$(echo "$prev_content" | grep -cE '^[[:space:]]*[-*][[:space:]]' 2>/dev/null || true)
+    prev_tasks="${prev_tasks//[^0-9]/}"
+    prev_tasks="${prev_tasks:-0}"
 
     if [[ "$prev_tasks" -gt 0 ]]; then
         local task_change
@@ -407,8 +415,12 @@ orch_freshness_drift() {
     local -a key_terms=("BLOCKED" "CRITICAL" "P0" "URGENT" "DEADLINE" "BREAKING")
     for term in "${key_terms[@]}"; do
         local prev_count curr_count
-        prev_count=$(echo "$prev_content" | grep -ci "$term" || echo 0)
-        curr_count=$(echo "$curr_content" | grep -ci "$term" || echo 0)
+        prev_count=$(echo "$prev_content" | grep -ci "$term" 2>/dev/null || true)
+        prev_count="${prev_count//[^0-9]/}"
+        prev_count="${prev_count:-0}"
+        curr_count=$(echo "$curr_content" | grep -ci "$term" 2>/dev/null || true)
+        curr_count="${curr_count//[^0-9]/}"
+        curr_count="${curr_count:-0}"
 
         if [[ "$prev_count" -gt 0 && "$curr_count" -eq 0 ]]; then
             _ORCH_FRESHNESS_FINDINGS+=("DRIFT_TERM|${current_file}|0|Key term '${term}' disappeared (was in ${prev_count} lines)")
