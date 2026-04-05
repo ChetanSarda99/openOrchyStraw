@@ -92,6 +92,11 @@ CUMULATIVE_AGENTS_RUN=0 # running total agents invoked
 CYCLE_TEST_PASS=0
 CYCLE_TEST_FAIL=0
 
+# Stall detector — pause orchestrator after N idle cycles (lint-only/no meaningful commits)
+if [ -f "$PROJECT_ROOT/src/core/stall-detector.sh" ]; then
+    source "$PROJECT_ROOT/src/core/stall-detector.sh"
+fi
+
 mkdir -p "$BACKUP_DIR" "$PM_LOG_DIR"
 
 # ============================================
@@ -1018,6 +1023,15 @@ case "${1:-help}" in
         while true; do
             log "━━━ CYCLE $CYCLE ━━━"
 
+            # Check for manual/auto pause signal (from agents, stall detector, or CS)
+            if [ -f "$PROJECT_ROOT/.orchestrator-pause" ]; then
+                pause_reason=$(cat "$PROJECT_ROOT/.orchestrator-pause" 2>/dev/null || echo "unknown")
+                log "ORCHESTRATOR PAUSED: $pause_reason"
+                notify "Orchestrator paused: $pause_reason" "error"
+                log "Remove .orchestrator-pause file to resume"
+                break
+            fi
+
             # Check usage limits before starting cycle
             usage_file="$PROMPTS_DIR/00-shared-context/usage.txt"
             bash "$PROJECT_ROOT/scripts/check-usage.sh" 2>/dev/null
@@ -1290,6 +1304,17 @@ CTXEOF
                     else
                         log "Review phase skipped (usage too high)"
                     fi
+                fi
+            fi
+
+            # Stall detector — check if we're producing meaningful work
+            if type stall_check_cycle &>/dev/null; then
+                stall_check_cycle "$CYCLE"
+                if stall_should_pause; then
+                    log "STALL DETECTED: $STALL_MAX_IDLE consecutive idle cycles — auto-pausing"
+                    echo "stall-detector: $STALL_MAX_IDLE idle cycles at $(date -u +%Y-%m-%dT%H:%M:%SZ)" > "$PROJECT_ROOT/.orchestrator-pause"
+                    notify "Orchestrator auto-paused: $STALL_MAX_IDLE idle cycles" "error"
+                    break
                 fi
             fi
 

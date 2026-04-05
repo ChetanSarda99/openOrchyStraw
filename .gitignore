@@ -50,3 +50,5 @@ site/out/
 # Private runtime data
 prompts/*/logs/
 .orchystraw/
+.orchestrator-pause
+prompts/00-session-tracker/.stall-state
