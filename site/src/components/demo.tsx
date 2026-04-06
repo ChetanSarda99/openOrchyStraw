@@ -72,10 +72,10 @@ export function Demo() {
           className="text-center"
         >
           <h2 className="text-3xl font-bold tracking-tight sm:text-4xl">
-            See it in action
+            The whole setup
           </h2>
           <p className="mt-4 text-lg text-muted">
-            Three files. One command. A team of AI agents working on your codebase.
+            Three files. One command. That&apos;s genuinely all there is.
           </p>
         </motion.div>
 

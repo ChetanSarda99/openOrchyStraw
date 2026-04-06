@@ -8,32 +8,32 @@ const faqs = [
   {
     question: "What is OrchyStraw?",
     answer:
-      "Multi-agent AI coding orchestration. You define agents with markdown prompts, configure their file ownership in agents.conf, and run them with a single bash script. Agents work on the same codebase without conflicts.",
+      "It runs multiple AI coding agents on one codebase without them stepping on each other. You write prompts in markdown, set who owns which files in agents.conf, and run a single bash script. That's the whole thing.",
   },
   {
     question: "Do I need to install anything?",
     answer:
-      "No. Just bash and your AI coding tool of choice. No Python, no npm, no Docker. Clone the repo and run ./auto-agent.sh.",
+      "Nope. Just bash 5+ and whatever AI coding tool you already use. No Python, no npm, no Docker. Clone and run.",
   },
   {
     question: "How much does it cost?",
     answer:
-      "OrchyStraw itself is free and open source (MIT). You only pay for the AI tool you use — Claude Code, Codex, etc. OrchyStraw adds zero overhead.",
+      "OrchyStraw is free, MIT licensed. You pay for your AI tool (Claude Code, Codex, whatever) — that's it. A typical 5-cycle run costs me about $1.23 in API calls.",
   },
   {
     question: "Which AI models work?",
     answer:
-      "Any model that accepts a text prompt. Claude, GPT, Gemini, local models, anything. OrchyStraw doesn't call APIs — it orchestrates whichever tool you're already using.",
+      "Anything that takes a text prompt. Claude Code, Codex, Gemini CLI, Aider, Cursor, local models — OrchyStraw doesn't care. It orchestrates the tool, it doesn't replace it.",
   },
   {
     question: "How is this different from AutoGen or CrewAI?",
     answer:
-      "Those are Python frameworks for chat agents. OrchyStraw orchestrates real coding agents (Claude Code, Cursor, etc.) that edit files directly. No runtime, no message passing, no dependencies. Just markdown prompts and bash.",
+      "AutoGen and CrewAI are Python frameworks for chat-style agents. OrchyStraw orchestrates real coding agents — Claude Code, Cursor, etc. — that directly edit your files. Different paradigm. No runtime, no message passing. Just prompts and bash.",
   },
   {
     question: "Can I add custom agents?",
     answer:
-      "Yes. Add a line to agents.conf and create a markdown prompt file. Define the agent's role, file ownership, and tasks. It runs in the next cycle.",
+      "Add one line to agents.conf, write a markdown prompt, done. It picks up the new agent on the next cycle. Takes about 30 seconds.",
   },
 ];
 

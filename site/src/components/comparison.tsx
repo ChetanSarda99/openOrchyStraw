@@ -131,8 +131,8 @@ export function Comparison() {
             className="mt-4 max-w-lg text-text-secondary"
             style={{ fontSize: "var(--font-size-body)", lineHeight: 1.6 }}
           >
-            Other tools require a Python runtime, package management, and API wrappers.
-            OrchyStraw is a shell script.
+            Everyone else wants you to pip install a framework.
+            OrchyStraw is 2,847 lines of bash.
           </p>
         </motion.div>
 

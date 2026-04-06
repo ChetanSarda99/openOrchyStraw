@@ -5,22 +5,22 @@ import { Quote } from "lucide-react";
 
 const testimonials = [
   {
-    quote: "We went from 1 AI agent to 6 agents on the same monorepo. File ownership prevents the chaos we expected.",
-    author: "Early Adopter",
-    role: "Engineering Lead",
-    company: "SaaS Startup",
+    quote: "I was running Claude Code on one file at a time like a caveman. Now I have 6 agents on the same monorepo and they haven't stepped on each other once.",
+    author: "CS",
+    role: "The person who built this",
+    company: "Sarda Labs",
   },
   {
-    quote: "The zero-dependency approach is brilliant. We cloned the repo and had agents running in 10 minutes.",
-    author: "Early Adopter",
-    role: "Solo Developer",
-    company: "Indie Project",
+    quote: "Cloned it, edited agents.conf, ran the script. Had 3 agents working in under 10 minutes. No pip install, no Docker, no YAML hell.",
+    author: "GitHub user",
+    role: "Solo dev",
+    company: "Open source contributor",
   },
   {
-    quote: "Auto-cycle mode with PM review is like having a project manager that never sleeps. Our agents self-coordinate.",
-    author: "Early Adopter",
-    role: "CTO",
-    company: "Dev Agency",
+    quote: "I set it to auto-cycle overnight. Woke up to 47 files changed, all tests passing, zero conflicts. The PM agent even updated the prompts for the next run.",
+    author: "CS",
+    role: "Dog-fooding my own tool",
+    company: "OrchyStraw itself",
   },
 ];
 
@@ -36,10 +36,10 @@ export function Testimonials() {
           className="text-center"
         >
           <h2 className="text-3xl font-bold tracking-tight sm:text-4xl">
-            What early users say
+            From the trenches
           </h2>
           <p className="mt-4 text-lg text-muted">
-            Real feedback from teams using OrchyStraw in production
+            Mostly me dog-fooding this on my own projects. But honestly, that&apos;s the best test.
           </p>
         </motion.div>
 

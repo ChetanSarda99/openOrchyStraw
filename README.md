@@ -6,9 +6,9 @@
 [![Bash 5+](https://img.shields.io/badge/bash-5%2B-green)](https://www.gnu.org/software/bash/)
 [![Zero Dependencies](https://img.shields.io/badge/dependencies-0-brightgreen)](https://github.com/ChetanSarda99/openOrchyStraw)
 
-**Run a team of AI coding agents on any codebase.** Markdown prompts + bash script. No framework, no dependencies.
+**Run a team of AI coding agents on any codebase.** Markdown prompts + one bash script. No framework, no pip install, no Docker.
 
-Works with Claude Code, Codex, Gemini, Aider, Windsurf, Cursor -- anything that takes a prompt.
+Works with Claude Code, Codex, Gemini CLI, Aider, Windsurf, Cursor -- anything that accepts a text prompt.
 
 ---
 
@@ -38,14 +38,14 @@ bash scripts/auto-agent.sh orchestrate 3
 
 ## What It Does
 
-The orchestrator reads `agents.conf`, runs each AI agent with its prompt, enforces file ownership, commits changes, and coordinates via shared context.
+The orchestrator reads `agents.conf`, runs each agent with its prompt, enforces file ownership so they can't step on each other, commits per-agent, and coordinates through shared markdown context.
 
 Each cycle:
 1. **Run agents** in sequence (respecting intervals and dependencies)
-2. **Enforce ownership** -- agents can only write to files they own
-3. **Commit separately** -- clean git history with per-agent attribution
-4. **PM reviews** -- coordinator agent runs last, updates prompts for next cycle
-5. **Repeat** -- auto-cycle mode runs N cycles unattended
+2. **Enforce ownership** -- backend can't touch frontend, QA can't modify scripts
+3. **Commit separately** -- clean git history, one commit per agent
+4. **PM reviews** -- coordinator runs last, updates prompts for next cycle
+5. **Repeat** -- set it to auto-cycle and go to sleep
 
 ## Agent Configuration
 
@@ -90,11 +90,11 @@ Each cycle:
 | Human-readable prompts | Yes | No | No | Yes |
 | No Python/Node runtime | Yes | No | No | Partial |
 
-**Key difference:** AutoGen and CrewAI are Python frameworks for chat agents. OrchyStraw orchestrates real coding agents (Claude Code, Cursor, etc.) that edit files directly. No runtime, no message passing, no dependencies.
+**The difference:** AutoGen and CrewAI orchestrate chat agents through Python. OrchyStraw orchestrates real coding agents (Claude Code, Cursor, etc.) that directly edit your files. Different problem, different approach.
 
 ## Architecture
 
-20+ composable bash modules in `src/core/`:
+20+ bash modules in `src/core/`, all composable:
 
 - **v0.1.0 -- Foundation** (8 modules): logging, error handling, cycle state, timeouts, locking, config validation, signals, dry-run
 - **v0.2.0 -- Smart Cycle** (7 modules): dynamic routing, review phase, worktree isolation, prompt compression, conditional activation, differential context, session tracking

@@ -183,9 +183,9 @@ export function Hero() {
             lineHeight: 1.6,
           }}
         >
-          Run 9 AI coding agents on your codebase with file ownership,
-          quality gates, and cost tracking. No framework. No dependencies.
-          Just a shell script.
+          9 AI agents, one codebase, zero conflicts. File ownership, quality
+          gates, cost tracking. The whole thing is a shell script &mdash; no
+          framework, no pip install, no Docker.
         </p>
 
         <div className="mt-10 flex items-center gap-4">
@@ -196,7 +196,7 @@ export function Hero() {
             className="inline-flex items-center gap-2 rounded-lg bg-accent px-5 py-2.5 font-medium tracking-tight text-accent-foreground transition-colors hover:bg-accent/90"
             style={{ fontSize: "var(--font-size-small)" }}
           >
-            Start building
+            Clone the repo
           </a>
           <a
             href="https://github.com/ChetanSarda99/openOrchyStraw"
