@@ -14,10 +14,10 @@ export function CTA() {
         className="mx-auto max-w-3xl rounded-2xl border border-accent/20 bg-gradient-to-b from-accent/5 to-transparent p-8 text-center sm:p-12"
       >
         <h2 className="text-3xl font-bold tracking-tight sm:text-4xl">
-          Ready to orchestrate?
+          Try it on your codebase
         </h2>
         <p className="mx-auto mt-4 max-w-xl text-lg text-muted">
-          Clone the repo. Define your agents. Run one command. Your AI team starts working in minutes.
+          Clone, edit agents.conf, run the script. You&apos;ll have agents working in about 2 minutes. Not an exaggeration.
         </p>
 
         <div className="mt-8 flex flex-col items-center gap-3 sm:flex-row sm:justify-center sm:gap-4">

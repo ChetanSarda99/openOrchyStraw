@@ -11,7 +11,7 @@ const steps = [
   {
     number: "01",
     title: "Configure your agents",
-    description: "Define roles, file ownership, and run intervals in a single config file. Write each agent's prompt in markdown.",
+    description: "One config file. Define who does what, which files they own, and how often they run. Prompts are just markdown.",
     code: `# agents.conf — who does what
 #
 # id        owns              interval  model
@@ -24,7 +24,7 @@ const steps = [
   {
     number: "02",
     title: "Run the orchestrator",
-    description: "One command. Agents read their prompts, work in isolated worktrees, and write updates to shared context.",
+    description: "One command. Each agent reads its prompt, works in its own git worktree, and drops updates into shared context.",
     code: `$ ./auto-agent.sh --cycles 5
 
 ── Cycle 1 / 5 ──────────────────────
@@ -38,7 +38,7 @@ const steps = [
   {
     number: "03",
     title: "Agents collaborate, you ship",
-    description: "The PM reviews, QA runs tests, Security scans for leaks. You check the diff and merge. Run overnight with auto-cycle.",
+    description: "PM reviews, QA runs tests, Security scans for leaks. You check the diff and merge. Or let it auto-cycle overnight.",
     code: `── Quality Report ───────────────────
 Tests:     278/278 passed
 Security:  0 vulnerabilities
@@ -76,7 +76,7 @@ export function HowItWorks() {
             style={{ fontSize: "var(--font-size-body)", lineHeight: 1.6 }}
           >
             Clone the repo. Edit agents.conf. Run the script.
-            Your first multi-agent cycle takes under two minutes.
+            First cycle finishes in under 2 minutes.
           </p>
         </motion.div>
 

@@ -22,7 +22,7 @@ const features = [
   {
     title: "Multi-agent teams",
     label: "9 AGENTS",
-    description: "CEO, CTO, PM, Backend, QA, Security, Web — each agent has a role, a prompt, and files they own. They coordinate through shared markdown context.",
+    description: "CEO, CTO, PM, Backend, QA, Security, Web — each gets a role, a markdown prompt, and files they own. They talk to each other through a shared context file. That's it.",
     code: `# agents.conf
 01-ceo    docs/strategy/    3  claude
 02-cto    docs/architecture/ 2  claude
@@ -33,7 +33,7 @@ const features = [
   {
     title: "Zero dependencies",
     label: "BASH ONLY",
-    description: "No Python. No Node. No Docker. One shell script that works on any machine with bash 5+.",
+    description: "No Python. No Node. No Docker. Literally one shell script. If your machine has bash 5, you're good.",
     code: `$ file auto-agent.sh
 auto-agent.sh: Bourne-Again shell script
 $ wc -l src/core/*.sh
@@ -43,7 +43,7 @@ $ wc -l src/core/*.sh
   {
     title: "Any AI tool",
     label: "AGENT AGNOSTIC",
-    description: "Claude Code, Codex CLI, Gemini, Aider, Cursor, Windsurf — anything that takes a prompt.",
+    description: "Claude Code, Codex, Gemini, Aider, Cursor, Windsurf — if it accepts a text prompt, it works.",
     code: null,
     tools: ["Claude Code", "Codex", "Gemini CLI", "Aider", "Cursor", "Windsurf"],
     span: "col-span-6 sm:col-span-2",
@@ -51,7 +51,7 @@ $ wc -l src/core/*.sh
   {
     title: "File ownership",
     label: "NO CONFLICTS",
-    description: "Each agent can only touch files they own. Backend cannot edit frontend. QA cannot modify scripts. Zero merge conflicts.",
+    description: "Backend can't touch frontend. QA can't modify scripts. Agents stay in their lane. I've run 300+ cycles with zero merge conflicts.",
     code: `# 06-backend owns:
 scripts/**  src/core/**
 
@@ -65,7 +65,7 @@ tests/**`,
   {
     title: "Quality gates",
     label: "AUTOMATED",
-    description: "QA agent runs tests after every cycle. Security agent scans for leaks. PM reviews and coordinates. Nothing ships without passing gates.",
+    description: "QA runs 278 tests after every cycle. Security scans for credential leaks. PM reviews and updates prompts. Nothing merges until the gates pass.",
     code: `── Quality gates ──────────────
 ✓ 26/26 test suites passed
 ✓ 0 credential leaks found
@@ -150,8 +150,8 @@ export function Features() {
             className="mt-4 max-w-lg text-text-secondary"
             style={{ fontSize: "var(--font-size-body)", lineHeight: 1.6 }}
           >
-            Not a toy. Not a framework. Orchestration that scales from
-            side projects to production monorepos.
+            I built this for my own projects first. It runs my monorepo
+            with 10 agents. Here&apos;s what it actually does.
           </p>
         </motion.div>
 
