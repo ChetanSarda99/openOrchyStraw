@@ -225,13 +225,13 @@ while IFS= read -r file; do
             done < "$filepath"
             ;;
         *.py)
-            local func_name="" func_start=0 func_indent=0 in_func=false
-            local line_num=0
+            func_name="" func_start=0 func_indent=0 in_func=false
+            line_num=0
             while IFS= read -r code_line; do
                 line_num=$((line_num + 1))
                 if echo "$code_line" | grep -qE '^\s*def\s+\w+' 2>/dev/null; then
                     if [[ "$in_func" == true ]]; then
-                        local func_length=$((line_num - func_start))
+                        func_length=$((line_num - func_start))
                         if [[ "$func_length" -gt 50 ]]; then
                             add_finding "WARNING" "$file" "Large function '$func_name' ($func_length lines at L${func_start}) — consider splitting"
                         fi
@@ -243,20 +243,20 @@ while IFS= read -r file; do
                 fi
             done < "$filepath"
             if [[ "$in_func" == true ]]; then
-                local func_length=$((line_num - func_start))
+                func_length=$((line_num - func_start))
                 if [[ "$func_length" -gt 50 ]]; then
                     add_finding "WARNING" "$file" "Large function '$func_name' ($func_length lines at L${func_start}) — consider splitting"
                 fi
             fi
             ;;
         *.sh)
-            local func_name="" func_start=0 in_func=false
-            local line_num=0
+            func_name="" func_start=0 in_func=false
+            line_num=0
             while IFS= read -r code_line; do
                 line_num=$((line_num + 1))
                 if echo "$code_line" | grep -qE '^\s*\w+\s*\(\)\s*\{' 2>/dev/null; then
                     if [[ "$in_func" == true ]]; then
-                        local func_length=$((line_num - func_start))
+                        func_length=$((line_num - func_start))
                         if [[ "$func_length" -gt 50 ]]; then
                             add_finding "WARNING" "$file" "Large function '$func_name' ($func_length lines at L${func_start}) — consider splitting"
                         fi
@@ -267,7 +267,7 @@ while IFS= read -r file; do
                 fi
             done < "$filepath"
             if [[ "$in_func" == true ]]; then
-                local func_length=$((line_num - func_start))
+                func_length=$((line_num - func_start))
                 if [[ "$func_length" -gt 50 ]]; then
                     add_finding "WARNING" "$file" "Large function '$func_name' ($func_length lines at L${func_start}) — consider splitting"
                 fi
@@ -291,7 +291,7 @@ while IFS= read -r file; do
             # Code after unconditional return/exit (simple pattern)
             if echo "$added_lines" | grep -qE "^\+\s*(return|exit)\s" 2>/dev/null; then
                 # Check if line immediately after return has non-comment code
-                local prev_was_return=false
+                prev_was_return=false
                 echo "$added_lines" | while IFS= read -r aline; do
                     aline_clean="${aline#+}"
                     if [[ "$prev_was_return" == true ]]; then
@@ -308,7 +308,7 @@ while IFS= read -r file; do
             fi
 
             # Commented-out code blocks (3+ consecutive commented lines with code-like content)
-            local comment_streak=0
+            comment_streak=0
             while IFS= read -r aline; do
                 aline_clean="${aline#+}"
                 if echo "$aline_clean" | grep -qE '^\s*(//|#)\s*[a-zA-Z].*[;(){}=]' 2>/dev/null; then

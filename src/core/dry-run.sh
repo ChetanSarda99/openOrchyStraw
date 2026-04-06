@@ -238,10 +238,10 @@ orch_dry_run_report() {
             $col_label    "$label"
 
         # Track for parallel group estimation
-        (( current_group_size++ ))
+        (( current_group_size++ )) || true
         if (( current_group_size >= group_size_limit )); then
             parallel_groups+=("Group $group_num (${current_group_size} agents)")
-            (( group_num++ ))
+            (( group_num++ )) || true
             current_group_size=0
         fi
     done
