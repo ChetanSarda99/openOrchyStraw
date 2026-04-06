@@ -198,8 +198,8 @@ while IFS= read -r file; do
     case "$file" in
         *.ts|*.tsx|*.js|*.jsx)
             # Detect function declarations and count lines until closing brace
-            local func_name="" func_start=0 brace_depth=0 in_func=false
-            local line_num=0
+            func_name="" func_start=0 brace_depth=0 in_func=false
+            line_num=0
             while IFS= read -r code_line; do
                 line_num=$((line_num + 1))
                 if [[ "$in_func" == false ]]; then
@@ -211,12 +211,11 @@ while IFS= read -r file; do
                     fi
                 fi
                 if [[ "$in_func" == true ]]; then
-                    local opens closes
                     opens=$(echo "$code_line" | tr -cd '{' | wc -c)
                     closes=$(echo "$code_line" | tr -cd '}' | wc -c)
                     brace_depth=$((brace_depth + opens - closes))
                     if [[ "$brace_depth" -le 0 && "$line_num" -gt "$func_start" ]]; then
-                        local func_length=$((line_num - func_start))
+                        func_length=$((line_num - func_start))
                         if [[ "$func_length" -gt 50 ]]; then
                             add_finding "WARNING" "$file" "Large function '$func_name' ($func_length lines at L${func_start}) — consider splitting"
                         fi
