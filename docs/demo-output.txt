@@ -1,0 +1,102 @@
+
+  ╔═══════════════════════════════════════════════╗
+  ║                                               ║
+  ║     OrchyStraw  Demo                          ║
+  ║     Multi-Agent AI Coding Orchestration        ║
+  ║                                               ║
+  ╚═══════════════════════════════════════════════╝
+
+  [Step 1] Creating temporary project...
+    OK Project created at: /tmp/tmp.aC7MLbE6LJ/demo-project
+  [Step 2] Configuring 3 agents: PM, Developer, QA
+    03-pm        — PM Coordinator     (interval=0, runs LAST)
+    06-developer — Full-Stack Dev      (interval=1, every cycle)
+    09-qa        — QA Engineer         (interval=2, every other cycle)
+  [Step 3] Running 2 orchestration cycle(s)...
+
+  ═══ CYCLE 1 ═══
+
+  Validating agents.conf...
+    OK 3 agents configured (1 coordinator, 2 workers)
+  Checking cycle intervals...
+    OK 2 agent(s) active this cycle
+
+  ────────────────────────────────────────────
+
+    Developer    09:38:03  Starting...
+    Developer    09:38:04  Loaded prompt: 16 lines (~64 tokens)
+    Developer    09:38:05  Reading shared context...
+    Developer    09:38:05  Implementing POST /todos endpoint...
+    Developer    09:38:06  Implementing GET /todos endpoint...
+    Developer    09:38:07  2 files changed, 4 insertions
+    Developer    09:38:07  Writing status to shared context...
+    Developer    09:38:08  Done (1.2s)
+    Developer    09:38:09  Committed: cycle-1: 06-developer
+
+    PM           09:38:09  Starting...
+    PM           09:38:10  Loaded prompt: 14 lines (~56 tokens)
+    PM           09:38:11  Reading shared context...
+    PM           09:38:12  Reviewing cycle output...
+    PM           09:38:12  Developer: productive | QA: skipped (interval=2)
+    PM           09:38:13  Updating prompts for next cycle...
+    PM           09:38:13  Done (0.9s)
+    PM           09:38:14  Committed: cycle-1: 03-pm
+
+  Cycle 1 complete  2 agents ran, 3 total commits
+
+  ═══ CYCLE 2 ═══
+
+  Validating agents.conf...
+    OK 3 agents configured (1 coordinator, 2 workers)
+  Checking cycle intervals...
+    OK 3 agent(s) active this cycle
+
+  ────────────────────────────────────────────
+
+    Developer    09:38:15  Starting...
+    Developer    09:38:16  Loaded prompt: 16 lines (~64 tokens)
+    Developer    09:38:17  Reading shared context...
+    Developer    09:38:17  Adding input validation...
+    Developer    09:38:18  1 file changed, 2 insertions
+    Developer    09:38:19  Writing status to shared context...
+    Developer    09:38:19  Done (1.2s)
+    Developer    09:38:20  Committed: cycle-2: 06-developer
+
+    QA           09:38:20  Starting...
+    QA           09:38:21  Loaded prompt: 17 lines (~68 tokens)
+    QA           09:38:22  Reading shared context...
+    QA           09:38:22  Running existing tests...
+    QA           09:38:23  1/1 tests pass
+    QA           09:38:23  Writing test for POST /todos...
+    QA           09:38:24  Writing test for GET /todos...
+    QA           09:38:25  1 file changed, 6 insertions
+    QA           09:38:25  Verdict: PASS — no issues found
+    QA           09:38:25  Done (1.8s)
+    QA           09:38:26  Committed: cycle-2: 09-qa
+
+    PM           09:38:27  Starting...
+    PM           09:38:27  Loaded prompt: 14 lines (~56 tokens)
+    PM           09:38:28  Reading shared context...
+    PM           09:38:29  Reviewing cycle output...
+    PM           09:38:29  Developer: productive | QA: productive
+    PM           09:38:30  Updating prompts for next cycle...
+    PM           09:38:31  Done (0.9s)
+    PM           09:38:32  Committed: cycle-2: 03-pm
+
+  Cycle 2 complete  3 agents ran, 6 total commits
+
+  ────────────────────────────────────────────
+
+  DEMO COMPLETE
+
+  Summary:
+    Cycles:    2
+    Agents:    3 (PM, Developer, QA)
+    Commits:   6
+    API calls: 0 (dry-run simulation)
+
+  Try it yourself:
+    git clone https://github.com/ChetanSarda99/openOrchyStraw.git
+    cd openOrchyStraw
+    bash scripts/auto-agent.sh orchestrate 3 --dry-run
+

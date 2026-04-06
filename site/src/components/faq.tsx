@@ -28,7 +28,7 @@ const faqs = [
   {
     question: "How is this different from AutoGen or CrewAI?",
     answer:
-      "AutoGen and CrewAI are Python frameworks for chat-style agents. OrchyStraw orchestrates real coding agents — Claude Code, Cursor, etc. — that directly edit your files. Different paradigm. No runtime, no message passing. Just prompts and bash.",
+      "AutoGen and CrewAI are Python frameworks for chat-style agents. OrchyStraw orchestrates real coding agents — Claude Code, Cursor, etc. — that directly edit your files. Completely different approach. No runtime, no message passing. Just prompts and bash.",
   },
   {
     question: "Can I add custom agents?",
