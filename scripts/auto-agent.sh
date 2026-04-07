@@ -10,6 +10,7 @@
 #   ./scripts/auto-agent.sh orchestrate --cost-limit 5.00
 #   ./scripts/auto-agent.sh orchestrate --max-parallel 3
 #   ./scripts/auto-agent.sh orchestrate --watch
+#   ./scripts/auto-agent.sh orchestrate --review
 #   ./scripts/auto-agent.sh run <agent-id>
 #   ./scripts/auto-agent.sh run --agent "Backend Developer"
 #   ./scripts/auto-agent.sh list
@@ -91,6 +92,7 @@ MAX_EMPTY_CYCLES=3
 COST_LIMIT=""          # --cost-limit: stop when cumulative cost exceeds (dollars)
 MAX_PARALLEL=0         # --max-parallel: cap concurrent agents (0=unlimited)
 WATCH_MODE=false       # --watch: file-change triggered mode
+REVIEW_MODE=false      # --review: human approval before commit
 AGENT_BY_NAME=""       # --agent: resolve agent by label name
 CUMULATIVE_COST=0      # running total in microdollars
 CUMULATIVE_TOKENS=0    # running total tokens across all cycles
@@ -639,6 +641,47 @@ commit_by_ownership() {
     local total=$((changes + untracked))
 
     if [[ "$total" -gt 0 ]]; then
+        # --review mode: ask human for approval before committing
+        if [[ "$REVIEW_MODE" == true ]]; then
+            echo ""
+            echo "┌──────────────────────────────────────────────────┐"
+            echo "│  REVIEW: ${AGENT_LABELS[$agent_id]} ($agent_id)"
+            echo "├──────────────────────────────────────────────────┤"
+            echo "│  Files changed: $total"
+            echo "└──────────────────────────────────────────────────┘"
+            echo ""
+            git diff --stat "${pathspec[@]}" 2>/dev/null
+            git diff --stat --cached "${pathspec[@]}" 2>/dev/null
+            echo ""
+            git diff "${pathspec[@]}" 2>/dev/null | head -80
+            echo ""
+            local choice=""
+            read -p "Approve changes for ${AGENT_LABELS[$agent_id]}? (y/n/s=skip): " choice </dev/tty
+            case "$choice" in
+                y|Y)
+                    git add "${pathspec[@]}" 2>/dev/null
+                    git commit -m "feat($agent_id): auto-cycle $(date '+%m-%d %H:%M') — $total files" 2>/dev/null
+                    log "[$agent_id] Committed $total files (approved)"
+                    return 0
+                    ;;
+                n|N)
+                    git checkout "${pathspec[@]}" 2>/dev/null
+                    # Also remove any untracked files in owned paths
+                    git ls-files --others --exclude-standard "${pathspec[@]}" 2>/dev/null | xargs rm -f 2>/dev/null
+                    log "[$agent_id] Changes REVERTED by reviewer"
+                    return 1
+                    ;;
+                s|S)
+                    log "[$agent_id] Changes SKIPPED (kept unstaged)"
+                    return 1
+                    ;;
+                *)
+                    log "[$agent_id] Invalid choice '$choice' — skipping commit (changes kept)"
+                    return 1
+                    ;;
+            esac
+        fi
+
         git add "${pathspec[@]}" 2>/dev/null
         git commit -m "feat($agent_id): auto-cycle $(date '+%m-%d %H:%M') — $total files" 2>/dev/null
         log "[$agent_id] Committed $total files"
@@ -979,6 +1022,7 @@ case "${1:-help}" in
                 --cost-limit)  COST_LIMIT="$2"; shift 2 ;;
                 --max-parallel) MAX_PARALLEL="$2"; shift 2 ;;
                 --watch)       WATCH_MODE=true; shift ;;
+                --review)      REVIEW_MODE=true; shift ;;
                 --dry-run)     shift ;;  # handled by dry-run module
                 [0-9]*)        MAX_CYCLES="$1"; shift ;;
                 *)             shift ;;  # skip unknown
@@ -1626,6 +1670,7 @@ PEOF
         echo "  orchestrate --cost-limit 5.00                 Stop when est. cost exceeds \$5"
         echo "  orchestrate --max-parallel 3                  Cap concurrent agents"
         echo "  orchestrate --watch                           File-change triggered mode"
+        echo "  orchestrate --review                          Human approval before each commit"
         echo "  run <agent-id>                                Single agent once"
         echo "  run --agent \"Backend Developer\"                Run agent by name"
         echo "  list                                          Show configured agents"
