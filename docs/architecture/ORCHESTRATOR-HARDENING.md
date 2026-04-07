@@ -8,24 +8,18 @@ _Reviewed by: CTO 2026-03-29 — verified 601c9a2 fixes (HIGH-03, HIGH-04, MEDIU
 
 ## Issues Found (Cycle 1 Review)
 
-### P0: Bash Version Check (Missing) — ADR: BASH-001
+### P0: Bash Version Check — ADR: BASH-001 ✅ RESOLVED
 
-`auto-agent.sh` uses `declare -A` (bash 4+) but has no version guard.
-`error-handler.sh` and `logger.sh` use `declare -g -A` which requires bash 5.0+.
+`auto-agent.sh` uses `declare -A` (bash 4+) and `declare -gA` (bash 5+).
+**Implemented** in `src/core/bash-version.sh` — sourced early by `auto-agent.sh`.
+Exits with clear error and install instructions if bash < 5.0.
+
+Test runner (`tests/core/run-tests.sh`) also auto-detects and re-execs with
+homebrew bash 5 (`/opt/homebrew/bin/bash` or `/usr/local/bin/bash`) if available.
 
 **Decision (BASH-001):** Minimum version is **bash 5.0**, not 4.0. See `docs/tech-registry/decisions/BASH-001-version-compatibility.md`.
 
-**Fix:**
-```bash
-# Add after set -uo pipefail (line 23):
-if ((BASH_VERSINFO[0] < 5)); then
-    echo "ERROR: OrchyStraw requires bash 5.0+" >&2
-    echo "  macOS: brew install bash && sudo chsh -s /opt/homebrew/bin/bash" >&2
-    exit 1
-fi
-```
-
-**Also fix:** Standardize all shebangs to `#!/usr/bin/env bash` (portable, finds Homebrew bash).
+All shebangs use `#!/usr/bin/env bash` (portable, finds Homebrew bash when in PATH).
 
 ### P0: Ownership Overlap — Backend Agent vs Protected Files
 

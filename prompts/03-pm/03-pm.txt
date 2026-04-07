@@ -33,18 +33,20 @@ Multi-agent AI coding orchestration. Markdown prompts + bash script. No framewor
 
 ---
 
-## Agent Team (9 active agents)
+## Agent Team (10 active agents — per agents.conf)
 
 | ID | Role | Owns | Cycle | Status |
 |----|------|------|-------|--------|
 | 01-ceo | CEO | docs/strategy/ | 3 | Active — Vision & market direction |
 | 02-cto | CTO | docs/architecture/ | 2 | Active — Architecture & standards |
 | 03-pm | PM | prompts/ docs/ | 0 (last) | Active — (this file) |
-| 06-backend | Backend | scripts/ src/core/ src/lib/ | 1 | Active — Core orchestrator engine |
+| 06-backend | Backend | scripts/ src/core/ src/lib/ benchmarks/ | 1 | Active — Core orchestrator engine |
 | 08-pixel | Pixel Agents | src/pixel/ pixel-agents/ | 2 | Active — Visual agent visualization layer |
-| 09-qa | QA | tests/ reports/ | 3 | Active — Testing & quality gates |
-| 10-security | Security | reports/ | 3 | Active — Security audits (read-only) |
-| 11-web | Web Dev | site/ | 2 | Active — Landing page + docs site |
+| 09-qa-code | QA Code Review | tests/ reports/ | 3 | Active — Code quality, test coverage |
+| 09-qa-visual | QA Visual Audit | reports/visual/ | 3 | Active — Visual/layout audits |
+| 10-security | Security | reports/ | 5 | Active — Security audits (read-only) |
+| 11-web | Web Dev | site/ | 1 | Active — Landing page + docs site |
+| 13-hr | HR & Team | docs/team/ prompts/13-hr/ | 3 | Active — Team health & composition |
 | 04-tauri-rust | Tauri Rust | src-tauri/ | — | Inactive — deferred |
 | 05-tauri-ui | Tauri UI | src/ public/ styles/ | — | Inactive — deferred |
 | 07-ios | iOS | ios/ src/native/ | — | Inactive — deferred |
@@ -185,20 +187,21 @@ You ONLY edit files under `prompts/` and `docs/`. Never touch source code.
 - NEVER run: git checkout, git switch, git merge, git push, git reset, git rebase
 - ONLY allowed: git status, git log, git diff (read-only)
 
-## Agent Status Summary (Updated 2026-04-04)
+## Agent Status Summary (Updated 2026-04-07)
 
 | Agent | Status | Notes |
 |-------|--------|-------|
 | 01-ceo | STANDBY | No strategic changes needed |
-| 02-cto | STANDBY | Review queue cleared |
-| 06-backend | ACTIVE | v0.3.0 modules in progress. 23/23 tests pass. |
+| 02-cto | ACTIVE | ADRs updated (PLATFORM-COMPATIBILITY, ORCHESTRATOR-HARDENING) |
+| 06-backend | ACTIVE | Fixed dry-run.sh unbound variable bug. Test runner bash 5 auto-detect added. |
 | 08-pixel | STANDBY | Waiting for Pixel Agents integration |
-| 09-qa | STANDBY | No new code to review |
-| 10-security | BACKLOG | 6 modules pending security review |
-| 11-web | ACTIVE | Landing page v2 complete (10 sections). Docs site at 8 pages. |
+| 09-qa-code | ACTIVE | 6/39 tests pass on macOS (bash 3.2). All bash-5-dependent tests need `brew install bash`. |
+| 09-qa-visual | STANDBY | No visual changes to audit |
+| 10-security | PASS | No eval injection or secret leaks found. lock-file.sh eval is safe (FD manipulation). |
+| 11-web | ACTIVE | Site builds clean (Next.js 16.2.0). 4 sections rendered, 6 components unused. |
 | 13-hr | STANDBY | Team stable |
 
-**v0.2.0 TAGGED. v0.3.0 in progress. 6 issues closed (#167, #182, #184, #162, #160, #164).**
+**v0.2.0 TAGGED. v0.3.0 in progress. dry-run.sh bug fixed, test runner improved, ADRs updated.**
 
 ## Shared Context
 

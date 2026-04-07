@@ -92,7 +92,7 @@ orch_shared_send_telegram() {
     fi
     local chat_id="${ORCH_TELEGRAM_CHAT_ID:-}"
     if [[ -z "$chat_id" && -f "$PROJECT_ROOT/.orchystraw/telegram-chat-id" ]]; then
-        chat_id=$(cat "$PROJECT_ROOT/.orchystraw/telegram-chat-id" | tr -d '[:space:]')
+        chat_id=$(tr -d '[:space:]' < "$PROJECT_ROOT/.orchystraw/telegram-chat-id")
     fi
     if [[ -z "$chat_id" ]]; then
         log "WARNING: No Telegram chat ID configured (set ORCH_TELEGRAM_CHAT_ID or .orchystraw/telegram-chat-id)"

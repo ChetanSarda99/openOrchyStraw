@@ -153,7 +153,9 @@ orch_dry_run_report() {
         fi
     done < <(_orch_drr_parse_conf "$conf_file")
 
-    local all_agents=("${regular_agents[@]}" "${coordinator_agents[@]}")
+    local all_agents=()
+    [[ ${#regular_agents[@]} -gt 0 ]] && all_agents+=("${regular_agents[@]}")
+    [[ ${#coordinator_agents[@]} -gt 0 ]] && all_agents+=("${coordinator_agents[@]}")
 
     # ── Header ──────────────────────────────────────────────────────────────
     printf '\n'

@@ -10,6 +10,19 @@
 
 set -euo pipefail
 
+# ── Auto-detect bash 5+ and re-exec if needed ────────────────────────────
+# Most core modules require bash 5.0+ (declare -g, associative arrays, etc.)
+# macOS ships bash 3.2 by default; try homebrew bash if available.
+if (( BASH_VERSINFO[0] < 5 )); then
+    for _bash5 in /opt/homebrew/bin/bash /usr/local/bin/bash; do
+        if [[ -x "$_bash5" ]] && "$_bash5" -c '(( BASH_VERSINFO[0] >= 5 ))' 2>/dev/null; then
+            exec "$_bash5" "$0" "$@"
+        fi
+    done
+    printf '\n  WARNING: bash 5.0+ not found. Tests requiring bash 5 features will fail.\n'
+    printf '  Install with: brew install bash\n\n'
+fi
+
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 PROJECT_ROOT="$(cd "$SCRIPT_DIR/../.." && pwd)"
 
@@ -25,7 +38,7 @@ run_test_file() {
     printf '  %-40s ' "$name"
 
     local output
-    if output=$(bash "$test_file" 2>&1); then
+    if output=$("${BASH}" "$test_file" 2>&1); then
         printf 'PASS\n'
         (( PASS++ )) || true
     else

@@ -5,22 +5,28 @@ _Priority: Mac first, Linux second, Windows third_
 
 ---
 
-## Current State: BROKEN on macOS
+## Current State: Requires bash 5.0+ (macOS needs brew bash)
 
 ### The Problem
-`auto-agent.sh` uses `declare -A` (associative arrays) — requires bash 4.0+.
+`auto-agent.sh` and all `src/core/` modules use `declare -gA` (global associative arrays),
+namerefs (`declare -n`), and uppercase expansion (`${var^^}`) — requires bash 5.0+.
 macOS ships bash 3.2 (2007, last GPLv2 version — Apple won't ship GPLv3).
 
 ```bash
-# This line crashes on stock macOS:
-declare -A AGENT_PROMPTS=()
-# bash: declare: -A: invalid option
+# These crash on stock macOS (bash 3.2):
+declare -gA AGENT_PROMPTS=()   # -g requires bash 4.2+, -A requires 4.0+
+declare -n ref=varname          # namerefs require bash 4.3+
 ```
 
-### Other bash 4+ features we use
-- Associative arrays (`declare -A`) — used heavily for agent config
+The test runner (`tests/core/run-tests.sh`) auto-detects and re-execs with
+homebrew bash 5 if available.
+
+### bash 5+ features we use
+- Global associative arrays (`declare -gA`) — used heavily for agent config and state
 - `${!array[@]}` iteration over associative arrays
-- Possibly `|&` (pipe stderr), `mapfile`, `readarray` (none found currently)
+- Namerefs (`declare -n`) — used in several core modules
+- `${var^^}` uppercase expansion
+- Possibly `|&` (pipe stderr), `mapfile`, `readarray`
 
 ### Fix Options
 
@@ -77,10 +83,10 @@ Update `auto-agent.sh` line 1:
 # Requires bash 4.0+ (macOS: brew install bash)
 ```
 
-Add version check at top of script:
+Add version check at top of script (already implemented in `src/core/bash-version.sh`):
 ```bash
-if ((BASH_VERSINFO[0] < 4)); then
-    echo "ERROR: bash 4+ required. macOS: brew install bash"
+if ((BASH_VERSINFO[0] < 5)); then
+    echo "ERROR: bash 5+ required. macOS: brew install bash"
     exit 1
 fi
 ```
