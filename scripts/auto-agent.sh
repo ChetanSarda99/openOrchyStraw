@@ -62,6 +62,15 @@ if [ -d "$PROJECT_ROOT/src/core" ]; then
     done
 fi
 
+# ── Shared resources (cross-project utilities) ────────────────────────
+SHARED_ORCH_DIR="$HOME/Projects/shared/orchystraw-core"
+if [ -d "$SHARED_ORCH_DIR" ]; then
+    for mod in "$SHARED_ORCH_DIR"/*.sh; do
+        [ -f "$mod" ] && source "$mod"
+    done
+    [[ "${ORCH_DEBUG:-}" == "1" ]] && echo "[orch] Loaded shared modules from $SHARED_ORCH_DIR"
+fi
+
 if [[ -n "${2:-}" && "${2:-}" =~ ^[0-9]+$ ]]; then
     MAX_CYCLES="$2"
 elif [[ -n "${ORCH_MAX_CYCLES:-}" ]]; then
