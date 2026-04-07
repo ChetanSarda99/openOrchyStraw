@@ -1923,6 +1923,137 @@ Total files changed: ${CUMULATIVE_FILES}" 2>/dev/null || true
         show_status
         ;;
 
+    init)
+        shift  # remove 'init'
+        INIT_TEMPLATE="saas"
+        INIT_TARGET=""
+        INIT_PROJECT_NAME=""
+
+        while [[ $# -gt 0 ]]; do
+            case "$1" in
+                --template|-t)
+                    INIT_TEMPLATE="${2:?Usage: init --template <saas|api|content>}"
+                    shift 2
+                    ;;
+                --name|-n)
+                    INIT_PROJECT_NAME="${2:?Usage: init --name <project-name>}"
+                    shift 2
+                    ;;
+                --list|-l)
+                    echo "Available templates:"
+                    echo ""
+                    for tpl_dir in "$PROJECT_ROOT"/template/*/; do
+                        [ -d "$tpl_dir" ] || continue
+                        tpl_name="$(basename "$tpl_dir")"
+                        if [[ -f "${tpl_dir}README.md" ]]; then
+                            tpl_desc="$(head -3 "${tpl_dir}README.md" | tail -1)"
+                        else
+                            tpl_desc="$tpl_name template"
+                        fi
+                        printf '  %-12s %s\n' "$tpl_name" "$tpl_desc"
+                    done
+                    echo ""
+                    echo "Usage: $0 init --template <name> <target_dir>"
+                    exit 0
+                    ;;
+                -*)
+                    echo "Unknown option: $1"
+                    echo "Usage: $0 init [--template saas|api|content] [--name project-name] <target_dir>"
+                    exit 1
+                    ;;
+                *)
+                    INIT_TARGET="$1"
+                    shift
+                    ;;
+            esac
+        done
+
+        # Require a target directory
+        if [[ -z "$INIT_TARGET" ]]; then
+            echo "Usage: $0 init [--template saas|api|content] <target_dir>"
+            echo ""
+            echo "Templates:"
+            for tpl_dir in "$PROJECT_ROOT"/template/*/; do
+                [ -d "$tpl_dir" ] || continue
+                printf '  %s\n' "$(basename "$tpl_dir")"
+            done
+            echo ""
+            echo "Example: $0 init --template saas ./my-project"
+            exit 1
+        fi
+
+        # Validate template exists
+        if [[ ! -d "$PROJECT_ROOT/template/${INIT_TEMPLATE}" ]]; then
+            echo "ERROR: Template '${INIT_TEMPLATE}' not found."
+            echo ""
+            echo "Available templates:"
+            for tpl_dir in "$PROJECT_ROOT"/template/*/; do
+                [ -d "$tpl_dir" ] || continue
+                printf '  %s\n' "$(basename "$tpl_dir")"
+            done
+            exit 1
+        fi
+
+        # Use orch_init_deploy_template if available (from init-project.sh module)
+        if [[ "$(type -t orch_init_deploy_template)" == "function" ]]; then
+            export ORCH_ROOT="$PROJECT_ROOT"
+            orch_init_deploy_template "$INIT_TEMPLATE" "$INIT_TARGET" "$INIT_PROJECT_NAME"
+        else
+            # Fallback: direct copy if module not loaded
+            echo "Deploying template '${INIT_TEMPLATE}' to '${INIT_TARGET}'..."
+
+            # Resolve target
+            if [[ ! "$INIT_TARGET" = /* ]]; then
+                INIT_TARGET="$(pwd)/${INIT_TARGET}"
+            fi
+
+            PROJECT_NAME_INIT="${INIT_PROJECT_NAME:-$(basename "$INIT_TARGET")}"
+            CURRENT_DATE="$(date '+%Y-%m-%d %H:%M:%S')"
+
+            mkdir -p "$INIT_TARGET/prompts/00-shared-context"
+            cp -R "$PROJECT_ROOT/template/${INIT_TEMPLATE}/"* "$INIT_TARGET/"
+
+            # String replacements
+            find "$INIT_TARGET" -type f \( -name "*.conf" -o -name "*.md" -o -name "*.txt" \) -print0 | \
+            while IFS= read -r -d '' file; do
+                sed -i '' \
+                    -e "s|{{PROJECT_NAME}}|${PROJECT_NAME_INIT}|g" \
+                    -e "s|{{DATE}}|${CURRENT_DATE}|g" \
+                    "$file" 2>/dev/null || \
+                sed -i \
+                    -e "s|{{PROJECT_NAME}}|${PROJECT_NAME_INIT}|g" \
+                    -e "s|{{DATE}}|${CURRENT_DATE}|g" \
+                    "$file" 2>/dev/null || true
+            done
+
+            # Create shared context
+            cat > "${INIT_TARGET}/prompts/00-shared-context/context.md" <<CTXEOF
+# ${PROJECT_NAME_INIT} — Shared Context
+
+## Cross-Agent Communication
+Agents write their updates here each cycle. Reset at the start of each new cycle.
+
+---
+CTXEOF
+
+            FILE_COUNT=$(find "$INIT_TARGET" -type f | wc -l | tr -d ' ')
+            PROMPT_COUNT=$(find "$INIT_TARGET/prompts" -name "*.txt" -type f | wc -l | tr -d ' ')
+
+            echo ""
+            echo "Template '${INIT_TEMPLATE}' deployed to ${INIT_TARGET}"
+            echo "  Project name: ${PROJECT_NAME_INIT}"
+            echo "  Files: ${FILE_COUNT}"
+            echo "  Agent prompts: ${PROMPT_COUNT}"
+            echo "  Config: ${INIT_TARGET}/agents.conf"
+            echo ""
+            echo "Next steps:"
+            echo "  1. cd ${INIT_TARGET}"
+            echo "  2. Review agents.conf and adjust ownership paths"
+            echo "  3. Edit prompts in prompts/ with your specific tasks"
+            echo "  4. Run: ./scripts/auto-agent.sh orchestrate"
+        fi
+        ;;
+
     *)
         echo "orchystraw Orchestrator v4"
         echo ""
@@ -1938,6 +2069,8 @@ Total files changed: ${CUMULATIVE_FILES}" 2>/dev/null || true
         echo "  run --agent \"Backend Developer\"                Run agent by name"
         echo "  list                                          Show configured agents"
         echo "  status                                        Show cycle state (no run)"
+        echo "  init --template <saas|api|content> <dir>      Initialize new project from template"
+        echo "  init --list                                   List available templates"
         echo ""
         echo "Config:  scripts/agents.conf"
         echo "Logs:    prompts/<agent>/logs/"

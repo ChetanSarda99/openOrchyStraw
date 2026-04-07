@@ -853,6 +853,127 @@ orch_init_apply_template() {
 }
 
 # ---------------------------------------------------------------------------
+# orch_init_deploy_template — copy template files to a target directory
+#
+# Copies agents.conf, CLAUDE.md, README.md, and prompts/ from a template
+# directory, performing string replacements for project name and date.
+#
+# Args:
+#   $1 — template name (saas, api, content)
+#   $2 — target directory
+#   $3 — project name (optional, defaults to target dir basename)
+#
+# Returns: 0 on success, 1 on failure
+# ---------------------------------------------------------------------------
+orch_init_deploy_template() {
+    local template_name="${1:?orch_init_deploy_template requires a template name}"
+    local target_dir="${2:?orch_init_deploy_template requires a target directory}"
+    local project_name="${3:-}"
+
+    # Resolve ORCH_ROOT (where OrchyStraw is installed)
+    local orch_root="${ORCH_ROOT:-}"
+    if [[ -z "$orch_root" ]]; then
+        # Try to find it relative to this script
+        local script_path="${BASH_SOURCE[0]}"
+        if [[ -n "$script_path" ]]; then
+            orch_root="$(cd "$(dirname "$script_path")/../.." 2>/dev/null && pwd)"
+        fi
+    fi
+
+    local template_dir="${orch_root}/template/${template_name}"
+    if [[ ! -d "$template_dir" ]]; then
+        _orch_init_err "template directory not found: ${template_dir}"
+        _orch_init_err "available templates: $(ls "${orch_root}/template/" 2>/dev/null | tr '\n' ' ')"
+        return 1
+    fi
+
+    # Resolve target directory
+    if [[ ! "$target_dir" = /* ]]; then
+        target_dir="$(pwd)/${target_dir}"
+    fi
+
+    # Derive project name from target dir basename if not provided
+    if [[ -z "$project_name" ]]; then
+        project_name="$(basename "$target_dir")"
+    fi
+
+    local current_date
+    current_date="$(date '+%Y-%m-%d %H:%M:%S')"
+
+    _orch_init_log "deploying template '${template_name}' to '${target_dir}'"
+    _orch_init_log "project name: ${project_name}"
+
+    # Create target directory if it doesn't exist
+    mkdir -p "$target_dir" || {
+        _orch_init_err "could not create target directory: ${target_dir}"
+        return 1
+    }
+
+    # Create shared context directory
+    mkdir -p "${target_dir}/prompts/00-shared-context" || true
+
+    # Copy template files recursively
+    cp -R "${template_dir}/"* "${target_dir}/" 2>/dev/null || {
+        _orch_init_err "failed to copy template files from ${template_dir}"
+        return 1
+    }
+
+    # Perform string replacements in all copied files
+    local file
+    while IFS= read -r -d '' file; do
+        if [[ -f "$file" ]]; then
+            # Replace placeholders
+            if command -v sed >/dev/null 2>&1; then
+                sed -i '' \
+                    -e "s|{{PROJECT_NAME}}|${project_name}|g" \
+                    -e "s|{{DATE}}|${current_date}|g" \
+                    "$file" 2>/dev/null || \
+                sed -i \
+                    -e "s|{{PROJECT_NAME}}|${project_name}|g" \
+                    -e "s|{{DATE}}|${current_date}|g" \
+                    "$file" 2>/dev/null || true
+            fi
+        fi
+    done < <(find "$target_dir" -type f \( -name "*.conf" -o -name "*.md" -o -name "*.txt" \) -print0 2>/dev/null)
+
+    # Create empty shared context file
+    if [[ ! -f "${target_dir}/prompts/00-shared-context/context.md" ]]; then
+        cat > "${target_dir}/prompts/00-shared-context/context.md" <<CTXEOF
+# ${project_name} — Shared Context
+
+## Cross-Agent Communication
+Agents write their updates here each cycle. Reset at the start of each new cycle.
+
+---
+
+<!-- Agent updates will appear below -->
+CTXEOF
+    fi
+
+    # Count what was deployed
+    local file_count
+    file_count=$(find "$target_dir" -type f 2>/dev/null | wc -l | tr -d ' ')
+    local prompt_count
+    prompt_count=$(find "${target_dir}/prompts" -name "*.txt" -type f 2>/dev/null | wc -l | tr -d ' ')
+
+    _orch_init_log "deployed ${file_count} files (${prompt_count} agent prompts)"
+    _orch_init_log "target: ${target_dir}"
+
+    printf 'Template "%s" deployed to %s\n' "$template_name" "$target_dir"
+    printf '  Project name: %s\n' "$project_name"
+    printf '  Files: %s\n' "$file_count"
+    printf '  Agent prompts: %s\n' "$prompt_count"
+    printf '  Config: %s/agents.conf\n' "$target_dir"
+    printf '\nNext steps:\n'
+    printf '  1. cd %s\n' "$target_dir"
+    printf '  2. Review agents.conf and adjust ownership paths\n'
+    printf '  3. Edit prompts in prompts/ with your specific tasks\n'
+    printf '  4. Run: ./scripts/auto-agent.sh orchestrate\n'
+
+    return 0
+}
+
+# ---------------------------------------------------------------------------
 # orch_init_migrate — migrate older agents.conf format to current version
 #
 # Handles:
