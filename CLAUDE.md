@@ -8,9 +8,10 @@ Multi-agent AI coding orchestration. Markdown prompts + bash script. No framewor
 
 ## Agent Team
 
-### Active Agents (10 — configured in agents.conf)
+### Active Agents (11 — configured in agents.conf)
 | ID | Role | Owns | Interval | Notes |
 |----|------|------|----------|-------|
+| 00-cofounder | Co-Founder | agents.conf docs/operations/ | 2 | Autonomous ops — health, budget, intervals |
 | 01-ceo | CEO | docs/strategy/ | 3 | Vision & market direction |
 | 02-cto | CTO | docs/architecture/ | 2 | Architecture & standards |
 | 03-pm | PM | prompts/ docs/ | 0 (last) | Coordination + issue creation from QA findings, runs LAST each cycle |

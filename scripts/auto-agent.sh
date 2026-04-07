@@ -65,6 +65,11 @@ if [ -d "$PROJECT_ROOT/src/core" ]; then
     done
 fi
 
+# ── Co-Founder operations module ──────────────────────────────────────
+if [ -d "$PROJECT_ROOT/src/core" ]; then
+    [ -f "$PROJECT_ROOT/src/core/cofounder.sh" ] && source "$PROJECT_ROOT/src/core/cofounder.sh"
+fi
+
 # ── Shared resources (cross-project utilities) ────────────────────────
 SHARED_DIR="$HOME/Projects/shared"
 SHARED_ORCH_DIR="$SHARED_DIR/orchystraw-core"
