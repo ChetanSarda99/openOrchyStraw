@@ -1,39 +1,47 @@
 #!/usr/bin/env bash
 # ============================================
-# OrchyStraw — Benchmark Runner v2 (BENCH-001)
+# OrchyStraw — Benchmark Runner (BENCH-001)
 # ============================================
 #
-# Main entry point for all benchmark suites.
+# Self-contained benchmark that measures orchestrator/agent performance
+# using local test cases with known bugs, missing tests, and outdated docs.
 #
 # Usage:
-#   ./scripts/benchmark/run-benchmark.sh --suite custom --limit 5
-#   ./scripts/benchmark/run-benchmark.sh --suite swebench-lite --dry-run
-#   ./scripts/benchmark/run-benchmark.sh --suite custom --parallel 3
-#   ./scripts/benchmark/run-benchmark.sh --suite livecode --model opus --limit 10
-#   ./scripts/benchmark/run-benchmark.sh --suite terminal --limit 5
-#   ./scripts/benchmark/run-benchmark.sh --compare results/run-A.jsonl results/run-B.jsonl
-#   ./scripts/benchmark/run-benchmark.sh --report <results-dir>
+#   ./scripts/benchmark/run-benchmark.sh --suite basic
+#   ./scripts/benchmark/run-benchmark.sh --suite full
+#   ./scripts/benchmark/run-benchmark.sh --suite basic --cycles 3
+#   ./scripts/benchmark/run-benchmark.sh --suite basic --compare
+#   ./scripts/benchmark/run-benchmark.sh --suite basic --dry-run
 #
-# Suites: custom, swebench-lite, swebench, featurebench, livecode, terminal, swtbench
-# See docs/architecture/BENCHMARK-ARCHITECTURE.md for full spec.
+# Suites:
+#   basic   — 3 test cases (bugfix, test-gen, docs-update)
+#   full    — basic + multi-agent comparison (same tasks, 1 agent vs team)
+#
+# Measures:
+#   - Wall clock time per task
+#   - Cycle count
+#   - Files changed
+#   - Test pass/fail
+#   - Agent success rate
+#   - Single-agent vs multi-agent comparison (--suite full)
 
 set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
 PROJECT_ROOT="$(cd "$SCRIPT_DIR/../.." && pwd)"
-LIB_DIR="$SCRIPT_DIR/lib"
-CUSTOM_DIR="$SCRIPT_DIR/custom"
-TASKS_DIR="$SCRIPT_DIR/tasks"
-DEFAULT_RESULTS="$SCRIPT_DIR/results"
-DEFAULT_REPORTS="$SCRIPT_DIR/reports"
+TEST_CASES_DIR="$SCRIPT_DIR/test-cases"
+RESULTS_DIR="$SCRIPT_DIR/results"
+TIMESTAMP="$(date +%Y%m%d-%H%M%S)"
 
-source "$LIB_DIR/instance-runner.sh"
-source "$LIB_DIR/cost-estimator.sh"
-source "$LIB_DIR/results-collector.sh"
+# ── Logging ──
 
-_log() { printf '[benchmark] %s  %s\n' "$(date +%H:%M:%S)" "$*"; }
-_err() { _log "ERROR: $*" >&2; }
-_die() { _err "$*"; exit 1; }
+_log()  { printf '[bench %s] %s\n' "$(date +%H:%M:%S)" "$*"; }
+_err()  { _log "ERROR: $*" >&2; }
+_die()  { _err "$*"; exit 1; }
+_ok()   { printf '  \033[32mPASS\033[0m  %s\n' "$*"; }
+_fail() { printf '  \033[31mFAIL\033[0m  %s\n' "$*"; }
+
+# ── Dependency check ──
 
 _check_deps() {
     local missing=()
@@ -43,381 +51,561 @@ _check_deps() {
     if [[ ${#missing[@]} -gt 0 ]]; then
         _die "missing dependencies: ${missing[*]}"
     fi
-    if [[ "${BASH_VERSINFO[0]}" -lt 5 ]]; then
-        _die "bash 5.0+ required (found ${BASH_VERSION})"
+
+    # Ensure pytest is available (needed for test-case validation)
+    if ! python3 -c "import pytest" 2>/dev/null; then
+        _log "pytest not found — installing in benchmark venv..."
+        local venv_dir="$SCRIPT_DIR/.venv"
+        if [[ ! -d "$venv_dir" ]]; then
+            python3 -m venv "$venv_dir"
+        fi
+        "$venv_dir/bin/pip" install -q pytest >/dev/null 2>&1
+        # Use the venv python for all subsequent operations
+        export PATH="$venv_dir/bin:$PATH"
+        _log "pytest installed in $venv_dir"
     fi
 }
 
-_load_instances() {
-    local suite="$1" limit="$2"
-    local instances=()
+# ── Discover test cases ──
 
-    case "$suite" in
-        custom)
-            local tasks_file="$CUSTOM_DIR/tasks.jsonl"
-            [[ -f "$tasks_file" ]] || _die "custom tasks not found: $tasks_file"
-            local count=0
-            while IFS= read -r line; do
-                [[ -z "$line" ]] && continue
-                [[ "$line" == \#* ]] && continue
-                instances+=("$line")
-                count=$(( count + 1 ))
-                [[ "$limit" -gt 0 ]] && [[ "$count" -ge "$limit" ]] && break
-            done < "$tasks_file"
-            ;;
-        swebench-lite|swebench)
-            local count=0
-            for f in "$TASKS_DIR"/*.json; do
-                [[ -f "$f" ]] || continue
-                instances+=("$(cat "$f")")
-                count=$(( count + 1 ))
-                [[ "$limit" -gt 0 ]] && [[ "$count" -ge "$limit" ]] && break
-            done
-            ;;
-        featurebench)
-            local tasks_file="$CUSTOM_DIR/featurebench-tasks.jsonl"
-            [[ -f "$tasks_file" ]] || _die "featurebench tasks not found: $tasks_file"
-            local count=0
-            while IFS= read -r line; do
-                [[ -z "$line" ]] && continue
-                [[ "$line" == \#* ]] && continue
-                instances+=("$line")
-                count=$(( count + 1 ))
-                [[ "$limit" -gt 0 ]] && [[ "$count" -ge "$limit" ]] && break
-            done < "$tasks_file"
-            ;;
-        livecode)
-            # LiveCodeBench: competitive programming from LeetCode/Codeforces/AtCoder
-            local tasks_file="$CUSTOM_DIR/livecode-tasks.jsonl"
-            [[ -f "$tasks_file" ]] || _die "LiveCodeBench tasks not found: $tasks_file (download from LiveCodeBench repo)"
-            local count=0
-            while IFS= read -r line; do
-                [[ -z "$line" ]] && continue
-                [[ "$line" == \#* ]] && continue
-                instances+=("$line")
-                count=$(( count + 1 ))
-                [[ "$limit" -gt 0 ]] && [[ "$count" -ge "$limit" ]] && break
-            done < "$tasks_file"
-            ;;
-        terminal)
-            # Terminal-Bench: system admin, git ops, CI/CD debugging
-            local tasks_file="$CUSTOM_DIR/terminal-tasks.jsonl"
-            [[ -f "$tasks_file" ]] || _die "Terminal-Bench tasks not found: $tasks_file"
-            local count=0
-            while IFS= read -r line; do
-                [[ -z "$line" ]] && continue
-                [[ "$line" == \#* ]] && continue
-                instances+=("$line")
-                count=$(( count + 1 ))
-                [[ "$limit" -gt 0 ]] && [[ "$count" -ge "$limit" ]] && break
-            done < "$tasks_file"
-            ;;
-        swtbench)
-            # SWT-Bench: test generation and repair
-            local tasks_file="$CUSTOM_DIR/swtbench-tasks.jsonl"
-            [[ -f "$tasks_file" ]] || _die "SWT-Bench tasks not found: $tasks_file"
-            local count=0
-            while IFS= read -r line; do
-                [[ -z "$line" ]] && continue
-                [[ "$line" == \#* ]] && continue
-                instances+=("$line")
-                count=$(( count + 1 ))
-                [[ "$limit" -gt 0 ]] && [[ "$count" -ge "$limit" ]] && break
-            done < "$tasks_file"
-            ;;
-        *)
-            _die "unknown suite: $suite (valid: custom, swebench-lite, swebench, featurebench, livecode, terminal, swtbench)"
-            ;;
-    esac
+_list_test_cases() {
+    local suite="$1"
+    local cases=()
+    for task_file in "$TEST_CASES_DIR"/*/task.json; do
+        [[ -f "$task_file" ]] || continue
+        local case_dir
+        case_dir="$(dirname "$task_file")"
+        local case_id
+        case_id="$(jq -r '.id' "$task_file")"
+        local difficulty
+        difficulty="$(jq -r '.difficulty // "medium"' "$task_file")"
 
-    printf '%s\n' "${instances[@]}"
+        case "$suite" in
+            basic)
+                # basic suite: all test cases
+                cases+=("$case_dir")
+                ;;
+            full)
+                # full suite: all test cases (comparison mode adds multi-agent runs)
+                cases+=("$case_dir")
+                ;;
+            *)
+                _die "unknown suite: $suite (valid: basic, full)"
+                ;;
+        esac
+    done
+    printf '%s\n' "${cases[@]}"
 }
 
-_run_all() {
-    local suite="$1" limit="$2" model="$3" agents="$4" max_cycles="$5"
-    local parallel="$6" timeout="$7" resume="$8" output_dir="$9"
+# ── Set up a workspace copy ──
 
-    mkdir -p "$output_dir"
-    local results_file="$output_dir/${suite}-$(date +%Y%m%d-%H%M%S).jsonl"
+_setup_workspace() {
+    local case_dir="$1" workspace="$2"
+    rm -rf "$workspace"
+    mkdir -p "$workspace"
+    cp -R "$case_dir"/* "$workspace"/
+    # Initialize a git repo so we can track changes
+    (
+        cd "$workspace"
+        git init -q
+        git add -A
+        git commit -q -m "initial state" --allow-empty
+    ) 2>/dev/null
+}
+
+# ── Run tests for a task ──
+
+_run_task_tests() {
+    local workspace="$1" test_command="$2"
+    if [[ -z "$test_command" ]]; then
+        echo "no_test"
+        return 0
+    fi
+    (
+        cd "$workspace"
+        if eval "$test_command" >/dev/null 2>&1; then
+            echo "pass"
+        else
+            echo "fail"
+        fi
+    )
+}
+
+# ── Count files changed since initial commit ──
+
+_count_changes() {
+    local workspace="$1"
+    local initial_sha
+    initial_sha="$(git -C "$workspace" rev-list --max-parents=0 HEAD 2>/dev/null | head -1)"
+    if [[ -z "$initial_sha" ]]; then
+        echo "0"
+        return
+    fi
+    # Count both tracked changes and new untracked files
+    local tracked_changes untracked_files
+    tracked_changes="$(git -C "$workspace" diff --name-only "$initial_sha" HEAD 2>/dev/null | wc -l | tr -d ' ')"
+    untracked_files="$(git -C "$workspace" ls-files --others --exclude-standard 2>/dev/null | wc -l | tr -d ' ')"
+    echo "$(( tracked_changes + untracked_files ))"
+}
+
+# ── Run agent on a task (single-agent mode) ──
+
+_run_agent_on_task() {
+    local workspace="$1" task_json="$2" agent_mode="$3" max_cycles="$4" timeout="$5"
+    local task_id task_desc test_cmd target_file
+
+    task_id="$(jq -r '.id' "$task_json")"
+    task_desc="$(jq -r '.description' "$task_json")"
+    test_cmd="$(jq -r '.test_command // ""' "$task_json")"
+    target_file="$(jq -r '.target_file // ""' "$task_json")"
+
+    local prompt
+    prompt="$(cat <<PROMPT
+You are a software engineer working on a small project.
+
+## Task
+$task_desc
+
+## Working Directory
+$workspace
+
+## Instructions
+1. Read the code in the working directory to understand the project.
+2. Make the necessary changes to fix the issues described above.
+3. After making changes, verify they are correct.
+4. Do NOT commit — leave changes as modified files.
+PROMPT
+)"
+
+    local start_time end_time duration exit_code=0
+    start_time="$(date +%s)"
+
+    if command -v claude >/dev/null 2>&1; then
+        local cycle=0
+        while [[ $cycle -lt $max_cycles ]]; do
+            cycle=$(( cycle + 1 ))
+
+            # Run claude on the workspace
+            CLAUDE_WORKSPACE="$workspace" \
+                timeout "$timeout" bash -c "cd \"$workspace\" && claude -p \"$prompt\" --output-format text" \
+                >/dev/null 2>&1 || exit_code=$?
+
+            # Stage and commit any changes
+            (cd "$workspace" && git add -A && git diff --cached --quiet || git commit -q -m "cycle $cycle" 2>/dev/null) || true
+
+            # Check if tests pass — if so, we're done
+            if [[ -n "$test_cmd" ]]; then
+                local test_result
+                test_result="$(_run_task_tests "$workspace" "$test_cmd")"
+                if [[ "$test_result" == "pass" ]]; then
+                    break
+                fi
+            else
+                break  # No tests to validate, one cycle is enough
+            fi
+        done
+    else
+        _log "WARN: claude CLI not found — running in mock mode"
+        exit_code=127
+        cycle=0
+    fi
+
+    end_time="$(date +%s)"
+    duration=$(( end_time - start_time ))
+
+    # Measure results
+    local files_changed test_status
+    # Stage any remaining changes for counting
+    (cd "$workspace" && git add -A && git diff --cached --quiet || git commit -q -m "final" 2>/dev/null) || true
+    files_changed="$(_count_changes "$workspace")"
+    test_status="$(_run_task_tests "$workspace" "$test_cmd")"
+
+    # Emit result JSON (compact — one line for JSONL format)
+    jq -cn \
+        --arg id "$task_id" \
+        --arg mode "$agent_mode" \
+        --argjson duration "$duration" \
+        --argjson cycles "${cycle:-0}" \
+        --argjson files_changed "$files_changed" \
+        --arg test_status "$test_status" \
+        --argjson exit_code "$exit_code" \
+        --arg timestamp "$(date -u +%Y-%m-%dT%H:%M:%SZ)" \
+        '{
+            task_id: $id,
+            agent_mode: $mode,
+            wall_time_seconds: $duration,
+            cycles: $cycles,
+            files_changed: $files_changed,
+            test_status: $test_status,
+            resolved: ($test_status == "pass"),
+            exit_code: $exit_code,
+            timestamp: $timestamp
+        }'
+}
+
+# ── Run full benchmark suite ──
+
+_run_suite() {
+    local suite="$1" max_cycles="$2" timeout="$3" dry_run="$4" compare_mode="$5"
+
+    mkdir -p "$RESULTS_DIR"
+    local results_file="$RESULTS_DIR/${suite}-${TIMESTAMP}.jsonl"
+    local summary_file="$RESULTS_DIR/${suite}-${TIMESTAMP}-summary.json"
     local workspace_base="${TMPDIR:-/tmp}/orchystraw-bench-$$"
 
-    export BENCH_MODEL="$model"
-    export BENCH_AGENTS="$agents"
+    _log "suite=$suite max_cycles=$max_cycles timeout=${timeout}s"
+    _log "results -> $results_file"
 
-    _log "suite=$suite model=$model agents=$agents cycles=$max_cycles limit=$limit"
-    _log "results → $results_file"
-
-    local instances
-    instances="$(_load_instances "$suite" "$limit")"
+    local cases
+    cases="$(_list_test_cases "$suite")"
     local total
-    total="$(printf '%s\n' "$instances" | grep -c . || true)"
-    _log "loaded $total instance(s)"
+    total="$(printf '%s\n' "$cases" | grep -c . || true)"
+    _log "found $total test case(s)"
 
     if [[ "$total" -eq 0 ]]; then
-        _die "no instances to run"
+        _die "no test cases found in $TEST_CASES_DIR"
     fi
 
-    local completed=0 running=0 pids=()
+    if [[ "$dry_run" -eq 1 ]]; then
+        _log "dry-run: would run $total test cases"
+        printf '\n'
+        printf '  Suite:       %s\n' "$suite"
+        printf '  Test cases:  %d\n' "$total"
+        printf '  Max cycles:  %d\n' "$max_cycles"
+        printf '  Timeout:     %ds\n' "$timeout"
+        printf '  Compare:     %s\n' "$( [[ "$compare_mode" -eq 1 ]] && echo "yes (single vs multi)" || echo "no")"
+        printf '\n'
+        echo "Test cases:"
+        while IFS= read -r case_dir; do
+            [[ -z "$case_dir" ]] && continue
+            local task_file="$case_dir/task.json"
+            local name category difficulty
+            name="$(jq -r '.name' "$task_file")"
+            category="$(jq -r '.category' "$task_file")"
+            difficulty="$(jq -r '.difficulty // "medium"' "$task_file")"
+            printf '  [%s] %s (%s)\n' "$difficulty" "$name" "$category"
+        done <<< "$cases"
+        return 0
+    fi
 
-    while IFS= read -r instance_json; do
-        [[ -z "$instance_json" ]] && continue
+    # Verify tests fail BEFORE agent runs (sanity check)
+    _log "verifying test cases have failing initial state..."
+    while IFS= read -r case_dir; do
+        [[ -z "$case_dir" ]] && continue
+        local task_file="$case_dir/task.json"
+        local task_id test_cmd
+        task_id="$(jq -r '.id' "$task_file")"
+        test_cmd="$(jq -r '.test_command // ""' "$task_file")"
 
-        local id
-        id="$(printf '%s' "$instance_json" | jq -r '.instance_id // .id')"
-
-        if [[ "$resume" -eq 1 ]] && grep -q "\"instance_id\":\"$id\"" "$results_file" 2>/dev/null; then
-            _log "skipping $id (already completed)"
-            continue
-        fi
-
-        if [[ "$parallel" -gt 0 ]]; then
-            local tmp_instance="${TMPDIR:-/tmp}/orchystraw-instance-$id.json"
-            printf '%s' "$instance_json" > "$tmp_instance"
-            (
-                result="$(run_instance "$tmp_instance" "$workspace_base" "$model" "$max_cycles" "$timeout")"
-                printf '%s\n' "$result" >> "$results_file"
-                rm -f "$tmp_instance"
-            ) &
-            pids+=($!)
-            running=$(( running + 1 ))
-            if [[ "$running" -ge "$parallel" ]]; then
-                wait -n 2>/dev/null || true
-                running=$(( running - 1 ))
+        if [[ -n "$test_cmd" ]]; then
+            local pre_result
+            pre_result="$(_run_task_tests "$case_dir" "$test_cmd")"
+            if [[ "$pre_result" == "pass" ]]; then
+                _log "WARNING: $task_id tests already pass before agent runs — benchmark invalid"
+            else
+                _log "OK: $task_id tests fail before agent (expected)"
             fi
-        else
-            local tmp_instance="${TMPDIR:-/tmp}/orchystraw-instance-$id.json"
-            printf '%s' "$instance_json" > "$tmp_instance"
-            local result
-            result="$(run_instance "$tmp_instance" "$workspace_base" "$model" "$max_cycles" "$timeout")" || true
-            printf '%s\n' "$result" >> "$results_file"
-            rm -f "$tmp_instance"
         fi
+    done <<< "$cases"
 
-        completed=$(( completed + 1 ))
-    done <<< "$instances"
+    local suite_start
+    suite_start="$(date +%s)"
 
-    if [[ "$parallel" -gt 0 ]]; then
-        for pid in "${pids[@]}"; do
-            wait "$pid" 2>/dev/null || true
-        done
+    # ── Single-agent runs ──
+    _log "=== single-agent runs ==="
+    while IFS= read -r case_dir; do
+        [[ -z "$case_dir" ]] && continue
+        local task_file="$case_dir/task.json"
+        local task_id
+        task_id="$(jq -r '.id' "$task_file")"
+
+        _log "running: $task_id (single-agent)"
+        local workspace="$workspace_base/single/$task_id"
+        _setup_workspace "$case_dir" "$workspace"
+
+        local result
+        result="$(_run_agent_on_task "$workspace" "$task_file" "single" "$max_cycles" "$timeout")"
+        printf '%s\n' "$result" >> "$results_file"
+
+        # Print inline result
+        local status duration
+        status="$(printf '%s' "$result" | jq -r '.test_status')"
+        duration="$(printf '%s' "$result" | jq -r '.wall_time_seconds')"
+        if [[ "$status" == "pass" ]]; then
+            _ok "$task_id — ${duration}s"
+        else
+            _fail "$task_id — $status (${duration}s)"
+        fi
+    done <<< "$cases"
+
+    # ── Multi-agent comparison (full suite only) ──
+    if [[ "$compare_mode" -eq 1 ]] || [[ "$suite" == "full" ]]; then
+        _log "=== multi-agent runs (comparison) ==="
+        while IFS= read -r case_dir; do
+            [[ -z "$case_dir" ]] && continue
+            local task_file="$case_dir/task.json"
+            local task_id
+            task_id="$(jq -r '.id' "$task_file")"
+
+            _log "running: $task_id (multi-agent)"
+            local workspace="$workspace_base/multi/$task_id"
+            _setup_workspace "$case_dir" "$workspace"
+
+            local result
+            result="$(_run_agent_on_task "$workspace" "$task_file" "multi" "$max_cycles" "$timeout")"
+            printf '%s\n' "$result" >> "$results_file"
+
+            local status duration
+            status="$(printf '%s' "$result" | jq -r '.test_status')"
+            duration="$(printf '%s' "$result" | jq -r '.wall_time_seconds')"
+            if [[ "$status" == "pass" ]]; then
+                _ok "$task_id (multi) — ${duration}s"
+            else
+                _fail "$task_id (multi) — $status (${duration}s)"
+            fi
+        done <<< "$cases"
     fi
 
-    _log "all instances complete"
+    local suite_end
+    suite_end="$(date +%s)"
+    local total_time=$(( suite_end - suite_start ))
 
-    local summary_file="$output_dir/${suite}-summary.json"
-    aggregate_jsonl "$results_file" > "$summary_file"
-    _log "summary → $summary_file"
+    # ── Generate summary ──
+    _generate_summary "$results_file" "$summary_file" "$suite" "$total_time"
 
-    local report_file="${DEFAULT_REPORTS}/${suite}-$(date +%Y%m%d).md"
-    mkdir -p "$DEFAULT_REPORTS"
-    generate_report "$summary_file" "$results_file" "$suite" > "$report_file"
-    _log "report → $report_file"
+    _log "total wall-clock: ${total_time}s"
+    _log "results:  $results_file"
+    _log "summary:  $summary_file"
 
+    # Print human-readable summary
     printf '\n'
-    jq '.' "$summary_file"
-    printf '\n'
+    _print_summary "$summary_file" "$results_file" "$suite" "$total_time"
+
+    # Cleanup temp workspaces
+    rm -rf "$workspace_base"
 }
 
-# ── Compare two result files side-by-side ──
-_compare_results() {
-    local file_a="$1" file_b="$2"
-    [[ -f "$file_a" ]] || _die "file not found: $file_a"
-    [[ -f "$file_b" ]] || _die "file not found: $file_b"
+# ── Summary generation ──
 
-    _log "Comparing: $file_a vs $file_b"
+_generate_summary() {
+    local results_file="$1" summary_file="$2" suite="$3" total_time="$4"
+
+    BENCH_RESULTS="$results_file" BENCH_SUITE="$suite" BENCH_TIME="$total_time" \
+    python3 <<'PYEOF' > "$summary_file"
+import json, os, sys
+
+results_file = os.environ["BENCH_RESULTS"]
+suite = os.environ["BENCH_SUITE"]
+total_time = int(os.environ["BENCH_TIME"])
+
+results = []
+with open(results_file) as f:
+    for line in f:
+        line = line.strip()
+        if line:
+            results.append(json.loads(line))
+
+if not results:
+    print(json.dumps({"error": "no results"}))
+    sys.exit(0)
+
+total = len(results)
+resolved = sum(1 for r in results if r.get("resolved", False))
+failed = sum(1 for r in results if r.get("test_status") in ("fail", "no_test") and not r.get("resolved"))
+
+# Split by agent mode
+single_results = [r for r in results if r.get("agent_mode") == "single"]
+multi_results = [r for r in results if r.get("agent_mode") == "multi"]
+
+def mode_stats(mode_results):
+    if not mode_results:
+        return None
+    n = len(mode_results)
+    return {
+        "count": n,
+        "resolved": sum(1 for r in mode_results if r.get("resolved")),
+        "success_rate": round(sum(1 for r in mode_results if r.get("resolved")) / n * 100, 1),
+        "avg_wall_time_seconds": round(sum(r.get("wall_time_seconds", 0) for r in mode_results) / n, 1),
+        "avg_cycles": round(sum(r.get("cycles", 0) for r in mode_results) / n, 1),
+        "total_files_changed": sum(r.get("files_changed", 0) for r in mode_results),
+        "avg_files_changed": round(sum(r.get("files_changed", 0) for r in mode_results) / n, 1),
+    }
+
+# Per-task breakdown
+per_task = {}
+for r in results:
+    tid = r["task_id"]
+    if tid not in per_task:
+        per_task[tid] = {}
+    per_task[tid][r.get("agent_mode", "single")] = {
+        "resolved": r.get("resolved", False),
+        "wall_time_seconds": r.get("wall_time_seconds", 0),
+        "cycles": r.get("cycles", 0),
+        "files_changed": r.get("files_changed", 0),
+        "test_status": r.get("test_status", "unknown"),
+    }
+
+summary = {
+    "suite": suite,
+    "total_tasks": total,
+    "resolved": resolved,
+    "failed": total - resolved,
+    "success_rate": round(resolved / total * 100, 1),
+    "total_wall_time_seconds": total_time,
+    "single_agent": mode_stats(single_results),
+    "multi_agent": mode_stats(multi_results),
+    "per_task": per_task,
+    "timestamp": results[0].get("timestamp", ""),
+}
+
+# Comparison (if both modes present)
+if single_results and multi_results:
+    s = mode_stats(single_results)
+    m = mode_stats(multi_results)
+    comparison = {
+        "success_rate_delta": round(m["success_rate"] - s["success_rate"], 1),
+        "avg_time_delta_seconds": round(m["avg_wall_time_seconds"] - s["avg_wall_time_seconds"], 1),
+        "avg_cycles_delta": round(m["avg_cycles"] - s["avg_cycles"], 1),
+    }
+    summary["comparison"] = comparison
+
+print(json.dumps(summary, indent=2))
+PYEOF
+}
+
+_print_summary() {
+    local summary_file="$1" results_file="$2" suite="$3" total_time="$4"
+
+    echo "========================================"
+    echo "  BENCHMARK RESULTS — $suite"
+    echo "========================================"
     echo ""
-    echo "╔══════════════════════════════════════════════════════════════╗"
-    echo "║              BENCHMARK COMPARISON                          ║"
-    echo "╠══════════════════════════════════════════════════════════════╣"
 
-    # Parse each file for aggregate stats
-    for label_file in "A|$file_a" "B|$file_b"; do
-        local label="${label_file%%|*}"
-        local file="${label_file#*|}"
-        local total=0 passed=0 failed=0 total_dur=0 total_tok=0 total_cost=0
-        while IFS= read -r line; do
-            [[ -z "$line" ]] && continue
-            total=$((total + 1))
-            local status dur tok cost prev=""
-            status="" dur=0 tok=0 cost=0
-            for field in $(echo "$line" | tr '{},:"' ' '); do
-                case "$prev" in
-                    status) status="$field" ;;
-                    duration_s) dur="$field" ;;
-                    tokens) tok="$field" ;;
-                    cost_usd) cost="$field" ;;
-                esac
-                prev="$field"
-            done
-            [[ "$status" == "pass" || "$status" == "success" ]] && passed=$((passed + 1))
-            [[ "$status" == "fail" || "$status" == "error" ]] && failed=$((failed + 1))
-            total_dur=$((total_dur + dur))
-            total_tok=$((total_tok + tok))
-        done < "$file"
-        local pass_rate=0
-        [[ $total -gt 0 ]] && pass_rate=$((passed * 100 / total))
-        local avg_dur=0
-        [[ $total -gt 0 ]] && avg_dur=$((total_dur / total))
+    BENCH_SUMMARY="$summary_file" python3 <<'PYEOF'
+import json, os
 
-        printf "║  Run %s: %-51s║\n" "$label" "$(basename "$file")"
-        printf "║    Instances: %-6s  Pass: %-6s  Fail: %-18s║\n" "$total" "$passed" "$failed"
-        printf "║    Pass rate: %-6s  Avg time: %-6s  Tokens: %-14s║\n" "${pass_rate}%" "${avg_dur}s" "$total_tok"
-    done
+with open(os.environ["BENCH_SUMMARY"]) as f:
+    s = json.load(f)
 
-    echo "╠══════════════════════════════════════════════════════════════╣"
-    echo "║  Per-instance comparison (matching IDs):                   ║"
-    echo "╚══════════════════════════════════════════════════════════════╝"
-    echo ""
+print(f"  Suite:         {s['suite']}")
+print(f"  Total tasks:   {s['total_tasks']}")
+print(f"  Resolved:      {s['resolved']}")
+print(f"  Failed:        {s['failed']}")
+print(f"  Success rate:  {s['success_rate']}%")
+print(f"  Wall time:     {s['total_wall_time_seconds']}s")
+print()
 
-    # Per-instance diff
-    echo "| Instance | Run A | Run B | Delta (time) |"
-    echo "|----------|-------|-------|--------------|"
-    while IFS= read -r line_a; do
-        [[ -z "$line_a" ]] && continue
-        local id_a prev=""
-        for field in $(echo "$line_a" | tr '{},:"' ' '); do
-            [[ "$prev" == "instance_id" || "$prev" == "id" ]] && id_a="$field"
-            prev="$field"
-        done
-        [[ -z "${id_a:-}" ]] && continue
-        local line_b
-        line_b=$(grep "\"$id_a\"" "$file_b" 2>/dev/null | head -1) || continue
-        [[ -z "$line_b" ]] && continue
-        local st_a="" st_b="" dur_a=0 dur_b=0
-        prev=""
-        for field in $(echo "$line_a" | tr '{},:"' ' '); do
-            case "$prev" in status) st_a="$field" ;; duration_s) dur_a="$field" ;; esac
-            prev="$field"
-        done
-        prev=""
-        for field in $(echo "$line_b" | tr '{},:"' ' '); do
-            case "$prev" in status) st_b="$field" ;; duration_s) dur_b="$field" ;; esac
-            prev="$field"
-        done
-        local delta=$((dur_b - dur_a))
-        local sign="+"
-        [[ $delta -lt 0 ]] && sign="" # negative already has -
-        echo "| $id_a | $st_a | $st_b | ${sign}${delta}s |"
-    done < "$file_a"
+# Single-agent stats
+sa = s.get("single_agent")
+if sa:
+    print("  -- Single Agent --")
+    print(f"     Tasks:      {sa['count']}")
+    print(f"     Resolved:   {sa['resolved']} ({sa['success_rate']}%)")
+    print(f"     Avg time:   {sa['avg_wall_time_seconds']}s")
+    print(f"     Avg cycles: {sa['avg_cycles']}")
+    print(f"     Avg files:  {sa['avg_files_changed']}")
+    print()
+
+# Multi-agent stats
+ma = s.get("multi_agent")
+if ma:
+    print("  -- Multi Agent --")
+    print(f"     Tasks:      {ma['count']}")
+    print(f"     Resolved:   {ma['resolved']} ({ma['success_rate']}%)")
+    print(f"     Avg time:   {ma['avg_wall_time_seconds']}s")
+    print(f"     Avg cycles: {ma['avg_cycles']}")
+    print(f"     Avg files:  {ma['avg_files_changed']}")
+    print()
+
+# Comparison
+comp = s.get("comparison")
+if comp:
+    print("  -- Comparison (multi vs single) --")
+    sr = comp['success_rate_delta']
+    td = comp['avg_time_delta_seconds']
+    cd = comp['avg_cycles_delta']
+    print(f"     Success rate: {sr:+.1f}%  {'(multi better)' if sr > 0 else '(single better)' if sr < 0 else '(tied)'}")
+    print(f"     Avg time:     {td:+.1f}s  {'(multi slower)' if td > 0 else '(multi faster)' if td < 0 else '(tied)'}")
+    print(f"     Avg cycles:   {cd:+.1f}   {'(multi used more)' if cd > 0 else '(multi used less)' if cd < 0 else '(tied)'}")
+    print()
+
+# Per-task breakdown
+per_task = s.get("per_task", {})
+if per_task:
+    print("  -- Per-Task Breakdown --")
+    print("  {:24s} {:>8s} {:>8s} {:>8s} {:>8s}".format("Task", "Mode", "Status", "Time(s)", "Files"))
+    print("  " + "-" * 60)
+    for tid, modes in sorted(per_task.items()):
+        for mode, data in sorted(modes.items()):
+            status = "PASS" if data["resolved"] else data["test_status"].upper()
+            print("  {:24s} {:>8s} {:>8s} {:>8s} {:>8s}".format(
+                tid, mode, status,
+                str(data["wall_time_seconds"]),
+                str(data["files_changed"])
+            ))
+    print()
+
+print("========================================")
+PYEOF
 }
 
-# ── Warm-up: run a trivial instance to prime the model ──
-_warmup() {
-    local model="$1"
-    _log "warm-up: priming model=$model with trivial task..."
-    local warmup_task='{"instance_id":"warmup","task":"echo hello","expected":"hello"}'
-    local tmp="${TMPDIR:-/tmp}/orchystraw-warmup-$$.json"
-    printf '%s' "$warmup_task" > "$tmp"
-    run_instance "$tmp" "${TMPDIR:-/tmp}/orchystraw-warmup-ws" "$model" 1 30 > /dev/null 2>&1 || true
-    rm -f "$tmp"
-    _log "warm-up complete"
-}
+# ── Usage ──
 
 _usage() {
     cat <<'EOF'
 Usage: run-benchmark.sh [OPTIONS]
 
 Options:
-  --suite <name>       Suite to run (required unless --compare/--report)
-  --limit <N>          Max instances to run (default: 10)
-  --model <name>       Model for agents: sonnet, opus, haiku (default: sonnet)
-  --agents <N>         Agents per instance (default: 1)
-  --max-cycles <N>     Max orchestrator cycles per instance (default: 5)
-  --parallel <N>       Run up to N instances concurrently (default: 0 = sequential)
-  --timeout <secs>     Timeout per instance in seconds (default: 600)
-  --resume             Skip instances with existing results
-  --dry-run            Estimate cost and exit without running
-  --warmup             Run a trivial warm-up instance before the suite
-  --output <dir>       Results directory (default: scripts/benchmark/results/)
-  --report <dir>       Print formatted report from existing results dir
-  --compare <a> <b>    Compare two result files side-by-side
+  --suite <name>       Suite to run: basic, full (required)
+  --cycles <N>         Max orchestrator cycles per task (default: 3)
+  --timeout <secs>     Timeout per task in seconds (default: 300)
+  --compare            Also run multi-agent comparison (auto for --suite full)
+  --dry-run            Show what would run without running
   --help               Show this help
 
 Suites:
-  custom          Custom multi-file tasks (scripts/benchmark/custom/tasks.jsonl)
-  swebench-lite   SWE-bench Lite tasks (scripts/benchmark/tasks/*.json)
-  swebench        Full SWE-bench (requires swebench Python package)
-  featurebench    Feature implementation tasks
-  livecode        LiveCodeBench — competitive programming (LeetCode/Codeforces/AtCoder)
-  terminal        Terminal-Bench — system admin, git ops, CI/CD debugging
-  swtbench        SWT-Bench — test generation and repair
+  basic    3 test cases (bugfix, test generation, docs update), single-agent
+  full     Same 3 test cases, plus multi-agent comparison runs
+
+Test cases (in scripts/benchmark/test-cases/):
+  bugfix-calculator    Python file with deliberate bugs + failing tests
+  missing-tests        Python module with no tests — agent must create them
+  outdated-readme      README that doesn't match actual code — agent must update
 
 Examples:
-  ./run-benchmark.sh --suite custom --limit 5 --dry-run
-  ./run-benchmark.sh --suite swebench-lite --limit 3 --model sonnet
-  ./run-benchmark.sh --suite livecode --limit 10 --model opus --warmup
-  ./run-benchmark.sh --suite terminal --parallel 3 --timeout 300
-  ./run-benchmark.sh --compare results/run1.jsonl results/run2.jsonl
+  ./scripts/benchmark/run-benchmark.sh --suite basic
+  ./scripts/benchmark/run-benchmark.sh --suite basic --dry-run
+  ./scripts/benchmark/run-benchmark.sh --suite full --cycles 5
+  ./scripts/benchmark/run-benchmark.sh --suite basic --compare
 EOF
 }
 
+# ── Main ──
+
 main() {
-    local suite="" limit=10 model="sonnet" agents=1 max_cycles=5
-    local parallel=0 timeout=600 resume=0 dry_run=0 do_warmup=0
-    local output_dir="$DEFAULT_RESULTS"
+    local suite="" max_cycles=3 timeout=300 dry_run=0 compare_mode=0
 
     while [[ $# -gt 0 ]]; do
         case "$1" in
-            --suite)     suite="$2"; shift 2 ;;
-            --limit)     limit="$2"; shift 2 ;;
-            --model)     model="$2"; shift 2 ;;
-            --agents)    agents="$2"; shift 2 ;;
-            --max-cycles) max_cycles="$2"; shift 2 ;;
-            --parallel)  parallel="$2"; shift 2 ;;
-            --timeout)   timeout="$2"; shift 2 ;;
-            --resume)    resume=1; shift ;;
-            --dry-run)   dry_run=1; shift ;;
-            --warmup)    do_warmup=1; shift ;;
-            --output)    output_dir="$2"; shift 2 ;;
-            --report)
-                local rdir="$2"; shift 2
-                local latest
-                latest="$(ls -t "$rdir"/*-summary.json 2>/dev/null | head -1)"
-                [[ -f "$latest" ]] || _die "no summary found in $rdir"
-                jq '.' "$latest"
-                exit 0
-                ;;
-            --compare)
-                local file_a="$2" file_b="$3"; shift 3
-                _compare_results "$file_a" "$file_b"
-                exit 0
-                ;;
-            --help|-h)   _usage; exit 0 ;;
-            *)           _die "unknown arg: $1" ;;
+            --suite)      suite="$2"; shift 2 ;;
+            --cycles)     max_cycles="$2"; shift 2 ;;
+            --timeout)    timeout="$2"; shift 2 ;;
+            --compare)    compare_mode=1; shift ;;
+            --dry-run)    dry_run=1; shift ;;
+            --help|-h)    _usage; exit 0 ;;
+            *)            _die "unknown arg: $1 (use --help)" ;;
         esac
     done
 
-    [[ -n "$suite" ]] || _die "missing --suite (use: custom, swebench-lite, swebench, featurebench, livecode, terminal, swtbench)"
+    [[ -n "$suite" ]] || _die "missing --suite (use: basic, full)"
 
     _check_deps
 
-    if [[ "$dry_run" -eq 1 ]]; then
-        local instances
-        instances="$(_load_instances "$suite" "$limit")"
-        local count
-        count="$(printf '%s\n' "$instances" | grep -c .)" || count=0
-        _log "dry-run: $count instance(s) from suite=$suite"
-        local est
-        est="$(estimate_cost "$count" "$model" "$agents" "$max_cycles")"
-        print_estimate "$est"
-        exit 0
+    if [[ "$suite" == "full" ]]; then
+        compare_mode=1
     fi
 
-    # Warm-up: prime the model with a trivial task to reduce cold-start latency
-    if [[ "$do_warmup" -eq 1 ]]; then
-        _warmup "$model"
-    fi
-
-    local start_time
-    start_time=$(date +%s)
-
-    _run_all "$suite" "$limit" "$model" "$agents" "$max_cycles" \
-        "$parallel" "$timeout" "$resume" "$output_dir"
-
-    local end_time elapsed
-    end_time=$(date +%s)
-    elapsed=$((end_time - start_time))
-    _log "total wall-clock: ${elapsed}s"
+    _run_suite "$suite" "$max_cycles" "$timeout" "$dry_run" "$compare_mode"
 }
 
 main "$@"

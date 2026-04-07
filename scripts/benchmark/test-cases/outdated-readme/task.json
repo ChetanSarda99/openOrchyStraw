@@ -1,0 +1,17 @@
+{
+  "id": "outdated-readme",
+  "name": "Update README to match actual code",
+  "category": "docs-update",
+  "description": "README.md is severely outdated and doesn't match the actual code in dataprocessor.py. Key issues: (1) version says 1.0 but code is 3.2, (2) documents process_csv() which no longer exists — replaced by process_file(), (3) says summary() returns a string but it returns a dict, (4) Python 3.6+ but code uses dataclasses (3.7+) and typing features, (5) config format is JSON not INI, (6) missing new features: JSON file support, to_json(), to_csv(), ProcessorConfig, file_format parameter. Update the README to accurately document the v3.2 API.",
+  "test_command": "python3 verify_readme.py",
+  "target_file": "README.md",
+  "expected_updates": [
+    "Version updated to 3.2",
+    "process_csv replaced with process_file",
+    "summary() returns dict not string",
+    "Python 3.7+ requirement",
+    "JSON config format documented",
+    "New features documented"
+  ],
+  "difficulty": "easy"
+}

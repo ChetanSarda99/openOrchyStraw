@@ -1,0 +1,15 @@
+{
+  "id": "bugfix-calculator",
+  "name": "Fix calculator bugs",
+  "category": "bugfix",
+  "description": "calculator.py has two bugs: (1) divide() uses integer division instead of true division and doesn't handle division by zero properly, (2) average() has an off-by-one error and doesn't handle empty lists. Fix both so all tests in test_calculator.py pass.",
+  "test_command": "python3 -m pytest test_calculator.py -v",
+  "target_file": "calculator.py",
+  "expected_fixes": [
+    "Change // to / in divide()",
+    "Add ValueError for division by zero in divide()",
+    "Fix off-by-one in average() — remove +1",
+    "Add empty list check in average()"
+  ],
+  "difficulty": "easy"
+}

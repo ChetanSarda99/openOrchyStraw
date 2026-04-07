@@ -1,0 +1,17 @@
+{
+  "id": "missing-tests",
+  "name": "Create tests for user_auth module",
+  "category": "test-generation",
+  "description": "user_auth.py has no test file. Create test_user_auth.py with comprehensive tests covering: User creation, password checking, email validation, password validation rules, authentication with lockout, and user registration with duplicate checks. All tests must pass.",
+  "test_command": "python3 -m pytest test_user_auth.py -v",
+  "target_file": "test_user_auth.py",
+  "expected_test_count_minimum": 10,
+  "expected_coverage_areas": [
+    "User.__init__ and check_password",
+    "validate_email with valid and invalid inputs",
+    "validate_password with various rule violations",
+    "authenticate success, failure, and lockout",
+    "register_user validation and duplicate checking"
+  ],
+  "difficulty": "medium"
+}
