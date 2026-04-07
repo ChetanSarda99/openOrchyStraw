@@ -65,6 +65,11 @@ if [ -d "$PROJECT_ROOT/src/core" ]; then
     done
 fi
 
+# ── Decision store (v0.4: persist orchestration decisions) ────────────
+if [ -d "$PROJECT_ROOT/src/core" ]; then
+    [ -f "$PROJECT_ROOT/src/core/decision-store.sh" ] && source "$PROJECT_ROOT/src/core/decision-store.sh"
+fi
+
 # ── Co-Founder operations module ──────────────────────────────────────
 if [ -d "$PROJECT_ROOT/src/core" ]; then
     [ -f "$PROJECT_ROOT/src/core/cofounder.sh" ] && source "$PROJECT_ROOT/src/core/cofounder.sh"
@@ -846,6 +851,10 @@ commit_by_ownership() {
             echo ""
             local choice=""
             read -p "Approve changes for ${AGENT_LABELS[$agent_id]}? (y/n/s=skip): " choice </dev/tty
+            # Log the review decision if decision store is available
+            if [[ "$(type -t orch_decision_review_log)" == "function" ]]; then
+                orch_decision_review_log "$agent_id" "$choice" "${CYCLE:-0}" 2>/dev/null || true
+            fi
             case "$choice" in
                 y|Y)
                     git add "${pathspec[@]}" 2>/dev/null
@@ -1249,6 +1258,12 @@ case "${1:-help}" in
         if [[ "$(type -t orch_mem_init)" == "function" ]]; then
             orch_mem_init "$PROJECT_ROOT" 2>/dev/null
             log "Agent memory initialized"
+        fi
+
+        # ── Initialize decision store (v0.4: persist orchestration decisions) ──
+        if [[ "$(type -t orch_decision_init)" == "function" ]]; then
+            orch_decision_init "$PROJECT_ROOT" 2>/dev/null
+            log "Decision store initialized"
         fi
 
         echo "╔══════════════════════════════════════════════════╗"
@@ -2059,6 +2074,17 @@ CTXEOF
         fi
         ;;
 
+    decisions)
+        shift  # remove 'decisions'
+        if [[ "$(type -t orch_decision_init)" == "function" ]]; then
+            orch_decision_init "$PROJECT_ROOT" 2>/dev/null
+            orch_decision_query "$@"
+        else
+            echo "ERROR: decision-store module not loaded"
+            exit 1
+        fi
+        ;;
+
     *)
         echo "orchystraw Orchestrator v4"
         echo ""
@@ -2076,6 +2102,7 @@ CTXEOF
         echo "  status                                        Show cycle state (no run)"
         echo "  init --template <saas|api|content> <dir>      Initialize new project from template"
         echo "  init --list                                   List available templates"
+        echo "  decisions [--actor X] [--type Y] [--last N]   Query decision log"
         echo ""
         echo "Config:  scripts/agents.conf"
         echo "Logs:    prompts/<agent>/logs/"

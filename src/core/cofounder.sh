@@ -279,6 +279,12 @@ orch_cofounder_adjust_intervals() {
                 _COFOUNDER_ADJUSTMENTS+=("$id: $current_interval → $new_interval ($flag)")
                 _cofounder_log "INFO" "Adjusted $id interval: $current_interval → $new_interval (reason: $flag)"
                 adjustments_made=$((adjustments_made + 1))
+
+                # Log decision to decision store if available
+                if [[ "$(type -t orch_decision_log)" == "function" ]]; then
+                    orch_decision_log "cofounder" "interval_change" \
+                        "agent=${id} from=${current_interval} to=${new_interval} reason=${flag}" 2>/dev/null || true
+                fi
             fi
         fi
     done
@@ -352,14 +358,23 @@ orch_cofounder_check_budget() {
 
     if [[ $total_cost -ge $COFOUNDER_BUDGET_CRITICAL ]]; then
         _cofounder_log "ERROR" "BUDGET CRITICAL: $display today ($entry_count entries) — ESCALATING"
+        if [[ "$(type -t orch_decision_log)" == "function" ]]; then
+            orch_decision_log "cofounder" "escalation" "reason=budget critical spend=${display} threshold=\$50" 2>/dev/null || true
+        fi
         echo "critical:$display"
         return 3
     elif [[ $total_cost -ge $COFOUNDER_BUDGET_HIGH ]]; then
         _cofounder_log "WARN" "BUDGET HIGH: $display today — downgrading non-critical agents"
+        if [[ "$(type -t orch_decision_log)" == "function" ]]; then
+            orch_decision_log "cofounder" "model_change" "reason=budget high spend=${display} action=downgrade" 2>/dev/null || true
+        fi
         echo "high:$display"
         return 2
     elif [[ $total_cost -ge $COFOUNDER_BUDGET_WARN ]]; then
         _cofounder_log "WARN" "BUDGET WARNING: $display today — monitoring"
+        if [[ "$(type -t orch_decision_log)" == "function" ]]; then
+            orch_decision_log "cofounder" "priority_change" "reason=budget warning spend=${display} action=monitoring" 2>/dev/null || true
+        fi
         echo "warn:$display"
         return 1
     else
