@@ -72,8 +72,9 @@ All 8 core modules built, tested, integrated. QA PASS. Security FULL PASS. CTO a
 26/26 test scripts pass. Ready to tag.
 
 ### v0.3.0 — Extended Modules (IN PROGRESS)
-5 modules built and wired: single-agent, qmd-refresher, prompt-template, task-decomposer, init-project.
-1 module (freshness-detector) built but not yet wired.
+6 modules built and wired: single-agent, qmd-refresher, prompt-template, task-decomposer, init-project, freshness-detector.
+Freshness-detector: sourced + per-agent prompt staleness check before each agent run.
+Observability (v0.4) and memory (v0.4) modules also wired into orchestration loop.
 
 ### Next Up
 1. Tag v0.1.0 + v0.2.0

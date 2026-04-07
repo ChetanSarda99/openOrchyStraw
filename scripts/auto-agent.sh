@@ -54,6 +54,13 @@ if [ -d "$PROJECT_ROOT/src/core" ]; then
     done
 fi
 
+# ── Observability + Memory modules (v0.4) ──────────────────────────────
+if [ -d "$PROJECT_ROOT/src/core" ]; then
+    for mod in observability memory; do
+        [ -f "$PROJECT_ROOT/src/core/${mod}.sh" ] && source "$PROJECT_ROOT/src/core/${mod}.sh"
+    done
+fi
+
 if [[ -n "${2:-}" && "${2:-}" =~ ^[0-9]+$ ]]; then
     MAX_CYCLES="$2"
 elif [[ -n "${ORCH_MAX_CYCLES:-}" ]]; then
@@ -997,6 +1004,18 @@ case "${1:-help}" in
             log "Dynamic router initialized"
         fi
 
+        # ── Initialize observability (v0.4: metrics, traces, cost tracking) ──
+        if [[ "$(type -t orch_obs_init)" == "function" ]]; then
+            orch_obs_init "$PROJECT_ROOT" 2>/dev/null
+            log "Observability initialized"
+        fi
+
+        # ── Initialize memory (v0.4: cross-cycle agent learning) ──
+        if [[ "$(type -t orch_mem_init)" == "function" ]]; then
+            orch_mem_init "$PROJECT_ROOT" 2>/dev/null
+            log "Agent memory initialized"
+        fi
+
         echo "╔══════════════════════════════════════════════════╗"
         echo "║  orchystraw v3 — ${#AGENT_IDS[@]} agents configured     ║"
         echo "║  Max: ${MAX_CYCLES:-∞} cycles │ No delay between cycles   ║"
@@ -1022,6 +1041,12 @@ case "${1:-help}" in
 
         while true; do
             log "━━━ CYCLE $CYCLE ━━━"
+
+            # ── Observability: set cycle number and start cycle span ──
+            if [[ "$(type -t orch_obs_set_cycle)" == "function" ]]; then
+                orch_obs_set_cycle "$CYCLE" 2>/dev/null
+                orch_obs_start_span "orchestrator" "cycle" 2>/dev/null
+            fi
 
             # Check for manual/auto pause signal (from agents, stall detector, or CS)
             if [ -f "$PROJECT_ROOT/.orchestrator-pause" ]; then
@@ -1164,6 +1189,30 @@ CTXEOF
                         fi
                     fi
 
+                    # v0.4: Per-agent freshness check — warn if agent's prompt is stale
+                    if [[ "$(type -t orch_freshness_scan)" == "function" ]]; then
+                        _agent_prompt_dir="$(dirname "$PROJECT_ROOT/${AGENT_PROMPTS[$id]}")"
+                        orch_freshness_init 7 2>/dev/null
+                        orch_freshness_scan "$_agent_prompt_dir" 2>/dev/null
+                        _agent_stale=$(orch_freshness_stale_count 2>/dev/null)
+                        if [[ "${_agent_stale:-0}" -gt 0 ]]; then
+                            log "[$id] freshness: $_agent_stale stale references in prompt dir"
+                        fi
+                    fi
+
+                    # v0.4: Recall recent memories for this agent (logged, not injected into prompt yet)
+                    if [[ "$(type -t orch_mem_recall_recent)" == "function" ]]; then
+                        _agent_memories=$(orch_mem_recall_recent "$id" 3 2>/dev/null)
+                        if [[ -n "$_agent_memories" ]]; then
+                            log "[$id] memory: recalled $(echo "$_agent_memories" | wc -l | tr -d ' ') recent entries"
+                        fi
+                    fi
+
+                    # v0.4: Start observability span for this agent
+                    if [[ "$(type -t orch_obs_start_span)" == "function" ]]; then
+                        orch_obs_start_span "$id" "execute" 2>/dev/null
+                    fi
+
                     # v4: wait if max-parallel reached (process pool pattern)
                     if [[ "$MAX_PARALLEL" -gt 0 && "$_running_agents" -ge "$MAX_PARALLEL" ]]; then
                         log "Max parallel ($MAX_PARALLEL) reached — waiting for a slot..."
@@ -1224,24 +1273,48 @@ CTXEOF
             log "Agents finished ($AGENT_FAILURES/$AGENTS_RUN failed)"
 
             # v0.2: Update router state with agent outcomes
-            if [[ "$(type -t orch_router_update)" == "function" ]]; then
-                for id in "${AGENT_IDS[@]}"; do
-                    interval="${AGENT_INTERVALS[$id]}"
-                    [ "$interval" -eq 0 ] && continue
-                    if [ $((CYCLE % interval)) -eq 0 ] || [ "$CYCLE" -eq 1 ]; then
-                        _agent_log_dir="$(dirname "$PROJECT_ROOT/${AGENT_PROMPTS[$id]}")/logs"
-                        _latest_log=$(ls -t "$_agent_log_dir/${id}-"*.log 2>/dev/null | head -1)
-                        _outcome="success"
-                        if [[ -n "$_latest_log" ]]; then
-                            _lsize=$(wc -c < "$_latest_log" 2>/dev/null || echo 0)
-                            [[ "$_lsize" -lt 100 ]] && _outcome="skip"
-                        else
-                            _outcome="fail"
-                        fi
+            # v0.4: End observability spans, record metrics, store memories
+            for id in "${AGENT_IDS[@]}"; do
+                interval="${AGENT_INTERVALS[$id]}"
+                [ "$interval" -eq 0 ] && continue
+                if [ $((CYCLE % interval)) -eq 0 ] || [ "$CYCLE" -eq 1 ]; then
+                    _agent_log_dir="$(dirname "$PROJECT_ROOT/${AGENT_PROMPTS[$id]}")/logs"
+                    _latest_log=$(ls -t "$_agent_log_dir/${id}-"*.log 2>/dev/null | head -1)
+                    _outcome="success"
+                    if [[ -n "$_latest_log" ]]; then
+                        _lsize=$(wc -c < "$_latest_log" 2>/dev/null || echo 0)
+                        [[ "$_lsize" -lt 100 ]] && _outcome="skip"
+                    else
+                        _outcome="fail"
+                    fi
+
+                    # v0.2: router update
+                    if [[ "$(type -t orch_router_update)" == "function" ]]; then
                         orch_router_update "$id" "$_outcome" "$CYCLE" 2>/dev/null
                     fi
-                done
-            fi
+
+                    # v0.4: End observability span and record metrics
+                    if [[ "$(type -t orch_obs_end_span)" == "function" ]]; then
+                        _agent_latency=$(orch_obs_end_span "$id" "execute" 2>/dev/null)
+                        if [[ -n "$_latest_log" ]]; then
+                            _agent_tokens_cost=$(estimate_agent_cost "$_latest_log")
+                            _agent_tokens=$(echo "$_agent_tokens_cost" | cut -d' ' -f1)
+                            _agent_cost_micro=$(echo "$_agent_tokens_cost" | cut -d' ' -f2)
+                            orch_obs_record_metric "$id" "tokens_used" "${_agent_tokens:-0}" 2>/dev/null
+                            CUMULATIVE_TOKENS=$((CUMULATIVE_TOKENS + ${_agent_tokens:-0}))
+                            CUMULATIVE_COST=$((CUMULATIVE_COST + ${_agent_cost_micro:-0}))
+                        fi
+                        if [[ "$_outcome" == "fail" ]]; then
+                            orch_obs_record_error "$id" "Agent failed in cycle $CYCLE" 2>/dev/null
+                        fi
+                    fi
+
+                    # v0.4: Store episodic memory of agent outcome
+                    if [[ "$(type -t orch_mem_store)" == "function" ]]; then
+                        orch_mem_store "$id" "episodic" "Cycle $CYCLE: outcome=$_outcome" 2>/dev/null
+                    fi
+                fi
+            done
 
             # v0.2: Merge worktrees back into cycle branch
             if [[ "$(type -t orch_worktree_enabled)" == "function" ]] && orch_worktree_enabled 2>/dev/null; then
@@ -1462,6 +1535,13 @@ PEOF
             [ -x "$SCRIPT_DIR/cycle-metrics.sh" ] && bash "$SCRIPT_DIR/cycle-metrics.sh" "$CYCLE" "$COMMITS" "$PROJECT_ROOT" 2>/dev/null
             log "CYCLE $CYCLE DONE — $COMMITS commits | ${ts_count} TS + ${swift_count} Swift files"
             notify "Cycle $CYCLE done — $COMMITS commits"
+
+            # v0.4: End cycle observability span, print dashboard, flush events
+            if [[ "$(type -t orch_obs_end_span)" == "function" ]]; then
+                orch_obs_end_span "orchestrator" "cycle" 2>/dev/null
+                orch_obs_dashboard 2>/dev/null
+                orch_obs_flush 2>/dev/null
+            fi
 
             # v4: Print cycle summary
             print_cycle_summary "$CYCLE" "$AGENTS_RUN" "$COMMITS"
