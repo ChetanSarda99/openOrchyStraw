@@ -11,6 +11,9 @@
 #   ./scripts/auto-agent.sh orchestrate --max-parallel 3
 #   ./scripts/auto-agent.sh orchestrate --watch
 #   ./scripts/auto-agent.sh orchestrate --review
+#   ./scripts/auto-agent.sh orchestrate --telegram
+#   ./scripts/auto-agent.sh orchestrate --sync-state
+#   ./scripts/auto-agent.sh orchestrate --telegram --sync-state
 #   ./scripts/auto-agent.sh run <agent-id>
 #   ./scripts/auto-agent.sh run --agent "Backend Developer"
 #   ./scripts/auto-agent.sh list
@@ -63,13 +66,173 @@ if [ -d "$PROJECT_ROOT/src/core" ]; then
 fi
 
 # ── Shared resources (cross-project utilities) ────────────────────────
-SHARED_ORCH_DIR="$HOME/Projects/shared/orchystraw-core"
+SHARED_DIR="$HOME/Projects/shared"
+SHARED_ORCH_DIR="$SHARED_DIR/orchystraw-core"
+SHARED_SCRIPTS_DIR="$SHARED_DIR/scripts"
+SHARED_STATE_DIR="$HOME/Sync/shared-state"
+SHARED_ACTIVITY_DIR="$SHARED_STATE_DIR/claude-activity"
 if [ -d "$SHARED_ORCH_DIR" ]; then
     for mod in "$SHARED_ORCH_DIR"/*.sh; do
         [ -f "$mod" ] && source "$mod"
     done
     [[ "${ORCH_DEBUG:-}" == "1" ]] && echo "[orch] Loaded shared modules from $SHARED_ORCH_DIR"
 fi
+
+# ── Shared resource helper functions ─────────────────────────────────
+
+# Telegram notifications — wraps ~/Projects/shared/scripts/send-telegram.sh
+# Usage: orch_shared_send_telegram "message text"
+# Requires: ORCH_TELEGRAM_CHAT_ID env var or ~/.orchystraw/telegram-chat-id
+orch_shared_send_telegram() {
+    local text="$1"
+    local script="$SHARED_SCRIPTS_DIR/send-telegram.sh"
+    if [[ ! -x "$script" ]]; then
+        log "WARNING: send-telegram.sh not found at $script"
+        return 1
+    fi
+    local chat_id="${ORCH_TELEGRAM_CHAT_ID:-}"
+    if [[ -z "$chat_id" && -f "$PROJECT_ROOT/.orchystraw/telegram-chat-id" ]]; then
+        chat_id=$(cat "$PROJECT_ROOT/.orchystraw/telegram-chat-id" | tr -d '[:space:]')
+    fi
+    if [[ -z "$chat_id" ]]; then
+        log "WARNING: No Telegram chat ID configured (set ORCH_TELEGRAM_CHAT_ID or .orchystraw/telegram-chat-id)"
+        return 1
+    fi
+    local thread_id="${ORCH_TELEGRAM_THREAD_ID:-}"
+    local -a tg_args=(--chat-id "$chat_id" --text "$text")
+    [[ -n "$thread_id" ]] && tg_args+=(--thread-id "$thread_id")
+    "$script" "${tg_args[@]}" 2>/dev/null && return 0
+    log "WARNING: Telegram send failed (non-fatal)"
+    return 1
+}
+
+# Image generation — wraps ~/Projects/shared/scripts/generate-image.sh
+# Usage: orch_shared_generate_image --prompt "description" --output ./path.png [--provider auto] [--style professional]
+# Can be called from agent prompts as a tool reference
+orch_shared_generate_image() {
+    local script="$SHARED_SCRIPTS_DIR/generate-image.sh"
+    if [[ ! -x "$script" ]]; then
+        log "WARNING: generate-image.sh not found at $script"
+        return 1
+    fi
+    "$script" "$@"
+}
+
+# Syncthing state — read project status at cycle start
+# Returns content of PROJECT-STATUS.md or empty string
+orch_shared_read_project_status() {
+    local status_file="$SHARED_ACTIVITY_DIR/PROJECT-STATUS.md"
+    if [[ -f "$status_file" ]]; then
+        cat "$status_file"
+    fi
+}
+
+# Syncthing state — write updated project status at cycle end
+# Usage: orch_shared_write_project_status "project_name" "status_line"
+orch_shared_write_project_status() {
+    local project_name="$1"
+    local status_line="$2"
+    local status_file="$SHARED_ACTIVITY_DIR/PROJECT-STATUS.md"
+    if [[ ! -d "$SHARED_ACTIVITY_DIR" ]]; then
+        log "WARNING: Shared activity dir not found: $SHARED_ACTIVITY_DIR"
+        return 1
+    fi
+    # Update the project's "Last work" line in PROJECT-STATUS.md
+    # Find the project section and update it
+    if grep -q "### $project_name" "$status_file" 2>/dev/null; then
+        # Replace the Last work line for this project
+        local temp_file
+        temp_file=$(mktemp)
+        awk -v proj="### $project_name" -v status="$status_line" -v ts="$(date '+%Y-%m-%d %H:%M')" '
+            BEGIN { in_proj=0 }
+            $0 == proj { in_proj=1; print; next }
+            /^### / && in_proj { in_proj=0 }
+            in_proj && /^\*\*Last work:\*\*/ {
+                print "**Last work:** (" ts ") " status
+                # Keep the old last-work as previous
+                sub(/^\*\*Last work:\*\*/, "**Previous:**")
+                print
+                next
+            }
+            { print }
+        ' "$status_file" > "$temp_file" && mv "$temp_file" "$status_file"
+        log "Updated PROJECT-STATUS.md for $project_name"
+    else
+        log "WARNING: Project '$project_name' not found in PROJECT-STATUS.md"
+    fi
+}
+
+# Cross-project context — read recent activity log entries
+# Usage: orch_shared_read_activity_log [max_lines]
+# Returns recent entries from ACTIVITY-LOG.md
+orch_shared_read_activity_log() {
+    local max_lines="${1:-20}"
+    local log_file="$SHARED_ACTIVITY_DIR/ACTIVITY-LOG.md"
+    if [[ -f "$log_file" ]]; then
+        # Skip the header (first 6 lines), get recent entries
+        tail -n +7 "$log_file" | head -n "$max_lines"
+    fi
+}
+
+# Cross-project context — append to activity log
+# Usage: orch_shared_append_activity_log "action description"
+orch_shared_append_activity_log() {
+    local action="$1"
+    local log_file="$SHARED_ACTIVITY_DIR/ACTIVITY-LOG.md"
+    if [[ ! -d "$SHARED_ACTIVITY_DIR" ]]; then
+        log "WARNING: Shared activity dir not found: $SHARED_ACTIVITY_DIR"
+        return 1
+    fi
+    local ts
+    ts=$(date '+%Y-%m-%d %H:%M')
+    local project_name
+    project_name=$(basename "$PROJECT_ROOT")
+    # Insert after the header line (line 5, after the "---")
+    local temp_file
+    temp_file=$(mktemp)
+    head -n 5 "$log_file" > "$temp_file"
+    echo "" >> "$temp_file"
+    echo "## $ts — $project_name orchestration" >> "$temp_file"
+    echo "" >> "$temp_file"
+    echo "- $action" >> "$temp_file"
+    echo "" >> "$temp_file"
+    tail -n +6 "$log_file" >> "$temp_file"
+    mv "$temp_file" "$log_file"
+}
+
+# Inject cross-project context into shared context file
+# Reads ACTIVITY-LOG.md and writes relevant entries to 00-shared-context/
+orch_shared_inject_cross_project_context() {
+    local context_dir="$PROMPTS_DIR/00-shared-context"
+    local activity_log="$SHARED_ACTIVITY_DIR/ACTIVITY-LOG.md"
+    if [[ ! -f "$activity_log" ]]; then
+        return 0
+    fi
+    # Extract entries from the last 48 hours that mention relevant keywords
+    # Write to a cross-project context section
+    local cross_ctx=""
+    local project_name
+    project_name=$(basename "$PROJECT_ROOT")
+    # Get recent activity entries (skip this project's own entries)
+    local recent
+    recent=$(awk '
+        /^## [0-9]{4}-[0-9]{2}-[0-9]{2}/ { section=$0; next }
+        /^- / && section !~ /'"$project_name"'/ { print section ": " $0; count++; if (count >= 10) exit }
+    ' "$activity_log" 2>/dev/null)
+
+    if [[ -n "$recent" ]]; then
+        local context_file="$context_dir/context.md"
+        if [[ -f "$context_file" ]]; then
+            # Append cross-project context section
+            {
+                echo ""
+                echo "## Cross-Project Activity (from ~/Sync/shared-state/)"
+                echo "$recent"
+            } >> "$context_file"
+            log "Injected cross-project context ($(echo "$recent" | wc -l | tr -d ' ') entries)"
+        fi
+    fi
+}
 
 if [[ -n "${2:-}" && "${2:-}" =~ ^[0-9]+$ ]]; then
     MAX_CYCLES="$2"
@@ -103,6 +266,8 @@ MAX_PARALLEL=0         # --max-parallel: cap concurrent agents (0=unlimited)
 WATCH_MODE=false       # --watch: file-change triggered mode
 REVIEW_MODE=false      # --review: human approval before commit
 AGENT_BY_NAME=""       # --agent: resolve agent by label name
+TELEGRAM_ENABLED=false # --telegram: send cycle summaries to Telegram
+SYNC_STATE_ENABLED=false # --sync-state: read/write shared Syncthing state
 CUMULATIVE_COST=0      # running total in microdollars
 CUMULATIVE_TOKENS=0    # running total tokens across all cycles
 CUMULATIVE_FILES=0     # running total files changed
@@ -533,6 +698,16 @@ run_agent() {
         echo ""
         echo "---"
         echo ""
+        # Shared resource: image generation available to agents
+        if [[ -x "$SHARED_SCRIPTS_DIR/generate-image.sh" ]]; then
+            echo "## AVAILABLE TOOL: Image Generation"
+            echo "Generate AI images via: $SHARED_SCRIPTS_DIR/generate-image.sh"
+            echo "Usage: $SHARED_SCRIPTS_DIR/generate-image.sh --provider auto --prompt \"description\" --output ./path.png"
+            echo "Options: --style professional|thumbnail|minimal --aspect square|portrait|landscape|linkedin|youtube"
+            echo "Providers: gemini (free), openai (paid), auto (tries gemini first)"
+            echo ""
+        fi
+
         echo "## AFTER YOU FINISH — Update Shared Context"
         echo "Append what you built, changed, or need to: prompts/00-shared-context/context.md"
         echo "Format: Under the appropriate section (Backend/iOS/Design/QA Status), add bullet points."
@@ -1032,6 +1207,8 @@ case "${1:-help}" in
                 --max-parallel) MAX_PARALLEL="$2"; shift 2 ;;
                 --watch)       WATCH_MODE=true; shift ;;
                 --review)      REVIEW_MODE=true; shift ;;
+                --telegram)    TELEGRAM_ENABLED=true; shift ;;
+                --sync-state)  SYNC_STATE_ENABLED=true; shift ;;
                 --dry-run)     shift ;;  # handled by dry-run module
                 [0-9]*)        MAX_CYCLES="$1"; shift ;;
                 *)             shift ;;  # skip unknown
@@ -1091,6 +1268,21 @@ case "${1:-help}" in
         fi
 
         notify "Starting: ${#AGENT_IDS[@]} agents, max ${MAX_CYCLES:-∞} cycles"
+
+        # ── Shared integrations: startup notifications ──
+        if [[ "$TELEGRAM_ENABLED" == true ]]; then
+            _tg_project=$(basename "$PROJECT_ROOT")
+            orch_shared_send_telegram "<b>${_tg_project} — Orchestration Started</b>
+
+Agents: ${#AGENT_IDS[@]}
+Max cycles: ${MAX_CYCLES:-unlimited}
+Flags: $([ "$SYNC_STATE_ENABLED" == true ] && echo "sync-state " || true)telegram" 2>/dev/null || true
+        fi
+
+        if [[ "$SYNC_STATE_ENABLED" == true ]]; then
+            _sync_project=$(basename "$PROJECT_ROOT")
+            orch_shared_append_activity_log "Orchestration started: ${#AGENT_IDS[@]} agents, max ${MAX_CYCLES:-unlimited} cycles" 2>/dev/null || true
+        fi
 
         while true; do
             log "━━━ CYCLE $CYCLE ━━━"
@@ -1171,6 +1363,19 @@ case "${1:-help}" in
 - (none)
 CTXEOF
             log "Shared context reset for cycle $CYCLE"
+
+            # ── Step 1.2: Shared state integration ──────────────────────
+            # Read Syncthing project status and inject cross-project context
+            if [[ "$SYNC_STATE_ENABLED" == true ]]; then
+                # Read PROJECT-STATUS.md and log relevant info
+                _project_status=$(orch_shared_read_project_status 2>/dev/null)
+                if [[ -n "$_project_status" ]]; then
+                    log "Read PROJECT-STATUS.md from shared state ($(echo "$_project_status" | wc -l | tr -d ' ') lines)"
+                fi
+
+                # Inject cross-project activity into shared context
+                orch_shared_inject_cross_project_context 2>/dev/null
+            fi
 
             CYCLE_BRANCH=$(create_cycle_branch "$CYCLE")
             AGENT_PIDS=()
@@ -1599,6 +1804,36 @@ PEOF
             # v4: Print cycle summary
             print_cycle_summary "$CYCLE" "$AGENTS_RUN" "$COMMITS"
 
+            # ── Shared integrations: Telegram + Syncthing writeback ────
+            if [[ "$TELEGRAM_ENABLED" == true ]]; then
+                _tg_cost=$(awk "BEGIN{printf \"%.4f\", $CUMULATIVE_COST / 1000000}")
+                _tg_test="n/a"
+                if [[ "$CYCLE_TEST_PASS" -gt 0 || "$CYCLE_TEST_FAIL" -gt 0 ]]; then
+                    _tg_test="${CYCLE_TEST_PASS} pass / ${CYCLE_TEST_FAIL} fail"
+                fi
+                _tg_errors=""
+                if [[ "$AGENT_FAILURES" -gt 0 ]]; then
+                    _tg_errors="
+Errors: ${AGENT_FAILURES}/${AGENTS_RUN} agents failed"
+                fi
+                _tg_project=$(basename "$PROJECT_ROOT")
+                _tg_msg="<b>${_tg_project} — Cycle ${CYCLE} Complete</b>
+
+Agents run: ${AGENTS_RUN}
+Commits: ${COMMITS}
+Files changed: ${CUMULATIVE_FILES}
+Tests: ${_tg_test}
+Est. cost: \$${_tg_cost}${_tg_errors}"
+                orch_shared_send_telegram "$_tg_msg" 2>/dev/null || true
+            fi
+
+            if [[ "$SYNC_STATE_ENABLED" == true ]]; then
+                _sync_project=$(basename "$PROJECT_ROOT")
+                _sync_summary="Cycle $CYCLE: $AGENTS_RUN agents, $COMMITS commits, $CUMULATIVE_FILES files changed"
+                orch_shared_write_project_status "$_sync_project" "$_sync_summary" 2>/dev/null || true
+                orch_shared_append_activity_log "$_sync_summary" 2>/dev/null || true
+            fi
+
             # v4: Check cost limit
             if ! check_cost_limit; then
                 break
@@ -1628,6 +1863,23 @@ PEOF
         printf "║  Total est. cost:   %-29s║\n" "\$$_final_cost"
         printf "║  Total files:       %-29s║\n" "$CUMULATIVE_FILES"
         echo "╚══════════════════════════════════════════════════╝"
+
+        # ── Final shared integration notifications ──
+        if [[ "$TELEGRAM_ENABLED" == true ]]; then
+            _tg_project=$(basename "$PROJECT_ROOT")
+            orch_shared_send_telegram "<b>${_tg_project} — Orchestration Complete</b>
+
+Total cycles: $((CYCLE))
+Total agents run: ${CUMULATIVE_AGENTS_RUN}
+Total est. cost: \$${_final_cost}
+Total files changed: ${CUMULATIVE_FILES}" 2>/dev/null || true
+        fi
+
+        if [[ "$SYNC_STATE_ENABLED" == true ]]; then
+            _sync_project=$(basename "$PROJECT_ROOT")
+            orch_shared_write_project_status "$_sync_project" "Orchestration complete: $CYCLE cycles, $CUMULATIVE_AGENTS_RUN agents, $CUMULATIVE_FILES files changed" 2>/dev/null || true
+            orch_shared_append_activity_log "Orchestration complete: $CYCLE cycles, $CUMULATIVE_AGENTS_RUN agents, $CUMULATIVE_FILES files changed" 2>/dev/null || true
+        fi
         ;;
 
     run)
@@ -1680,6 +1932,8 @@ PEOF
         echo "  orchestrate --max-parallel 3                  Cap concurrent agents"
         echo "  orchestrate --watch                           File-change triggered mode"
         echo "  orchestrate --review                          Human approval before each commit"
+        echo "  orchestrate --telegram                        Send cycle summaries to Telegram"
+        echo "  orchestrate --sync-state                      Read/write Syncthing shared state"
         echo "  run <agent-id>                                Single agent once"
         echo "  run --agent \"Backend Developer\"                Run agent by name"
         echo "  list                                          Show configured agents"
