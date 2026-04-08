@@ -1,0 +1,22 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128" width="128" height="128">
+  <!-- OrchyStraw logo — overlapping hexagons -->
+  <defs>
+    <style>
+      .hex { fill: none; stroke: #58a6ff; stroke-width: 2.5; stroke-linejoin: round; }
+      .hex-fill { fill: #58a6ff; opacity: 0.12; }
+    </style>
+  </defs>
+  <!-- Back hexagon -->
+  <polygon class="hex hex-fill" points="64,10 99,28 99,64 64,82 29,64 29,28" />
+  <polygon class="hex" points="64,10 99,28 99,64 64,82 29,64 29,28" />
+  <!-- Front hexagon (offset) -->
+  <polygon class="hex hex-fill" points="64,46 99,64 99,100 64,118 29,100 29,64" />
+  <polygon class="hex" points="64,46 99,64 99,100 64,118 29,100 29,64" />
+  <!-- Center node -->
+  <circle cx="64" cy="64" r="5" fill="#58a6ff" />
+  <!-- Connection lines -->
+  <line x1="64" y1="64" x2="64" y2="46" stroke="#58a6ff" stroke-width="1.5" opacity="0.6" />
+  <line x1="64" y1="64" x2="29" y2="64" stroke="#58a6ff" stroke-width="1.5" opacity="0.6" />
+  <line x1="64" y1="64" x2="99" y2="64" stroke="#58a6ff" stroke-width="1.5" opacity="0.6" />
+  <line x1="64" y1="64" x2="64" y2="82" stroke="#58a6ff" stroke-width="1.5" opacity="0.6" />
+</svg>
