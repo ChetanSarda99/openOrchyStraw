@@ -8,7 +8,7 @@ const testimonials = [
     quote: "I was running Claude Code on one file at a time like a caveman. Now I have 6 agents on the same monorepo and they haven't stepped on each other once.",
     author: "CS",
     role: "The person who built this",
-    company: "Sarda Labs",
+    company: "Raytheon Operations",
   },
   {
     quote: "Cloned it, edited agents.conf, ran the script. Had 3 agents working in under 10 minutes. No pip install, no Docker, no YAML hell.",
