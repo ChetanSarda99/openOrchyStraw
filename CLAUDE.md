@@ -40,7 +40,7 @@ No auto-agent.sh or src/core/ needed in target projects.
 ### Wired Projects
 | Project | Agents | Status |
 |---------|--------|--------|
-| openOrchyStraw | 11 | Self-orchestrating |
+| openOrchyStraw | 12 | Self-orchestrating |
 | InstagramAutomation | 10 | Wired |
 | Klaro | 8 | Wired |
 | LinkedInAutomation | 8 | Wired |
@@ -51,7 +51,7 @@ No auto-agent.sh or src/core/ needed in target projects.
 
 ## Agent Team
 
-### Active Agents (11 — configured in agents.conf)
+### Active Agents (12 — configured in agents.conf)
 | ID | Role | Owns | Interval | Notes |
 |----|------|------|----------|-------|
 | 00-cofounder | Co-Founder | agents.conf docs/operations/ | 2 | Autonomous ops — health, budget, intervals |
@@ -64,6 +64,7 @@ No auto-agent.sh or src/core/ needed in target projects.
 | 09-qa-visual | QA Visual Audit | reports/visual/ | 3 | Playwright/Chrome DevTools visual audit — screenshots, layout, responsiveness, accessibility |
 | 10-security | Security | (read-only) | 5 | Security audits |
 | 11-web | Web Dev | site/ | 1 | Landing page + docs site |
+| 12-designer | Visual Designer | assets/ images/ public/images/ | 3 | Logos, icons, social graphics, carousels, thumbnails, brand assets |
 | 13-hr | HR | docs/team/ prompts/13-hr/ | 3 | Team health & composition |
 
 ### Future Agents (prompts exist, not yet activated)
@@ -147,6 +148,7 @@ Observability spans/events, episodic memory, quality gates wired into orchestrat
 | #200 | High | Wire orchystraw into all 7 projects — first real cycles |
 | #201 | Medium | Benchmark cycle performance objectively |
 | #202 | Medium | Optimize agent prompts for token efficiency |
+| #203 | Medium | Design: logo refinement, docs site assets, GitHub social preview |
 | #97-#101 | Future | Tauri desktop app (5 issues) |
 
 ### Next Up
@@ -163,7 +165,9 @@ Observability spans/events, episodic memory, quality gates wired into orchestrat
 | Tauri Desktop App | `docs/references/TAURI-STACK.md` | 04-tauri-rust, 05-tauri-ui |
 | Landing Page | `docs/references/LANDING-PAGE-STACK.md` | 11-web |
 | Documentation Site | `docs/references/DOCS-STACK.md` | 11-web |
-| Design Guide | `~/Projects/shared/docs/LANDING-PAGE-DESIGN-GUIDE-2026.md` | 11-web, 09-qa-visual |
+| Design Guide | `~/Projects/shared/docs/LANDING-PAGE-DESIGN-GUIDE-2026.md` | 11-web, 12-designer, 09-qa-visual |
+| Carousel Design | `~/Projects/shared/docs/CAROUSEL-DESIGN-GUIDE-2026.md` | 12-designer |
+| iOS App Design | `~/Projects/shared/docs/IOS-APP-DESIGN-GUIDE-2026.md` | 12-designer, 07-ios |
 | Best Practices | `~/Projects/shared/docs/BEST-PRACTICES-2026.md` | all agents |
 
 ### Summary
