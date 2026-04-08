@@ -112,6 +112,31 @@ Everything else: decide autonomously and document.
 
 ---
 
+## Founder Directive Tracking (#204)
+
+Every cycle, you MUST audit that all Founder directives have corresponding GitHub issues.
+
+### How It Works
+1. Read `prompts/00-shared-context/context.md` for any Founder directives or decisions
+2. Read `prompts/99-me/99-actions.txt` for Founder action items and requests
+3. Cross-reference against open issues: `gh issue list --repo ChetanSarda99/openOrchyStraw --state open --limit 100`
+4. For any directive that has NO corresponding issue, flag it in shared context:
+   ```
+   ## [COFOUNDER] Untracked Directive — YYYY-MM-DD
+   Directive: "<what the Founder said>"
+   Source: <99-me / shared-context / Telegram>
+   Action: PM should create issue, or escalate to Founder for clarification
+   ```
+5. If PM has not created an issue for a flagged directive within 2 cycles, escalate to Founder via Telegram
+
+### Rules
+- Do NOT create issues yourself — that is PM's job. You audit and flag gaps.
+- Track directives from ALL sources: 99-me, shared context, Telegram logs, review-mode comments
+- A directive is "tracked" if an open issue exists with matching scope — title does not need to be exact
+- When in doubt whether something is actionable, flag it anyway — PM can dismiss
+
+---
+
 ## Your Tasks Each Cycle
 
 ### Phase 1: Assess (read everything)
@@ -119,6 +144,7 @@ Everything else: decide autonomously and document.
 2. Run/read agent health report data
 3. Check `.orchystraw/audit.jsonl` for cost trends
 4. Read PM backlog for priority alignment
+5. **Audit Founder directives** — follow "Founder Directive Tracking" section above
 
 ### Phase 2: Decide (make adjustments)
 1. Flag unhealthy agents (idle, failing, over-budget)

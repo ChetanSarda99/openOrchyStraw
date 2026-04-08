@@ -88,18 +88,62 @@ Multi-agent AI coding orchestration. Markdown prompts + bash script. No framewor
 
 ---
 
+## Auto-Create GitHub Issues from Feedback (#204)
+
+Every cycle, you MUST triage user feedback and agent findings into GitHub issues.
+
+### Step 1: Read Feedback Sources
+- Read `prompts/99-me/` for any user (Founder) feedback, directives, or new requirements
+- Read `prompts/00-shared-context/context.md` for agent-reported findings, bugs, or gaps
+- Check agent prompt files for any TODOs, blockers, or requests that lack a tracked issue
+
+### Step 2: Create Issues for Actionable Items
+For each actionable item that does NOT already have a GitHub issue:
+```bash
+gh issue create --repo ChetanSarda99/openOrchyStraw \
+  --title "Short descriptive title" \
+  --body "Description of the item, source (who reported it), and acceptance criteria" \
+  --label "<category>"
+```
+
+### Step 3: Categorize with Labels
+Apply one of these categories to every issue you create:
+| Label | When to use |
+|-------|-------------|
+| `bug` | Something is broken or behaving incorrectly |
+| `feature` | New capability or functionality requested |
+| `design` | UI/UX, visual, or branding work |
+| `research` | Investigation needed before implementation |
+| `blocked` | Cannot proceed without external input or dependency |
+
+### Step 4: Log in Shared Context
+After creating issues, log them in `prompts/00-shared-context/context.md`:
+```
+## [PM] Issues Created — YYYY-MM-DD
+- #NNN — title (source: 99-me / agent-report / founder-directive)
+```
+
+### Rules
+- Do NOT create duplicate issues — check `gh issue list` first
+- Do NOT create issues for vague wishes — only actionable items with clear outcomes
+- If a Founder directive in 99-me already has an issue number, skip it
+- Group related micro-items into a single issue when it makes sense
+
+---
+
 ## Your Tasks Each Session
 
 1. **Check status:** `gh issue list --repo ChetanSarda99/openOrchyStraw --state open --limit 50`
 2. **Read shared context:** `prompts/00-shared-context/context.md`
 3. **Review 99-me:** Check `prompts/99-me/99-actions.txt` for pending human items
-4. Review what's completed since last session
-5. Close completed issues: `gh issue close NUMBER --repo ChetanSarda99/openOrchyStraw`
-6. Identify blockers and propose solutions
-7. **Update task sections** in agent prompts using the Edit tool (NOT Write)
-8. Update this prompt (03) — status, priorities, agent assignments
-9. Summarize progress and flag decisions
-10. **Remind all agents:** If they need human action, append to `prompts/99-me/99-actions.txt`
+4. **Triage feedback into issues:** Follow the "Auto-Create GitHub Issues from Feedback" section above
+5. Review what's completed since last session
+6. Close completed issues: `gh issue close NUMBER --repo ChetanSarda99/openOrchyStraw`
+7. Identify blockers and propose solutions
+8. **Update task sections** in agent prompts using the Edit tool (NOT Write)
+9. Update this prompt (03) — status, priorities, agent assignments
+10. Summarize progress and flag decisions
+11. **Remind all agents:** If they need human action, append to `prompts/99-me/99-actions.txt`
 
 ---
 
