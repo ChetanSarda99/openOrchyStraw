@@ -15,25 +15,27 @@ Works with Claude Code, Codex, Gemini CLI, Aider, Windsurf, Cursor -- anything t
 ## Quick Start
 
 ```bash
-# 1. Clone
+# 1. Clone & add to PATH
 git clone https://github.com/ChetanSarda99/openOrchyStraw.git
-cd openOrchyStraw
+echo 'export PATH="$HOME/openOrchyStraw/bin:$PATH"' >> ~/.zshrc
+source ~/.zshrc
 
-# 2. Configure your agents
-cat > agents.conf << 'EOF'
-# id | prompt_path | ownership | interval | label
-03-pm      | prompts/03-pm/03-pm.txt           | prompts/ docs/ | 0 | PM Coordinator
-06-backend | prompts/06-backend/06-backend.txt  | src/ scripts/  | 1 | Backend Dev
-09-qa      | prompts/09-qa/09-qa.txt            | tests/         | 3 | QA Engineer
-EOF
+# 2. Verify install
+orchystraw doctor
 
-# 3. Write agent prompts (see examples/ for templates)
+# 3. Bootstrap a new project
+orchystraw init ~/my-project --template saas
 
 # 4. Preview what would happen
-bash scripts/auto-agent.sh orchestrate 3 --dry-run
+orchystraw run ~/my-project --dry-run
 
-# 5. Run for real
-bash scripts/auto-agent.sh orchestrate 3
+# 5. Run supervised (approve each commit)
+orchystraw run ~/my-project --cycles 3 --review
+
+# 6. Run autonomous
+orchystraw run ~/my-project --cycles 10
+
+# Or add to an existing project — just create agents.conf + prompts/
 ```
 
 ## What It Does

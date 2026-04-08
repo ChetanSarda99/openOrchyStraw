@@ -3,8 +3,51 @@
 ## Project Overview
 Multi-agent AI coding orchestration. Markdown prompts + bash script. No framework, no dependencies.
 
-**Private repo** — research, benchmarks, proprietary features, Tauri desktop app, Pixel Agents integration.
+**Global CLI** — `orchystraw run <project> --cycles N` orchestrates any project from one place.
 **Public repo** — openOrchyStraw (MIT, community-facing scaffold).
+
+## Global CLI (`bin/orchystraw`)
+The orchestrator is now a global tool. Install: add `~/Projects/openOrchyStraw/bin` to PATH.
+
+```bash
+orchystraw run ~/Projects/Klaro --cycles 5          # Run 5 cycles on Klaro
+orchystraw run ~/Projects/AIVA --dry-run             # Preview without executing
+orchystraw run . --cycles 1 --review                 # Supervised cycle (approve each commit)
+orchystraw run ~/Projects/Klaro --telegram --sync-state  # With notifications + cross-project sync
+orchystraw status                                     # All registered projects
+orchystraw init ~/new-project --template saas         # Bootstrap new project
+orchystraw list                                       # Registered projects
+orchystraw metrics ~/Projects/Klaro                   # Performance data
+orchystraw decisions ~/Projects/Klaro --last 10       # Decision audit trail
+orchystraw dashboard                                  # Cross-project HTML dashboard
+orchystraw doctor                                     # Validate environment
+```
+
+### Two-Root Architecture
+- **ORCH_ROOT** = where orchystraw code lives (`~/Projects/openOrchyStraw`) — modules, templates, orchestrator
+- **PROJECT_ROOT** = target project being orchestrated — agents.conf, prompts/, .orchystraw/ state
+
+### What Each Target Project Needs (minimal)
+```
+project/
+  agents.conf          # Who runs, what they own, intervals
+  prompts/             # Agent prompt files
+  CLAUDE.md            # Project context
+  .orchystraw/         # Auto-created on first run (metrics, state)
+```
+No auto-agent.sh or src/core/ needed in target projects.
+
+### Wired Projects
+| Project | Agents | Status |
+|---------|--------|--------|
+| openOrchyStraw | 11 | Self-orchestrating |
+| InstagramAutomation | 10 | Wired |
+| Klaro | 8 | Wired |
+| LinkedInAutomation | 8 | Wired |
+| AIVA | 10 | Wired |
+| FreelanceWorker | 7 | Wired |
+| macro-news-alpha | 5 | Wired (API template) |
+| Momentum | 10 | Wired (paused) |
 
 ## Agent Team
 
@@ -30,10 +73,12 @@ Multi-agent AI coding orchestration. Markdown prompts + bash script. No framewor
 
 ## File Structure
 ```
+bin/orchystraw           — Global CLI entry point (add to PATH)
 agents.conf              — Agent configuration (who, what, when)
 CLAUDE.md                — This file (project guide for all agents)
 
 prompts/                 — All agent prompts and shared files
+  00-cofounder/          — Co-Founder agent (autonomous ops)
   00-shared-context/     — Cross-agent communication (reset each cycle)
   00-session-tracker/    — Cycle history
   00-backup/             — Context backups (gitignored)
@@ -41,48 +86,75 @@ prompts/                 — All agent prompts and shared files
   99-me/                 — Human action items
 
 scripts/                 — Orchestrator (auto-agent.sh) + helper scripts
-src/core/                — Core orchestration modules (24 bash modules)
+  auto-agent.sh          — Core orchestrator (2100+ lines)
+  benchmark/             — Performance benchmarks + test cases
+  cross-project-dashboard.sh — Multi-project HTML dashboard
+  health-dashboard.sh    — Single-project dashboard
+
+src/core/                — Core orchestration modules (31 bash modules)
+  # v0.1 Foundation
+  bash-version.sh, logger.sh, error-handler.sh, cycle-state.sh,
+  agent-timeout.sh, dry-run.sh, config-validator.sh, lock-file.sh
+  # v0.2 Smart Cycle
+  signal-handler.sh, cycle-tracker.sh, dynamic-router.sh, review-phase.sh,
+  worktree.sh, prompt-compression.sh, conditional-activation.sh
+  # v0.3 Extended
+  single-agent.sh, qmd-refresher.sh, prompt-template.sh, task-decomposer.sh,
+  init-project.sh, freshness-detector.sh
+  # v0.4 Observability + Memory
+  observability.sh, memory.sh, quality-gates.sh
+  # v0.5 Global CLI + Quality
+  cofounder.sh, decision-store.sh, project-registry.sh, quality-scorer.sh,
+  stall-detector.sh
+
 src/pixel/               — Pixel Agents JSONL emitter + integration
 
 site/                    — Landing page (Next.js 15 + shadcn/ui v4)
-  src/                   — Pages, components, layouts
-  out/                   — Static build output (deployed to GitHub Pages)
-
-tests/                   — Test files
-  core/                  — 26 test scripts + runner
-
-docs/                    — Documentation
-  architecture/          — ADRs and technical specs (14 files)
-  strategy/              — CEO strategic memos (9 files)
-  team/                  — Team norms, onboarding, roster
-  references/            — Locked stack decisions (Tauri, landing page, docs)
-  tech-registry/         — Technology decision records
-
+docs/                    — Documentation (architecture, strategy, operations, team, references)
 research/                — Competitive analysis, benchmarks
-template/                — Agent prompt templates for new projects
-examples/                — Sample agents.conf
+template/                — Project templates (saas, api, content)
+tests/core/              — 45+ test scripts + runner
 ```
 
 ## Current Status
 
-### v0.1.0 — Hardened Release (DONE — ready to tag)
-All 8 core modules built, tested, integrated. QA PASS. Security FULL PASS. CTO approved.
+### v0.1.0 — Core Foundation (TAGGED + RELEASED)
+8 core modules. QA PASS. Security FULL PASS.
 
-### v0.2.0 — Smart Cycle System (FULLY WIRED)
-10 modules wired into auto-agent.sh. CTO 8/8, QA 8/8, Security 6/6.
-26/26 test scripts pass. Ready to tag.
+### v0.2.0 — Smart Cycle System (TAGGED + RELEASED)
+15 modules wired. 58/59 tests pass on bash 5.
 
-### v0.3.0 — Extended Modules (IN PROGRESS)
-6 modules built and wired: single-agent, qmd-refresher, prompt-template, task-decomposer, init-project, freshness-detector.
-Freshness-detector: sourced + per-agent prompt staleness check before each agent run.
-Observability (v0.4) and memory (v0.4) modules also wired into orchestration loop.
+### v0.3.0 — Extended Modules (TAGGED + RELEASED)
+21 modules. init-project, task-decomposer, prompt-template, freshness-detector.
+
+### v0.4.0 — Observability + Memory (COMPLETE)
+Observability spans/events, episodic memory, quality gates wired into orchestration loop.
+
+### v0.5.0 — Global CLI + Quality Scoring (CURRENT)
+- `bin/orchystraw` global CLI — run any project from one place
+- Two-root architecture (ORCH_ROOT / PROJECT_ROOT)
+- Project registry (~/.orchystraw/)
+- Quality scorer (lint + tests + diff + output + ownership → 0-100 score)
+- Decision store (immutable JSONL audit trail)
+- Co-Founder agent (autonomous interval/model/budget decisions)
+- Cross-project dashboard
+- 31 modules, 45+ tests, 8 projects wired
+
+### Open Issues
+| # | Priority | What |
+|---|----------|------|
+| #199 | High | Intelligent model selection per agent per task |
+| #200 | High | Wire orchystraw into all 7 projects — first real cycles |
+| #201 | Medium | Benchmark cycle performance objectively |
+| #202 | Medium | Optimize agent prompts for token efficiency |
+| #97-#101 | Future | Tauri desktop app (5 issues) |
 
 ### Next Up
-1. Tag v0.1.0 + v0.2.0
-2. Wire freshness-detector + token optimization (#50, #53, #54)
-3. Pixel Agents integration
-4. Tauri desktop app
-5. Benchmarks & distribution
+1. Run first real supervised cycles on all projects (#200)
+2. Deep dive model selection — task-aware routing (#199)
+3. Performance benchmarking across projects (#201)
+4. Prompt optimization (#202)
+5. Tauri desktop app
 
 ## Stack Reference Docs (LOCKED — read before building)
 
@@ -112,6 +184,9 @@ Every significant feature follows this research-first workflow:
 **References:**
 - `~/Projects/shared/docs/BEST-PRACTICES-2026.md` — Domain best practices (multi-agent AI, Node.js, open source marketing)
 - `~/Projects/shared/docs/LANDING-PAGE-DESIGN-GUIDE-2026.md` — UI/UX patterns for the landing page
+- `~/Projects/shared/docs/IOS-APP-DESIGN-GUIDE-2026.md` — iOS SwiftUI design patterns, animations, haptics
+- `~/Projects/shared/docs/VIRAL-CONTENT-STRATEGY-2026.md` — Cross-platform viral content, hooks, algorithms
+- `~/Projects/shared/docs/CAROUSEL-DESIGN-GUIDE-2026.md` — Instagram/LinkedIn carousel slide design
 
 **Claude fallback:** If primary AI call fails, try alternate model. Never let a single API failure block the pipeline.
 
