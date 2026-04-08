@@ -1,0 +1,440 @@
+#!/opt/homebrew/bin/bash
+# orchystraw — Multi-agent AI orchestration CLI
+# The single entry point for all projects.
+#
+# Two-root architecture:
+#   ORCH_ROOT   = where orchystraw code lives (modules, templates, orchestrator)
+#   PROJECT_ROOT = the target project (agents.conf, prompts, .orchystraw state)
+
+set -uo pipefail
+
+# ── Resolve ORCH_ROOT from script location ──────────────────────────────
+ORCH_ROOT="$(cd "$(dirname "$0")/.." && pwd)"
+export ORCH_ROOT
+
+# ── Source project registry ─────────────────────────────────────────────
+if [[ -f "$ORCH_ROOT/src/core/project-registry.sh" ]]; then
+    source "$ORCH_ROOT/src/core/project-registry.sh"
+fi
+
+# ── Source quality scorer ───────────────────────────────────────────────
+if [[ -f "$ORCH_ROOT/src/core/quality-scorer.sh" ]]; then
+    source "$ORCH_ROOT/src/core/quality-scorer.sh"
+fi
+
+# ── Helpers ─────────────────────────────────────────────────────────────
+
+resolve_project_root() {
+    local path="$1"
+    # Resolve to absolute path
+    if [[ ! "$path" = /* ]]; then
+        path="$(cd "$path" 2>/dev/null && pwd)" || {
+            echo "ERROR: Cannot resolve path: $1"
+            exit 1
+        }
+    fi
+    # Strip trailing slash
+    path="${path%/}"
+    echo "$path"
+}
+
+validate_project() {
+    local project="$1"
+    if [[ -f "$project/agents.conf" ]]; then
+        return 0
+    elif [[ -f "$project/scripts/agents.conf" ]]; then
+        return 0
+    else
+        echo "ERROR: No agents.conf found in $project or $project/scripts/"
+        echo "  Run 'orchystraw init $project' to set up a new project."
+        return 1
+    fi
+}
+
+usage() {
+    echo "orchystraw — Multi-agent AI orchestration CLI"
+    echo ""
+    echo "Usage:"
+    echo "  orchystraw run <project-path> [--cycles N] [--dry-run] [--review] [--telegram] [--sync-state]"
+    echo "  orchystraw status [project-path]      Show project status (or all registered)"
+    echo "  orchystraw init <target-dir> [--template saas|api|content] [--name NAME]"
+    echo "  orchystraw list                       List all registered projects"
+    echo "  orchystraw metrics <project-path>     Show performance data"
+    echo "  orchystraw decisions <project-path> [--actor X] [--type Y] [--last N]"
+    echo "  orchystraw dashboard                  Generate cross-project HTML dashboard"
+    echo "  orchystraw doctor                     Validate environment"
+    echo ""
+    echo "Architecture:"
+    echo "  ORCH_ROOT    = $ORCH_ROOT"
+    echo "  PROJECT_ROOT = <first positional arg>"
+    echo ""
+    echo "Examples:"
+    echo "  orchystraw run ~/Projects/Klaro --cycles 5"
+    echo "  orchystraw init ~/Projects/NewApp --template saas --name NewApp"
+    echo "  orchystraw status ~/Projects/Klaro"
+    echo "  orchystraw list"
+    echo "  orchystraw doctor"
+}
+
+# ── Subcommand: run ─────────────────────────────────────────────────────
+
+cmd_run() {
+    if [[ $# -lt 1 ]]; then
+        echo "Usage: orchystraw run <project-path> [--cycles N] [--dry-run] [--review] [--telegram] [--sync-state]"
+        exit 1
+    fi
+
+    PROJECT_ROOT="$(resolve_project_root "$1")"
+    shift
+    export PROJECT_ROOT
+
+    validate_project "$PROJECT_ROOT" || exit 1
+
+    # Auto-register in project registry
+    if [[ "$(type -t orch_registry_register)" == "function" ]]; then
+        local project_name
+        project_name="$(basename "$PROJECT_ROOT")"
+        orch_registry_register "$PROJECT_ROOT" "$project_name"
+    fi
+
+    # Update last run timestamp
+    if [[ "$(type -t orch_registry_update_last_run)" == "function" ]]; then
+        orch_registry_update_last_run "$PROJECT_ROOT"
+    fi
+
+    # Parse --cycles N into positional max-cycles for auto-agent.sh
+    local -a agent_args=("orchestrate")
+    local cycles=""
+    while [[ $# -gt 0 ]]; do
+        case "$1" in
+            --cycles)   cycles="$2"; shift 2 ;;
+            --dry-run)  agent_args+=("--dry-run"); shift ;;
+            --review)   agent_args+=("--review"); shift ;;
+            --telegram) agent_args+=("--telegram"); shift ;;
+            --sync-state) agent_args+=("--sync-state"); shift ;;
+            --cost-limit) agent_args+=("--cost-limit" "$2"); shift 2 ;;
+            --max-parallel) agent_args+=("--max-parallel" "$2"); shift 2 ;;
+            --watch)    agent_args+=("--watch"); shift ;;
+            *)          agent_args+=("$1"); shift ;;
+        esac
+    done
+    [[ -n "$cycles" ]] && agent_args+=("$cycles")
+
+    echo "orchystraw — run"
+    echo "  ORCH_ROOT:    $ORCH_ROOT"
+    echo "  PROJECT_ROOT: $PROJECT_ROOT"
+    echo ""
+
+    exec /opt/homebrew/bin/bash "$ORCH_ROOT/scripts/auto-agent.sh" "${agent_args[@]}"
+}
+
+# ── Subcommand: status ──────────────────────────────────────────────────
+
+cmd_status() {
+    if [[ $# -ge 1 ]]; then
+        # Single project status
+        PROJECT_ROOT="$(resolve_project_root "$1")"
+        export PROJECT_ROOT
+        validate_project "$PROJECT_ROOT" || exit 1
+
+        echo "orchystraw — status"
+        echo "  ORCH_ROOT:    $ORCH_ROOT"
+        echo "  PROJECT_ROOT: $PROJECT_ROOT"
+        echo ""
+
+        exec /opt/homebrew/bin/bash "$ORCH_ROOT/scripts/auto-agent.sh" status
+    else
+        # All registered projects
+        if [[ "$(type -t orch_registry_status)" == "function" ]]; then
+            orch_registry_status
+        else
+            echo "No project specified and registry not available."
+            echo "Usage: orchystraw status <project-path>"
+        fi
+    fi
+}
+
+# ── Subcommand: init ────────────────────────────────────────────────────
+
+cmd_init() {
+    if [[ $# -lt 1 ]]; then
+        echo "Usage: orchystraw init <target-dir> [--template saas|api|content] [--name NAME]"
+        exit 1
+    fi
+
+    local target=""
+    local template="saas"
+    local name=""
+    local -a passthrough=()
+
+    while [[ $# -gt 0 ]]; do
+        case "$1" in
+            --template|-t) template="$2"; shift 2 ;;
+            --name|-n)     name="$2"; shift 2 ;;
+            --list|-l)     passthrough+=("--list"); shift ;;
+            -*)            passthrough+=("$1"); shift ;;
+            *)
+                if [[ -z "$target" ]]; then
+                    target="$1"
+                else
+                    passthrough+=("$1")
+                fi
+                shift
+                ;;
+        esac
+    done
+
+    if [[ -z "$target" && ${#passthrough[@]} -eq 0 ]]; then
+        echo "Usage: orchystraw init <target-dir> [--template saas|api|content] [--name NAME]"
+        exit 1
+    fi
+
+    # For --list, delegate directly
+    if [[ " ${passthrough[*]} " == *" --list "* ]]; then
+        PROJECT_ROOT="${target:-$ORCH_ROOT}"
+        export PROJECT_ROOT
+        exec /opt/homebrew/bin/bash "$ORCH_ROOT/scripts/auto-agent.sh" init --list
+    fi
+
+    # Resolve target to absolute
+    if [[ -n "$target" && ! "$target" = /* ]]; then
+        target="$(pwd)/$target"
+    fi
+
+    # Set PROJECT_ROOT to ORCH_ROOT for init (it reads templates from there)
+    PROJECT_ROOT="$ORCH_ROOT"
+    export PROJECT_ROOT
+
+    local -a init_args=("init")
+    [[ -n "$template" ]] && init_args+=("--template" "$template")
+    [[ -n "$name" ]] && init_args+=("--name" "$name")
+    [[ -n "$target" ]] && init_args+=("$target")
+    init_args+=("${passthrough[@]}")
+
+    exec /opt/homebrew/bin/bash "$ORCH_ROOT/scripts/auto-agent.sh" "${init_args[@]}"
+}
+
+# ── Subcommand: list ────────────────────────────────────────────────────
+
+cmd_list() {
+    if [[ "$(type -t orch_registry_list)" == "function" ]]; then
+        orch_registry_list
+    else
+        echo "Registry module not available."
+        exit 1
+    fi
+}
+
+# ── Subcommand: metrics ────────────────────────────────────────────────
+
+cmd_metrics() {
+    if [[ $# -lt 1 ]]; then
+        echo "Usage: orchystraw metrics <project-path>"
+        exit 1
+    fi
+
+    local project
+    project="$(resolve_project_root "$1")"
+
+    echo "orchystraw — metrics for $(basename "$project")"
+    echo "  Path: $project"
+    echo ""
+
+    # Metrics from .orchystraw/
+    local metrics_file="$project/.orchystraw/metrics.jsonl"
+    local audit_file="$project/.orchystraw/audit.jsonl"
+    local router_state="$project/.orchystraw/router-state.txt"
+    local quality_file="$project/.orchystraw/quality-scores.jsonl"
+
+    if [[ -f "$audit_file" ]]; then
+        local total_inv=0 total_tok=0
+        while IFS= read -r line; do
+            [[ -z "$line" ]] && continue
+            total_inv=$((total_inv + 1))
+            local tok
+            tok=$(echo "$line" | grep -o '"tokens_est":[0-9]*' | grep -o '[0-9]*' || echo 0)
+            total_tok=$((total_tok + tok))
+        done < "$audit_file"
+        echo "  Audit log:"
+        echo "    Total invocations: $total_inv"
+        echo "    Total tokens:      $total_tok"
+        echo ""
+    fi
+
+    if [[ -f "$metrics_file" ]]; then
+        local metric_count
+        metric_count=$(wc -l < "$metrics_file" | tr -d ' ')
+        echo "  Metrics entries: $metric_count"
+        echo "  Recent:"
+        tail -5 "$metrics_file" | sed 's/^/    /'
+        echo ""
+    fi
+
+    if [[ -f "$router_state" ]]; then
+        echo "  Router state:"
+        cat "$router_state" | sed 's/^/    /'
+        echo ""
+    fi
+
+    if [[ -f "$quality_file" ]]; then
+        local score_count
+        score_count=$(wc -l < "$quality_file" | tr -d ' ')
+        echo "  Quality scores: $score_count entries"
+        echo "  Recent:"
+        tail -5 "$quality_file" | sed 's/^/    /'
+        echo ""
+    fi
+
+    if [[ ! -f "$audit_file" && ! -f "$metrics_file" && ! -f "$quality_file" ]]; then
+        echo "  No metrics data found. Run 'orchystraw run $project' first."
+    fi
+}
+
+# ── Subcommand: decisions ──────────────────────────────────────────────
+
+cmd_decisions() {
+    if [[ $# -lt 1 ]]; then
+        echo "Usage: orchystraw decisions <project-path> [--actor X] [--type Y] [--last N]"
+        exit 1
+    fi
+
+    PROJECT_ROOT="$(resolve_project_root "$1")"
+    shift
+    export PROJECT_ROOT
+
+    exec /opt/homebrew/bin/bash "$ORCH_ROOT/scripts/auto-agent.sh" decisions "$@"
+}
+
+# ── Subcommand: dashboard ──────────────────────────────────────────────
+
+cmd_dashboard() {
+    if [[ -f "$ORCH_ROOT/scripts/cross-project-dashboard.sh" ]]; then
+        /opt/homebrew/bin/bash "$ORCH_ROOT/scripts/cross-project-dashboard.sh"
+    else
+        echo "ERROR: cross-project-dashboard.sh not found"
+        exit 1
+    fi
+}
+
+# ── Subcommand: doctor ─────────────────────────────────────────────────
+
+cmd_doctor() {
+    echo "orchystraw doctor — environment check"
+    echo ""
+
+    local issues=0
+
+    # Bash 5+
+    local bash_ver
+    bash_ver=$(/opt/homebrew/bin/bash --version | head -1 | grep -oE '[0-9]+\.[0-9]+' | head -1)
+    local bash_major="${bash_ver%%.*}"
+    if [[ "$bash_major" -ge 5 ]]; then
+        echo "  [OK] bash $bash_ver (>= 5.0)"
+    else
+        echo "  [FAIL] bash $bash_ver (need 5.0+)"
+        issues=$((issues + 1))
+    fi
+
+    # Claude CLI
+    if command -v claude &>/dev/null; then
+        local claude_ver
+        claude_ver=$(claude --version 2>/dev/null | head -1 || echo "unknown")
+        echo "  [OK] claude CLI ($claude_ver)"
+    else
+        echo "  [FAIL] claude CLI not found"
+        issues=$((issues + 1))
+    fi
+
+    # Git
+    if command -v git &>/dev/null; then
+        local git_ver
+        git_ver=$(git --version 2>/dev/null | grep -oE '[0-9]+\.[0-9]+\.[0-9]+' || echo "unknown")
+        echo "  [OK] git $git_ver"
+    else
+        echo "  [FAIL] git not found"
+        issues=$((issues + 1))
+    fi
+
+    # gh CLI
+    if command -v gh &>/dev/null; then
+        echo "  [OK] gh CLI"
+    else
+        echo "  [WARN] gh CLI not found (optional — needed for GitHub integration)"
+    fi
+
+    # shellcheck
+    if command -v shellcheck &>/dev/null; then
+        echo "  [OK] shellcheck"
+    else
+        echo "  [WARN] shellcheck not found (optional — used by quality scorer)"
+    fi
+
+    # ORCH_ROOT structure
+    echo ""
+    echo "  ORCH_ROOT: $ORCH_ROOT"
+    if [[ -f "$ORCH_ROOT/scripts/auto-agent.sh" ]]; then
+        echo "  [OK] scripts/auto-agent.sh"
+    else
+        echo "  [FAIL] scripts/auto-agent.sh missing"
+        issues=$((issues + 1))
+    fi
+
+    if [[ -d "$ORCH_ROOT/src/core" ]]; then
+        local mod_count
+        mod_count=$(ls "$ORCH_ROOT/src/core/"*.sh 2>/dev/null | wc -l | tr -d ' ')
+        echo "  [OK] src/core/ ($mod_count modules)"
+    else
+        echo "  [FAIL] src/core/ missing"
+        issues=$((issues + 1))
+    fi
+
+    if [[ -d "$ORCH_ROOT/template" ]]; then
+        local tpl_count
+        tpl_count=$(ls -d "$ORCH_ROOT/template/"*/ 2>/dev/null | wc -l | tr -d ' ')
+        echo "  [OK] template/ ($tpl_count templates)"
+    else
+        echo "  [WARN] template/ missing"
+    fi
+
+    # Registry
+    echo ""
+    if [[ -d "$HOME/.orchystraw" ]]; then
+        echo "  [OK] ~/.orchystraw/ exists"
+        if [[ -f "$HOME/.orchystraw/registry.jsonl" ]]; then
+            local reg_count
+            reg_count=$(wc -l < "$HOME/.orchystraw/registry.jsonl" | tr -d ' ')
+            echo "  [OK] registry.jsonl ($reg_count projects)"
+        else
+            echo "  [INFO] No projects registered yet"
+        fi
+    else
+        echo "  [INFO] ~/.orchystraw/ not created yet (will be created on first run)"
+    fi
+
+    echo ""
+    if [[ "$issues" -eq 0 ]]; then
+        echo "  All checks passed."
+    else
+        echo "  $issues issue(s) found."
+    fi
+}
+
+# ── Main dispatch ───────────────────────────────────────────────────────
+
+case "${1:-help}" in
+    run)        shift; cmd_run "$@" ;;
+    status)     shift; cmd_status "$@" ;;
+    init)       shift; cmd_init "$@" ;;
+    list)       shift; cmd_list "$@" ;;
+    metrics)    shift; cmd_metrics "$@" ;;
+    decisions)  shift; cmd_decisions "$@" ;;
+    dashboard)  shift; cmd_dashboard "$@" ;;
+    doctor)     shift; cmd_doctor "$@" ;;
+    help|--help|-h) usage ;;
+    *)
+        echo "Unknown command: $1"
+        echo ""
+        usage
+        exit 1
+        ;;
+esac

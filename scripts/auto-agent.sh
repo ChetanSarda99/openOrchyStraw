@@ -33,46 +33,61 @@
 
 set -uo pipefail
 
-PROJECT_ROOT="$(cd "$(dirname "$0")/.." && pwd)"
-SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
+# ORCH_ROOT and PROJECT_ROOT must be set by bin/orchystraw
+if [[ -z "${ORCH_ROOT:-}" || -z "${PROJECT_ROOT:-}" ]]; then
+    echo "ERROR: Run via 'orchystraw' CLI, not directly."
+    echo "  orchystraw run <project-path> [--cycles N]"
+    exit 1
+fi
+SCRIPT_DIR="$ORCH_ROOT/scripts"
 cd "$PROJECT_ROOT" || exit 1
 
 # ── Core modules (v0.1) ──────────────────────────────────────────────────
-if [ -d "$PROJECT_ROOT/src/core" ]; then
+if [ -d "$ORCH_ROOT/src/core" ]; then
     for mod in bash-version logger error-handler cycle-state agent-timeout dry-run config-validator lock-file; do
-        [ -f "$PROJECT_ROOT/src/core/${mod}.sh" ] && source "$PROJECT_ROOT/src/core/${mod}.sh"
+        [ -f "$ORCH_ROOT/src/core/${mod}.sh" ] && source "$ORCH_ROOT/src/core/${mod}.sh"
     done
 fi
 
 # ── Smart cycle modules (v0.2) ──────────────────────────────────────────
-if [ -d "$PROJECT_ROOT/src/core" ]; then
+if [ -d "$ORCH_ROOT/src/core" ]; then
     for mod in signal-handler cycle-tracker conditional-activation differential-context session-tracker prompt-compression dynamic-router review-phase worktree quality-gates; do
-        [ -f "$PROJECT_ROOT/src/core/${mod}.sh" ] && source "$PROJECT_ROOT/src/core/${mod}.sh"
+        [ -f "$ORCH_ROOT/src/core/${mod}.sh" ] && source "$ORCH_ROOT/src/core/${mod}.sh"
     done
 fi
 
 # ── Extended modules (v0.3) ─────────────────────────────────────────────
-if [ -d "$PROJECT_ROOT/src/core" ]; then
+if [ -d "$ORCH_ROOT/src/core" ]; then
     for mod in single-agent qmd-refresher prompt-template task-decomposer init-project freshness-detector; do
-        [ -f "$PROJECT_ROOT/src/core/${mod}.sh" ] && source "$PROJECT_ROOT/src/core/${mod}.sh"
+        [ -f "$ORCH_ROOT/src/core/${mod}.sh" ] && source "$ORCH_ROOT/src/core/${mod}.sh"
     done
 fi
 
 # ── Observability + Memory modules (v0.4) ──────────────────────────────
-if [ -d "$PROJECT_ROOT/src/core" ]; then
+if [ -d "$ORCH_ROOT/src/core" ]; then
     for mod in observability memory; do
-        [ -f "$PROJECT_ROOT/src/core/${mod}.sh" ] && source "$PROJECT_ROOT/src/core/${mod}.sh"
+        [ -f "$ORCH_ROOT/src/core/${mod}.sh" ] && source "$ORCH_ROOT/src/core/${mod}.sh"
     done
 fi
 
 # ── Decision store (v0.4: persist orchestration decisions) ────────────
-if [ -d "$PROJECT_ROOT/src/core" ]; then
-    [ -f "$PROJECT_ROOT/src/core/decision-store.sh" ] && source "$PROJECT_ROOT/src/core/decision-store.sh"
+if [ -d "$ORCH_ROOT/src/core" ]; then
+    [ -f "$ORCH_ROOT/src/core/decision-store.sh" ] && source "$ORCH_ROOT/src/core/decision-store.sh"
 fi
 
 # ── Co-Founder operations module ──────────────────────────────────────
-if [ -d "$PROJECT_ROOT/src/core" ]; then
-    [ -f "$PROJECT_ROOT/src/core/cofounder.sh" ] && source "$PROJECT_ROOT/src/core/cofounder.sh"
+if [ -d "$ORCH_ROOT/src/core" ]; then
+    [ -f "$ORCH_ROOT/src/core/cofounder.sh" ] && source "$ORCH_ROOT/src/core/cofounder.sh"
+fi
+
+# ── Quality scorer module ────────────────────────────────────────────
+if [ -d "$ORCH_ROOT/src/core" ]; then
+    [ -f "$ORCH_ROOT/src/core/quality-scorer.sh" ] && source "$ORCH_ROOT/src/core/quality-scorer.sh"
+fi
+
+# ── Project registry module ──────────────────────────────────────────
+if [ -d "$ORCH_ROOT/src/core" ]; then
+    [ -f "$ORCH_ROOT/src/core/project-registry.sh" ] && source "$ORCH_ROOT/src/core/project-registry.sh"
 fi
 
 # ── Shared resources (cross-project utilities) ────────────────────────
@@ -258,7 +273,13 @@ BACKUP_DIR="$PROMPTS_DIR/00-backup"
 PM_LOG_DIR="$PROMPTS_DIR/01-pm/logs"
 CYCLE_LOG="$PM_LOG_DIR/orchestrator.log"
 # PM prompt: check 03-pm first (orchystraw), fall back to 01-pm (momentum/others)
-CONF_FILE="$PROJECT_ROOT/scripts/agents.conf"
+if [[ -f "$PROJECT_ROOT/agents.conf" ]]; then
+    CONF_FILE="$PROJECT_ROOT/agents.conf"
+elif [[ -f "$PROJECT_ROOT/scripts/agents.conf" ]]; then
+    CONF_FILE="$PROJECT_ROOT/scripts/agents.conf"
+else
+    echo "ERROR: No agents.conf in $PROJECT_ROOT"; exit 1
+fi
 # Auto-detect PM prompt location
 if [ -f "$PROMPTS_DIR/03-pm/03-pm.txt" ]; then
     PM_PROMPT="$PROMPTS_DIR/03-pm/03-pm.txt"
@@ -286,8 +307,8 @@ CYCLE_TEST_PASS=0
 CYCLE_TEST_FAIL=0
 
 # Stall detector — pause orchestrator after N idle cycles (lint-only/no meaningful commits)
-if [ -f "$PROJECT_ROOT/src/core/stall-detector.sh" ]; then
-    source "$PROJECT_ROOT/src/core/stall-detector.sh"
+if [ -f "$ORCH_ROOT/src/core/stall-detector.sh" ]; then
+    source "$ORCH_ROOT/src/core/stall-detector.sh"
 fi
 
 mkdir -p "$BACKUP_DIR" "$PM_LOG_DIR"
@@ -420,8 +441,13 @@ print_cycle_summary() {
 run_cycle_tests() {
     CYCLE_TEST_PASS=0
     CYCLE_TEST_FAIL=0
-    local test_runner="$PROJECT_ROOT/tests/core/run-tests.sh"
-    if [[ -x "$test_runner" ]]; then
+    local test_runner=""
+    if [[ -x "$PROJECT_ROOT/tests/core/run-tests.sh" ]]; then
+        test_runner="$PROJECT_ROOT/tests/core/run-tests.sh"
+    elif [[ -x "$ORCH_ROOT/tests/core/run-tests.sh" ]]; then
+        test_runner="$ORCH_ROOT/tests/core/run-tests.sh"
+    fi
+    if [[ -n "$test_runner" ]]; then
         local test_output
         test_output=$(bash "$test_runner" 2>&1) || true
         CYCLE_TEST_PASS=$(echo "$test_output" | grep -c "PASS" 2>/dev/null || echo 0)
@@ -1324,7 +1350,7 @@ Flags: $([ "$SYNC_STATE_ENABLED" == true ] && echo "sync-state " || true)telegra
 
             # Check usage limits before starting cycle
             usage_file="$PROMPTS_DIR/00-shared-context/usage.txt"
-            bash "$PROJECT_ROOT/scripts/check-usage.sh" 2>/dev/null
+            bash "$SCRIPT_DIR/check-usage.sh" 2>/dev/null
             if [ -f "$usage_file" ]; then
                 usage_pct=$(grep -oP '\d+' "$usage_file" 2>/dev/null | head -1)
                 if [ -n "$usage_pct" ] && [ "$usage_pct" -ge 70 ] 2>/dev/null; then
@@ -1627,7 +1653,20 @@ CTXEOF
                             continue
                         fi
                     fi
-                    commit_by_ownership "$id" && COMMITS=$((COMMITS + 1))
+                    if commit_by_ownership "$id"; then
+                        COMMITS=$((COMMITS + 1))
+                        # Quality scorer: score agent output after commit
+                        if [[ "$(type -t orch_scorer_run)" == "function" ]]; then
+                            orch_scorer_init 2>/dev/null
+                            _agent_score=$(orch_scorer_run "$id" 2>/dev/null || echo 50)
+                            orch_scorer_record "$id" "$_agent_score" 2>/dev/null
+                            log "[$id] Quality score: $_agent_score/100"
+                            # Feed score into dynamic router if available
+                            if [[ "$(type -t orch_router_update_score)" == "function" ]]; then
+                                orch_router_update_score "$id" "$_agent_score" 2>/dev/null
+                            fi
+                        fi
+                    fi
                 fi
             done
 
@@ -1962,7 +2001,7 @@ Total files changed: ${CUMULATIVE_FILES}" 2>/dev/null || true
                 --list|-l)
                     echo "Available templates:"
                     echo ""
-                    for tpl_dir in "$PROJECT_ROOT"/template/*/; do
+                    for tpl_dir in "$ORCH_ROOT"/template/*/; do
                         [ -d "$tpl_dir" ] || continue
                         tpl_name="$(basename "$tpl_dir")"
                         if [[ -f "${tpl_dir}README.md" ]]; then
@@ -1993,7 +2032,7 @@ Total files changed: ${CUMULATIVE_FILES}" 2>/dev/null || true
             echo "Usage: $0 init [--template saas|api|content] <target_dir>"
             echo ""
             echo "Templates:"
-            for tpl_dir in "$PROJECT_ROOT"/template/*/; do
+            for tpl_dir in "$ORCH_ROOT"/template/*/; do
                 [ -d "$tpl_dir" ] || continue
                 printf '  %s\n' "$(basename "$tpl_dir")"
             done
@@ -2003,11 +2042,11 @@ Total files changed: ${CUMULATIVE_FILES}" 2>/dev/null || true
         fi
 
         # Validate template exists
-        if [[ ! -d "$PROJECT_ROOT/template/${INIT_TEMPLATE}" ]]; then
+        if [[ ! -d "$ORCH_ROOT/template/${INIT_TEMPLATE}" ]]; then
             echo "ERROR: Template '${INIT_TEMPLATE}' not found."
             echo ""
             echo "Available templates:"
-            for tpl_dir in "$PROJECT_ROOT"/template/*/; do
+            for tpl_dir in "$ORCH_ROOT"/template/*/; do
                 [ -d "$tpl_dir" ] || continue
                 printf '  %s\n' "$(basename "$tpl_dir")"
             done
@@ -2016,7 +2055,7 @@ Total files changed: ${CUMULATIVE_FILES}" 2>/dev/null || true
 
         # Use orch_init_deploy_template if available (from init-project.sh module)
         if [[ "$(type -t orch_init_deploy_template)" == "function" ]]; then
-            export ORCH_ROOT="$PROJECT_ROOT"
+            export ORCH_ROOT="${ORCH_ROOT:-$PROJECT_ROOT}"
             orch_init_deploy_template "$INIT_TEMPLATE" "$INIT_TARGET" "$INIT_PROJECT_NAME"
         else
             # Fallback: direct copy if module not loaded
@@ -2031,7 +2070,7 @@ Total files changed: ${CUMULATIVE_FILES}" 2>/dev/null || true
             CURRENT_DATE="$(date '+%Y-%m-%d %H:%M:%S')"
 
             mkdir -p "$INIT_TARGET/prompts/00-shared-context"
-            cp -R "$PROJECT_ROOT/template/${INIT_TEMPLATE}/"* "$INIT_TARGET/"
+            cp -R "$ORCH_ROOT/template/${INIT_TEMPLATE}/"* "$INIT_TARGET/"
 
             # String replacements
             find "$INIT_TARGET" -type f \( -name "*.conf" -o -name "*.md" -o -name "*.txt" \) -print0 | \
