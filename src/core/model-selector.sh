@@ -218,7 +218,8 @@ orch_model_estimate_complexity() {
 
     # Count file references (paths with extensions)
     local file_count=0
-    file_count=$(printf '%s' "$text" | grep -coE '[a-zA-Z0-9_/-]+\.[a-zA-Z]{1,5}' 2>/dev/null || echo 0)
+    file_count=$(printf '%s' "$text" | grep -oE '[a-zA-Z0-9_/-]+\.[a-zA-Z]{1,5}' 2>/dev/null | wc -l | tr -d ' ')
+    file_count="${file_count:-0}"
 
     # Check for severity keywords
     local severity_score=0

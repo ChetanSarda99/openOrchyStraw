@@ -450,6 +450,7 @@ orch_router_update() {
 
 # orch_router_model <agent_id>
 #   Get the resolved model for an agent. Respects overrides:
+#   0. model-selector.sh intelligent selection (if loaded + ORCH_INTELLIGENT_MODEL=1)
 #   1. ORCH_MODEL_OVERRIDE_<ID> env var (highest priority)
 #   2. --model CLI override (caller sets ORCH_MODEL_CLI_OVERRIDE)
 #   3. agents.conf column 9
@@ -457,6 +458,21 @@ orch_router_update() {
 #   Prints the model flag (e.g., "claude-opus-4-6") to stdout.
 orch_router_model() {
     local agent_id="${1:?orch_router_model: agent_id required}"
+
+    # Priority 0: Delegate to intelligent model selector if available
+    if [[ "${ORCH_INTELLIGENT_MODEL:-0}" == "1" ]] && \
+       [[ "$(type -t orch_model_select)" == "function" ]]; then
+        local smart_model
+        smart_model=$(orch_model_select "$agent_id" 2>/dev/null) || smart_model=""
+        if [[ -n "$smart_model" ]]; then
+            if [[ -n "${_ORCH_MODEL_FLAGS[$smart_model]+x}" ]]; then
+                printf '%s\n' "${_ORCH_MODEL_FLAGS[$smart_model]}"
+            else
+                printf '%s\n' "$smart_model"
+            fi
+            return 0
+        fi
+    fi
 
     # Normalize agent ID for env var lookup: 06-backend -> 06_BACKEND
     local env_key="${agent_id//-/_}"

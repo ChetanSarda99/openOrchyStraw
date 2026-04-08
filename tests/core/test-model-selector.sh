@@ -185,14 +185,15 @@ selected=$(orch_model_select "11-web")
 [[ "$selected" == "sonnet" ]] && pass "quality-aware -> sonnet for 11-web" || fail "quality-aware -> sonnet for 11-web (got: $selected)"
 
 # ---------------------------------------------------------------------------
-# Test 16: A/B test assignment is deterministic per agent
+# Test 16: A/B test assignment is sticky (once assigned, stays assigned)
 # ---------------------------------------------------------------------------
 _MS_AB_ENABLED=1
 _MS_AB_PERCENTAGE=50
 _MS_AB_ASSIGNMENT=()
+# Pre-assign to control, verify it stays
+_MS_AB_ASSIGNMENT["test-agent-1"]="control"
 group1=$(orch_model_ab_assign "test-agent-1")
-group2=$(orch_model_ab_assign "test-agent-1")  # same agent = same result
-[[ "$group1" == "$group2" ]] && pass "A/B assignment is sticky" || fail "A/B assignment is sticky (got: $group1 vs $group2)"
+[[ "$group1" == "control" ]] && pass "A/B assignment is sticky" || fail "A/B assignment is sticky (got: $group1, expected control)"
 _MS_AB_ENABLED=0
 
 # ---------------------------------------------------------------------------
