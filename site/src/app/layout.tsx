@@ -34,12 +34,14 @@ export const metadata: Metadata = {
     type: "website",
     url: "https://chetansarda99.github.io/openOrchyStraw/",
     siteName: "OrchyStraw",
+    images: [{ url: "/og-image.svg", width: 1200, height: 630 }],
   },
   twitter: {
     card: "summary_large_image",
     title: "OrchyStraw — Multi-Agent AI Coding Orchestration",
     description:
       "Run a team of AI coding agents on any codebase. No framework. No dependencies.",
+    images: ["/og-image.svg"],
   },
   metadataBase: new URL("https://chetansarda99.github.io/openOrchyStraw/"),
 };

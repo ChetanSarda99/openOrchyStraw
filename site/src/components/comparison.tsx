@@ -107,7 +107,7 @@ function CellValue({ value, isOrchy }: { value: string; isOrchy?: boolean }) {
 
 export function Comparison() {
   return (
-    <section className="px-4 py-24 sm:px-6 sm:py-32">
+    <section id="comparison" className="px-4 py-24 sm:px-6 sm:py-32">
       <div className="mx-auto max-w-5xl">
         <motion.div
           variants={fadeUp}

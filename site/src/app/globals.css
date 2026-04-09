@@ -33,6 +33,7 @@
   --color-card-border: var(--card-border);
   --color-card-border-hover: var(--card-border-hover);
   --color-ring: var(--ring);
+  --color-muted: var(--text-tertiary);
   --font-sans: var(--font-geist-sans);
   --font-mono: var(--font-geist-mono);
 }

@@ -51,7 +51,7 @@ Cost:      $1.23 across 5 cycles
 
 export function HowItWorks() {
   return (
-    <section className="px-4 py-24 sm:px-6 sm:py-32">
+    <section id="how-it-works" className="px-4 py-24 sm:px-6 sm:py-32">
       <div className="mx-auto max-w-5xl">
         <motion.div
           variants={fadeUp}
