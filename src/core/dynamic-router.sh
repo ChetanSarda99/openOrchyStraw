@@ -43,13 +43,26 @@ declare -g -a _ORCH_ROUTER_GROUPS=()         # group strings: "agent1,agent2" pe
 declare -g _ORCH_ROUTER_LOADED=false
 
 # Model tiering (#46 MODEL-001)
+# Supports: Anthropic (claude), OpenAI (gpt/o), Google (gemini), Local (ollama/llama.cpp)
 declare -g _ORCH_DEFAULT_MODEL="${ORCH_DEFAULT_MODEL:-opus}"
 declare -g -A _ORCH_MODEL_FLAGS=(
+    # Anthropic Claude (current 2026)
     [opus]="claude-opus-4-6"
     [sonnet]="claude-sonnet-4-6"
     [haiku]="claude-haiku-4-5"
+    # OpenAI
+    [gpt4o]="gpt-4o"
+    [o3]="o3"
+    [o4-mini]="o4-mini"
+    # Google
+    [gemini-pro]="gemini-2.5-pro"
+    [gemini-flash]="gemini-2.5-flash"
+    # Local LLMs (via ollama or llama.cpp)
+    [local]="${ORCH_LOCAL_MODEL:-llama3.3}"
+    [local-large]="${ORCH_LOCAL_MODEL_LARGE:-qwen3:32b}"
+    [local-small]="${ORCH_LOCAL_MODEL_SMALL:-llama3.3}"
 )
-declare -g -a _ORCH_VALID_MODELS=(opus sonnet haiku)
+declare -g -a _ORCH_VALID_MODELS=(opus sonnet haiku gpt4o o3 o4-mini gemini-pro gemini-flash local local-large local-small)
 
 # v0.3 Cost-aware routing state
 declare -g -A _ORCH_ROUTER_COST_TOTAL=()      # agent_id -> cumulative token cost

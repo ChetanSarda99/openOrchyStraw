@@ -42,6 +42,14 @@ fi
 SCRIPT_DIR="$ORCH_ROOT/scripts"
 cd "$PROJECT_ROOT" || exit 1
 
+# ── Load user config (API keys, model preferences, CLI paths) ────────
+for _cfg in "$PROJECT_ROOT/.env" "$HOME/.orchystraw/config.env" "$PROJECT_ROOT/orchystraw.env"; do
+    if [[ -f "$_cfg" ]]; then
+        set -a; source "$_cfg" 2>/dev/null; set +a
+        break
+    fi
+done
+
 # ── Core modules (v0.1) ──────────────────────────────────────────────────
 if [ -d "$ORCH_ROOT/src/core" ]; then
     for mod in bash-version logger error-handler cycle-state agent-timeout dry-run config-validator lock-file; do

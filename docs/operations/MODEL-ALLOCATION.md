@@ -28,10 +28,32 @@
 - **Use for:** Routine implementation, reviews, structured tasks
 - **Budget impact:** Medium — good default for most agents
 
-### Haiku (claude-haiku-3-20250307)
+### Haiku (claude-haiku-4-5)
 - **Cost:** ~$0.25/M input, ~$1.25/M output tokens
 - **Use for:** Simple/repetitive tasks, narrow scope, high-frequency agents
 - **Budget impact:** Low — use when quality ceiling is acceptable
+
+### OpenAI Models
+| Model | Cost/M | Use for |
+|-------|--------|---------|
+| gpt-4o | ~$2.50 | Alternative to Sonnet — good at structured output |
+| o3 | ~$10 | Complex reasoning — alternative to Opus |
+| o4-mini | ~$1.10 | Fast, cheap — alternative to Haiku |
+
+### Google Gemini Models
+| Model | Cost/M | Use for |
+|-------|--------|---------|
+| gemini-2.5-pro | ~$1.25 | Long context, research tasks |
+| gemini-2.5-flash | ~$0.15 | Cheapest cloud option |
+
+### Local LLMs (via Ollama / llama.cpp)
+| Model | Cost | Use for |
+|-------|------|---------|
+| llama3.3 (8B) | $0 | Simple tasks, high-frequency agents, privacy |
+| qwen3:32b | $0 | Medium complexity, local GPU required |
+| Any GGUF | $0 | Custom models via llama.cpp server |
+
+**Setup:** `ollama pull llama3.3` or point `ORCH_LOCAL_URL` to any OpenAI-compatible server.
 
 ## Reallocation History
 

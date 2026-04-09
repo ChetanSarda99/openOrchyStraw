@@ -59,6 +59,14 @@ declare -g -A _MS_MODEL_COST=(
     [opus]=15.00
     [sonnet]=3.00
     [haiku]=0.25
+    [gpt4o]=2.50
+    [o3]=10.00
+    [o4-mini]=1.10
+    [gemini-pro]=1.25
+    [gemini-flash]=0.15
+    [local]=0.00
+    [local-large]=0.00
+    [local-small]=0.00
 )
 
 # Model capability tiers (higher = more capable)
@@ -66,6 +74,14 @@ declare -g -A _MS_MODEL_CAPABILITY=(
     [opus]=3
     [sonnet]=2
     [haiku]=1
+    [gpt4o]=2
+    [o3]=3
+    [o4-mini]=2
+    [gemini-pro]=2
+    [gemini-flash]=1
+    [local]=1
+    [local-large]=2
+    [local-small]=1
 )
 
 # ── Logging ──
