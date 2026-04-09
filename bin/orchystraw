@@ -75,6 +75,7 @@ usage() {
     echo "  orchystraw run --all --parallel [N]    Run projects concurrently (max N)"
     echo "  orchystraw run                         Interactive project picker"
     echo "  orchystraw app                         Launch dashboard"
+    echo "  orchystraw update                      Pull latest version"
     echo "  orchystraw add <project-path...>       Register project(s) without running"
     echo "  orchystraw scan [dir]                  Auto-discover projects (default: ~/Projects)"
     echo "  orchystraw remove <project-path...>    Unregister project(s)"
@@ -995,6 +996,37 @@ cmd_app() {
         node "$app_dir/server.js"
 }
 
+# ── Subcommand: update ──────────────────────────────────────────────────
+
+cmd_update() {
+    echo "Updating orchystraw..."
+
+    local current_hash
+    current_hash=$(git -C "$ORCH_ROOT" rev-parse --short HEAD 2>/dev/null)
+
+    if ! git -C "$ORCH_ROOT" pull --ff-only 2>&1; then
+        echo "  Could not fast-forward. You may have local changes."
+        echo "  Run: cd $ORCH_ROOT && git stash && git pull && git stash pop"
+        return 1
+    fi
+
+    local new_hash
+    new_hash=$(git -C "$ORCH_ROOT" rev-parse --short HEAD 2>/dev/null)
+
+    if [[ "$current_hash" == "$new_hash" ]]; then
+        echo "  Already up to date ($current_hash)"
+    else
+        echo "  Updated: $current_hash → $new_hash"
+
+        # Rebuild app frontend if it exists
+        if [[ -d "$ORCH_ROOT/app/dist" ]]; then
+            echo "  Rebuilding dashboard..."
+            (cd "$ORCH_ROOT/app" && npm install --silent && npx vite build --mode production) 2>/dev/null
+            echo "  Dashboard rebuilt"
+        fi
+    fi
+}
+
 # ── Subcommand: scan ────────────────────────────────────────────────────
 
 cmd_scan() {
@@ -1080,6 +1112,7 @@ cmd_remove() {
 case "${1:-help}" in
     run)        shift; cmd_run "$@" ;;
     app)        shift; cmd_app "$@" ;;
+    update)     shift; cmd_update "$@" ;;
     add)        shift; cmd_add "$@" ;;
     scan)       shift; cmd_scan "$@" ;;
     remove)     shift; cmd_remove "$@" ;;
