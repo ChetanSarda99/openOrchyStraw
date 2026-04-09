@@ -72,8 +72,8 @@ No auto-agent.sh or src/core/ needed in target projects.
 | 13-hr | HR | docs/team/ prompts/13-hr/ | 3 | Team health & composition |
 
 ### Future Agents (prompts exist, not yet activated)
-- **04-Tauri-Rust** — Desktop app Rust backend (activate when Tauri work starts)
-- **05-Tauri-UI** — Desktop app React frontend (activate when Tauri work starts)
+- **04-Tauri-Rust** — Desktop app Rust backend (scaffolded in app/src-tauri/)
+- **05-Tauri-UI** — Desktop app React frontend (scaffolded in app/src/)
 - **07-iOS** — Native mobile companion app (activate when iOS work starts)
 
 ## File Structure
@@ -115,6 +115,9 @@ src/core/                — Core orchestration modules (33 bash modules)
 
 src/pixel/               — Pixel Agents JSONL emitter + integration
 
+app/                     — Tauri desktop app (React 19 + Rust + shadcn/ui v4)
+  src-tauri/               — Rust backend (commands, models, state, SQLite)
+  src/                     — React frontend (dashboard, agents, logs, config)
 site/                    — Landing page (Next.js 15 + shadcn/ui v4)
 docs/                    — Documentation (architecture, strategy, operations, team, references)
 research/                — Competitive analysis, benchmarks
@@ -159,16 +162,18 @@ Observability spans/events, episodic memory, quality gates wired into orchestrat
 ### Open Issues
 | # | Priority | What |
 |---|----------|------|
-| #206 | High | Wire intelligent model selection into orchestration loop (replaces #199) |
-| #207 | High | Multi-project run support and user-friendly project management |
-| #200 | High | First real supervised cycles on all 7 projects |
-| #201 | Medium | Benchmark cycle performance objectively |
-| #202 | Medium | Optimize agent prompts for token efficiency |
-| #203 | Medium | Design: logo refinement, docs site assets, GitHub social preview |
-| #97-#101 | Future | Tauri desktop app (5 issues) |
+| #195 | High | Pixel Agents end-to-end wiring |
+| #192 | Medium | Connect Mintlify docs to GitHub |
+| #197 | Medium | Web copy humanizer |
+| #172 | Medium | QA visual testing infra |
+| #162 | Medium | E2E golden tests + CI gate |
+| #163 | Medium | Secrets scanning + pre-commit hooks |
+| #164 | Medium | Auto PR reviewer bot |
+| #131/#191 | Low | Record demo GIF |
+| #133 | Low | Distribution launch posts |
 
 ### Next Up
-1. Run first real supervised cycles on all projects (#200)
+1. Install Rust + compile Tauri app
 2. Build quality score history to feed model selection (#206)
 3. Performance benchmarking across projects (#201)
 4. Prompt optimization (#202)
