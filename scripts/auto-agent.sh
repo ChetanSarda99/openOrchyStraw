@@ -90,6 +90,11 @@ if [ -d "$ORCH_ROOT/src/core" ]; then
     [ -f "$ORCH_ROOT/src/core/project-registry.sh" ] && source "$ORCH_ROOT/src/core/project-registry.sh"
 fi
 
+# ── Intelligent model selector (v0.5) ───────────────────────────────
+if [ -d "$ORCH_ROOT/src/core" ]; then
+    [ -f "$ORCH_ROOT/src/core/model-selector.sh" ] && source "$ORCH_ROOT/src/core/model-selector.sh"
+fi
+
 # ── Shared resources (cross-project utilities) ────────────────────────
 SHARED_DIR="$HOME/Projects/shared"
 SHARED_ORCH_DIR="$SHARED_DIR/orchystraw-core"
@@ -1250,6 +1255,7 @@ case "${1:-help}" in
                 --telegram)    TELEGRAM_ENABLED=true; shift ;;
                 --sync-state)  SYNC_STATE_ENABLED=true; shift ;;
                 --dry-run)     shift ;;  # handled by dry-run module
+                --smart-models) ORCH_INTELLIGENT_MODEL=1; export ORCH_INTELLIGENT_MODEL; shift ;;
                 [0-9]*)        MAX_CYCLES="$1"; shift ;;
                 *)             shift ;;  # skip unknown
             esac
@@ -1290,6 +1296,13 @@ case "${1:-help}" in
         if [[ "$(type -t orch_decision_init)" == "function" ]]; then
             orch_decision_init "$PROJECT_ROOT" 2>/dev/null
             log "Decision store initialized"
+        fi
+
+        # ── Initialize intelligent model selector (v0.5) ──
+        if [[ "${ORCH_INTELLIGENT_MODEL:-0}" == "1" ]] && \
+           [[ "$(type -t orch_model_selector_init)" == "function" ]]; then
+            orch_model_selector_init 2>/dev/null
+            log "Intelligent model selector initialized (budget=\$${ORCH_DAILY_BUDGET:-50}/day)"
         fi
 
         echo "╔══════════════════════════════════════════════════╗"

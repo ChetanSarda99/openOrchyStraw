@@ -14,6 +14,10 @@ orchystraw run ~/Projects/Klaro --cycles 5          # Run 5 cycles on Klaro
 orchystraw run ~/Projects/AIVA --dry-run             # Preview without executing
 orchystraw run . --cycles 1 --review                 # Supervised cycle (approve each commit)
 orchystraw run ~/Projects/Klaro --telegram --sync-state  # With notifications + cross-project sync
+orchystraw run ~/Projects/Klaro ~/Projects/AIVA --cycles 3  # Multiple projects sequentially
+orchystraw run --all --cycles 1 --dry-run            # Run all registered projects
+orchystraw run ~/Projects/Klaro --smart-models --budget 20  # Intelligent model selection
+orchystraw add ~/Projects/Klaro ~/Projects/AIVA      # Register projects without running
 orchystraw status                                     # All registered projects
 orchystraw init ~/new-project --template saas         # Bootstrap new project
 orchystraw list                                       # Registered projects
@@ -104,9 +108,9 @@ src/core/                — Core orchestration modules (31 bash modules)
   init-project.sh, freshness-detector.sh
   # v0.4 Observability + Memory
   observability.sh, memory.sh, quality-gates.sh
-  # v0.5 Global CLI + Quality
+  # v0.5 Global CLI + Quality + Model Selection
   cofounder.sh, decision-store.sh, project-registry.sh, quality-scorer.sh,
-  stall-detector.sh
+  stall-detector.sh, model-selector.sh
 
 src/pixel/               — Pixel Agents JSONL emitter + integration
 
@@ -134,18 +138,23 @@ Observability spans/events, episodic memory, quality gates wired into orchestrat
 ### v0.5.0 — Global CLI + Quality Scoring (CURRENT)
 - `bin/orchystraw` global CLI — run any project from one place
 - Two-root architecture (ORCH_ROOT / PROJECT_ROOT)
+- Multi-project run: `orchystraw run ~/A ~/B --cycles 3` or `--all`
+- `orchystraw add` — register projects without running
+- `--smart-models` — intelligent model selection (opus/sonnet/haiku per task per agent)
+- `--budget N` — daily budget control for model selection
 - Project registry (~/.orchystraw/)
 - Quality scorer (lint + tests + diff + output + ownership → 0-100 score)
 - Decision store (immutable JSONL audit trail)
 - Co-Founder agent (autonomous interval/model/budget decisions)
 - Cross-project dashboard
-- 31 modules, 45+ tests, 8 projects wired
+- 32 modules, 45+ tests, 8 projects wired
 
 ### Open Issues
 | # | Priority | What |
 |---|----------|------|
-| #199 | High | Intelligent model selection per agent per task |
-| #200 | High | Wire orchystraw into all 7 projects — first real cycles |
+| #206 | High | Wire intelligent model selection into orchestration loop (replaces #199) |
+| #207 | High | Multi-project run support and user-friendly project management |
+| #200 | High | First real supervised cycles on all 7 projects |
 | #201 | Medium | Benchmark cycle performance objectively |
 | #202 | Medium | Optimize agent prompts for token efficiency |
 | #203 | Medium | Design: logo refinement, docs site assets, GitHub social preview |
@@ -153,7 +162,7 @@ Observability spans/events, episodic memory, quality gates wired into orchestrat
 
 ### Next Up
 1. Run first real supervised cycles on all projects (#200)
-2. Deep dive model selection — task-aware routing (#199)
+2. Build quality score history to feed model selection (#206)
 3. Performance benchmarking across projects (#201)
 4. Prompt optimization (#202)
 5. Tauri desktop app

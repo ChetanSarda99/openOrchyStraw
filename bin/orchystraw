@@ -55,46 +55,53 @@ usage() {
     echo "orchystraw — Multi-agent AI orchestration CLI"
     echo ""
     echo "Usage:"
-    echo "  orchystraw run <project-path> [--cycles N] [--dry-run] [--review] [--telegram] [--sync-state]"
-    echo "  orchystraw status [project-path]      Show project status (or all registered)"
+    echo "  orchystraw run <project-path...> [--cycles N] [--dry-run] [--review] [--smart-models] [--budget N]"
+    echo "  orchystraw run --all [--cycles N]      Run all registered projects sequentially"
+    echo "  orchystraw add <project-path...>       Register project(s) without running"
+    echo "  orchystraw status [project-path]       Show project status (or all registered)"
     echo "  orchystraw init <target-dir> [--template saas|api|content] [--name NAME]"
-    echo "  orchystraw list                       List all registered projects"
-    echo "  orchystraw metrics <project-path>     Show performance data"
+    echo "  orchystraw list                        List all registered projects"
+    echo "  orchystraw metrics <project-path>      Show performance data"
     echo "  orchystraw decisions <project-path> [--actor X] [--type Y] [--last N]"
-    echo "  orchystraw dashboard                  Generate cross-project HTML dashboard"
-    echo "  orchystraw doctor                     Validate environment"
+    echo "  orchystraw dashboard                   Generate cross-project HTML dashboard"
+    echo "  orchystraw doctor                      Validate environment"
     echo ""
     echo "Architecture:"
     echo "  ORCH_ROOT    = $ORCH_ROOT"
     echo "  PROJECT_ROOT = <first positional arg>"
     echo ""
+    echo ""
+    echo "Options:"
+    echo "  --smart-models     Enable intelligent model selection (opus/sonnet/haiku per task)"
+    echo "  --budget N         Daily budget in USD (default: 50)"
+    echo "  --review           Approve each commit before it lands"
+    echo "  --telegram         Send notifications via Telegram"
+    echo "  --sync-state       Sync state across machines"
+    echo ""
     echo "Examples:"
     echo "  orchystraw run ~/Projects/Klaro --cycles 5"
+    echo "  orchystraw run ~/Projects/Klaro ~/Projects/AIVA --cycles 3 --smart-models"
+    echo "  orchystraw run --all --cycles 1 --dry-run"
+    echo "  orchystraw add ~/Projects/Klaro ~/Projects/AIVA ~/Projects/Momentum"
     echo "  orchystraw init ~/Projects/NewApp --template saas --name NewApp"
-    echo "  orchystraw status ~/Projects/Klaro"
-    echo "  orchystraw list"
     echo "  orchystraw doctor"
 }
 
 # ── Subcommand: run ─────────────────────────────────────────────────────
 
-cmd_run() {
-    if [[ $# -lt 1 ]]; then
-        echo "Usage: orchystraw run <project-path> [--cycles N] [--dry-run] [--review] [--telegram] [--sync-state]"
-        exit 1
-    fi
-
-    PROJECT_ROOT="$(resolve_project_root "$1")"
+_run_single_project() {
+    local project_path="$1"
     shift
+    local -a args=("$@")
+
+    PROJECT_ROOT="$project_path"
     export PROJECT_ROOT
 
-    validate_project "$PROJECT_ROOT" || exit 1
+    validate_project "$PROJECT_ROOT" || return 1
 
     # Auto-register in project registry
     if [[ "$(type -t orch_registry_register)" == "function" ]]; then
-        local project_name
-        project_name="$(basename "$PROJECT_ROOT")"
-        orch_registry_register "$PROJECT_ROOT" "$project_name"
+        orch_registry_register "$PROJECT_ROOT" "$(basename "$PROJECT_ROOT")"
     fi
 
     # Update last run timestamp
@@ -102,11 +109,33 @@ cmd_run() {
         orch_registry_update_last_run "$PROJECT_ROOT"
     fi
 
-    # Parse --cycles N into positional max-cycles for auto-agent.sh
+    echo "╔══════════════════════════════════════════════════╗"
+    echo "║  orchystraw — run                               ║"
+    echo "║  ORCH_ROOT:    $ORCH_ROOT"
+    echo "║  PROJECT_ROOT: $PROJECT_ROOT"
+    echo "╚══════════════════════════════════════════════════╝"
+    echo ""
+
+    /opt/homebrew/bin/bash "$ORCH_ROOT/scripts/auto-agent.sh" "${args[@]}"
+    return $?
+}
+
+cmd_run() {
+    if [[ $# -lt 1 ]]; then
+        echo "Usage: orchystraw run <project-path...> [--cycles N] [--dry-run] [--review] [--smart-models]"
+        echo "       orchystraw run --all [--cycles N]"
+        exit 1
+    fi
+
+    # Separate project paths from flags
+    local -a project_paths=()
     local -a agent_args=("orchestrate")
     local cycles=""
+    local run_all=false
+
     while [[ $# -gt 0 ]]; do
         case "$1" in
+            --all)      run_all=true; shift ;;
             --cycles)   cycles="$2"; shift 2 ;;
             --dry-run)  agent_args+=("--dry-run"); shift ;;
             --review)   agent_args+=("--review"); shift ;;
@@ -115,17 +144,95 @@ cmd_run() {
             --cost-limit) agent_args+=("--cost-limit" "$2"); shift 2 ;;
             --max-parallel) agent_args+=("--max-parallel" "$2"); shift 2 ;;
             --watch)    agent_args+=("--watch"); shift ;;
-            *)          agent_args+=("$1"); shift ;;
+            --smart-models) agent_args+=("--smart-models"); shift ;;
+            --budget)   export ORCH_DAILY_BUDGET="$2"; shift 2 ;;
+            -*)         agent_args+=("$1"); shift ;;
+            *)
+                # Treat non-flag args as project paths
+                local resolved
+                resolved="$(resolve_project_root "$1")" || exit 1
+                project_paths+=("$resolved")
+                shift
+                ;;
         esac
     done
     [[ -n "$cycles" ]] && agent_args+=("$cycles")
 
-    echo "orchystraw — run"
-    echo "  ORCH_ROOT:    $ORCH_ROOT"
-    echo "  PROJECT_ROOT: $PROJECT_ROOT"
+    # --all: run every registered project
+    if [[ "$run_all" == true ]]; then
+        if [[ "$(type -t orch_registry_get_all_paths)" != "function" ]]; then
+            echo "ERROR: Registry module not available."
+            exit 1
+        fi
+        while IFS= read -r p; do
+            [[ -n "$p" ]] && project_paths+=("$p")
+        done < <(orch_registry_get_all_paths)
+        if [[ ${#project_paths[@]} -eq 0 ]]; then
+            echo "No projects registered. Add projects first:"
+            echo "  orchystraw add ~/Projects/MyApp"
+            exit 1
+        fi
+    fi
+
+    if [[ ${#project_paths[@]} -eq 0 ]]; then
+        echo "ERROR: No project path specified."
+        echo "Usage: orchystraw run <project-path...> [--cycles N]"
+        exit 1
+    fi
+
+    # Single project — exec directly (replaces this process)
+    if [[ ${#project_paths[@]} -eq 1 ]]; then
+        PROJECT_ROOT="${project_paths[0]}"
+        export PROJECT_ROOT
+        validate_project "$PROJECT_ROOT" || exit 1
+
+        if [[ "$(type -t orch_registry_register)" == "function" ]]; then
+            orch_registry_register "$PROJECT_ROOT" "$(basename "$PROJECT_ROOT")"
+        fi
+        if [[ "$(type -t orch_registry_update_last_run)" == "function" ]]; then
+            orch_registry_update_last_run "$PROJECT_ROOT"
+        fi
+
+        echo "orchystraw — run"
+        echo "  ORCH_ROOT:    $ORCH_ROOT"
+        echo "  PROJECT_ROOT: $PROJECT_ROOT"
+        echo ""
+
+        exec /opt/homebrew/bin/bash "$ORCH_ROOT/scripts/auto-agent.sh" "${agent_args[@]}"
+    fi
+
+    # Multiple projects — run sequentially
+    local total=${#project_paths[@]}
+    local passed=0
+    local failed=0
+
+    echo "╔══════════════════════════════════════════════════╗"
+    echo "║  orchystraw — multi-project run ($total projects)     ║"
+    echo "╚══════════════════════════════════════════════════╝"
+    echo ""
+    for p in "${project_paths[@]}"; do
+        echo "  → $(basename "$p"): $p"
+    done
     echo ""
 
-    exec /opt/homebrew/bin/bash "$ORCH_ROOT/scripts/auto-agent.sh" "${agent_args[@]}"
+    for p in "${project_paths[@]}"; do
+        echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+        echo "  [$((passed + failed + 1))/$total] $(basename "$p")"
+        echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+
+        if _run_single_project "$p" "${agent_args[@]}"; then
+            passed=$((passed + 1))
+        else
+            failed=$((failed + 1))
+            echo "  ⚠ $(basename "$p") failed (continuing with remaining projects)"
+        fi
+        echo ""
+    done
+
+    echo "╔══════════════════════════════════════════════════╗"
+    echo "║  Multi-project run complete                     ║"
+    echo "║  Passed: $passed  Failed: $failed  Total: $total               ║"
+    echo "╚══════════════════════════════════════════════════╝"
 }
 
 # ── Subcommand: status ──────────────────────────────────────────────────
@@ -212,6 +319,56 @@ cmd_init() {
     init_args+=("${passthrough[@]}")
 
     exec /opt/homebrew/bin/bash "$ORCH_ROOT/scripts/auto-agent.sh" "${init_args[@]}"
+}
+
+# ── Subcommand: add ─────────────────────────────────────────────────────
+
+cmd_add() {
+    if [[ $# -lt 1 ]]; then
+        echo "Usage: orchystraw add <project-path...>"
+        echo ""
+        echo "Register one or more projects without running them."
+        echo "Projects must have an agents.conf file."
+        echo ""
+        echo "Examples:"
+        echo "  orchystraw add ~/Projects/Klaro"
+        echo "  orchystraw add ~/Projects/Klaro ~/Projects/AIVA ~/Projects/Momentum"
+        exit 1
+    fi
+
+    if [[ "$(type -t orch_registry_register)" != "function" ]]; then
+        echo "ERROR: Registry module not available."
+        exit 1
+    fi
+
+    local added=0
+    local skipped=0
+
+    for path_arg in "$@"; do
+        local project
+        project="$(resolve_project_root "$path_arg")" || {
+            echo "  ✗ $path_arg — cannot resolve path"
+            skipped=$((skipped + 1))
+            continue
+        }
+
+        if ! validate_project "$project" 2>/dev/null; then
+            echo "  ✗ $(basename "$project") — no agents.conf found"
+            skipped=$((skipped + 1))
+            continue
+        fi
+
+        orch_registry_register "$project" "$(basename "$project")"
+        echo "  ✓ $(basename "$project") — registered ($project)"
+        added=$((added + 1))
+    done
+
+    echo ""
+    echo "Added: $added  Skipped: $skipped"
+    if [[ "$added" -gt 0 ]]; then
+        echo ""
+        echo "Run them: orchystraw run --all --cycles 1 --dry-run"
+    fi
 }
 
 # ── Subcommand: list ────────────────────────────────────────────────────
@@ -423,6 +580,7 @@ cmd_doctor() {
 
 case "${1:-help}" in
     run)        shift; cmd_run "$@" ;;
+    add)        shift; cmd_add "$@" ;;
     status)     shift; cmd_status "$@" ;;
     init)       shift; cmd_init "$@" ;;
     list)       shift; cmd_list "$@" ;;
