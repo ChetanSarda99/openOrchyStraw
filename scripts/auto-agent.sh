@@ -692,6 +692,59 @@ parse_config() {
 }
 
 # ============================================
+# MODEL ROUTING — local (Ollama) vs cloud (claude CLI)
+# ============================================
+
+_orch_is_local_model() {
+    local model="$1"
+    # Explicit local provider override
+    if [[ "${ORCH_LOCAL_PROVIDER:-}" == "ollama" && "$model" != *"claude"* && "$model" != *"gpt"* && "$model" != *"gemini"* ]]; then
+        return 0
+    fi
+    # Match common local model name patterns
+    case "$model" in
+        *llama*|*qwen*|*mistral*|*codestral*|*phi-*|*deepseek*|*gemma*|*starcoder*|*wizardcoder*|local|local-large|local-small)
+            return 0 ;;
+    esac
+    return 1
+}
+
+_orch_run_model() {
+    # Route stdin to the appropriate model backend.
+    # Usage: cat prompt | _orch_run_model "$model" > output.log 2>&1
+    local model="${1:-}"
+    local cli_override="${ORCH_CLI:-}"
+
+    # 1. User-specified CLI override (e.g. aider, llm, etc.)
+    if [[ -n "$cli_override" ]]; then
+        $cli_override
+        return $?
+    fi
+
+    # 2. Local model via Ollama
+    if _orch_is_local_model "$model"; then
+        local ollama_bin="${ORCH_OLLAMA_BIN:-ollama}"
+        local resolved_model="$model"
+        # Map abstract names to concrete Ollama models
+        case "$model" in
+            local)       resolved_model="${ORCH_LOCAL_MODEL:-llama3.1:8b}" ;;
+            local-large) resolved_model="${ORCH_LOCAL_MODEL_LARGE:-llama3.1:70b}" ;;
+            local-small) resolved_model="${ORCH_LOCAL_MODEL_SMALL:-llama3.2:3b}" ;;
+        esac
+        "$ollama_bin" run "$resolved_model"
+        return $?
+    fi
+
+    # 3. Cloud model via claude CLI (default)
+    local -a claude_args=(-p --dangerously-skip-permissions --output-format text)
+    if [[ -n "$model" && "$model" != "default" ]]; then
+        claude_args+=(--model "$model")
+    fi
+    claude "${claude_args[@]}"
+    return $?
+}
+
+# ============================================
 # AGENT RUNNER
 # ============================================
 
@@ -787,12 +840,8 @@ run_agent() {
         echo "Example: '- BREAKING: Changed API response format for /users endpoint'"
         echo "Do NOT clear the file. Only APPEND under the right section."
     } | {
-        # v0.2: model tiering — pass agent-specific model if router available
-        local -a claude_args=(-p --dangerously-skip-permissions --output-format text)
-        if [[ -n "$agent_model" && "$agent_model" != "default" ]]; then
-            claude_args+=(--model "$agent_model")
-        fi
-        claude "${claude_args[@]}"
+        # v0.2: model tiering — route to local (Ollama) or cloud (claude CLI)
+        _orch_run_model "$agent_model"
     } > "$log_file" 2>&1
 
     [[ -n "$agent_model" ]] && log "[$agent_id] Used model: $agent_model"
@@ -818,7 +867,7 @@ run_agent() {
                 local fallback_flag
                 fallback_flag=$(orch_router_fallback_flag "$fallback" 2>/dev/null)
                 log "[$agent_id] Rate-limited on $current_model, falling back to: $fallback ($fallback_flag)"
-                claude -p --dangerously-skip-permissions --output-format text --model "$fallback_flag" \
+                _orch_run_model "$fallback_flag" \
                     < "$prompt_file" > "$log_file" 2>&1
                 exit_code=$?
                 agent_model="$fallback_flag"

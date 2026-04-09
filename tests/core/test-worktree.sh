@@ -149,7 +149,7 @@ assert_eq "T13: 2 active worktrees tracked" "2" "${#_ORCH_WORKTREE_ACTIVE[@]}"
 # ══════════════════════════════════════
 # T14: orch_worktree_list
 # ══════════════════════════════════════
-list_count=$(orch_worktree_list | wc -l)
+list_count=$(orch_worktree_list | wc -l | tr -d ' ')
 assert_eq "T14: list shows 2 worktrees" "2" "$list_count"
 
 # ══════════════════════════════════════

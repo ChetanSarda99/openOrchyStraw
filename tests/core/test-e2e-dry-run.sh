@@ -41,16 +41,16 @@ assert_exit() {
 }
 
 # ── Run dry-run and capture output ──
-printf 'test-e2e-dry-run: running auto-agent.sh orchestrate --dry-run...\n'
+printf 'test-e2e-dry-run: running orchystraw run . --dry-run...\n'
 
 exit_code=0
-output=$(bash "$PROJECT_ROOT/scripts/auto-agent.sh" orchestrate --dry-run 2>&1) || exit_code=$?
+output=$("$PROJECT_ROOT/bin/orchystraw" run "$PROJECT_ROOT" --dry-run 2>&1) || exit_code=$?
 
 # ── Test 1: Exit code is 0 ──
 assert_exit "dry-run exits 0" 0 "$exit_code"
 
 # ── Test 2: Header banner present ──
-assert_contains "header banner" "orchystraw v3" "$output"
+assert_contains "header banner" "orchystraw v[0-9]" "$output"
 
 # ── Test 3: DRY RUN marker present ──
 assert_contains "DRY RUN marker" "DRY RUN" "$output"

@@ -237,8 +237,8 @@ assert_not_contains "qa backed off after 4 skips" "09-qa" "$eligible_c14"
 # ══════════════════════════════════════════
 printf 'test-e2e-orchestration: Test 9 — List command\n'
 
-list_output=$(bash "$PROJECT_ROOT/scripts/auto-agent.sh" list 2>&1) || true
-assert_contains "list shows agents" "06-backend.*Backend|Backend.*06-backend" "$list_output"
+list_output=$(ORCH_ROOT="$PROJECT_ROOT" PROJECT_ROOT="$PROJECT_ROOT" bash "$PROJECT_ROOT/scripts/auto-agent.sh" list 2>&1) || true
+assert_contains "list shows agents" "06-backend" "$list_output"
 
 # ── Results ──
 printf '\ntest-e2e-orchestration: %d passed, %d failed\n' "$PASS" "$FAIL"

@@ -270,11 +270,11 @@ unset ORCH_MODEL_OVERRIDE_06_BACKEND
 
 # Test 34: Unknown model passes through (forward compat)
 cat > "$TMPDIR_TEST/agents-future.conf" << 'EOF'
-06-backend | p.txt | src/ | 1 | Backend | 10 | none | none | gemini-pro
+06-backend | p.txt | src/ | 1 | Backend | 10 | none | none | future-model-v9
 EOF
 orch_router_init "$TMPDIR_TEST/agents-future.conf"
 resolved=$(orch_router_model "06-backend" 2>/dev/null)
-[[ "$resolved" == "gemini-pro" ]] || { echo "FAIL: T34 unknown model not passed through: $resolved"; exit 1; }
+[[ "$resolved" == "future-model-v9" ]] || { echo "FAIL: T34 unknown model not passed through: $resolved"; exit 1; }
 
 # Test 35: model_name with env override
 create_v2_model_conf
