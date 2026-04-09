@@ -1,4 +1,4 @@
-#!/opt/homebrew/bin/bash
+#!/usr/bin/env bash
 # orch-context — Generate context for Claude sessions
 # Outputs project context (git, agents, metadata) to stdout for piping.
 #

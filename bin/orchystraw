@@ -1,4 +1,4 @@
-#!/opt/homebrew/bin/bash
+#!/usr/bin/env bash
 # orchystraw — Multi-agent AI orchestration CLI
 # The single entry point for all projects.
 #
@@ -8,9 +8,24 @@
 
 set -uo pipefail
 
+# ── Require bash 5+ ─────────────────────────────────────────────────────
+if [[ "${BASH_VERSINFO[0]}" -lt 5 ]]; then
+    echo "ERROR: orchystraw requires bash 5.0+ (you have $BASH_VERSION)"
+    echo ""
+    echo "Install:"
+    echo "  macOS:  brew install bash"
+    echo "  Ubuntu: sudo apt-get install -y bash"
+    echo "  Then:   exec bash \$0 \"\$@\""
+    exit 1
+fi
+
 # ── Resolve ORCH_ROOT from script location ──────────────────────────────
 ORCH_ROOT="$(cd "$(dirname "$0")/.." && pwd)"
 export ORCH_ROOT
+
+# ── Find bash 5 for subprocesses ────────────────────────────────────────
+ORCH_BASH="$BASH"  # use the same bash that's running us (already verified 5+)
+export ORCH_BASH
 
 # ── Source project registry ─────────────────────────────────────────────
 if [[ -f "$ORCH_ROOT/src/core/project-registry.sh" ]]; then
@@ -125,7 +140,7 @@ _run_single_project() {
     echo "╚══════════════════════════════════════════════════╝"
     echo ""
 
-    /opt/homebrew/bin/bash "$ORCH_ROOT/scripts/auto-agent.sh" "${args[@]}"
+    "$ORCH_BASH" "$ORCH_ROOT/scripts/auto-agent.sh" "${args[@]}"
     return $?
 }
 
@@ -281,7 +296,7 @@ cmd_run() {
         echo "  PROJECT_ROOT: $PROJECT_ROOT"
         echo ""
 
-        exec /opt/homebrew/bin/bash "$ORCH_ROOT/scripts/auto-agent.sh" "${agent_args[@]}"
+        exec "$ORCH_BASH" "$ORCH_ROOT/scripts/auto-agent.sh" "${agent_args[@]}"
     fi
 
     # Multiple projects
@@ -385,7 +400,7 @@ cmd_status() {
         echo "  PROJECT_ROOT: $PROJECT_ROOT"
         echo ""
 
-        exec /opt/homebrew/bin/bash "$ORCH_ROOT/scripts/auto-agent.sh" status
+        exec "$ORCH_BASH" "$ORCH_ROOT/scripts/auto-agent.sh" status
     else
         # All registered projects
         if [[ "$(type -t orch_registry_status)" == "function" ]]; then
@@ -436,7 +451,7 @@ cmd_init() {
     if [[ " ${passthrough[*]} " == *" --list "* ]]; then
         PROJECT_ROOT="${target:-$ORCH_ROOT}"
         export PROJECT_ROOT
-        exec /opt/homebrew/bin/bash "$ORCH_ROOT/scripts/auto-agent.sh" init --list
+        exec "$ORCH_BASH" "$ORCH_ROOT/scripts/auto-agent.sh" init --list
     fi
 
     # Resolve target to absolute
@@ -454,7 +469,7 @@ cmd_init() {
     [[ -n "$target" ]] && init_args+=("$target")
     init_args+=("${passthrough[@]}")
 
-    exec /opt/homebrew/bin/bash "$ORCH_ROOT/scripts/auto-agent.sh" "${init_args[@]}"
+    exec "$ORCH_BASH" "$ORCH_ROOT/scripts/auto-agent.sh" "${init_args[@]}"
 }
 
 # ── Subcommand: add ─────────────────────────────────────────────────────
@@ -595,14 +610,14 @@ cmd_decisions() {
     shift
     export PROJECT_ROOT
 
-    exec /opt/homebrew/bin/bash "$ORCH_ROOT/scripts/auto-agent.sh" decisions "$@"
+    exec "$ORCH_BASH" "$ORCH_ROOT/scripts/auto-agent.sh" decisions "$@"
 }
 
 # ── Subcommand: dashboard ──────────────────────────────────────────────
 
 cmd_dashboard() {
     if [[ -f "$ORCH_ROOT/scripts/cross-project-dashboard.sh" ]]; then
-        /opt/homebrew/bin/bash "$ORCH_ROOT/scripts/cross-project-dashboard.sh"
+        "$ORCH_BASH" "$ORCH_ROOT/scripts/cross-project-dashboard.sh"
     else
         echo "ERROR: cross-project-dashboard.sh not found"
         exit 1
@@ -859,7 +874,7 @@ cmd_doctor() {
 
     # Bash 5+
     local bash_ver
-    bash_ver=$(/opt/homebrew/bin/bash --version | head -1 | grep -oE '[0-9]+\.[0-9]+' | head -1)
+    bash_ver=$("$ORCH_BASH" --version | head -1 | grep -oE '[0-9]+\.[0-9]+' | head -1)
     local bash_major="${bash_ver%%.*}"
     if [[ "$bash_major" -ge 5 ]]; then
         echo "  [OK] bash $bash_ver (>= 5.0)"

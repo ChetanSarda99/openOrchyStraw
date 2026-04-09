@@ -118,11 +118,13 @@ if [ -d "$ORCH_ROOT/src/core" ]; then
     [ -f "$ORCH_ROOT/src/core/auto-researcher.sh" ] && source "$ORCH_ROOT/src/core/auto-researcher.sh"
 fi
 
-# ── Shared resources (cross-project utilities) ────────────────────────
-SHARED_DIR="$HOME/Projects/shared"
-SHARED_ORCH_DIR="$SHARED_DIR/orchystraw-core"
-SHARED_SCRIPTS_DIR="$SHARED_DIR/scripts"
-SHARED_STATE_DIR="$HOME/Sync/shared-state"
+# ── Shared resources (cross-project utilities, optional) ──────────────
+# These paths are optional — skip gracefully if not present.
+# Configure via env vars or ~/.orchystraw/config.env
+SHARED_DIR="${ORCH_SHARED_DIR:-$HOME/Projects/shared}"
+SHARED_ORCH_DIR="${ORCH_SHARED_MODULES:-$SHARED_DIR/orchystraw-core}"
+SHARED_SCRIPTS_DIR="${ORCH_SHARED_SCRIPTS:-$SHARED_DIR/scripts}"
+SHARED_STATE_DIR="${ORCH_SHARED_STATE:-$HOME/Sync/shared-state}"
 SHARED_ACTIVITY_DIR="$SHARED_STATE_DIR/claude-activity"
 if [ -d "$SHARED_ORCH_DIR" ]; then
     for mod in "$SHARED_ORCH_DIR"/*.sh; do

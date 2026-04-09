@@ -1,4 +1,4 @@
-#!/opt/homebrew/bin/bash
+#!/usr/bin/env bash
 # cross-project-dashboard.sh — Generate HTML dashboard across all registered projects
 # Reads ~/.orchystraw/registry.jsonl and each project's .orchystraw/ data.
 # Outputs to ~/.orchystraw/dashboard.html

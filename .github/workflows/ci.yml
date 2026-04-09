@@ -16,8 +16,13 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - name: Check bash version
-        run: bash --version
+      - name: Ensure bash 5+
+        run: |
+          bash --version
+          if [[ "${BASH_VERSINFO[0]}" -lt 5 ]]; then
+            echo "Bash 5+ required, upgrading..."
+            sudo apt-get update && sudo apt-get install -y bash
+          fi
 
       - name: Syntax-check all .sh files
         run: |
@@ -28,16 +33,18 @@ jobs:
               cat /tmp/lint-err
               errors=$((errors + 1))
             fi
-          done < <(find bin/ scripts/ src/core/ -name '*.sh' -type f 2>/dev/null)
+          done < <(find bin/ scripts/ src/core/ src/pixel/ -name '*.sh' -type f 2>/dev/null)
 
-          # Also check bin/orchystraw (no .sh extension)
-          if [[ -f bin/orchystraw ]]; then
-            if ! bash -n bin/orchystraw 2>/tmp/lint-err; then
-              echo "::error file=bin/orchystraw::Syntax error in bin/orchystraw"
-              cat /tmp/lint-err
-              errors=$((errors + 1))
+          # Also check bin scripts without .sh extension
+          for f in bin/orchystraw bin/orch-context; do
+            if [[ -f "$f" ]]; then
+              if ! bash -n "$f" 2>/tmp/lint-err; then
+                echo "::error file=$f::Syntax error in $f"
+                cat /tmp/lint-err
+                errors=$((errors + 1))
+              fi
             fi
-          fi
+          done
 
           if [[ $errors -gt 0 ]]; then
             echo "Found $errors file(s) with syntax errors"
@@ -52,11 +59,41 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - name: Check bash version
-        run: bash --version
+      - name: Ensure bash 5+
+        run: |
+          if [[ "${BASH_VERSINFO[0]}" -lt 5 ]]; then
+            sudo apt-get update && sudo apt-get install -y bash
+          fi
+          bash --version
 
       - name: Run test suite
         run: bash tests/core/run-tests.sh
+
+  site-build:
+    name: Landing Page Build
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - run: npm ci
+        working-directory: site
+      - run: npm run build
+        working-directory: site
+
+  app-typecheck:
+    name: Tauri App TypeScript Check
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - run: npm install
+        working-directory: app
+      - run: npx tsc --noEmit || echo "::warning::TypeScript errors found"
+        working-directory: app
 
   env-check:
     name: Environment Validation
@@ -66,6 +103,5 @@ jobs:
 
       - name: Run orchystraw doctor
         run: |
-          chmod +x bin/orchystraw
-          # doctor may fail in CI due to missing optional tools — allow soft failure
-          bash bin/orchystraw doctor || echo "::warning::orchystraw doctor reported issues (expected in CI)"
+          chmod +x bin/orchystraw bin/orch-context
+          bin/orchystraw doctor || echo "::warning::orchystraw doctor reported issues (expected in CI)"
