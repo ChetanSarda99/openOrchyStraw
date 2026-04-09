@@ -100,6 +100,16 @@ if [ -f "$ORCH_ROOT/src/pixel/emit-jsonl.sh" ]; then
     source "$ORCH_ROOT/src/pixel/emit-jsonl.sh"
 fi
 
+# ── Auto-improvement loop (Karpathy pattern) ──────────────────────
+if [ -d "$ORCH_ROOT/src/core" ]; then
+    [ -f "$ORCH_ROOT/src/core/auto-improve.sh" ] && source "$ORCH_ROOT/src/core/auto-improve.sh"
+fi
+
+# ── Auto-researcher (GitHub source monitoring) ────────────────────
+if [ -d "$ORCH_ROOT/src/core" ]; then
+    [ -f "$ORCH_ROOT/src/core/auto-researcher.sh" ] && source "$ORCH_ROOT/src/core/auto-researcher.sh"
+fi
+
 # ── Shared resources (cross-project utilities) ────────────────────────
 SHARED_DIR="$HOME/Projects/shared"
 SHARED_ORCH_DIR="$SHARED_DIR/orchystraw-core"
@@ -1272,6 +1282,8 @@ case "${1:-help}" in
                 --sync-state)  SYNC_STATE_ENABLED=true; shift ;;
                 --dry-run)     shift ;;  # handled by dry-run module
                 --smart-models) ORCH_INTELLIGENT_MODEL=1; export ORCH_INTELLIGENT_MODEL; shift ;;
+                --auto-improve) ORCH_AUTO_IMPROVE=1; export ORCH_AUTO_IMPROVE; shift ;;
+                --improve-iterations) ORCH_IMPROVE_ITERATIONS="$2"; shift 2 ;;
                 [0-9]*)        MAX_CYCLES="$1"; shift ;;
                 *)             shift ;;  # skip unknown
             esac
@@ -1319,6 +1331,13 @@ case "${1:-help}" in
            [[ "$(type -t orch_model_selector_init)" == "function" ]]; then
             orch_model_selector_init 2>/dev/null
             log "Intelligent model selector initialized (budget=\$${ORCH_DAILY_BUDGET:-50}/day)"
+        fi
+
+        # ── Initialize auto-improvement loop (Karpathy pattern) ──
+        if [[ "${ORCH_AUTO_IMPROVE:-0}" == "1" ]] && \
+           [[ "$(type -t orch_improve_init)" == "function" ]]; then
+            orch_improve_init 2>/dev/null
+            log "Auto-improvement initialized (baseline score: ${_IMPROVE_BASELINE_SCORE:-0})"
         fi
 
         echo "╔══════════════════════════════════════════════════╗"
