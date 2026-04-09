@@ -56,7 +56,9 @@ usage() {
     echo ""
     echo "Usage:"
     echo "  orchystraw run <project-path...> [--cycles N] [--dry-run] [--review] [--smart-models] [--budget N]"
-    echo "  orchystraw run --all [--cycles N]      Run all registered projects sequentially"
+    echo "  orchystraw run --all [--cycles N]      Run all registered projects"
+    echo "  orchystraw run --all --parallel [N]    Run projects concurrently (max N)"
+    echo "  orchystraw run                         Interactive project picker"
     echo "  orchystraw add <project-path...>       Register project(s) without running"
     echo "  orchystraw scan [dir]                  Auto-discover projects (default: ~/Projects)"
     echo "  orchystraw remove <project-path...>    Unregister project(s)"
@@ -65,6 +67,8 @@ usage() {
     echo "  orchystraw list                        List all registered projects"
     echo "  orchystraw metrics <project-path>      Show performance data"
     echo "  orchystraw decisions <project-path> [--actor X] [--type Y] [--last N]"
+    echo "  orchystraw prompt-audit [project]        Audit prompt token sizes + optimization"
+    echo "  orchystraw benchmark [project|--all]    Performance metrics across projects"
     echo "  orchystraw dashboard                   Generate cross-project HTML dashboard"
     echo "  orchystraw doctor                      Validate environment"
     echo ""
@@ -76,6 +80,7 @@ usage() {
     echo "Options:"
     echo "  --smart-models     Enable intelligent model selection (opus/sonnet/haiku per task)"
     echo "  --budget N         Daily budget in USD (default: 50)"
+    echo "  --parallel [N]     Run multiple projects concurrently (default: unlimited)"
     echo "  --review           Approve each commit before it lands"
     echo "  --telegram         Send notifications via Telegram"
     echo "  --sync-state       Sync state across machines"
@@ -134,6 +139,7 @@ cmd_run() {
     local -a agent_args=("orchestrate")
     local cycles=""
     local run_all=false
+    local parallel_max=0  # 0 = sequential, >0 = max concurrent
 
     while [[ $# -gt 0 ]]; do
         case "$1" in
@@ -148,6 +154,13 @@ cmd_run() {
             --watch)    agent_args+=("--watch"); shift ;;
             --smart-models) agent_args+=("--smart-models"); shift ;;
             --budget)   export ORCH_DAILY_BUDGET="$2"; shift 2 ;;
+            --parallel)
+                if [[ "${2:-}" =~ ^[0-9]+$ ]]; then
+                    parallel_max="$2"; shift 2
+                else
+                    parallel_max=999; shift  # unlimited
+                fi
+                ;;
             -*)         agent_args+=("$1"); shift ;;
             *)
                 # Treat non-flag args as project paths
@@ -176,10 +189,74 @@ cmd_run() {
         fi
     fi
 
+    # No projects specified — interactive picker
     if [[ ${#project_paths[@]} -eq 0 ]]; then
-        echo "ERROR: No project path specified."
-        echo "Usage: orchystraw run <project-path...> [--cycles N]"
-        exit 1
+        if [[ "$(type -t orch_registry_get_all_paths)" != "function" ]] || \
+           [[ ! -s "$ORCH_REGISTRY_FILE" ]]; then
+            echo "No projects registered."
+            echo "  orchystraw scan ~/Projects    # discover projects"
+            echo "  orchystraw add ~/Projects/X   # register manually"
+            exit 1
+        fi
+
+        # Build project list
+        local -a all_paths=()
+        local -a all_names=()
+        local -a all_info=()
+        while IFS= read -r line; do
+            [[ -z "$line" ]] && continue
+            local p n lr
+            p=$(echo "$line" | grep -o '"path":"[^"]*"' | head -1 | cut -d'"' -f4)
+            n=$(echo "$line" | grep -o '"name":"[^"]*"' | head -1 | cut -d'"' -f4)
+            lr=$(echo "$line" | grep -o '"last_run":"[^"]*"' | head -1 | cut -d'"' -f4)
+            [[ -z "$p" ]] && continue
+            local agents="-"
+            if [[ -f "$p/agents.conf" ]]; then
+                agents=$(grep -cE '^[^#[:space:]]' "$p/agents.conf" 2>/dev/null || echo "?")
+            fi
+            all_paths+=("$p")
+            all_names+=("$n")
+            all_info+=("${agents} agents, last: ${lr:-never}")
+        done < "$ORCH_REGISTRY_FILE"
+
+        if [[ ${#all_paths[@]} -eq 0 ]]; then
+            echo "No projects registered. Run: orchystraw scan ~/Projects"
+            exit 1
+        fi
+
+        echo "╔══════════════════════════════════════════════════╗"
+        echo "║  Select project(s) to run                       ║"
+        echo "╚══════════════════════════════════════════════════╝"
+        echo ""
+        local i
+        for i in "${!all_paths[@]}"; do
+            printf "  [%d] %-20s (%s)\n" "$((i + 1))" "${all_names[$i]}" "${all_info[$i]}"
+        done
+        echo ""
+        echo "  [a] All projects"
+        echo ""
+        printf "Enter choice (1-%d, comma-separated, or 'a'): " "${#all_paths[@]}"
+        read -r choice
+
+        if [[ "$choice" == "a" || "$choice" == "A" || "$choice" == "all" ]]; then
+            project_paths=("${all_paths[@]}")
+        elif [[ -n "$choice" ]]; then
+            IFS=',' read -ra selections <<< "$choice"
+            for sel in "${selections[@]}"; do
+                sel=$(echo "$sel" | tr -d ' ')
+                if [[ "$sel" =~ ^[0-9]+$ ]] && [[ "$sel" -ge 1 ]] && [[ "$sel" -le ${#all_paths[@]} ]]; then
+                    project_paths+=("${all_paths[$((sel - 1))]}")
+                else
+                    echo "Invalid selection: $sel"
+                fi
+            done
+        fi
+
+        if [[ ${#project_paths[@]} -eq 0 ]]; then
+            echo "No projects selected."
+            exit 0
+        fi
+        echo ""
     fi
 
     # Single project — exec directly (replaces this process)
@@ -203,13 +280,16 @@ cmd_run() {
         exec /opt/homebrew/bin/bash "$ORCH_ROOT/scripts/auto-agent.sh" "${agent_args[@]}"
     fi
 
-    # Multiple projects — run sequentially
+    # Multiple projects
     local total=${#project_paths[@]}
     local passed=0
     local failed=0
+    local mode="sequential"
+    [[ "$parallel_max" -gt 0 ]] && mode="parallel (max $parallel_max)"
 
     echo "╔══════════════════════════════════════════════════╗"
     echo "║  orchystraw — multi-project run ($total projects)     ║"
+    echo "║  Mode: $mode"
     echo "╚══════════════════════════════════════════════════╝"
     echo ""
     for p in "${project_paths[@]}"; do
@@ -217,19 +297,69 @@ cmd_run() {
     done
     echo ""
 
-    for p in "${project_paths[@]}"; do
-        echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
-        echo "  [$((passed + failed + 1))/$total] $(basename "$p")"
-        echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+    if [[ "$parallel_max" -gt 0 ]]; then
+        # ── Parallel execution ──
+        local -a pids=()
+        local -a pid_projects=()
+        local log_dir
+        log_dir=$(mktemp -d)
+        local running=0
 
-        if _run_single_project "$p" "${agent_args[@]}"; then
-            passed=$((passed + 1))
-        else
-            failed=$((failed + 1))
-            echo "  ⚠ $(basename "$p") failed (continuing with remaining projects)"
-        fi
+        for p in "${project_paths[@]}"; do
+            # Throttle: wait if at max concurrent
+            while [[ "$running" -ge "$parallel_max" ]]; do
+                # Wait for any child to finish
+                for i in "${!pids[@]}"; do
+                    if ! kill -0 "${pids[$i]}" 2>/dev/null; then
+                        wait "${pids[$i]}" 2>/dev/null && passed=$((passed + 1)) || failed=$((failed + 1))
+                        local done_name
+                        done_name=$(basename "${pid_projects[$i]}")
+                        echo "  ✓ $done_name finished"
+                        unset 'pids[i]' 'pid_projects[i]'
+                        running=$((running - 1))
+                        break
+                    fi
+                done
+                sleep 1
+            done
+
+            local proj_name
+            proj_name=$(basename "$p")
+            local proj_log="$log_dir/$proj_name.log"
+            echo "  ⚡ Starting $proj_name (log: $proj_log)"
+
+            _run_single_project "$p" "${agent_args[@]}" > "$proj_log" 2>&1 &
+            pids+=($!)
+            pid_projects+=("$p")
+            running=$((running + 1))
+        done
+
+        # Wait for remaining
+        for i in "${!pids[@]}"; do
+            wait "${pids[$i]}" 2>/dev/null && passed=$((passed + 1)) || failed=$((failed + 1))
+            local done_name
+            done_name=$(basename "${pid_projects[$i]}")
+            echo "  ✓ $done_name finished"
+        done
+
         echo ""
-    done
+        echo "  Logs: $log_dir/"
+    else
+        # ── Sequential execution ──
+        for p in "${project_paths[@]}"; do
+            echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+            echo "  [$((passed + failed + 1))/$total] $(basename "$p")"
+            echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+
+            if _run_single_project "$p" "${agent_args[@]}"; then
+                passed=$((passed + 1))
+            else
+                failed=$((failed + 1))
+                echo "  ⚠ $(basename "$p") failed (continuing with remaining projects)"
+            fi
+            echo ""
+        done
+    fi
 
     echo "╔══════════════════════════════════════════════════╗"
     echo "║  Multi-project run complete                     ║"
@@ -475,6 +605,246 @@ cmd_dashboard() {
     fi
 }
 
+# ── Subcommand: prompt-audit ────────────────────────────────────────────
+
+cmd_prompt_audit() {
+    local project="${1:-.}"
+    project="$(resolve_project_root "$project")"
+
+    echo "╔══════════════════════════════════════════════════════════════╗"
+    echo "║  orchystraw prompt-audit — $(basename "$project")"
+    echo "╚══════════════════════════════════════════════════════════════╝"
+    echo ""
+
+    local conf="$project/agents.conf"
+    [[ ! -f "$conf" ]] && conf="$project/scripts/agents.conf"
+    if [[ ! -f "$conf" ]]; then
+        echo "  No agents.conf found in $project"
+        exit 1
+    fi
+
+    printf "  %-20s %7s %7s %5s  %s\n" "AGENT" "CHARS" "~TOKENS" "LINES" "OPTIMIZATION"
+    echo "  ────────────────────────────────────────────────────────────────"
+
+    local total_chars=0 total_tokens=0
+    local -a large_prompts=()
+
+    while IFS='|' read -r id prompt_path ownership interval label; do
+        [[ "$id" =~ ^[[:space:]]*# ]] && continue
+        [[ -z "${id// /}" ]] && continue
+        id=$(echo "$id" | xargs)
+        prompt_path=$(echo "$prompt_path" | xargs)
+
+        local full_path="$project/$prompt_path"
+        if [[ ! -f "$full_path" ]]; then
+            printf "  %-20s %7s %7s %5s  %s\n" "$id" "-" "-" "-" "MISSING: $prompt_path"
+            continue
+        fi
+
+        local chars lines tokens opt=""
+        chars=$(wc -c < "$full_path" | tr -d ' ')
+        lines=$(wc -l < "$full_path" | tr -d ' ')
+        tokens=$((chars / 4))
+
+        total_chars=$((total_chars + chars))
+        total_tokens=$((total_tokens + tokens))
+
+        # Optimization suggestions
+        if [[ "$tokens" -gt 4000 ]]; then
+            opt="LARGE — consider splitting or compressing"
+            large_prompts+=("$id")
+        elif [[ "$tokens" -gt 3000 ]]; then
+            opt="moderate — review for redundancy"
+        else
+            opt="ok"
+        fi
+
+        # Check for common bloat patterns
+        local dupes=0
+        dupes=$(grep -c "IMPORTANT\|NOTE:\|REMEMBER\|DO NOT\|NEVER\|ALWAYS\|MUST" "$full_path" 2>/dev/null || echo 0)
+        if [[ "$dupes" -gt 10 ]]; then
+            opt="$opt (${dupes} directive keywords)"
+        fi
+
+        printf "  %-20s %7d %7d %5d  %s\n" "$id" "$chars" "$tokens" "$lines" "$opt"
+    done < "$conf"
+
+    echo "  ────────────────────────────────────────────────────────────────"
+    printf "  %-20s %7d %7d\n" "TOTAL" "$total_chars" "$total_tokens"
+
+    # Shared context size
+    local shared_ctx="$project/prompts/00-shared-context/context.md"
+    if [[ -f "$shared_ctx" ]]; then
+        local sc_chars sc_tokens
+        sc_chars=$(wc -c < "$shared_ctx" | tr -d ' ')
+        sc_tokens=$((sc_chars / 4))
+        echo ""
+        printf "  Shared context:    %7d chars  ~%d tokens\n" "$sc_chars" "$sc_tokens"
+    fi
+
+    # Cost estimate
+    echo ""
+    echo "  ── Cost Estimate (per full cycle, all agents) ──"
+    local opus_cost sonnet_cost haiku_cost
+    opus_cost=$(( total_tokens * 15 / 1000000 ))    # $15/M
+    sonnet_cost=$(( total_tokens * 3 / 1000000 ))    # $3/M
+    haiku_cost=$(( total_tokens * 1 / 4000000 ))     # $0.25/M
+    printf "  All Opus:   ~\$%d.%02d per cycle\n" "$((opus_cost))" "$(( (total_tokens * 1500 / 1000000) % 100 ))"
+    printf "  All Sonnet: ~\$%d.%02d per cycle\n" "$((sonnet_cost))" "$(( (total_tokens * 300 / 1000000) % 100 ))"
+    printf "  Mixed (smart-models): ~30-60%% savings vs all-opus\n"
+
+    if [[ ${#large_prompts[@]} -gt 0 ]]; then
+        echo ""
+        echo "  ── Optimization Targets ──"
+        for lp in "${large_prompts[@]}"; do
+            echo "  • $lp — over 4000 tokens, candidate for compression"
+        done
+        echo ""
+        echo "  Tip: Use prompt-compression.sh tiered loading (stable/dynamic/reference)"
+    fi
+}
+
+# ── Subcommand: benchmark ──────────────────────────────────────────────
+
+cmd_benchmark() {
+    local project="${1:-}"
+    local show_all=false
+
+    if [[ "$project" == "--all" || -z "$project" ]]; then
+        show_all=true
+    fi
+
+    echo "╔══════════════════════════════════════════════════════════════╗"
+    echo "║  orchystraw benchmark                                      ║"
+    echo "╚══════════════════════════════════════════════════════════════╝"
+    echo ""
+
+    local -a paths=()
+
+    if [[ "$show_all" == true ]]; then
+        if [[ "$(type -t orch_registry_get_all_paths)" == "function" ]]; then
+            while IFS= read -r p; do
+                [[ -n "$p" ]] && paths+=("$p")
+            done < <(orch_registry_get_all_paths)
+        fi
+        if [[ ${#paths[@]} -eq 0 ]]; then
+            echo "No projects registered. Run: orchystraw scan ~/Projects"
+            exit 1
+        fi
+    else
+        paths+=("$(resolve_project_root "$project")")
+    fi
+
+    # Header
+    printf "  %-18s %6s %8s %8s %10s %8s %6s\n" \
+        "PROJECT" "AGENTS" "CYCLES" "COMMITS" "TOKENS" "COST" "SCORE"
+    echo "  ──────────────────────────────────────────────────────────────"
+
+    local total_cycles=0 total_commits=0 total_tokens=0 total_cost_cents=0
+
+    for p in "${paths[@]}"; do
+        local name
+        name=$(basename "$p")
+        local agents="-"
+        local cycles=0 commits=0 tokens=0 cost_cents=0 avg_score="-"
+
+        # Agent count
+        if [[ -f "$p/agents.conf" ]]; then
+            agents=$(grep -cE '^[^#[:space:]]' "$p/agents.conf" 2>/dev/null || echo "0")
+        fi
+
+        # Audit data
+        local audit="$p/.orchystraw/audit.jsonl"
+        if [[ -f "$audit" ]]; then
+            cycles=$(wc -l < "$audit" | tr -d ' ')
+
+            # Parse tokens and commits
+            while IFS= read -r line; do
+                [[ -z "$line" ]] && continue
+                local tok=""
+                if [[ "$line" =~ \"tokens_est\":([0-9]+) ]]; then
+                    tok="${BASH_REMATCH[1]}"
+                    tokens=$((tokens + tok))
+                fi
+                if [[ "$line" =~ \"commits\":([0-9]+) ]]; then
+                    commits=$((commits + BASH_REMATCH[1]))
+                fi
+            done < "$audit"
+        fi
+
+        # Cost log
+        local cost_log="$p/.orchystraw/cost-log.jsonl"
+        if [[ -f "$cost_log" ]]; then
+            while IFS= read -r line; do
+                local t="" m=""
+                if [[ "$line" =~ \"tokens\":([0-9]+) ]]; then t="${BASH_REMATCH[1]}"; fi
+                if [[ "$line" =~ \"model\":\"([^\"]+)\" ]]; then m="${BASH_REMATCH[1]}"; fi
+                [[ -z "$t" ]] && continue
+                case "${m:-sonnet}" in
+                    opus)   cost_cents=$((cost_cents + t * 1500 / 1000000)) ;;
+                    sonnet) cost_cents=$((cost_cents + t * 300 / 1000000)) ;;
+                    haiku)  cost_cents=$((cost_cents + t * 25 / 1000000)) ;;
+                esac
+            done < "$cost_log"
+        fi
+
+        # Quality scores
+        local quality="$p/.orchystraw/quality-scores.jsonl"
+        if [[ -f "$quality" ]]; then
+            local q_total=0 q_count=0
+            while IFS= read -r line; do
+                if [[ "$line" =~ \"score\":([0-9]+) ]]; then
+                    q_total=$((q_total + BASH_REMATCH[1]))
+                    q_count=$((q_count + 1))
+                fi
+            done < "$quality"
+            [[ "$q_count" -gt 0 ]] && avg_score=$((q_total / q_count))
+        fi
+
+        # Git commits (actual)
+        if [[ -d "$p/.git" ]]; then
+            local git_commits
+            git_commits=$(git -C "$p" rev-list --count HEAD 2>/dev/null || echo "0")
+            [[ "$commits" -eq 0 ]] && commits="$git_commits"
+        fi
+
+        local cost_display
+        cost_display=$(printf '$%d.%02d' "$((cost_cents / 100))" "$((cost_cents % 100))")
+        [[ "$cost_cents" -eq 0 ]] && cost_display="-"
+
+        local token_display="$tokens"
+        if [[ "$tokens" -gt 1000000 ]]; then
+            token_display="$(( tokens / 1000000 ))M"
+        elif [[ "$tokens" -gt 1000 ]]; then
+            token_display="$(( tokens / 1000 ))K"
+        fi
+        [[ "$tokens" -eq 0 ]] && token_display="-"
+
+        printf "  %-18s %6s %8s %8s %10s %8s %6s\n" \
+            "${name:0:18}" "$agents" "$cycles" "$commits" "$token_display" "$cost_display" "$avg_score"
+
+        total_cycles=$((total_cycles + cycles))
+        total_commits=$((total_commits + commits))
+        total_tokens=$((total_tokens + tokens))
+        total_cost_cents=$((total_cost_cents + cost_cents))
+    done
+
+    echo "  ──────────────────────────────────────────────────────────────"
+    local total_cost_display
+    total_cost_display=$(printf '$%d.%02d' "$((total_cost_cents / 100))" "$((total_cost_cents % 100))")
+    local total_tok_display="$total_tokens"
+    if [[ "$total_tokens" -gt 1000000 ]]; then
+        total_tok_display="$(( total_tokens / 1000000 ))M"
+    elif [[ "$total_tokens" -gt 1000 ]]; then
+        total_tok_display="$(( total_tokens / 1000 ))K"
+    fi
+    printf "  %-18s %6s %8s %8s %10s %8s\n" \
+        "TOTAL" "${#paths[@]} proj" "$total_cycles" "$total_commits" "$total_tok_display" "$total_cost_display"
+
+    echo ""
+    echo "  Run cycles to generate data: orchystraw run --all --cycles 1 --dry-run"
+}
+
 # ── Subcommand: doctor ─────────────────────────────────────────────────
 
 cmd_doctor() {
@@ -670,6 +1040,8 @@ case "${1:-help}" in
     list)       shift; cmd_list "$@" ;;
     metrics)    shift; cmd_metrics "$@" ;;
     decisions)  shift; cmd_decisions "$@" ;;
+    prompt-audit) shift; cmd_prompt_audit "$@" ;;
+    benchmark)  shift; cmd_benchmark "$@" ;;
     dashboard)  shift; cmd_dashboard "$@" ;;
     doctor)     shift; cmd_doctor "$@" ;;
     help|--help|-h) usage ;;
