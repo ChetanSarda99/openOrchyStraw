@@ -62,3 +62,8 @@ docs/infrastructure/
 app/node_modules/
 app/dist/
 app/src-tauri/target/
+
+# Build / release artifacts
+dist/
+*.tar.gz
+*.zip

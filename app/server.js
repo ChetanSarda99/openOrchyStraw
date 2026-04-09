@@ -269,12 +269,20 @@ const server = createServer((req, res) => {
 });
 
 server.listen(PORT, HOST, () => {
+  const url = `http://${HOST}:${PORT}`;
   console.log(`╔══════════════════════════════════════════════════╗`);
   console.log(`║  orchystraw app                                  ║`);
-  console.log(`║  http://${HOST}:${PORT}                          ║`);
+  console.log(`║  ${url.padEnd(46)} ║`);
   console.log(`╚══════════════════════════════════════════════════╝`);
   console.log(`  ORCH_ROOT: ${ORCH_ROOT}`);
   console.log(`  Projects:  ${readRegistry().length} registered`);
   console.log(``);
   console.log(`  Customize: ORCH_HOST=0.0.0.0 ORCH_PORT=8080 node app/server.js`);
+
+  // Auto-open browser on macOS
+  if (process.platform === "darwin") {
+    import("child_process").then(({ exec }) => {
+      exec(`open ${url}`);
+    });
+  }
 });

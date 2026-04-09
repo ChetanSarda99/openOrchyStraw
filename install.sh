@@ -100,8 +100,12 @@ if ! echo "$PATH" | grep -q "$BIN_DIR"; then
     echo "  export PATH=\"$BIN_DIR:\$PATH\""
     echo ""
 
-    # Auto-add if user confirms
-    read -rp "Add to PATH now? [Y/n] " answer
+    # Auto-add if user confirms (skip if non-interactive, e.g. piped from curl)
+    if [[ -t 0 ]]; then
+        read -rp "Add to PATH now? [Y/n] " answer
+    else
+        answer="Y"
+    fi
     answer="${answer:-Y}"
     if [[ "$answer" =~ ^[Yy] ]]; then
         shell_rc=""
