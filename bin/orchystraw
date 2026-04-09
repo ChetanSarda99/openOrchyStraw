@@ -74,7 +74,7 @@ usage() {
     echo "  orchystraw run --all [--cycles N]      Run all registered projects"
     echo "  orchystraw run --all --parallel [N]    Run projects concurrently (max N)"
     echo "  orchystraw run                         Interactive project picker"
-    echo "  orchystraw app [port]                  Launch dashboard (default: 4321)"
+    echo "  orchystraw app                         Launch dashboard"
     echo "  orchystraw add <project-path...>       Register project(s) without running"
     echo "  orchystraw scan [dir]                  Auto-discover projects (default: ~/Projects)"
     echo "  orchystraw remove <project-path...>    Unregister project(s)"
@@ -971,37 +971,25 @@ cmd_doctor() {
 # ── Subcommand: app ─────────────────────────────────────────────────────
 
 cmd_app() {
-    local port="${1:-4321}"
-    local host="${ORCH_HOST:-127.0.0.1}"
-
     if ! command -v node &>/dev/null; then
-        echo "ERROR: Node.js required for the dashboard app."
-        echo "  Install: brew install node  (macOS)"
-        echo "           curl -fsSL https://deb.nodesource.com/setup_22.x | sudo bash -"
+        echo "ERROR: Node.js required. Install: brew install node"
         exit 1
     fi
 
     local app_dir="$ORCH_ROOT/app"
 
-    # Build frontend if needed
+    # Build frontend on first run
     if [[ ! -d "$app_dir/dist" ]]; then
-        echo "Building dashboard frontend..."
+        echo "First run — building dashboard..."
         if [[ ! -d "$app_dir/node_modules" ]]; then
-            (cd "$app_dir" && npm install --silent) || {
-                echo "ERROR: npm install failed"
-                exit 1
-            }
+            (cd "$app_dir" && npm install --silent) || { echo "ERROR: npm install failed"; exit 1; }
         fi
-        (cd "$app_dir" && npx vite build --mode production) || {
-            echo "ERROR: frontend build failed"
-            exit 1
-        }
+        (cd "$app_dir" && npx vite build --mode production) || { echo "ERROR: build failed"; exit 1; }
     fi
 
-    echo "╔══════════════════════════════════════════════════╗"
-    echo "║  orchystraw app                                  ║"
-    echo "║  http://$host:$port                              ║"
-    echo "╚══════════════════════════════════════════════════╝"
+    # Host/port from config.env or defaults
+    local host="${ORCH_HOST:-127.0.0.1}"
+    local port="${ORCH_PORT:-4321}"
 
     ORCH_ROOT="$ORCH_ROOT" ORCH_HOST="$host" ORCH_PORT="$port" \
         node "$app_dir/server.js"
