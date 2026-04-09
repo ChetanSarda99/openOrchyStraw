@@ -52,3 +52,13 @@ prompts/*/logs/
 .orchystraw/
 .orchestrator-pause
 prompts/00-session-tracker/.stall-state
+
+# Private/personal directories — NOT for public repo
+strategy-vault/
+legacy/
+docs/infrastructure/
+
+# App build artifacts
+app/node_modules/
+app/dist/
+app/src-tauri/target/
