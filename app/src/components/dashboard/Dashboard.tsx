@@ -17,7 +17,7 @@ export function Dashboard() {
 
   const { data: agents = [] } = useQuery({
     queryKey: ["agents", currentProjectPath],
-    queryFn: () => listAgents(currentProjectPath + "/agents.conf"),
+    queryFn: () => listAgents(currentProjectPath),
   });
 
   const { data: logs = [] } = useQuery({
