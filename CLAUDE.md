@@ -79,6 +79,7 @@ No auto-agent.sh or src/core/ needed in target projects.
 ## File Structure
 ```
 bin/orchystraw           — Global CLI entry point (add to PATH)
+bin/orch-context         — Context injection wrapper for Claude sessions
 agents.conf              — Agent configuration (who, what, when)
 CLAUDE.md                — This file (project guide for all agents)
 
@@ -96,7 +97,7 @@ scripts/                 — Orchestrator (auto-agent.sh) + helper scripts
   cross-project-dashboard.sh — Multi-project HTML dashboard
   health-dashboard.sh    — Single-project dashboard
 
-src/core/                — Core orchestration modules (31 bash modules)
+src/core/                — Core orchestration modules (33 bash modules)
   # v0.1 Foundation
   bash-version.sh, logger.sh, error-handler.sh, cycle-state.sh,
   agent-timeout.sh, dry-run.sh, config-validator.sh, lock-file.sh
@@ -110,7 +111,7 @@ src/core/                — Core orchestration modules (31 bash modules)
   observability.sh, memory.sh, quality-gates.sh
   # v0.5 Global CLI + Quality + Model Selection
   cofounder.sh, decision-store.sh, project-registry.sh, quality-scorer.sh,
-  stall-detector.sh, model-selector.sh
+  stall-detector.sh, model-selector.sh, context-injector.sh
 
 src/pixel/               — Pixel Agents JSONL emitter + integration
 
@@ -146,8 +147,14 @@ Observability spans/events, episodic memory, quality gates wired into orchestrat
 - Quality scorer (lint + tests + diff + output + ownership → 0-100 score)
 - Decision store (immutable JSONL audit trail)
 - Co-Founder agent (autonomous interval/model/budget decisions)
+- `orchystraw scan` — auto-discover projects in a directory
+- `orchystraw remove` — unregister projects
+- `bin/orch-context` — context injection wrapper for Claude CLI/IDE
+- Co-Founder autonomous ops wired into cycle loop (health, budget, intervals)
+- Model selector report printed per-cycle when smart models active
 - Cross-project dashboard
-- 32 modules, 45+ tests, 8 projects wired
+- Brand guide + OG image + favicon assets
+- 33 modules, 45+ tests, 8 projects wired
 
 ### Open Issues
 | # | Priority | What |

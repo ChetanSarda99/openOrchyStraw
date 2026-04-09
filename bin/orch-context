@@ -1,0 +1,147 @@
+#!/opt/homebrew/bin/bash
+# orch-context — Generate context for Claude sessions
+# Outputs project context (git, agents, metadata) to stdout for piping.
+#
+# Usage:
+#   orch-context                  # formatted context to stdout
+#   orch-context --json           # JSON output for MCP/IDE integration
+#   orch-context --install        # print shell alias setup instructions
+#   orch-context /path/to/project # context for a specific project
+
+set -uo pipefail
+
+ORCH_ROOT="$(cd "$(dirname "$0")/.." && pwd)"
+source "$ORCH_ROOT/src/core/context-injector.sh"
+
+# ── --install: print setup instructions ────────────────────────────────
+cmd_install() {
+    cat <<'INSTRUCTIONS'
+# Add to your ~/.zshrc or ~/.bashrc:
+
+# Option 1: Direct alias
+alias ctx='orch-context'
+
+# Option 2: Pipe into clipboard
+alias ctx='orch-context | pbcopy && echo "Context copied to clipboard"'
+
+# Option 3: Use as Claude Code system prompt prefix
+alias cctx='echo "$(orch-context)" && claude'
+
+# Make sure bin/ is in PATH:
+export PATH="$HOME/Projects/openOrchyStraw/bin:$PATH"
+INSTRUCTIONS
+}
+
+# ── --json: JSON output ───────────────────────────────────────────────
+cmd_json() {
+    local dir="${1:-.}"
+    local branch ahead behind staged modified untracked name version
+
+    # Git info
+    branch="$(git -C "$dir" branch --show-current 2>/dev/null || echo "")"
+    ahead="$(git -C "$dir" rev-list --count @{upstream}..HEAD 2>/dev/null || echo "0")"
+    behind="$(git -C "$dir" rev-list --count HEAD..@{upstream} 2>/dev/null || echo "0")"
+    staged="$(git -C "$dir" diff --cached --numstat 2>/dev/null | wc -l | tr -d ' ')"
+    modified="$(git -C "$dir" diff --numstat 2>/dev/null | wc -l | tr -d ' ')"
+    untracked="$(git -C "$dir" ls-files --others --exclude-standard 2>/dev/null | wc -l | tr -d ' ')"
+
+    # Project info
+    name="$(basename "$(cd "$dir" && pwd)")"
+    version="$(git -C "$dir" describe --tags --abbrev=0 2>/dev/null || echo "untagged")"
+
+    # Recent commits as JSON array
+    local commits_json="["
+    local first=true
+    while IFS= read -r line; do
+        local hash="${line%% *}"
+        local msg="${line#* }"
+        msg="${msg//\"/\\\"}"
+        $first || commits_json+=","
+        commits_json+="{\"hash\":\"$hash\",\"message\":\"$msg\"}"
+        first=false
+    done < <(git -C "$dir" log --oneline -5 2>/dev/null)
+    commits_json+="]"
+
+    # Agents as JSON array
+    local agents_json="["
+    local afirst=true
+    if [[ -f "$dir/agents.conf" ]]; then
+        while IFS='|' read -r id prompt ownership interval label; do
+            [[ "$id" =~ ^[[:space:]]*# ]] && continue
+            [[ -z "${id// /}" ]] && continue
+            id="$(echo "$id" | xargs)"
+            interval="$(echo "$interval" | xargs)"
+            label="$(echo "$label" | xargs)"
+            $afirst || agents_json+=","
+            agents_json+="{\"id\":\"$id\",\"label\":\"$label\",\"interval\":$interval}"
+            afirst=false
+        done < "$dir/agents.conf"
+    fi
+    agents_json+="]"
+
+    local is_orch="false"
+    [[ -f "$dir/agents.conf" ]] && is_orch="true"
+
+    cat <<JSON
+{
+  "generated": "$(date -u '+%Y-%m-%dT%H:%M:%SZ')",
+  "project": {
+    "name": "$name",
+    "version": "$version",
+    "orchystraw": $is_orch
+  },
+  "git": {
+    "branch": "$branch",
+    "ahead": $ahead,
+    "behind": $behind,
+    "staged": $staged,
+    "modified": $modified,
+    "untracked": $untracked,
+    "recent_commits": $commits_json
+  },
+  "agents": $agents_json
+}
+JSON
+}
+
+# ── Main ───────────────────────────────────────────────────────────────
+main() {
+    local mode="text"
+    local target_dir="."
+
+    while [[ $# -gt 0 ]]; do
+        case "$1" in
+            --install)  cmd_install; exit 0 ;;
+            --json)     mode="json"; shift ;;
+            --help|-h)
+                echo "Usage: orch-context [--json|--install] [directory]"
+                echo "  Outputs project context for Claude sessions."
+                exit 0
+                ;;
+            *)
+                if [[ -d "$1" ]]; then
+                    target_dir="$1"
+                else
+                    echo "ERROR: Not a directory: $1" >&2
+                    exit 1
+                fi
+                shift
+                ;;
+        esac
+    done
+
+    # Resolve target
+    if [[ ! "$target_dir" = /* ]]; then
+        target_dir="$(cd "$target_dir" 2>/dev/null && pwd)" || {
+            echo "ERROR: Cannot resolve directory" >&2
+            exit 1
+        }
+    fi
+
+    case "$mode" in
+        json) cmd_json "$target_dir" ;;
+        text) orch_context_gather "$target_dir" ;;
+    esac
+}
+
+main "$@"

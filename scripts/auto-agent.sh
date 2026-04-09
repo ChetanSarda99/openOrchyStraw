@@ -1873,6 +1873,17 @@ PEOF
                 orch_obs_flush 2>/dev/null
             fi
 
+            # v0.5: Co-Founder operational review (health, budget, interval adjustments)
+            if [[ "$(type -t orch_cofounder_run)" == "function" ]]; then
+                orch_cofounder_run 2>/dev/null || true
+            fi
+
+            # v0.5: Model selector report (if smart models enabled)
+            if [[ "${ORCH_INTELLIGENT_MODEL:-0}" == "1" ]] && \
+               [[ "$(type -t orch_model_selector_report)" == "function" ]]; then
+                orch_model_selector_report 2>/dev/null
+            fi
+
             # v4: Print cycle summary
             print_cycle_summary "$CYCLE" "$AGENTS_RUN" "$COMMITS"
 
