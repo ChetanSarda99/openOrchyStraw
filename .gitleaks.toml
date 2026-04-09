@@ -1,0 +1,69 @@
+title = "OrchyStraw Gitleaks Config"
+
+# ── Rules ────────────────────────────────────────────────────────────────
+
+[[rules]]
+id = "anthropic-api-key"
+description = "Anthropic API Key"
+regex = '''(?i)(anthropic[_-]?api[_-]?key|ANTHROPIC_API_KEY)\s*[=:]\s*['"]?[a-zA-Z0-9_-]{20,}'''
+tags = ["key", "anthropic"]
+
+[[rules]]
+id = "openai-api-key"
+description = "OpenAI API Key"
+regex = '''sk-[a-zA-Z0-9]{20,}'''
+tags = ["key", "openai"]
+
+[[rules]]
+id = "gemini-api-key"
+description = "Google Gemini API Key"
+regex = '''(?i)(gemini[_-]?api[_-]?key|GOOGLE_API_KEY)\s*[=:]\s*['"]?[a-zA-Z0-9_-]{20,}'''
+tags = ["key", "gemini"]
+
+[[rules]]
+id = "telegram-bot-token"
+description = "Telegram Bot Token"
+regex = '''[0-9]{8,10}:[A-Za-z0-9_-]{35}'''
+tags = ["key", "telegram"]
+
+[[rules]]
+id = "generic-api-key"
+description = "Generic API Key"
+regex = '''(?i)(api[_-]?key|apikey|api[_-]?secret)\s*[=:]\s*['"]?[a-zA-Z0-9_/+=]{20,}'''
+tags = ["key", "generic"]
+
+[[rules]]
+id = "private-key"
+description = "Private Key File"
+regex = '''-----BEGIN (RSA |EC |DSA |OPENSSH )?PRIVATE KEY-----'''
+tags = ["key", "private"]
+
+[[rules]]
+id = "env-file-secrets"
+description = "Secrets in .env files"
+regex = '''(?i)(password|secret|token|key)\s*=\s*[^\s]{8,}'''
+path = '''\.env'''
+tags = ["env", "secret"]
+
+# ── Allowlist ────────────────────────────────────────────────────────────
+
+[allowlist]
+description = "Allow test fixtures and example configs"
+
+paths = [
+  '''tests/.*''',
+  '''\.github/.*''',
+  '''template/.*\.example''',
+  '''docs/references/.*''',
+  '''research/.*''',
+]
+
+regexTarget = "match"
+regexes = [
+  '''YOUR_API_KEY_HERE''',
+  '''sk-test-[a-z]+''',
+  '''EXAMPLE_.*''',
+  '''placeholder''',
+  '''dummy''',
+  '''xxxx+''',
+]

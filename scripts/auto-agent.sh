@@ -95,6 +95,11 @@ if [ -d "$ORCH_ROOT/src/core" ]; then
     [ -f "$ORCH_ROOT/src/core/model-selector.sh" ] && source "$ORCH_ROOT/src/core/model-selector.sh"
 fi
 
+# ── Pixel Agents emitter (visual agent animation) ──────────────────
+if [ -f "$ORCH_ROOT/src/pixel/emit-jsonl.sh" ]; then
+    source "$ORCH_ROOT/src/pixel/emit-jsonl.sh"
+fi
+
 # ── Shared resources (cross-project utilities) ────────────────────────
 SHARED_DIR="$HOME/Projects/shared"
 SHARED_ORCH_DIR="$SHARED_DIR/orchystraw-core"
@@ -693,6 +698,11 @@ run_agent() {
 
     log "[$agent_id] Starting (${AGENT_LABELS[$agent_id]}, $lines lines)..."
 
+    # Pixel Agents: agent begins work
+    if [[ "$(type -t pixel_agent_start)" == "function" ]]; then
+        pixel_agent_start "$agent_id" "$prompt_file" 2>/dev/null
+    fi
+
     local context_file="$PROMPTS_DIR/00-shared-context/context.md"
 
     # Resolve model before piping (subshell can't export vars back)
@@ -810,6 +820,12 @@ run_agent() {
         log "[$agent_id] SUGGESTION: Agent produced minimal output. Check: (1) prompt has enough content, (2) shared context is not empty, (3) claude CLI is working"
     else
         log "[$agent_id] Finished ($log_size bytes output)"
+    fi
+
+    # Pixel Agents: agent finished
+    if [[ "$(type -t pixel_agent_done)" == "function" ]]; then
+        local _pixel_summary="output=${log_size}bytes exit=${exit_code}"
+        pixel_agent_done "$agent_id" "$_pixel_summary" 2>/dev/null
     fi
 
     # v4: Track cumulative cost/tokens
@@ -1324,6 +1340,11 @@ case "${1:-help}" in
         if [[ "$(type -t orch_is_dry_run)" == "function" ]] && orch_is_dry_run; then
             orch_dry_run_report "$CONF_FILE" "${CYCLE:-1}"
             exit 0
+        fi
+
+        # v0.5: Initialize Pixel Agents visualization
+        if [[ "$(type -t pixel_init)" == "function" ]]; then
+            pixel_init 2>/dev/null
         fi
 
         notify "Starting: ${#AGENT_IDS[@]} agents, max ${MAX_CYCLES:-∞} cycles"

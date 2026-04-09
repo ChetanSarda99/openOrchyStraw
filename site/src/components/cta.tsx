@@ -17,7 +17,7 @@ export function CTA() {
           Try it on your codebase
         </h2>
         <p className="mx-auto mt-4 max-w-xl text-lg text-muted">
-          Clone, edit agents.conf, run the script. You&apos;ll have agents working in about 2 minutes. Not an exaggeration.
+          Clone, edit agents.conf, run the script. First cycle in under 2 minutes.
         </p>
 
         <div className="mt-8 flex flex-col items-center gap-3 sm:flex-row sm:justify-center sm:gap-4">

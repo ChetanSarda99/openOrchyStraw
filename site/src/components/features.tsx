@@ -21,8 +21,8 @@ const staggerItem = {
 const features = [
   {
     title: "Multi-agent teams",
-    label: "9 AGENTS",
-    description: "CEO, CTO, PM, Backend, QA, Security, Web — each gets a role, a markdown prompt, and files they own. They talk to each other through a shared context file. That's it.",
+    label: "12 AGENTS",
+    description: "CEO, CTO, PM, Backend, QA, Security, Web, Designer — each gets a role, a markdown prompt, and files they own. They talk through a shared context file. That's it.",
     code: `# agents.conf
 01-ceo    docs/strategy/    3  claude
 02-cto    docs/architecture/ 2  claude
@@ -37,7 +37,7 @@ const features = [
     code: `$ file auto-agent.sh
 auto-agent.sh: Bourne-Again shell script
 $ wc -l src/core/*.sh
-  2,847 total`,
+  3,100+ total`,
     span: "col-span-6 sm:col-span-2",
   },
   {
@@ -65,9 +65,9 @@ tests/**`,
   {
     title: "Quality gates",
     label: "AUTOMATED",
-    description: "QA runs 278 tests after every cycle. Security scans for credential leaks. PM reviews and updates prompts. Nothing merges until the gates pass.",
+    description: "QA runs tests after every cycle. Security scans for credential leaks. PM reviews and updates prompts. Nothing merges until the gates pass.",
     code: `── Quality gates ──────────────
-✓ 26/26 test suites passed
+✓ 45/45 tests passed
 ✓ 0 credential leaks found
 ✓ PM review: approved
 ✓ Ready to merge`,
@@ -150,8 +150,8 @@ export function Features() {
             className="mt-4 max-w-lg text-text-secondary"
             style={{ fontSize: "var(--font-size-body)", lineHeight: 1.6 }}
           >
-            I built this for my own projects first. It runs my monorepo
-            with 10 agents. Here&apos;s what it actually does.
+            I built this for my own projects first. It runs 8 repos
+            with 12 agents each. Here&apos;s what it actually does.
           </p>
         </motion.div>
 

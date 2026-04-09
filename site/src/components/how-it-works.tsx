@@ -37,10 +37,10 @@ const steps = [
   },
   {
     number: "03",
-    title: "Agents collaborate, you ship",
-    description: "PM reviews, QA runs tests, Security scans for leaks. You check the diff and merge. Or let it auto-cycle overnight.",
+    title: "Review and merge",
+    description: "QA runs tests, Security scans for leaks, PM updates prompts. You check the diff and merge. Or let it auto-cycle overnight.",
     code: `── Quality Report ───────────────────
-Tests:     278/278 passed
+Tests:     45/45 passed
 Security:  0 vulnerabilities
 Conflicts: 0 (file ownership enforced)
 Cost:      $1.23 across 5 cycles

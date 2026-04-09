@@ -23,7 +23,7 @@ You own: src/ scripts/
 You never touch: site/ prompts/`;
 
 const runExample = `$ bash scripts/auto-agent.sh orchestrate 3
-── OrchyStraw v0.2.0 ──────────────────
+── OrchyStraw v0.5.0 ──────────────────
 ✓ Loaded 3 agents from agents.conf
 ✓ Cycle 1/3 starting...
 → 06-backend  building REST endpoints...     ✓ 12 files changed

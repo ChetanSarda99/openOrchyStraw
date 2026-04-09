@@ -8,17 +8,17 @@ const faqs = [
   {
     question: "What is OrchyStraw?",
     answer:
-      "It runs multiple AI coding agents on one codebase without them stepping on each other. You write prompts in markdown, set who owns which files in agents.conf, and run a single bash script. That's the whole thing.",
+      "It runs multiple AI coding agents on one codebase without them stepping on each other. You define agents in a config file, write prompts in markdown, and run one command. That's the whole thing.",
   },
   {
     question: "Do I need to install anything?",
     answer:
-      "Nope. Just bash 5+ and whatever AI coding tool you already use. No Python, no npm, no Docker. Clone and run.",
+      "bash 5+ and whatever AI coding tool you already use. No Python, no npm, no Docker. Clone and run.",
   },
   {
     question: "How much does it cost?",
     answer:
-      "OrchyStraw is free, MIT licensed. You pay for your AI tool (Claude Code, Codex, whatever) — that's it. A typical 5-cycle run costs me about $1.23 in API calls.",
+      "OrchyStraw is free and MIT licensed. You pay for your AI tool (Claude Code, Codex, whatever). A typical 5-cycle run costs about $1-2 in API calls.",
   },
   {
     question: "Which AI models work?",
@@ -28,7 +28,7 @@ const faqs = [
   {
     question: "How is this different from AutoGen or CrewAI?",
     answer:
-      "AutoGen and CrewAI are Python frameworks for chat-style agents. OrchyStraw orchestrates real coding agents — Claude Code, Cursor, etc. — that directly edit your files. Completely different approach. No runtime, no message passing. Just prompts and bash.",
+      "AutoGen and CrewAI are Python frameworks for chat-style agents. OrchyStraw coordinates real coding tools — Claude Code, Cursor, etc. — that directly edit your files. No runtime, no message passing. Just prompts and bash.",
   },
   {
     question: "Can I add custom agents?",

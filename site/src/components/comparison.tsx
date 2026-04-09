@@ -125,14 +125,14 @@ export function Comparison() {
               textWrap: "balance",
             }}
           >
-            Bash simplicity vs. framework complexity
+            How it stacks up
           </h2>
           <p
             className="mt-4 max-w-lg text-text-secondary"
             style={{ fontSize: "var(--font-size-body)", lineHeight: 1.6 }}
           >
-            Everyone else wants you to pip install a framework.
-            OrchyStraw is 2,847 lines of bash.
+            They&apos;re Python frameworks. This is a shell script.
+            Different category, same problem space.
           </p>
         </motion.div>
 

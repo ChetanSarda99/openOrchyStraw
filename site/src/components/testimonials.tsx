@@ -5,22 +5,22 @@ import { Quote } from "lucide-react";
 
 const testimonials = [
   {
-    quote: "I was running Claude Code on one file at a time like a caveman. Now I have 6 agents on the same monorepo and they haven't stepped on each other once.",
+    quote: "I was running Claude Code on one file at a time like a caveman. Now I have 12 agents on the same monorepo and they haven't stepped on each other once.",
     author: "CS",
     role: "The person who built this",
-    company: "Raytheon Operations",
+    company: "OrchyStraw",
   },
   {
-    quote: "Cloned it, edited agents.conf, ran the script. Had 3 agents working in under 10 minutes. No pip install, no Docker, no YAML hell.",
-    author: "GitHub user",
-    role: "Solo dev",
-    company: "Open source contributor",
+    quote: "The setup is: clone, edit agents.conf, run the script. No pip install, no Docker, no YAML hell. First cycle ran in under 2 minutes.",
+    author: "CS",
+    role: "Testing on 8 repos",
+    company: "OrchyStraw",
   },
   {
     quote: "I set it to auto-cycle overnight. Woke up to 47 files changed, all tests passing, zero conflicts. The PM agent even updated the prompts for the next run.",
     author: "CS",
     role: "Dog-fooding my own tool",
-    company: "OrchyStraw itself",
+    company: "OrchyStraw",
   },
 ];
 

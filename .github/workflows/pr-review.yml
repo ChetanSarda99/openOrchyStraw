@@ -1,0 +1,153 @@
+name: PR Review
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened]
+
+permissions:
+  contents: read
+  pull-requests: write
+
+jobs:
+  review:
+    name: Auto PR Review
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Analyze changed files
+        id: changes
+        run: |
+          BASE=${{ github.event.pull_request.base.sha }}
+          HEAD=${{ github.event.pull_request.head.sha }}
+
+          FILES=$(git diff --name-only "$BASE" "$HEAD")
+          echo "$FILES" > /tmp/changed-files.txt
+
+          # Categorize
+          SCRIPTS=$(echo "$FILES" | grep -E '(^scripts/|^src/core/|^bin/).*\.sh$|^bin/orchystraw$' || true)
+          PROMPTS=$(echo "$FILES" | grep -E '^prompts/' || true)
+          DOCS=$(echo "$FILES" | grep -E '\.(md|txt)$' || true)
+          TESTS=$(echo "$FILES" | grep -E '^tests/' || true)
+          SITE=$(echo "$FILES" | grep -E '^site/' || true)
+          WORKFLOWS=$(echo "$FILES" | grep -E '^\.github/' || true)
+
+          TOTAL=$(echo "$FILES" | grep -c . || echo 0)
+
+          {
+            echo "total=$TOTAL"
+            echo "has_scripts=$([[ -n "$SCRIPTS" ]] && echo true || echo false)"
+            echo "has_prompts=$([[ -n "$PROMPTS" ]] && echo true || echo false)"
+            echo "has_docs=$([[ -n "$DOCS" ]] && echo true || echo false)"
+            echo "has_tests=$([[ -n "$TESTS" ]] && echo true || echo false)"
+            echo "has_site=$([[ -n "$SITE" ]] && echo true || echo false)"
+            echo "has_workflows=$([[ -n "$WORKFLOWS" ]] && echo true || echo false)"
+          } >> "$GITHUB_OUTPUT"
+
+          # Save for comment
+          echo "$SCRIPTS" > /tmp/changed-scripts.txt
+          echo "$PROMPTS" > /tmp/changed-prompts.txt
+          echo "$DOCS" > /tmp/changed-docs.txt
+          echo "$TESTS" > /tmp/changed-tests.txt
+          echo "$SITE" > /tmp/changed-site.txt
+
+      - name: Lint changed shell scripts
+        id: lint
+        if: steps.changes.outputs.has_scripts == 'true'
+        run: |
+          errors=0
+          warnings=""
+          while IFS= read -r f; do
+            [[ -z "$f" ]] && continue
+            [[ ! -f "$f" ]] && continue
+            if ! bash -n "$f" 2>/tmp/lint-out; then
+              errors=$((errors + 1))
+              warnings="${warnings}- **$f**: syntax error\n"
+            fi
+          done < /tmp/changed-scripts.txt
+
+          echo "errors=$errors" >> "$GITHUB_OUTPUT"
+          if [[ $errors -gt 0 ]]; then
+            echo "lint_status=FAIL ($errors errors)" >> "$GITHUB_OUTPUT"
+          else
+            echo "lint_status=PASS" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Run tests if core changed
+        id: tests
+        if: steps.changes.outputs.has_scripts == 'true' || steps.changes.outputs.has_tests == 'true'
+        run: |
+          if bash tests/core/run-tests.sh; then
+            echo "test_status=PASS" >> "$GITHUB_OUTPUT"
+          else
+            echo "test_status=FAIL" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Post review comment
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const fs = require('fs');
+
+            const readLines = (path) => {
+              try {
+                return fs.readFileSync(path, 'utf8').split('\n').filter(l => l.trim());
+              } catch { return []; }
+            };
+
+            const scripts = readLines('/tmp/changed-scripts.txt');
+            const prompts = readLines('/tmp/changed-prompts.txt');
+            const docs = readLines('/tmp/changed-docs.txt');
+            const tests = readLines('/tmp/changed-tests.txt');
+            const site = readLines('/tmp/changed-site.txt');
+            const total = '${{ steps.changes.outputs.total }}';
+
+            const lintStatus = '${{ steps.lint.outputs.lint_status }}' || 'skipped';
+            const testStatus = '${{ steps.tests.outputs.test_status }}' || 'skipped';
+
+            const lintEmoji = lintStatus === 'PASS' ? ':white_check_mark:' : lintStatus === 'skipped' ? ':fast_forward:' : ':x:';
+            const testEmoji = testStatus === 'PASS' ? ':white_check_mark:' : testStatus === 'skipped' ? ':fast_forward:' : ':x:';
+
+            let body = `## PR Review Summary\n\n`;
+            body += `**${total} file(s) changed**\n\n`;
+
+            body += `| Check | Status |\n|-------|--------|\n`;
+            body += `| Shell lint | ${lintEmoji} ${lintStatus} |\n`;
+            body += `| Tests | ${testEmoji} ${testStatus} |\n\n`;
+
+            if (scripts.length) body += `**Scripts (${scripts.length}):** ${scripts.map(f => '`' + f + '`').join(', ')}\n`;
+            if (prompts.length) body += `**Prompts (${prompts.length}):** ${prompts.map(f => '`' + f + '`').join(', ')}\n`;
+            if (tests.length) body += `**Tests (${tests.length}):** ${tests.map(f => '`' + f + '`').join(', ')}\n`;
+            if (docs.length) body += `**Docs (${docs.length}):** ${docs.length} file(s)\n`;
+            if (site.length) body += `**Site (${site.length}):** ${site.length} file(s)\n`;
+
+            body += `\n---\n*Auto-generated by PR Review workflow*`;
+
+            // Find and update or create comment
+            const { data: comments } = await github.rest.issues.listComments({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: context.issue.number,
+            });
+
+            const botComment = comments.find(c =>
+              c.user.type === 'Bot' && c.body.includes('PR Review Summary')
+            );
+
+            if (botComment) {
+              await github.rest.issues.updateComment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                comment_id: botComment.id,
+                body,
+              });
+            } else {
+              await github.rest.issues.createComment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: context.issue.number,
+                body,
+              });
+            }

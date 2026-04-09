@@ -5,10 +5,10 @@ import { useRef, useState, useEffect } from "react";
 import { Github } from "lucide-react";
 
 const terminalLines = [
-  { text: "$ ./auto-agent.sh --cycles 3", type: "command" as const },
+  { text: "$ orchystraw run . --cycles 3", type: "command" as const },
   { text: "", type: "blank" as const },
-  { text: "── OrchyStraw v0.2.0 ──────────────────────", type: "dim" as const },
-  { text: "✓ Loaded 9 agents from agents.conf", type: "success" as const },
+  { text: "── OrchyStraw v0.5.0 ──────────────────────", type: "dim" as const },
+  { text: "✓ Loaded 12 agents from agents.conf", type: "success" as const },
   { text: "✓ Worktree isolation enabled", type: "success" as const },
   { text: "✓ Smart routing: Claude Opus → backend, Sonnet → docs", type: "success" as const },
   { text: "", type: "blank" as const },
@@ -161,7 +161,7 @@ export function Hero() {
           style={{ fontSize: "var(--font-size-micro)" }}
         >
           <span className="inline-block h-1.5 w-1.5 rounded-full bg-accent" />
-          v0.2.0 — 22 modules, 278 tests passing
+          v0.5.0 — 31 modules, 45+ tests passing
         </motion.div>
 
         <h1
@@ -183,7 +183,7 @@ export function Hero() {
             lineHeight: 1.6,
           }}
         >
-          9 AI agents, one codebase, zero conflicts. File ownership, quality
+          12 AI agents, one codebase, zero conflicts. File ownership, quality
           gates, cost tracking. The whole thing is a shell script &mdash; no
           framework, no pip install, no Docker.
         </p>
