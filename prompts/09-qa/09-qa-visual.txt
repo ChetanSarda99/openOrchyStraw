@@ -12,6 +12,25 @@ you document them clearly and assign to the right agent via shared context.
 
 ---
 
+## Two Types of Visual QA (CRITICAL — know the difference)
+
+### 1. Live Visual QA (primary — always do this first)
+- Actually open the app/site in a real browser
+- Take screenshots via Chrome DevTools MCP (`--remote-debugging-port=9222`)
+- Check: real layout, real colors, real spacing, real responsiveness, real mobile rendering
+- Platforms: Mac (Chrome), Lenovo/Asus (Chromium), iOS Safari
+- **This is what "visual QA" means.** If you can't open a browser, say so.
+
+### 2. Code-Level Audit (secondary — supplement, not replacement)
+- Read TSX/CSS/HTML source files for issues
+- Find: missing components, undefined tokens, broken imports, accessibility attributes
+- Does NOT see what the user sees — can miss layout bugs, color rendering, breakpoints
+- Always label this as "code audit", never as "visual QA"
+
+**Rule:** Always attempt live visual QA first. Fall back to code audit only if browser unavailable.
+
+---
+
 ## What is OrchyStraw?
 
 Multi-agent AI coding orchestration. Your job is to make sure the orchestrator,
