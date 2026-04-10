@@ -1,40 +1,80 @@
 import { useQuery } from "@tanstack/react-query";
 import { Activity, Hash, Clock, Users } from "lucide-react";
-import { getCycleStatus } from "@/services/tauri";
+import { useAppStore } from "@/stores/app";
+import { getPixelEvents, API_BASE } from "@/services/tauri";
+
+interface RunningResponse {
+  running: boolean;
+  count: number;
+  cycles: Array<{
+    project: string;
+    pid: number;
+    cycles: number;
+    started_at: string;
+  }>;
+  finished?: Array<{
+    project: string;
+    exit_code: number;
+    duration_ms: number;
+    finished_at: string;
+  }>;
+}
 
 export function CycleControl() {
-  const { data: status } = useQuery({
-    queryKey: ["cycleStatus"],
-    queryFn: getCycleStatus,
-    refetchInterval: 3_000,
+  const currentProject = useAppStore((s) => s.currentProject);
+  const currentProjectPath = useAppStore((s) => s.currentProjectPath);
+
+  const { data: status } = useQuery<RunningResponse>({
+    queryKey: ["runningCycles"],
+    queryFn: async () => {
+      const res = await fetch(`${API_BASE}/api/running`);
+      return res.json();
+    },
+    refetchInterval: 2_000,
   });
 
-  if (!status) return null;
+  // Live agent activity for this project (drives "agents run" count)
+  const { data: pixelData } = useQuery({
+    queryKey: ["pixelEvents", currentProjectPath],
+    queryFn: () => getPixelEvents(currentProjectPath),
+    refetchInterval: 2_000,
+  });
+
+  const thisCycle = status?.cycles?.find((c) => c.project === currentProject);
+  const lastFinished = status?.finished
+    ?.filter((f) => f.project === currentProject)
+    .sort((a, b) => new Date(b.finished_at).getTime() - new Date(a.finished_at).getTime())[0];
+
+  const isRunning = !!thisCycle;
+  const activeAgents = pixelData?.agents?.filter((a) => a.alive).length ?? 0;
+  const totalAgents = pixelData?.agents?.length ?? 0;
+
+  // Cycle number and last cycle time
+  const cycleNum = thisCycle?.cycles ?? 0;
+  const lastCycleAt = lastFinished?.finished_at || thisCycle?.started_at || null;
 
   const cards = [
     {
       label: "Cycle",
-      value: status.cycle_number,
+      value: cycleNum > 0 ? cycleNum : "—",
       icon: Hash,
       color: "#3b82f6",
     },
     {
       label: "Status",
-      value: status.running ? "Running" : "Stopped",
+      value: isRunning ? "Running" : lastFinished ? (lastFinished.exit_code === 0 ? "OK" : "Failed") : "Idle",
       icon: Activity,
-      color: status.running ? "#22c55e" : "#6b7280",
+      color: isRunning ? "#22c55e" : lastFinished?.exit_code === 0 ? "#22c55e" : lastFinished ? "#ef4444" : "#6b7280",
     },
     {
-      label: "Agents Run",
-      value: status.agents_run,
+      label: "Agents Active",
+      value: totalAgents > 0 ? `${activeAgents} / ${totalAgents}` : "—",
       icon: Users,
       color: "#a855f7",
     },
     {
       label: "Last Cycle",
-      value: status.last_cycle_time
-        ? new Date(status.last_cycle_time).toLocaleTimeString()
-        : "Never",
+      value: lastCycleAt ? new Date(lastCycleAt).toLocaleTimeString() : "Never",
       icon: Clock,
       color: "#eab308",
     },

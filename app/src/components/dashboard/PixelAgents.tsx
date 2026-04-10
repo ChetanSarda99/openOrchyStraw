@@ -32,8 +32,9 @@ interface PixelAgentRowProps {
 }
 
 function PixelAgentRow({ agent, position }: PixelAgentRowProps) {
-  const meta = toolMeta(agent.last_tool);
   const working = agent.state === "working" && agent.alive;
+  // When not working, show idle meta (gray) regardless of last_tool value
+  const meta = working ? toolMeta(agent.last_tool) : toolMeta("idle");
 
   return (
     <div

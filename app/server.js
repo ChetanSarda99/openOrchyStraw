@@ -260,13 +260,15 @@ function readPixelEvents(projectPath, sinceMs = 0) {
     alive = now - lastTs < 15_000;
     if (lastTs <= sinceMs && sinceMs > 0) continue;
 
+    const isWorking = alive && lastTool && lastTool !== "idle";
     agents.push({
       agent_id: dir.name,
-      last_tool: lastTool || "idle",
-      last_message: lastMessage,
+      // Only expose last_tool if currently alive — prevents stale "reading" labels
+      last_tool: isWorking ? lastTool : "idle",
+      last_message: isWorking ? lastMessage : null,
       last_timestamp: lastTs ? new Date(lastTs).toISOString() : null,
-      alive,
-      state: lastTool === "idle" || !alive ? "idle" : "working",
+      alive: isWorking,
+      state: isWorking ? "working" : "idle",
     });
   }
 
