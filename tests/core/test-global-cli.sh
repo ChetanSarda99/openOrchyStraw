@@ -27,7 +27,7 @@ echo "=== global-cli two-root tests ==="
 # ---------------------------------------------------------------------------
 # Test 3: auto-agent.sh rejects direct execution (no ORCH_ROOT/PROJECT_ROOT)
 # ---------------------------------------------------------------------------
-output=$(env -u ORCH_ROOT -u PROJECT_ROOT /opt/homebrew/bin/bash "$ORCH_ROOT/scripts/auto-agent.sh" 2>&1 || true)
+output=$(env -u ORCH_ROOT -u PROJECT_ROOT bash "$ORCH_ROOT/scripts/auto-agent.sh" 2>&1 || true)
 if echo "$output" | grep -q "Run via 'orchystraw' CLI"; then
     pass "auto-agent.sh rejects direct execution"
 else

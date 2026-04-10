@@ -171,6 +171,8 @@ orch_activation_init() {
     _ORCH_ACTIVATION_FIRED_EVENTS=()
     _ORCH_ACTIVATION_HISTORY_COUNT=()
     _ORCH_ACTIVATION_LAST_ACTIVATED=()
+    _ORCH_ACTIVATION_ISSUES_CHECKED=false
+    _ORCH_ACTIVATION_HAS_ISSUES=false
 
     while IFS= read -r raw_line; do
         [[ -z "${raw_line// /}" ]] && continue
@@ -324,6 +326,9 @@ declare -g _ORCH_ACTIVATION_ISSUES_CHECKED=false
 declare -g _ORCH_ACTIVATION_HAS_ISSUES=false
 
 _orch_activation_has_open_issues() {
+    # Test/isolation escape hatch — skip the gh query when explicitly disabled
+    [[ "${ORCH_ACTIVATION_SKIP_ISSUES_CHECK:-}" == "1" ]] && return 1
+
     # Run gh check once per cycle, not per agent
     if [[ "$_ORCH_ACTIVATION_ISSUES_CHECKED" != "true" ]]; then
         _ORCH_ACTIVATION_ISSUES_CHECKED=true

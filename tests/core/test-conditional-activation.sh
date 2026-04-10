@@ -3,6 +3,9 @@
 set -euo pipefail
 
 PROJECT_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
+# Isolate test from ambient repo state — disable the gh "open issues" check
+# so "no changes → skip" assertions hold regardless of the surrounding repo.
+export ORCH_ACTIVATION_SKIP_ISSUES_CHECK=1
 source "$PROJECT_ROOT/src/core/conditional-activation.sh"
 
 PASS=0
