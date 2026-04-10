@@ -14,8 +14,6 @@ export function AgentChat() {
   const messages = useAppStore((s) => s.chatMessages);
   const addMessage = useAppStore((s) => s.addChatMessage);
   const clearMessages = useAppStore((s) => s.clearChatMessages);
-  const selectedAgent = useAppStore((s) => s.selectedChatAgent);
-  const setSelectedAgent = useAppStore((s) => s.setSelectedChatAgent);
 
   const [input, setInput] = useState("");
   const [sending, setSending] = useState(false);
@@ -28,14 +26,6 @@ export function AgentChat() {
     queryFn: () => listAgents(currentProjectPath),
   });
 
-  // Set default selected agent — prefer co-founder, then first agent
-  useEffect(() => {
-    if (agents.length > 0 && !agents.some((a) => a.id === selectedAgent)) {
-      const cofounder = agents.find((a) => a.id.includes("cofounder")) || agents.find((a) => a.id.includes("founder"));
-      setSelectedAgent(cofounder?.id || agents[0].id);
-    }
-  }, [agents, selectedAgent, setSelectedAgent]);
-
   // Auto-scroll on new messages
   useEffect(() => {
     if (scrollRef.current) {
@@ -43,9 +33,14 @@ export function AgentChat() {
     }
   }, [messages, sending]);
 
+  // Find the cofounder agent — chat ALWAYS routes to cofounder
+  const targetAgent = agents.find(
+    (a) => a.id === "00-cofounder" || a.id.includes("cofounder")
+  );
+
   const handleSend = async (): Promise<void> => {
     const text = input.trim();
-    if (!text || sending || !selectedAgent) return;
+    if (!text || sending || !targetAgent) return;
 
     setError(null);
     const userMsg: ChatMessage = {
@@ -59,7 +54,7 @@ export function AgentChat() {
     setSending(true);
 
     try {
-      const resp = await sendChatMessage(selectedAgent, text, currentProjectPath);
+      const resp = await sendChatMessage(targetAgent.id, text, currentProjectPath);
       const agentMsg: ChatMessage = {
         id: nextId(),
         role: "agent",
@@ -74,7 +69,7 @@ export function AgentChat() {
       addMessage({
         id: nextId(),
         role: "agent",
-        agent: selectedAgent,
+        agent: targetAgent.id,
         content: `Error: ${msg}`,
         timestamp: new Date().toISOString(),
       });
@@ -90,29 +85,18 @@ export function AgentChat() {
     }
   };
 
-  const activeAgent = agents.find((a) => a.id === selectedAgent);
-
   return (
     <div className="flex flex-col h-[calc(100vh-140px)]">
       {/* Header */}
       <div className="flex items-center gap-3 mb-4">
-        <h2 className="text-sm font-medium text-text-muted">Chat with Agent</h2>
-        <select
-          value={selectedAgent}
-          onChange={(e) => setSelectedAgent(e.target.value)}
-          className="bg-bg-secondary border border-border rounded-md px-3 py-1.5 text-sm text-text focus:outline-none focus:border-accent cursor-pointer"
-        >
-          {agents.map((a) => (
-            <option key={a.id} value={a.id}>
-              {a.id} — {a.label}
-            </option>
-          ))}
-        </select>
-        {activeAgent && (
-          <span className="text-xs text-text-dim font-mono truncate max-w-[260px]">
-            {activeAgent.ownership}
-          </span>
-        )}
+        <div className="flex flex-col">
+          <h2 className="text-sm font-medium text-text-muted">Chat with Co-Founder</h2>
+          <p className="text-[10px] text-text-dim">
+            {targetAgent
+              ? "Co-founder talks to CEO, CTO, and PM. PM coordinates the rest of the team."
+              : "Co-founder agent not found in this project."}
+          </p>
+        </div>
         <button
           onClick={clearMessages}
           className="ml-auto flex items-center gap-1.5 text-xs text-text-dim hover:text-text transition-colors"
@@ -132,8 +116,11 @@ export function AgentChat() {
           <div className="h-full flex items-center justify-center text-sm text-text-dim text-center">
             <div>
               <Bot size={32} className="mx-auto mb-2 opacity-50" />
-              <p>Start a conversation with the {activeAgent?.label ?? "selected agent"}.</p>
-              <p className="text-[10px] mt-1">Messages are routed through the claude CLI.</p>
+              <p>Talk to your Co-Founder.</p>
+              <p className="text-[10px] mt-1">
+                Give instructions, ask about cycle status, request new agents.
+                The co-founder coordinates with the PM and the rest of the team.
+              </p>
             </div>
           </div>
         )}
@@ -199,17 +186,17 @@ export function AgentChat() {
             onChange={(e) => setInput(e.target.value)}
             onKeyDown={handleKeyDown}
             placeholder={
-              activeAgent
-                ? `Message ${activeAgent.label}... (Enter to send, Shift+Enter for newline)`
-                : "Loading agents..."
+              targetAgent
+                ? `Message Co-Founder... (Enter to send, Shift+Enter for newline)`
+                : "Co-founder agent not found in this project..."
             }
-            disabled={sending || !selectedAgent}
+            disabled={sending || !targetAgent}
             rows={2}
             className="flex-1 bg-bg-secondary border border-border rounded-md px-3 py-2 text-sm text-text placeholder:text-text-dim focus:outline-none focus:border-accent resize-none disabled:opacity-50"
           />
           <button
             onClick={() => void handleSend()}
-            disabled={sending || !input.trim() || !selectedAgent}
+            disabled={sending || !input.trim() || !targetAgent}
             className="h-[46px] px-4 bg-accent text-white text-sm rounded-md hover:bg-accent-hover transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
           >
             {sending ? <Loader2 size={14} className="animate-spin" /> : <Send size={14} />}
