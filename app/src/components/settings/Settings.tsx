@@ -6,8 +6,10 @@ import { scanProjects } from "@/services/tauri";
 
 export function Settings() {
   const { currentProjectPath, setCurrentProject } = useAppStore();
+  const theme = useAppStore((s) => s.theme);
+  const toggleTheme = useAppStore((s) => s.toggleTheme);
+  const darkMode = theme === "dark";
   const [scanDir, setScanDir] = useState("~/Projects");
-  const [darkMode, setDarkMode] = useState(true);
   const [defaultModel, setDefaultModel] = useState("sonnet");
   const [anthropicKey, setAnthropicKey] = useState("");
   const [openaiKey, setOpenaiKey] = useState("");
@@ -82,7 +84,7 @@ export function Settings() {
               <span className="text-sm text-text-muted">Dark mode</span>
             </div>
             <button
-              onClick={() => setDarkMode(!darkMode)}
+              onClick={toggleTheme}
               className={`w-10 h-5 rounded-full transition-colors relative ${
                 darkMode ? "bg-accent" : "bg-border"
               }`}

@@ -97,12 +97,16 @@ export async function getCycleStatus(): Promise<CycleStatus> {
   if (inv) {
     try { return (await inv("get_cycle_status")) as CycleStatus; } catch {}
   }
-  const status = await api<{ running: boolean; count: number; cycles: Array<{ project: string; pid: number; cycles: number }> }>("/api/running");
+  const status = await api<{
+    running: boolean;
+    count: number;
+    cycles: Array<{ project: string; pid: number; cycles: number; started_at?: string }>;
+  }>("/api/running");
   return {
     running: status.running,
     cycle_number: status.count,
     agents_run: status.cycles?.length || 0,
-    last_cycle_time: new Date().toISOString(),
+    last_cycle_time: status.cycles?.[0]?.started_at || "",
     project_path: status.cycles?.[0]?.project || "",
   };
 }
@@ -168,6 +172,25 @@ export async function sendChatMessage(
   projectPath: string
 ): Promise<ChatResponse> {
   return apiPost<ChatResponse>(`/api/chat`, { agent, message, project: projectPath });
+}
+
+// ── Folder browsing ──
+
+export interface BrowseEntry {
+  name: string;
+  path: string;
+  is_orchystraw_project: boolean;
+}
+
+export interface BrowseResponse {
+  current: string;
+  parent: string | null;
+  entries: BrowseEntry[];
+}
+
+export async function browseFolder(path?: string): Promise<BrowseResponse> {
+  const url = path ? `/api/browse?path=${encodeURIComponent(path)}` : "/api/browse";
+  return api<BrowseResponse>(url);
 }
 
 // ── Onboarding ──

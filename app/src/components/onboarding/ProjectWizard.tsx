@@ -1,7 +1,7 @@
-import { useState } from "react";
-import { X, FolderOpen, Loader2, Check, ChevronLeft, ChevronRight, AlertCircle } from "lucide-react";
+import { useState, useEffect } from "react";
+import { X, Folder, Loader2, Check, ChevronLeft, ChevronRight, AlertCircle, ArrowUp } from "lucide-react";
 import { useAppStore } from "@/stores/app";
-import { initProject } from "@/services/tauri";
+import { initProject, browseFolder, type BrowseResponse } from "@/services/tauri";
 import type { DetectedProject, ProjectTemplate } from "@/types";
 
 const TEMPLATES: { id: ProjectTemplate; label: string; description: string }[] = [
@@ -25,6 +25,28 @@ export function ProjectWizard() {
   const [detection, setDetection] = useState<DetectedProject | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [completed, setCompleted] = useState(false);
+  const [browse, setBrowse] = useState<BrowseResponse | null>(null);
+  const [browsing, setBrowsing] = useState(false);
+
+  // Load initial folder browse on open
+  useEffect(() => {
+    if (wizardOpen && step === 1 && !browse) {
+      void loadBrowse();
+    }
+  }, [wizardOpen, step]);
+
+  const loadBrowse = async (browsePath?: string): Promise<void> => {
+    setBrowsing(true);
+    setError(null);
+    try {
+      const result = await browseFolder(browsePath);
+      setBrowse(result);
+    } catch (err) {
+      setError((err as Error).message);
+    } finally {
+      setBrowsing(false);
+    }
+  };
 
   if (!wizardOpen) return null;
 
@@ -35,6 +57,7 @@ export function ProjectWizard() {
     setDetection(null);
     setError(null);
     setCompleted(false);
+    setBrowse(null);
   };
 
   const handleClose = (): void => {
@@ -131,25 +154,83 @@ export function ProjectWizard() {
           )}
 
           {step === 1 && (
-            <div className="space-y-4">
+            <div className="space-y-3">
               <div>
-                <label className="block text-sm font-medium text-text mb-2">Project folder</label>
+                <label className="block text-sm font-medium text-text mb-2">Pick a project folder</label>
                 <p className="text-xs text-text-dim mb-3">
-                  Absolute path to the project directory. Supports ~ for your home.
+                  Click a folder to enter it, or click "Use this folder" to select.
                 </p>
-                <div className="relative">
-                  <FolderOpen
-                    size={14}
-                    className="absolute left-3 top-1/2 -translate-y-1/2 text-text-dim"
-                  />
+
+                {/* Current path + parent nav */}
+                <div className="flex items-center gap-2 mb-2 bg-bg-tertiary border border-border rounded-md px-3 py-2">
+                  <button
+                    onClick={() => browse?.parent && loadBrowse(browse.parent)}
+                    disabled={!browse?.parent || browsing}
+                    className="text-text-dim hover:text-text disabled:opacity-30"
+                    title="Parent directory"
+                  >
+                    <ArrowUp size={14} />
+                  </button>
                   <input
                     type="text"
-                    value={path}
-                    onChange={(e) => setPath(e.target.value)}
-                    placeholder="~/Projects/my-awesome-project"
-                    className="w-full bg-bg-tertiary border border-border rounded-md pl-9 pr-3 py-2.5 text-sm text-text placeholder:text-text-dim focus:outline-none focus:border-accent font-mono"
+                    value={browse?.current || ""}
+                    onChange={(e) => setBrowse(browse ? { ...browse, current: e.target.value } : null)}
+                    onKeyDown={(e) => {
+                      if (e.key === "Enter" && browse) loadBrowse(browse.current);
+                    }}
+                    className="flex-1 bg-transparent text-xs text-text font-mono focus:outline-none"
+                    placeholder="~/Projects"
                   />
                 </div>
+
+                {/* Folder list */}
+                <div className="bg-bg-tertiary border border-border rounded-md max-h-64 overflow-y-auto">
+                  {browsing && (
+                    <div className="flex items-center justify-center py-8 text-text-dim text-xs">
+                      <Loader2 size={14} className="animate-spin mr-2" />
+                      Loading...
+                    </div>
+                  )}
+                  {!browsing && browse && browse.entries.length === 0 && (
+                    <div className="py-8 text-center text-xs text-text-dim">
+                      Empty folder
+                    </div>
+                  )}
+                  {!browsing && browse && browse.entries.map((entry) => (
+                    <button
+                      key={entry.path}
+                      onClick={() => loadBrowse(entry.path)}
+                      className="w-full flex items-center gap-2 px-3 py-2 text-left hover:bg-bg-secondary border-b border-border last:border-b-0 group"
+                    >
+                      <Folder size={14} className="text-text-dim shrink-0" />
+                      <span className="text-sm text-text flex-1 truncate">{entry.name}</span>
+                      {entry.is_orchystraw_project && (
+                        <span className="text-[10px] px-1.5 py-0.5 rounded bg-status-green/10 text-status-green border border-status-green/20">
+                          orchystraw
+                        </span>
+                      )}
+                    </button>
+                  ))}
+                </div>
+
+                {/* Use this folder button */}
+                <div className="mt-3 flex items-center gap-2">
+                  <button
+                    onClick={() => browse && setPath(browse.current)}
+                    disabled={!browse}
+                    className="flex-1 px-3 py-2 text-xs font-medium bg-accent/10 text-accent border border-accent/30 rounded-md hover:bg-accent/20 transition-colors disabled:opacity-40"
+                  >
+                    Use this folder: {browse?.current ? `${browse.current.split("/").pop()}` : "..."}
+                  </button>
+                </div>
+
+                {/* Selected path indicator */}
+                {path && (
+                  <div className="mt-3 flex items-center gap-2 text-xs text-text-muted">
+                    <Check size={12} className="text-status-green" />
+                    Selected: <span className="font-mono text-text">{path}</span>
+                  </div>
+                )}
               </div>
             </div>
           )}

@@ -664,6 +664,44 @@ async function handleApi(url, req, res) {
         return;
       }
 
+      case "/api/browse": {
+        // List directories at a given path for folder picking
+        let dirPath = params.get("path") || homedir();
+        try {
+          if (!existsSync(dirPath)) {
+            return json(res, { error: "Path does not exist", path: dirPath }, 404);
+          }
+          const stat = statSync(dirPath);
+          if (!stat.isDirectory()) {
+            return json(res, { error: "Not a directory", path: dirPath }, 400);
+          }
+
+          const entries = readdirSync(dirPath, { withFileTypes: true })
+            .filter((e) => e.isDirectory() && !e.name.startsWith("."))
+            .map((e) => {
+              const fullPath = join(dirPath, e.name);
+              const hasAgentsConf = existsSync(join(fullPath, "agents.conf"));
+              return {
+                name: e.name,
+                path: fullPath,
+                is_orchystraw_project: hasAgentsConf,
+              };
+            })
+            .sort((a, b) => a.name.localeCompare(b.name));
+
+          // Parent dir for navigation
+          const parent = dirPath !== "/" ? join(dirPath, "..") : null;
+
+          return json(res, {
+            current: dirPath,
+            parent,
+            entries,
+          });
+        } catch (err) {
+          return json(res, { error: err.message }, 500);
+        }
+      }
+
       case "/api/init-project": {
         if (req.method !== "POST") {
           return json(res, { error: "POST required" }, 405);

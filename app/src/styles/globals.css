@@ -18,6 +18,17 @@
   --font-mono: "JetBrains Mono", ui-monospace, monospace;
 }
 
+/* Light mode override */
+:root.light {
+  --color-bg: #ffffff;
+  --color-bg-secondary: #fafafa;
+  --color-bg-tertiary: #f4f4f5;
+  --color-border: #e4e4e7;
+  --color-text: #0a0a0a;
+  --color-text-muted: #52525b;
+  --color-text-dim: #71717a;
+}
+
 * {
   box-sizing: border-box;
 }
@@ -41,10 +52,10 @@ body {
 }
 
 ::-webkit-scrollbar-thumb {
-  background: #333;
+  background: var(--color-border);
   border-radius: 3px;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: #555;
+  background: var(--color-text-dim);
 }

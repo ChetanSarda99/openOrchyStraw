@@ -28,10 +28,11 @@ export function AgentChat() {
     queryFn: () => listAgents(currentProjectPath),
   });
 
-  // Set default selected agent once loaded
+  // Set default selected agent — prefer co-founder, then first agent
   useEffect(() => {
     if (agents.length > 0 && !agents.some((a) => a.id === selectedAgent)) {
-      setSelectedAgent(agents[0].id);
+      const cofounder = agents.find((a) => a.id.includes("cofounder")) || agents.find((a) => a.id.includes("founder"));
+      setSelectedAgent(cofounder?.id || agents[0].id);
     }
   }, [agents, selectedAgent, setSelectedAgent]);
 
