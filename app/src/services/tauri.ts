@@ -119,12 +119,14 @@ export async function getCycleLogs(cycleNumber: number): Promise<LogEntry[]> {
   return api<LogEntry[]>(`/api/logs?limit=50`);
 }
 
-export async function getLatestLogs(limit: number): Promise<LogEntry[]> {
+export async function getLatestLogs(limit: number, projectPath?: string): Promise<LogEntry[]> {
   const inv = await getInvoke();
   if (inv) {
     try { return (await inv("get_latest_logs", { limit })) as LogEntry[]; } catch {}
   }
-  return api<LogEntry[]>(`/api/logs?limit=${limit}`);
+  const params = new URLSearchParams({ limit: String(limit) });
+  if (projectPath) params.set("path", projectPath);
+  return api<LogEntry[]>(`/api/logs?${params.toString()}`);
 }
 
 export async function readAgentsConf(path: string): Promise<AgentsConfig> {

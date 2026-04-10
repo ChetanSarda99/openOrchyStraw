@@ -24,9 +24,9 @@ export function Dashboard() {
   });
 
   const { data: logs = [] } = useQuery({
-    queryKey: ["latestLogs"],
-    queryFn: () => getLatestLogs(5),
-    refetchInterval: 5_000,
+    queryKey: ["latestLogs", currentProjectPath],
+    queryFn: () => getLatestLogs(10, currentProjectPath),
+    refetchInterval: 3_000,
   });
 
   // Real agent activity from pixel events

@@ -31,8 +31,8 @@ export function LogViewer() {
   const isRunning = !!cycleStatus?.running;
 
   const { data: logs = [] } = useQuery({
-    queryKey: ["latestLogs", 200],
-    queryFn: () => getLatestLogs(200),
+    queryKey: ["latestLogs", currentProjectPath, 200],
+    queryFn: () => getLatestLogs(200, currentProjectPath),
     refetchInterval: isRunning ? false : 5_000,
     enabled: !isRunning,
   });

@@ -19,8 +19,8 @@ export function AgentDetail() {
   });
 
   const { data: logs = [] } = useQuery({
-    queryKey: ["latestLogs", 50],
-    queryFn: () => getLatestLogs(50),
+    queryKey: ["latestLogs", currentProjectPath, 50],
+    queryFn: () => getLatestLogs(50, currentProjectPath),
   });
 
   // If no agent selected, show agent list

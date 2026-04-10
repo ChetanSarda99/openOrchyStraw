@@ -92,34 +92,105 @@ function getProjectInfo(projectPath) {
 }
 
 function getLogs(projectPath, limit = 50) {
-  // Read orchestrator logs
-  const logDirs = readdirSync(join(projectPath, "prompts"), {
-    withFileTypes: true,
-  }).filter((d) => d.isDirectory());
-
   const entries = [];
-  for (const dir of logDirs) {
-    const logPath = join(projectPath, "prompts", dir.name, "logs");
-    if (!existsSync(logPath)) continue;
-    try {
-      const files = readdirSync(logPath)
-        .filter((f) => f.endsWith(".log"))
-        .sort()
-        .reverse()
-        .slice(0, 3);
-      for (const f of files) {
-        const content = readFileSync(join(logPath, f), "utf-8");
-        const firstLine = content.split("\n")[0] || "";
+  const projectName = basename(projectPath);
+
+  // 1. Pull from live running cycle output (most recent activity)
+  const runningInfo = runningCycles.get(projectName);
+  if (runningInfo && runningInfo.output) {
+    const lines = runningInfo.output.split("\n").filter((l) => l.trim());
+    for (const line of lines.slice(-200)) {
+      // Parse: [2026-04-10 01:42:16] [agent-id] message
+      const match = line.match(/^\[([\d-]+\s[\d:]+)\](?:\s\[(\w+)\s*\]\s*(?:\[(\S+)\])?)?\s*(.*)$/);
+      if (match) {
+        const [, ts, level, ctx, msg] = match;
+        const isoTs = ts.replace(" ", "T") + "Z";
+        // Try to extract agent_id from message like "[agent-id] ..."
+        const agentMatch = msg.match(/^\[(\d{2}[a-z]?-[\w-]+)\]\s*(.*)$/);
         entries.push({
-          timestamp: f.replace(/\.log$/, "").split("-").slice(-2).join(":"),
-          agent_id: dir.name,
-          level: "info",
-          message: firstLine.slice(0, 200),
-          file: f,
+          timestamp: isoTs,
+          agent_id: agentMatch ? agentMatch[1] : ctx || "orchestrator",
+          level: (level || "INFO").toLowerCase(),
+          message: (agentMatch ? agentMatch[2] : msg).slice(0, 300),
+          source: "live",
         });
+      } else if (line.trim()) {
+        entries.push({
+          timestamp: new Date().toISOString(),
+          agent_id: "orchestrator",
+          level: "info",
+          message: line.slice(0, 300),
+          source: "live",
+        });
+      }
+    }
+  }
+
+  // 2. Pull from finished cycles (recent completions)
+  const finishedInfo = finishedCycles.get(projectName);
+  if (finishedInfo && finishedInfo.output && entries.length < limit) {
+    const lines = finishedInfo.output.split("\n").filter((l) => l.trim());
+    for (const line of lines.slice(-100)) {
+      const match = line.match(/^\[([\d-]+\s[\d:]+)\](?:\s\[(\w+)\s*\]\s*(?:\[(\S+)\])?)?\s*(.*)$/);
+      if (match) {
+        const [, ts, level, ctx, msg] = match;
+        const agentMatch = msg.match(/^\[(\d{2}[a-z]?-[\w-]+)\]\s*(.*)$/);
+        entries.push({
+          timestamp: ts.replace(" ", "T") + "Z",
+          agent_id: agentMatch ? agentMatch[1] : ctx || "orchestrator",
+          level: (level || "INFO").toLowerCase(),
+          message: (agentMatch ? agentMatch[2] : msg).slice(0, 300),
+          source: "finished",
+        });
+      }
+    }
+  }
+
+  // 3. Fall back to agent log files for historical context
+  if (entries.length < limit) {
+    try {
+      const promptsDir = join(projectPath, "prompts");
+      if (existsSync(promptsDir)) {
+        const logDirs = readdirSync(promptsDir, { withFileTypes: true })
+          .filter((d) => d.isDirectory());
+        for (const dir of logDirs) {
+          const logPath = join(projectPath, "prompts", dir.name, "logs");
+          if (!existsSync(logPath)) continue;
+          try {
+            const files = readdirSync(logPath)
+              .filter((f) => f.endsWith(".log"))
+              .map((f) => ({
+                name: f,
+                mtime: statSync(join(logPath, f)).mtimeMs,
+              }))
+              .sort((a, b) => b.mtime - a.mtime)
+              .slice(0, 3);
+            for (const f of files) {
+              const filePath = join(logPath, f.name);
+              const content = readFileSync(filePath, "utf-8");
+              const firstLine = content.split("\n")[0] || "";
+              entries.push({
+                timestamp: new Date(f.mtime).toISOString(),
+                agent_id: dir.name,
+                level: "info",
+                message: firstLine.slice(0, 300),
+                source: "file",
+                file: f.name,
+              });
+            }
+          } catch {}
+        }
       }
     } catch {}
   }
+
+  // Sort by timestamp descending (most recent first)
+  entries.sort((a, b) => {
+    const ta = new Date(a.timestamp).getTime() || 0;
+    const tb = new Date(b.timestamp).getTime() || 0;
+    return tb - ta;
+  });
+
   return entries.slice(0, limit);
 }
 
