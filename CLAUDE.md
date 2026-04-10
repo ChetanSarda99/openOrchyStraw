@@ -139,45 +139,60 @@ tests/core/              — 45+ test scripts + runner
 ### v0.4.0 — Observability + Memory (COMPLETE)
 Observability spans/events, episodic memory, quality gates wired into orchestration loop.
 
-### v0.5.0 — Global CLI + Quality Scoring (CURRENT)
-- `bin/orchystraw` global CLI — run any project from one place
-- Two-root architecture (ORCH_ROOT / PROJECT_ROOT)
-- Multi-project run: `orchystraw run ~/A ~/B --cycles 3` or `--all`
-- `orchystraw add` — register projects without running
-- `--smart-models` — intelligent model selection (opus/sonnet/haiku per task per agent)
-- `--budget N` — daily budget control for model selection
-- Project registry (~/.orchystraw/)
-- Quality scorer (lint + tests + diff + output + ownership → 0-100 score)
-- Decision store (immutable JSONL audit trail)
-- Co-Founder agent (autonomous interval/model/budget decisions)
-- `orchystraw scan` — auto-discover projects in a directory
-- `orchystraw remove` — unregister projects
-- `bin/orch-context` — context injection wrapper for Claude CLI/IDE
-- Co-Founder autonomous ops wired into cycle loop (health, budget, intervals)
-- Model selector report printed per-cycle when smart models active
-- Cross-project dashboard
-- Brand guide + OG image + favicon assets
-- 33 modules, 45+ tests, 8 projects wired
+### v0.5.0 — Global CLI + Desktop App (CURRENT)
+
+**CLI (works):**
+- `orchystraw run <project...> --cycles N` — run agents via Claude CLI
+- `orchystraw run --all --parallel` — concurrent multi-project
+- `orchystraw app` — launch web dashboard (Node server, auto-opens browser)
+- `orchystraw scan` / `add` / `remove` / `list` / `status`
+- `orchystraw benchmark --all` / `prompt-audit` / `doctor`
+- `orchystraw update` — self-updating
+- `--smart-models` + `--budget N` — model selection (Claude/OpenAI/Gemini/Ollama)
+- `--auto-improve` — Karpathy-style quality-gated improvement loop
+- `install.sh` — one-command install for new users
+
+**Desktop App (app/ — works with real data):**
+- Node API server reads agents.conf, registry, logs from filesystem
+- Dashboard: agent grid, cycle stats, activity feed — all real data
+- Agents page: full list with ownership + intervals
+- Config editor: visual agents.conf editor — read/write
+- Settings: model selector, API keys, Ollama URL
+- Multi-project concurrent cycles via Start/Stop buttons
+- Detached processes (survive tab switches)
+
+**Not yet working in app:**
+- Pixel Agents visualization (JSONL emitting works, no UI)
+- Agent chat / co-founder interaction
+- New project onboarding wizard
+- Real-time log streaming
+
+**Infrastructure:**
+- 35 modules, 44/44 tests pass, 8 projects registered
+- Portable: #!/usr/bin/env bash, works on macOS ARM/Intel + Linux
+- CI: GitHub Actions (lint, test, site build, app typecheck, secrets scan)
+- Security: .gitleaks.toml, pre-commit hooks, private data removed from history
+- Templates: saas, api, content, yc-startup
 
 ### Open Issues
 | # | Priority | What |
 |---|----------|------|
-| #195 | High | Pixel Agents end-to-end wiring |
-| #192 | Medium | Connect Mintlify docs to GitHub |
-| #197 | Medium | Web copy humanizer |
-| #172 | Medium | QA visual testing infra |
-| #162 | Medium | E2E golden tests + CI gate |
-| #163 | Medium | Secrets scanning + pre-commit hooks |
-| #164 | Medium | Auto PR reviewer bot |
-| #131/#191 | Low | Record demo GIF |
+| #225 | High | Pixel Agents visualization in dashboard |
+| #226 | High | Agent chat / co-founder interaction UI |
+| #230 | Medium | Real-time log streaming during cycles |
+| #227 | Medium | New project onboarding wizard |
+| #232 | Medium | Fix remaining grep -oP occurrences (macOS compat) |
+| #233 | Low | check-usage.sh wastes tokens on rate limit check |
+| #221 | Low | Cross-platform testing (Linux/Intel Mac) |
+| #191 | Low | Record demo GIF |
 | #133 | Low | Distribution launch posts |
 
 ### Next Up
-1. Install Rust + compile Tauri app
-2. Build quality score history to feed model selection (#206)
-3. Performance benchmarking across projects (#201)
-4. Prompt optimization (#202)
-5. Tauri desktop app
+1. Pixel Agents in dashboard (#225)
+2. Agent chat UI (#226)
+3. Real-time log streaming (#230)
+4. Run real cycles on all projects
+5. Move to other projects (AIVA, Klaro, etc.)
 
 ## Stack Reference Docs (LOCKED — read before building)
 
