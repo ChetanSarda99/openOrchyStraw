@@ -157,9 +157,9 @@ while IFS= read -r file; do
             while IFS= read -r import_line; do
                 [[ -z "$import_line" ]] && continue
                 # Extract imported names: import { Foo, Bar } from '...'
-                imported_names=$(echo "$import_line" | grep -oP '(?<=\{)[^}]+(?=\})' 2>/dev/null | tr ',' '\n' | sed 's/[[:space:]]//g; s/ as .*//') || true
+                imported_names=$(echo "$import_line" | sed -n 's/.*{\([^}]*\)}.*/\1/p' 2>/dev/null | tr ',' '\n' | sed 's/[[:space:]]//g; s/ as .*//') || true
                 # Also handle: import Foo from '...'
-                default_import=$(echo "$import_line" | grep -oP '(?<=import )\w+(?= from)' 2>/dev/null) || true
+                default_import=$(echo "$import_line" | sed -n 's/.*import \([a-zA-Z_][a-zA-Z0-9_]*\) from.*/\1/p' 2>/dev/null) || true
                 all_names="$imported_names $default_import"
                 for name in $all_names; do
                     [[ -z "$name" ]] && continue
@@ -176,7 +176,7 @@ while IFS= read -r file; do
             while IFS= read -r import_line; do
                 [[ -z "$import_line" ]] && continue
                 # from x import y, z
-                imported_names=$(echo "$import_line" | grep -oP '(?<=import )\w+' 2>/dev/null) || true
+                imported_names=$(echo "$import_line" | sed -n 's/.*import \([a-zA-Z_][a-zA-Z0-9_, ]*\).*/\1/p' | tr ',' '\n' | sed 's/[[:space:]]//g' 2>/dev/null) || true
                 for name in $imported_names; do
                     [[ -z "$name" ]] && continue
                     local_count=$(grep -c "\b${name}\b" "$filepath" 2>/dev/null || echo 0)
@@ -204,7 +204,7 @@ while IFS= read -r file; do
                 line_num=$((line_num + 1))
                 if [[ "$in_func" == false ]]; then
                     if echo "$code_line" | grep -qE '(function\s+\w+|const\s+\w+\s*=\s*(async\s*)?\(|^\s*(async\s+)?[a-zA-Z]+\s*\()' 2>/dev/null; then
-                        func_name=$(echo "$code_line" | grep -oP '(function\s+)\K\w+|(?<=const\s)\w+' 2>/dev/null | head -1) || func_name="anonymous"
+                        func_name=$(echo "$code_line" | sed -n 's/.*function[[:space:]]*\([a-zA-Z_][a-zA-Z0-9_]*\).*/\1/p; s/.*const[[:space:]]*\([a-zA-Z_][a-zA-Z0-9_]*\).*/\1/p' 2>/dev/null | head -1) || func_name="anonymous"
                         func_start=$line_num
                         brace_depth=0
                         in_func=true
@@ -236,9 +236,9 @@ while IFS= read -r file; do
                             add_finding "WARNING" "$file" "Large function '$func_name' ($func_length lines at L${func_start}) — consider splitting"
                         fi
                     fi
-                    func_name=$(echo "$code_line" | grep -oP '(?<=def\s)\w+' 2>/dev/null) || func_name="unknown"
+                    func_name=$(echo "$code_line" | sed -n 's/.*def \([a-zA-Z_][a-zA-Z0-9_]*\).*/\1/p' 2>/dev/null) || func_name="unknown"
                     func_start=$line_num
-                    func_indent=$(echo "$code_line" | grep -oP '^\s*' 2>/dev/null | wc -c)
+                    func_indent=$(echo "$code_line" | sed 's/[^ ].*//' 2>/dev/null | wc -c)
                     in_func=true
                 fi
             done < "$filepath"
@@ -261,7 +261,7 @@ while IFS= read -r file; do
                             add_finding "WARNING" "$file" "Large function '$func_name' ($func_length lines at L${func_start}) — consider splitting"
                         fi
                     fi
-                    func_name=$(echo "$code_line" | grep -oP '^\s*\K\w+(?=\s*\(\))' 2>/dev/null) || func_name="unknown"
+                    func_name=$(echo "$code_line" | sed -n 's/^[[:space:]]*\([a-zA-Z_][a-zA-Z0-9_]*\)[[:space:]]*()/\1/p' 2>/dev/null) || func_name="unknown"
                     func_start=$line_num
                     in_func=true
                 fi

@@ -44,7 +44,7 @@ stall_check_cycle() {
     # Find the commit at cycle start (tagged or use previous state)
     local since_ref="HEAD~5"
     if [[ -f "$STALL_STATE_FILE" ]]; then
-        since_ref=$(grep -oP '^last_ref=\K.*' "$STALL_STATE_FILE" 2>/dev/null || echo "HEAD~5")
+        since_ref=$(sed -n 's/^last_ref=//p' "$STALL_STATE_FILE" 2>/dev/null || echo "HEAD~5")
     fi
 
     local meaningful
@@ -52,7 +52,7 @@ stall_check_cycle() {
 
     local current_idle=0
     if [[ -f "$STALL_STATE_FILE" ]]; then
-        current_idle=$(grep -oP '^idle_count=\K[0-9]+' "$STALL_STATE_FILE" 2>/dev/null || echo "0")
+        current_idle=$(sed -n 's/^idle_count=\([0-9]*\)/\1/p' "$STALL_STATE_FILE" 2>/dev/null || echo "0")
     fi
 
     if [[ "$meaningful" -eq 0 ]]; then
@@ -76,7 +76,7 @@ EOF
 stall_should_pause() {
     [[ -f "$STALL_STATE_FILE" ]] || return 1
     local idle
-    idle=$(grep -oP '^idle_count=\K[0-9]+' "$STALL_STATE_FILE" 2>/dev/null || echo "0")
+    idle=$(sed -n 's/^idle_count=\([0-9]*\)/\1/p' "$STALL_STATE_FILE" 2>/dev/null || echo "0")
     [[ "$idle" -ge "$STALL_MAX_IDLE" ]]
 }
 

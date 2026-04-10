@@ -111,8 +111,8 @@ for name in "${names[@]}"; do
     echo ""
     echo -e "  ${BOLD}Social (HTTP probe — not definitive):${NC}"
     social=$(check_social "$name_lower")
-    x_code=$(echo "$social" | grep -oP 'x:\K[0-9]+')
-    gh_code=$(echo "$social" | grep -oP 'gh:\K[0-9]+')
+    x_code=$(echo "$social" | sed -n 's/.*x:\([0-9]*\).*/\1/p')
+    gh_code=$(echo "$social" | sed -n 's/.*gh:\([0-9]*\).*/\1/p')
 
     printf "    %-25s " "x.com/$name_lower"
     if [ "$x_code" = "404" ]; then
