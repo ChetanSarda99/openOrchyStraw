@@ -12,7 +12,7 @@ export function Header() {
   const { data: status } = useQuery({
     queryKey: ["cycleStatus"],
     queryFn: getCycleStatus,
-    refetchInterval: 3_000,
+    refetchInterval: 2_000,
   });
 
   const startMutation = useMutation({
@@ -21,11 +21,12 @@ export function Header() {
   });
 
   const stopMutation = useMutation({
-    mutationFn: stopCycle,
+    mutationFn: () => stopCycle(currentProject),
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ["cycleStatus"] }),
   });
 
   const running = status?.running ?? false;
+  const runCount = status?.agents_run ?? 0;
 
   return (
     <header className="h-14 border-b border-border bg-bg-secondary flex items-center justify-between px-6 shrink-0">
@@ -37,24 +38,32 @@ export function Header() {
             style={{ backgroundColor: running ? "#22c55e" : "#6b7280" }}
           />
           <span className="text-text-muted">
-            {running ? `Cycle ${status?.cycle_number ?? 0} running` : "Idle"}
+            {running
+              ? `${runCount} project${runCount !== 1 ? "s" : ""} running`
+              : "Idle"}
           </span>
         </div>
       </div>
 
       <div className="flex items-center gap-3">
-        {!running && (
-          <input
-            type="number"
-            min={1}
-            max={100}
-            value={cycleCount}
-            onChange={(e) => setCycleCount(Math.max(1, parseInt(e.target.value) || 1))}
-            className="w-14 bg-bg-tertiary text-text text-xs text-center px-2 py-1.5 rounded border border-border focus:outline-none focus:border-accent"
-            title="Number of cycles"
-          />
-        )}
-        {running ? (
+        <input
+          type="number"
+          min={1}
+          max={100}
+          value={cycleCount}
+          onChange={(e) => setCycleCount(Math.max(1, parseInt(e.target.value) || 5))}
+          className="w-14 bg-bg-tertiary text-text text-xs text-center px-2 py-1.5 rounded border border-border focus:outline-none focus:border-accent"
+          title="Number of cycles"
+        />
+        <button
+          onClick={() => startMutation.mutate()}
+          disabled={startMutation.isPending}
+          className="flex items-center gap-2 px-3 py-1.5 text-xs font-medium bg-status-green/10 text-status-green border border-status-green/20 rounded-md hover:bg-status-green/20 transition-colors disabled:opacity-50"
+        >
+          {startMutation.isPending ? <Loader2 size={14} className="animate-spin" /> : <Play size={14} />}
+          Start
+        </button>
+        {running && (
           <button
             onClick={() => stopMutation.mutate()}
             disabled={stopMutation.isPending}
@@ -62,15 +71,6 @@ export function Header() {
           >
             {stopMutation.isPending ? <Loader2 size={14} className="animate-spin" /> : <Square size={14} />}
             Stop
-          </button>
-        ) : (
-          <button
-            onClick={() => startMutation.mutate()}
-            disabled={startMutation.isPending}
-            className="flex items-center gap-2 px-3 py-1.5 text-xs font-medium bg-status-green/10 text-status-green border border-status-green/20 rounded-md hover:bg-status-green/20 transition-colors disabled:opacity-50"
-          >
-            {startMutation.isPending ? <Loader2 size={14} className="animate-spin" /> : <Play size={14} />}
-            Start
           </button>
         )}
       </div>

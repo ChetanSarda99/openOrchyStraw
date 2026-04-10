@@ -123,10 +123,29 @@ function getLogs(projectPath, limit = 50) {
   return entries.slice(0, limit);
 }
 
-// ── Running cycle state ──
+// ── Running cycle state (multi-project) ──
 
-let runningProcess = null;
-let runningProject = null;
+const runningCycles = new Map(); // projectName -> { process, path, pid, startedAt, cycles, output }
+
+function getRunningState() {
+  const entries = [];
+  for (const [name, info] of runningCycles) {
+    // Check if process is still alive
+    try { process.kill(info.pid, 0); } catch {
+      runningCycles.delete(name);
+      continue;
+    }
+    entries.push({
+      project: name,
+      path: info.path,
+      pid: info.pid,
+      cycles: info.cycles,
+      started_at: info.startedAt,
+      output_lines: info.output.split("\n").length,
+    });
+  }
+  return entries;
+}
 
 // ── API Routes ──
 
@@ -177,8 +196,10 @@ function handleApi(url, res) {
           ? join(p, "agents.conf")
           : join(p, "scripts", "agents.conf");
         if (existsSync(conf)) {
+          const raw = readFileSync(conf, "utf-8")
+            .replace(/[\x00-\x08\x0b\x0c\x0e-\x1f]/g, " ");  // strip control chars for JSON safety
           return json(res, {
-            raw: readFileSync(conf, "utf-8"),
+            raw,
             agents: parseAgentsConf(conf),
             path: conf,
           });
@@ -200,54 +221,93 @@ function handleApi(url, res) {
       case "/api/start": {
         const p = params.get("path") || ORCH_ROOT;
         const cycles = parseInt(params.get("cycles") || "5", 10);
+        const projectName = basename(p);
         const orchBin = join(ORCH_ROOT, "bin", "orchystraw");
 
-        if (runningProcess) {
-          return json(res, { error: "A cycle is already running" }, 409);
+        if (runningCycles.has(projectName)) {
+          return json(res, { error: `${projectName} is already running`, running: getRunningState() }, 409);
         }
 
         try {
           const child = spawn(orchBin, ["run", p, "--cycles", String(cycles)], {
             env: { ...process.env, ORCH_ROOT },
             stdio: ["ignore", "pipe", "pipe"],
-            detached: false,
+            detached: true,  // survives tab switches
           });
+          child.unref();  // don't block server exit
 
-          runningProcess = child;
-          runningProject = basename(p);
+          const info = {
+            process: child,
+            path: p,
+            pid: child.pid,
+            cycles,
+            startedAt: new Date().toISOString(),
+            output: "",
+          };
 
-          let output = "";
-          child.stdout.on("data", (d) => { output += d.toString(); });
-          child.stderr.on("data", (d) => { output += d.toString(); });
+          child.stdout.on("data", (d) => { info.output += d.toString(); });
+          child.stderr.on("data", (d) => { info.output += d.toString(); });
           child.on("close", (code) => {
-            console.log(`Cycle finished (${runningProject}, exit ${code})`);
-            runningProcess = null;
-            runningProject = null;
+            console.log(`[${projectName}] Cycle finished (exit ${code})`);
+            runningCycles.delete(projectName);
           });
 
-          return json(res, { started: true, project: basename(p), cycles, pid: child.pid });
+          runningCycles.set(projectName, info);
+          console.log(`[${projectName}] Started ${cycles} cycle(s), PID ${child.pid}`);
+
+          return json(res, { started: true, project: projectName, cycles, pid: child.pid });
         } catch (err) {
           return json(res, { error: `Failed to start: ${err.message}` }, 500);
         }
       }
 
       case "/api/stop": {
-        if (runningProcess) {
-          runningProcess.kill("SIGTERM");
-          runningProcess = null;
-          const name = runningProject;
-          runningProject = null;
-          return json(res, { stopped: true, project: name });
+        const projectName = params.get("project") || null;
+
+        if (projectName && runningCycles.has(projectName)) {
+          const info = runningCycles.get(projectName);
+          try { process.kill(info.pid, "SIGTERM"); } catch {}
+          runningCycles.delete(projectName);
+          return json(res, { stopped: true, project: projectName });
         }
+
+        // Stop all if no project specified
+        if (!projectName && runningCycles.size > 0) {
+          const stopped = [];
+          for (const [name, info] of runningCycles) {
+            try { process.kill(info.pid, "SIGTERM"); } catch {}
+            stopped.push(name);
+          }
+          runningCycles.clear();
+          return json(res, { stopped: true, projects: stopped });
+        }
+
         return json(res, { error: "No cycle running" }, 404);
       }
 
       case "/api/running": {
+        const running = getRunningState();
         return json(res, {
-          running: !!runningProcess,
-          project: runningProject,
-          pid: runningProcess?.pid ?? null,
+          running: running.length > 0,
+          count: running.length,
+          cycles: running,
         });
+      }
+
+      case "/api/output": {
+        const projectName = params.get("project");
+        if (projectName && runningCycles.has(projectName)) {
+          const info = runningCycles.get(projectName);
+          const lines = info.output.split("\n");
+          const last = parseInt(params.get("last") || "20", 10);
+          return json(res, {
+            project: projectName,
+            pid: info.pid,
+            total_lines: lines.length,
+            output: lines.slice(-last).join("\n"),
+          });
+        }
+        return json(res, { error: "Project not running" }, 404);
       }
 
       default:

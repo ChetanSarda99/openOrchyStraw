@@ -57,12 +57,13 @@ export async function startCycle(projectPath: string, cycles: number): Promise<C
   };
 }
 
-export async function stopCycle(): Promise<void> {
+export async function stopCycle(project?: string): Promise<void> {
   const inv = await getInvoke();
   if (inv) {
     try { await inv("stop_cycle"); } catch {}
+    return;
   }
-  await api("/api/stop");
+  await api(`/api/stop${project ? `?project=${encodeURIComponent(project)}` : ""}`);
 }
 
 export async function getCycleStatus(): Promise<CycleStatus> {
@@ -70,13 +71,13 @@ export async function getCycleStatus(): Promise<CycleStatus> {
   if (inv) {
     try { return (await inv("get_cycle_status")) as CycleStatus; } catch {}
   }
-  const status = await api<{ running: boolean; project: string | null; pid: number | null }>("/api/running");
+  const status = await api<{ running: boolean; count: number; cycles: Array<{ project: string; pid: number; cycles: number }> }>("/api/running");
   return {
     running: status.running,
-    cycle_number: 0,
-    agents_run: 0,
+    cycle_number: status.count,
+    agents_run: status.cycles?.length || 0,
     last_cycle_time: new Date().toISOString(),
-    project_path: status.project || "",
+    project_path: status.cycles?.[0]?.project || "",
   };
 }
 
