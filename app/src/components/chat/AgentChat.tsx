@@ -93,7 +93,7 @@ export function AgentChat() {
           <h2 className="text-sm font-medium text-text-muted">Chat with Co-Founder</h2>
           <p className="text-[10px] text-text-dim">
             {targetAgent
-              ? "Co-founder talks to CEO, CTO, and PM. PM coordinates the rest of the team."
+              ? "You → Co-Founder → CEO/CTO/PM → workers. PM reports up to all three leaders."
               : "Co-founder agent not found in this project."}
           </p>
         </div>
