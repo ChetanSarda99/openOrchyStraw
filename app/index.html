@@ -9,10 +9,24 @@
         margin: 0;
         padding: 0;
         height: 100%;
-        background: #0a0a0a;
-        color: #fafafa;
+      }
+      /* Initial bg via CSS var so theme toggle can flip it */
+      html {
+        background: var(--bg-init, #0a0a0a);
+        color: var(--fg-init, #fafafa);
+      }
+      html.light {
+        --bg-init: #ffffff;
+        --fg-init: #0a0a0a;
       }
     </style>
+    <script>
+      // Apply theme as early as possible to avoid flash
+      try {
+        var t = localStorage.getItem('orch-theme');
+        if (t === 'light') document.documentElement.classList.add('light');
+      } catch(e) {}
+    </script>
   </head>
   <body>
     <div id="root"></div>

@@ -72,9 +72,12 @@ export function Header() {
           <span className="text-text-muted">
             {thisProjectRunning ? "Running" : "Idle"}
             {!thisProjectRunning && lastFinished && (
-              <span className={lastFinished.exit_code === 0 ? "text-status-green" : "text-status-red"}>
+              <span
+                className={lastFinished.exit_code === 0 ? "text-status-green" : "text-status-red"}
+                title={`exit code: ${lastFinished.exit_code}`}
+              >
                 {" · Last: "}
-                {lastFinished.exit_code === 0 ? "OK" : `exit ${lastFinished.exit_code}`}
+                {lastFinished.exit_code === 0 ? "OK" : "Failed"}
                 {" ("}
                 {Math.round(lastFinished.duration_ms / 1000)}
                 s)

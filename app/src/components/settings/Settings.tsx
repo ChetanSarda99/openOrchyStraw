@@ -138,12 +138,17 @@ export function Settings() {
       {/* API Keys */}
       <section className="space-y-3">
         <h3 className="text-xs font-semibold uppercase tracking-wider text-text-dim">API Keys</h3>
-        <div className="bg-bg-secondary border border-border rounded-lg p-4 space-y-3">
+        <form
+          autoComplete="off"
+          onSubmit={(e) => e.preventDefault()}
+          className="bg-bg-secondary border border-border rounded-lg p-4 space-y-3"
+        >
           <div className="flex items-center gap-2">
             <Key size={14} className="text-text-dim shrink-0" />
             <label className="text-sm text-text-muted w-28 shrink-0">Anthropic</label>
             <input
               type="password"
+              autoComplete="off"
               value={anthropicKey}
               onChange={(e) => setAnthropicKey(e.target.value)}
               placeholder="sk-ant-... (or use Claude CLI auth)"
@@ -155,6 +160,7 @@ export function Settings() {
             <label className="text-sm text-text-muted w-28 shrink-0">OpenAI</label>
             <input
               type="password"
+              autoComplete="off"
               value={openaiKey}
               onChange={(e) => setOpenaiKey(e.target.value)}
               placeholder="sk-..."
@@ -166,6 +172,7 @@ export function Settings() {
             <label className="text-sm text-text-muted w-28 shrink-0">Gemini</label>
             <input
               type="password"
+              autoComplete="off"
               value={geminiKey}
               onChange={(e) => setGeminiKey(e.target.value)}
               placeholder="AIza..."
@@ -175,7 +182,7 @@ export function Settings() {
           <p className="text-xs text-text-dim pl-6">
             Keys are stored in ~/.orchystraw/config.env. Or set env vars directly.
           </p>
-        </div>
+        </form>
       </section>
 
       {/* Local LLM */}

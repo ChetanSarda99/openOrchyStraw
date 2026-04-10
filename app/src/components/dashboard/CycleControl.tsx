@@ -55,7 +55,7 @@ export function CycleControl() {
 
   const cards = [
     {
-      label: "Cycle",
+      label: "Max cycles",
       value: cycleNum > 0 ? cycleNum : "—",
       icon: Hash,
       color: "#3b82f6",
@@ -67,13 +67,13 @@ export function CycleControl() {
       color: isRunning ? "#22c55e" : lastFinished?.exit_code === 0 ? "#22c55e" : lastFinished ? "#ef4444" : "#6b7280",
     },
     {
-      label: "Agents Active",
+      label: "Working now",
       value: totalAgents > 0 ? `${activeAgents} / ${totalAgents}` : "—",
       icon: Users,
       color: "#a855f7",
     },
     {
-      label: "Last Cycle",
+      label: "Last cycle",
       value: lastCycleAt ? new Date(lastCycleAt).toLocaleTimeString() : "Never",
       icon: Clock,
       color: "#eab308",

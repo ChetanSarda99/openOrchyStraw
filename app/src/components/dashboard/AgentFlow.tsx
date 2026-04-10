@@ -51,7 +51,9 @@ function AgentNode({ agent, x, y, isCoordinator, pixelState, hovered, onHover }:
   const color = agentColor(agent.id);
   const working = pixelState?.state === "working" && pixelState?.alive;
   const r = isCoordinator ? 28 : 20;
-  const shortLabel = agent.label.split(" ")[0].slice(0, 8);
+  // Use the agent ID without numeric prefix for distinct labels
+  // 09-qa-code → qa-code, 09-qa-visual → qa-visual, 00-cofounder → cofounder
+  const shortLabel = agent.id.replace(/^\d+[a-z]?-/, "").slice(0, 9);
 
   return (
     <g
@@ -169,8 +171,13 @@ export function AgentFlow() {
   return (
     <div>
       <h2 className="text-sm font-medium text-text-muted mb-3">Agent Flow</h2>
-      <div className="bg-bg-secondary border border-border rounded-lg p-4 flex justify-center overflow-hidden">
-        <svg width={width} height={height} viewBox={`0 0 ${width} ${height}`}>
+      <div className="bg-bg-secondary border border-border rounded-lg p-4 overflow-hidden">
+        <svg
+          viewBox={`0 0 ${width} ${height}`}
+          preserveAspectRatio="xMidYMid meet"
+          className="w-full h-auto max-h-[420px] mx-auto block"
+          style={{ maxWidth: "900px" }}
+        >
           {/* Spokes from coordinator to workers */}
           {coordinator &&
             workerPositions.map(({ agent, x, y }) => {
@@ -184,10 +191,10 @@ export function AgentFlow() {
                   y1={cy}
                   x2={x}
                   y2={y}
-                  stroke={working ? color : "#262626"}
-                  strokeWidth={working ? 2 : 1}
+                  stroke={working ? color : "#3a3a3a"}
+                  strokeWidth={working ? 2 : 1.5}
                   strokeDasharray={working ? "none" : "4 4"}
-                  opacity={working ? 0.7 : 0.4}
+                  opacity={working ? 0.85 : 0.55}
                 />
               );
             })}
