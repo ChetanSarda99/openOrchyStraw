@@ -11,7 +11,7 @@ import { createServer } from "http";
 import { readFileSync, existsSync, readdirSync, statSync } from "fs";
 import { join, resolve, extname, basename } from "path";
 import { homedir } from "os";
-import { execSync } from "child_process";
+import { execSync, spawn } from "child_process";
 
 const HOST = process.env.ORCH_HOST || "127.0.0.1";
 const PORT = parseInt(process.env.ORCH_PORT || "4321", 10);
@@ -123,6 +123,11 @@ function getLogs(projectPath, limit = 50) {
   return entries.slice(0, limit);
 }
 
+// ── Running cycle state ──
+
+let runningProcess = null;
+let runningProject = null;
+
 // ── API Routes ──
 
 function expandHome(p) {
@@ -189,6 +194,59 @@ function handleApi(url, res) {
           registered_projects: readRegistry().length,
           host: HOST,
           port: PORT,
+        });
+      }
+
+      case "/api/start": {
+        const p = params.get("path") || ORCH_ROOT;
+        const cycles = parseInt(params.get("cycles") || "5", 10);
+        const orchBin = join(ORCH_ROOT, "bin", "orchystraw");
+
+        if (runningProcess) {
+          return json(res, { error: "A cycle is already running" }, 409);
+        }
+
+        try {
+          const child = spawn(orchBin, ["run", p, "--cycles", String(cycles)], {
+            env: { ...process.env, ORCH_ROOT },
+            stdio: ["ignore", "pipe", "pipe"],
+            detached: false,
+          });
+
+          runningProcess = child;
+          runningProject = basename(p);
+
+          let output = "";
+          child.stdout.on("data", (d) => { output += d.toString(); });
+          child.stderr.on("data", (d) => { output += d.toString(); });
+          child.on("close", (code) => {
+            console.log(`Cycle finished (${runningProject}, exit ${code})`);
+            runningProcess = null;
+            runningProject = null;
+          });
+
+          return json(res, { started: true, project: basename(p), cycles, pid: child.pid });
+        } catch (err) {
+          return json(res, { error: `Failed to start: ${err.message}` }, 500);
+        }
+      }
+
+      case "/api/stop": {
+        if (runningProcess) {
+          runningProcess.kill("SIGTERM");
+          runningProcess = null;
+          const name = runningProject;
+          runningProject = null;
+          return json(res, { stopped: true, project: name });
+        }
+        return json(res, { error: "No cycle running" }, 404);
+      }
+
+      case "/api/running": {
+        return json(res, {
+          running: !!runningProcess,
+          project: runningProject,
+          pid: runningProcess?.pid ?? null,
         });
       }
 

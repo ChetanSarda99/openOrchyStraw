@@ -40,28 +40,21 @@ export async function listAgents(configPath: string): Promise<Agent[]> {
   return api<Agent[]>(`/api/agents?path=${encodeURIComponent(configPath)}`);
 }
 
-export async function getCycleStatus(): Promise<CycleStatus> {
-  const inv = await getInvoke();
-  if (inv) {
-    try { return (await inv("get_cycle_status")) as CycleStatus; } catch {}
-  }
-  const status = await api<Record<string, unknown>>("/api/status");
-  return {
-    running: false,
-    cycle_number: (status.cycles as number) || 0,
-    agents_run: (status.registered_projects as number) || 0,
-    last_cycle_time: new Date().toISOString(),
-    project_path: (status.orch_root as string) || "",
-  };
-}
-
 export async function startCycle(projectPath: string, cycles: number): Promise<CycleStatus> {
   const inv = await getInvoke();
   if (inv) {
     try { return (await inv("start_cycle", { projectPath, cycles })) as CycleStatus; } catch {}
   }
-  // Web mode: can't start cycles directly (would need websocket)
-  return { running: false, cycle_number: 0, agents_run: 0, last_cycle_time: "", project_path: projectPath };
+  const result = await api<{ started: boolean; project: string; cycles: number; pid: number }>(
+    `/api/start?path=${encodeURIComponent(projectPath)}&cycles=${cycles}`
+  );
+  return {
+    running: result.started,
+    cycle_number: result.cycles,
+    agents_run: 0,
+    last_cycle_time: new Date().toISOString(),
+    project_path: projectPath,
+  };
 }
 
 export async function stopCycle(): Promise<void> {
@@ -69,6 +62,22 @@ export async function stopCycle(): Promise<void> {
   if (inv) {
     try { await inv("stop_cycle"); } catch {}
   }
+  await api("/api/stop");
+}
+
+export async function getCycleStatus(): Promise<CycleStatus> {
+  const inv = await getInvoke();
+  if (inv) {
+    try { return (await inv("get_cycle_status")) as CycleStatus; } catch {}
+  }
+  const status = await api<{ running: boolean; project: string | null; pid: number | null }>("/api/running");
+  return {
+    running: status.running,
+    cycle_number: 0,
+    agents_run: 0,
+    last_cycle_time: new Date().toISOString(),
+    project_path: status.project || "",
+  };
 }
 
 export async function getCycleLogs(cycleNumber: number): Promise<LogEntry[]> {

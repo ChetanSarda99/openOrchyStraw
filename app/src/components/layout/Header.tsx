@@ -7,7 +7,7 @@ import { useState } from "react";
 export function Header() {
   const { currentProject, currentProjectPath } = useAppStore();
   const queryClient = useQueryClient();
-  const [cycleCount, setCycleCount] = useState(1);
+  const [cycleCount, setCycleCount] = useState(5);
 
   const { data: status } = useQuery({
     queryKey: ["cycleStatus"],
