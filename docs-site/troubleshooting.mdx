@@ -1,0 +1,186 @@
+---
+title: "Troubleshooting"
+description: "Common issues with orchystraw and how to fix them — bash versions, locks, budget errors, AI CLI failures, permissions."
+---
+
+# Troubleshooting
+
+Start with `orchystraw doctor` — it validates bash version, git, AI CLI, PATH, and permissions, and will pinpoint most problems before you spend tokens.
+
+```bash
+orchystraw doctor
+```
+
+If doctor passes but you still hit an issue, work through the sections below.
+
+## Install & environment
+
+### `orchystraw: command not found`
+
+The CLI isn't on your `PATH`. Add the repo's `bin/` directory:
+
+```bash
+echo 'export PATH="$HOME/Projects/openOrchyStraw/bin:$PATH"' >> ~/.zshrc
+source ~/.zshrc
+which orchystraw    # should print the bin path
+```
+
+### `This script requires bash 5.0+`
+
+macOS ships with bash 3.2. Install bash 5 and make sure it's first on your `PATH`:
+
+```bash
+brew install bash
+echo 'export PATH="/opt/homebrew/bin:$PATH"' >> ~/.zshrc   # Apple Silicon
+# or
+echo 'export PATH="/usr/local/bin:$PATH"' >> ~/.zshrc      # Intel
+source ~/.zshrc
+bash --version      # must say 5.x or higher
+```
+
+### `orchystraw doctor` reports missing AI CLI
+
+Install at least one AI CLI and make sure it's on `PATH`. The default is `claude -p` (Claude Code). You can override with `ORCH_AI_CLI`:
+
+```bash
+export ORCH_AI_CLI="codex"      # or "gemini", "aider", etc.
+```
+
+## Running cycles
+
+### `Another orchestrator instance is running` (exit code 2)
+
+A previous run left a lock file because it was killed hard. Check first:
+
+```bash
+orchystraw status <project-path>
+ps aux | grep auto-agent
+```
+
+If no process is actually running, remove the stale lock:
+
+```bash
+rm <project-path>/.orchystraw/orchestrator.lock
+```
+
+<Warning>
+Only delete the lock file after you've confirmed no orchestrator process is alive. Deleting it during an active run will cause concurrent cycles to corrupt each other.
+</Warning>
+
+### Cycle exits immediately with no output
+
+Almost always a stale or invalid `agents.conf`. Run the validator:
+
+```bash
+orchystraw run <project-path> --cycles 1 --dry-run
+```
+
+Dry-run prints the resolved agent list and stops before calling the AI. Fix anything it complains about:
+
+- Malformed pipe-separated rows in `agents.conf`
+- Missing prompt files (`prompts/<id>/<id>.txt`)
+- Invalid `interval` values (must be 0 or a positive integer)
+
+### `Budget exceeded` (exit code 4)
+
+You hit `--budget` or the daily cap in `.orchystraw/budget.json`. Options:
+
+```bash
+orchystraw run <project-path> --cycles 1 --budget 50           # raise the cap
+orchystraw run <project-path> --cycles 1 --smart-models        # use cheaper models where possible
+```
+
+`orchystraw metrics <project-path>` shows which agents are burning the most.
+
+### Agents say "STANDBY" and don't do anything
+
+Three common causes:
+
+1. **Freshness gate** — the orchestrator skipped the cycle because the last run was too recent. Pass `--force` to override.
+2. **Shared context blocker** — some agent wrote a blocker into `prompts/00-shared-context/context.md` under `## Blockers`. Resolve and clear it.
+3. **Interval skip** — agents with `interval=N` only run every Nth cycle. Check `orchystraw status` to see what's due.
+
+### Agent modified files it doesn't own and the changes got reverted
+
+This is working as designed. File ownership is enforced after the agent runs — any writes outside the agent's declared ownership prefixes are stripped before the commit. Fix by:
+
+- Widening that agent's ownership in `agents.conf` (if the write was legitimate), or
+- Updating the prompt to tell the agent which paths it may and may not touch.
+
+## AI CLI failures
+
+### `Claude API: rate limit` or 429 errors
+
+The orchestrator will retry with backoff and, if enabled, fall back to an alternate model. To ride out a longer outage:
+
+```bash
+orchystraw run <project-path> --cycles 1 --smart-models    # routes through cheaper tiers
+```
+
+If you're hitting daily usage caps, check `orchystraw metrics <project-path>` to see which agents to deactivate or move to a higher interval.
+
+### `ANTHROPIC_API_KEY not set`
+
+Export the key in your shell rc file. Same for `OPENAI_API_KEY` and `GEMINI_API_KEY` if you use those providers:
+
+```bash
+echo 'export ANTHROPIC_API_KEY="sk-ant-..."' >> ~/.zshrc
+source ~/.zshrc
+```
+
+### Agent output is empty or truncated
+
+Usually the prompt is too large. Run a prompt audit:
+
+```bash
+orchystraw prompt-audit <project-path>
+```
+
+This lists every agent's prompt size and flags the ones that should be trimmed or compressed. Prompt compression and differential context are already on in v0.2.0+, but very large CLAUDE.md files can still push you over model limits.
+
+## Dashboard & app
+
+### `orchystraw app` doesn't open the browser
+
+The Node API server probably crashed on startup. Check the logs:
+
+```bash
+cat ~/Projects/openOrchyStraw/app/server.log
+```
+
+Common causes: port 3001 already in use, Node version too old (needs 18+), or missing `node_modules` (run `npm install` inside `app/`).
+
+### Dashboard shows no projects
+
+You haven't registered any yet. Auto-discover from `~/Projects`:
+
+```bash
+orchystraw scan
+orchystraw list
+```
+
+Or add them manually: `orchystraw add ~/Projects/MyApp`.
+
+## Logs & state
+
+Everything the orchestrator writes for a given project lives under `<project-path>/.orchystraw/`:
+
+| Path | Contents |
+|------|----------|
+| `.orchystraw/logs/` | Per-cycle log files |
+| `.orchystraw/cycle-state.json` | Current cycle number and agent status |
+| `.orchystraw/metrics.json` | Cost, duration, tokens per agent |
+| `.orchystraw/decisions.jsonl` | Audit trail of agent decisions |
+| `.orchystraw/orchestrator.lock` | Lock file (present during active runs) |
+| `.orchystraw/budget.json` | Running budget counters |
+
+Raise log verbosity for deeper debugging:
+
+```bash
+ORCH_LOG_LEVEL=DEBUG orchystraw run <project-path> --cycles 1
+```
+
+## Still stuck?
+
+- Re-run `orchystraw doctor` and read every warning carefully.
+- Open an issue: [github.com/ChetanSarda99/openOrchyStraw/issues](https://github.com/ChetanSarda99/openOrchyStraw/issues). Include the output of `orchystraw doctor`, your `agents.conf`, and the last ~50 lines of the cycle log.
