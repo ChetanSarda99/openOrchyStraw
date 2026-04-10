@@ -523,8 +523,8 @@ async function handleApi(url, req, res) {
         }
 
         try {
-          // Force agents by default in app mode — users expect cycles to actually run
-          const child = spawn(orchBin, ["run", p, "--cycles", String(cycles), "--force"], {
+          // --force is now the default in auto-agent.sh
+          const child = spawn(orchBin, ["run", p, "--cycles", String(cycles)], {
             env: { ...process.env, ORCH_ROOT },
             stdio: ["ignore", "pipe", "pipe"],
             detached: true,  // survives tab switches
