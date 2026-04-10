@@ -3,27 +3,11 @@ import { useEffect, useRef, useState } from "react";
 import { useAppStore } from "@/stores/app";
 import { getPixelEvents } from "@/services/tauri";
 import type { PixelAgent } from "@/types";
+import { agentColor, agentRole, toolColor, toolLabel } from "@/lib/agent-colors";
 
-// ── Tool → color + label ──
-const TOOL_META: Record<string, { color: string; label: string }> = {
-  write_file: { color: "#22c55e", label: "writing" },
-  Write: { color: "#22c55e", label: "writing" },
-  Edit: { color: "#22c55e", label: "editing" },
-  read_file: { color: "#3b82f6", label: "reading" },
-  Read: { color: "#3b82f6", label: "reading" },
-  bash: { color: "#eab308", label: "running" },
-  Bash: { color: "#eab308", label: "running" },
-  grep: { color: "#a855f7", label: "searching" },
-  Grep: { color: "#a855f7", label: "searching" },
-  list_files: { color: "#06b6d4", label: "listing" },
-  Glob: { color: "#06b6d4", label: "listing" },
-  WebFetch: { color: "#ec4899", label: "fetching" },
-  Task: { color: "#f97316", label: "delegating" },
-  idle: { color: "#6b7280", label: "idle" },
-};
-
+// Tool meta helper — uses shared color/label palette
 function toolMeta(tool: string): { color: string; label: string } {
-  return TOOL_META[tool] ?? { color: "#6b7280", label: tool || "idle" };
+  return { color: toolColor(tool), label: toolLabel(tool) };
 }
 
 interface PixelAgentRowProps {
@@ -59,9 +43,13 @@ function PixelAgentRow({ agent, position }: PixelAgentRowProps) {
         />
       </div>
 
-      {/* Agent ID */}
-      <span className="text-xs font-mono text-text-muted shrink-0 w-32 truncate">
-        {agent.agent_id}
+      {/* Agent ID with role color */}
+      <span
+        className="text-xs font-mono shrink-0 w-32 truncate"
+        style={{ color: agentColor(agent.agent_id) }}
+        title={agent.agent_id}
+      >
+        {agentRole(agent.agent_id)}
       </span>
 
       {/* Action label */}

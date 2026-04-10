@@ -3,56 +3,7 @@ import { useState } from "react";
 import { useAppStore } from "@/stores/app";
 import { getPixelEvents, listAgents } from "@/services/tauri";
 import type { Agent, PixelAgent } from "@/types";
-
-// Locked agent color palette
-const AGENT_COLORS: Record<string, string> = {
-  "00-cofounder": "#f97316",
-  "01-ceo": "#8b5cf6",
-  "02-cto": "#06b6d4",
-  "03-pm": "#ec4899",
-  "06-backend": "#22c55e",
-  "11-web": "#3b82f6",
-  "09-qa-code": "#eab308",
-  "09-qa-visual": "#eab308",
-  "10-security": "#ef4444",
-  "12-designer": "#a855f7",
-  "13-hr": "#14b8a6",
-  "08-pixel": "#f43f5e",
-};
-
-function agentColor(id: string): string {
-  if (AGENT_COLORS[id]) return AGENT_COLORS[id];
-
-  // Strip numeric prefix and match exact role tokens
-  // 03-pm → "pm", 09-pm-issues → "pm-issues", 02-content-strategist → "content-strategist"
-  const role = id.replace(/^\d+[a-z]?-/, "");
-
-  // Exact role matches (no substring confusion — pm-issues won't match pm)
-  if (role === "cofounder" || role === "co-founder" || role === "founder") return "#f97316";
-  if (role === "ceo") return "#8b5cf6";
-  if (role === "cto") return "#06b6d4";
-  if (role === "pm" || role === "pm-coordinator") return "#ec4899";
-  if (role === "backend") return "#22c55e";
-  if (role === "web" || role === "web-dev" || role === "frontend") return "#3b82f6";
-  if (role === "qa-code" || role === "qa-visual" || role === "qa") return "#eab308";
-  if (role === "security") return "#ef4444";
-  if (role === "designer") return "#a855f7";
-  if (role === "hr") return "#14b8a6";
-  if (role === "pixel" || role === "pixel-agents") return "#f43f5e";
-
-  // Domain-specific workers (AIVA, etc.) — distinct gray-ish colors
-  if (role.includes("issue")) return "#94a3b8"; // pm-issues
-  if (role.includes("content")) return "#0ea5e9";
-  if (role.includes("linkedin")) return "#0a66c2";
-  if (role.includes("instagram")) return "#e1306c";
-  if (role.includes("reddit") || role.includes("youtube")) return "#ff4500";
-  if (role.includes("twitter") || role.includes("tiktok") || role.includes("x-")) return "#1da1f2";
-  if (role.includes("engagement")) return "#10b981";
-  if (role.includes("analytics") || role.includes("growth")) return "#f59e0b";
-  if (role.includes("research")) return "#8b5cf6";
-
-  return "#6b7280";
-}
+import { agentColor, agentRole } from "@/lib/agent-colors";
 
 interface NodeProps {
   agent: Agent;
@@ -69,7 +20,7 @@ function AgentNode({ agent, x, y, isCoordinator, pixelState, hovered, onHover }:
   const working = pixelState?.state === "working" && pixelState?.alive;
   const r = isCoordinator ? 22 : 18;
   // Full role name (no prefix), no truncation — rendered BELOW the circle
-  const label = agent.id.replace(/^\d+[a-z]?-/, "");
+  const label = agentRole(agent.id);
 
   return (
     <g
@@ -149,7 +100,7 @@ export function AgentFlow() {
 
   // ── Categorize agents into chain of command layers ──
   const isLeader = (id: string): "cofounder" | "ceo" | "cto" | null => {
-    const role = id.replace(/^\d+[a-z]?-/, "");
+    const role = agentRole(id);
     if (role === "cofounder" || role === "co-founder" || role === "founder") return "cofounder";
     if (role === "ceo") return "ceo";
     if (role === "cto") return "cto";
