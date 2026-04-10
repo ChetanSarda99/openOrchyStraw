@@ -179,7 +179,10 @@ export function LogViewer() {
       {/* Log table */}
       <div className="bg-bg-secondary border border-border rounded-lg overflow-hidden">
         {/* Header */}
-        <div className="grid grid-cols-[140px_80px_60px_1fr_60px] gap-2 px-4 py-2 border-b border-border text-[10px] uppercase tracking-wider text-text-dim font-semibold">
+        <div
+          className="grid gap-2 px-4 py-2 border-b border-border text-[10px] uppercase tracking-wider text-text-dim font-semibold"
+          style={{ gridTemplateColumns: "140px 80px 60px minmax(0, 1fr) 60px" }}
+        >
           <span>Timestamp</span>
           <span>Agent</span>
           <span>Level</span>
@@ -192,7 +195,8 @@ export function LogViewer() {
           {filteredLogs.map((log, i) => (
             <div
               key={i}
-              className="grid grid-cols-[140px_80px_60px_1fr_60px] gap-2 px-4 py-2.5 text-sm hover:bg-bg-tertiary/50 transition-colors"
+              className="grid gap-2 px-4 py-2.5 text-sm hover:bg-bg-tertiary/50 transition-colors"
+              style={{ gridTemplateColumns: "140px 80px 60px minmax(0, 1fr) 60px" }}
             >
               <span className="font-mono text-xs text-text-dim">
                 {new Date(log.timestamp).toLocaleTimeString()}

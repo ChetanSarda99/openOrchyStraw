@@ -110,7 +110,10 @@ export function ConfigEditor() {
       {/* Config table */}
       <div className="bg-bg-secondary border border-border rounded-lg overflow-hidden">
         {/* Header */}
-        <div className="grid grid-cols-[100px_120px_160px_1fr_70px_40px] gap-2 px-4 py-2 border-b border-border text-[10px] uppercase tracking-wider text-text-dim font-semibold">
+        <div
+          className="grid gap-2 px-4 py-2 border-b border-border text-[10px] uppercase tracking-wider text-text-dim font-semibold"
+          style={{ gridTemplateColumns: "100px 120px 160px minmax(0, 1fr) 70px 40px" }}
+        >
           <span>ID</span>
           <span>Label</span>
           <span>Prompt Path</span>
@@ -124,7 +127,8 @@ export function ConfigEditor() {
           {agents.map((agent, i) => (
             <div
               key={i}
-              className="grid grid-cols-[100px_120px_160px_1fr_70px_40px] gap-2 px-4 py-1.5 items-center"
+              className="grid gap-2 px-4 py-1.5 items-center"
+              style={{ gridTemplateColumns: "100px 120px 160px minmax(0, 1fr) 70px 40px" }}
             >
               <input
                 value={agent.id}
