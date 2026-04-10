@@ -199,20 +199,11 @@ async def main():
         await qa.click_text("Chat", container="aside")
         await asyncio.sleep(1)
         await qa.shot("chat-default")
-        # Verify cofounder is selected (use the chat-area select, not the sidebar project selector)
-        selected = await qa.js("document.querySelector('main select')?.value || ''")
-        qa.record("chat_cofounder_default", "cofounder" in (selected or "").lower(), f"selected={selected}")
+        # Chat is now hard-routed to cofounder (no dropdown). Verify the header text mentions Co-Founder.
+        chat_header = await qa.js("document.querySelector('main h2')?.textContent || ''")
+        qa.record("chat_cofounder_default", "Co-Founder" in (chat_header or ""), f"header={chat_header}")
 
-        # Try changing agent
-        await qa.js("""
-            const sel = document.querySelector('select');
-            if (sel && sel.options.length > 1) {
-                sel.value = sel.options[1].value;
-                sel.dispatchEvent(new Event('change', { bubbles: true }));
-            }
-        """)
-        await asyncio.sleep(0.5)
-        await qa.shot("chat-changed-agent")
+        # Chat no longer has agent switcher — all messages go to cofounder by design
 
         # Type a message
         await qa.js("""
