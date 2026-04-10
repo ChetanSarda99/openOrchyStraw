@@ -1,0 +1,73 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="512" height="512">
+  <title>Orchy — orchystraw mascot</title>
+  <desc>Orchy: a friendly orchid character sipping from a striped paper straw. Mascot for orchystraw multi-agent AI orchestration tool.</desc>
+
+  <!-- Background -->
+  <rect width="512" height="512" rx="96" fill="#0a0a0a"/>
+
+  <!-- Stem (bottom) -->
+  <path d="M 256 380 Q 248 430 230 480" stroke="#22c55e" stroke-width="8" stroke-linecap="round" fill="none"/>
+  <!-- Small leaf -->
+  <ellipse cx="220" cy="430" rx="22" ry="12" fill="#22c55e" transform="rotate(-25 220 430)"/>
+
+  <!-- Outer petals (back layer) -->
+  <g fill="#a855f7" stroke="#7c3aed" stroke-width="6" stroke-linejoin="round">
+    <!-- Top-left petal -->
+    <ellipse cx="170" cy="200" rx="60" ry="80" transform="rotate(-30 170 200)"/>
+    <!-- Top-right petal -->
+    <ellipse cx="342" cy="200" rx="60" ry="80" transform="rotate(30 342 200)"/>
+    <!-- Bottom-left petal -->
+    <ellipse cx="160" cy="320" rx="55" ry="70" transform="rotate(-50 160 320)"/>
+    <!-- Bottom-right petal -->
+    <ellipse cx="352" cy="320" rx="55" ry="70" transform="rotate(50 352 320)"/>
+  </g>
+
+  <!-- Inner petals (front layer, lighter purple) -->
+  <g fill="#c084fc" stroke="#7c3aed" stroke-width="5" stroke-linejoin="round">
+    <ellipse cx="200" cy="230" rx="42" ry="56" transform="rotate(-20 200 230)"/>
+    <ellipse cx="312" cy="230" rx="42" ry="56" transform="rotate(20 312 230)"/>
+  </g>
+
+  <!-- Face background (the orchid throat) -->
+  <ellipse cx="256" cy="278" rx="86" ry="100" fill="#f9a8d4" stroke="#7c3aed" stroke-width="6"/>
+
+  <!-- Inner face highlight -->
+  <ellipse cx="256" cy="290" rx="62" ry="74" fill="#fce7f3"/>
+
+  <!-- Eyes -->
+  <g fill="#0a0a0a">
+    <circle cx="226" cy="270" r="11"/>
+    <circle cx="286" cy="270" r="11"/>
+  </g>
+  <!-- Eye highlights -->
+  <g fill="#ffffff">
+    <circle cx="229" cy="266" r="3.5"/>
+    <circle cx="289" cy="266" r="3.5"/>
+  </g>
+
+  <!-- Cheek blush -->
+  <g fill="#fb7185" opacity="0.45">
+    <ellipse cx="208" cy="305" rx="13" ry="7"/>
+    <ellipse cx="304" cy="305" rx="13" ry="7"/>
+  </g>
+
+  <!-- Mouth holding straw — small smile -->
+  <path d="M 240 320 Q 256 332 272 320" stroke="#0a0a0a" stroke-width="5" stroke-linecap="round" fill="none"/>
+
+  <!-- Straw (yellow + white stripes) -->
+  <g>
+    <!-- Straw body — angled out from mouth -->
+    <line x1="256" y1="324" x2="380" y2="180" stroke="#fbbf24" stroke-width="14" stroke-linecap="round"/>
+    <!-- Stripes -->
+    <line x1="278" y1="298" x2="282" y2="294" stroke="#ffffff" stroke-width="14" stroke-linecap="round"/>
+    <line x1="304" y1="268" x2="308" y2="264" stroke="#ffffff" stroke-width="14" stroke-linecap="round"/>
+    <line x1="330" y1="238" x2="334" y2="234" stroke="#ffffff" stroke-width="14" stroke-linecap="round"/>
+    <line x1="356" y1="208" x2="360" y2="204" stroke="#ffffff" stroke-width="14" stroke-linecap="round"/>
+  </g>
+
+  <!-- Straw outline -->
+  <line x1="256" y1="324" x2="380" y2="180" stroke="#1f2937" stroke-width="2" stroke-linecap="round"/>
+
+  <!-- Accent: small "O" on the straw top representing orchy/orchystraw -->
+  <circle cx="380" cy="180" r="8" fill="none" stroke="#3b82f6" stroke-width="3"/>
+</svg>
