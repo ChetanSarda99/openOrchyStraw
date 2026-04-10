@@ -11,12 +11,13 @@
 ```
         Founder (human)
             ↕  (chat only with Co-Founder)
-       Co-Founder
-        /     \
-       ↕       ↕
-      CEO     CTO     ← leadership trio (peers)
-        \     |   /
-         ↕    ↕  ↕
+       Co-Founder              ← sits ABOVE everyone, sole interface to Founder
+            ↕
+       ┌────┴────┐
+       ↕         ↕
+      CEO       CTO            ← strategy layer (peers)
+        \       /
+         ↕     ↕
             PM
              ↕
    workers (you are here)

@@ -115,25 +115,31 @@ export function AgentFlow() {
     (a) => !isLeader(a.id) && a.interval !== 0
   );
 
-  // ── Layout dimensions ──
+  // ── Layout dimensions (4 layers) ──
+  // Layer 1: Co-Founder (alone, top — sole interface to Founder)
+  // Layer 2: CEO + CTO (strategic peers)
+  // Layer 3: PM (coordinator)
+  // Layer 4: Workers
   const width = 1000;
   const workerRows = Math.ceil(workers.length / 6);
-  const height = 220 + workerRows * 90;
+  const height = 320 + workerRows * 90;
   const cx = width / 2;
 
   // Layer Y positions
   const yCofounder = 50;
-  const yLeaders = 50;
-  const yPM = 145;
-  const yWorkersStart = 235;
+  const yLeaders = 145;
+  const yPM = 235;
+  const yWorkersStart = 335;
 
-  // Leader positions (cofounder center, ceo left, cto right)
-  const leaderSpacing = 200;
+  // Co-Founder alone at the top, centered
   const cofounderPos = { x: cx, y: yCofounder };
+
+  // CEO/CTO peers below cofounder (centered side by side)
+  const leaderSpacing = 140;
   const ceoPos = ceo ? { x: cx - leaderSpacing, y: yLeaders } : null;
   const ctoPos = cto ? { x: cx + leaderSpacing, y: yLeaders } : null;
 
-  // PM in the middle layer
+  // PM in the next layer
   const pmPos = pm ? { x: cx, y: yPM } : null;
 
   // Workers in a grid below PM
@@ -185,23 +191,34 @@ export function AgentFlow() {
         >
           {/* Layer labels (left side) */}
           <g fill="#52525b" fontSize="9" fontFamily="ui-monospace, monospace">
-            <text x={20} y={yCofounder + 4}>LEADERSHIP</text>
+            <text x={20} y={yCofounder + 4}>FOUNDER INTERFACE</text>
+            <text x={20} y={yLeaders + 4}>STRATEGY</text>
             <text x={20} y={yPM + 4}>COORDINATOR</text>
             <text x={20} y={yWorkersStart + 4}>WORKERS</text>
           </g>
 
-          {/* CoFounder ↔ CEO/CTO peer lines */}
-          {ceoPos && renderLine(cofounderPos.x - 22, cofounderPos.y, ceoPos.x + 22, ceoPos.y, "cf-ceo",
-            isWorking(cofounder?.id) || isWorking(ceo?.id), agentColor(ceo?.id || ""))}
-          {ctoPos && renderLine(cofounderPos.x + 22, cofounderPos.y, ctoPos.x - 22, ctoPos.y, "cf-cto",
-            isWorking(cofounder?.id) || isWorking(cto?.id), agentColor(cto?.id || ""))}
+          {/* "Founder" stub at the very top showing where the human comes in */}
+          <g>
+            <rect x={cx - 50} y={5} width="100" height="22" rx="11" fill="none" stroke="#3a3a3a" strokeWidth="1.5" strokeDasharray="3 3"/>
+            <text x={cx} y={20} textAnchor="middle" fill="#71717a" fontSize="9" fontFamily="ui-monospace, monospace">Founder (you)</text>
+            {/* Line from Founder stub down to Co-Founder */}
+            <line x1={cx} y1={27} x2={cx} y2={cofounderPos.y - 22} stroke="#3a3a3a" strokeWidth="1.5" strokeDasharray="3 3" opacity={0.7}/>
+          </g>
 
-          {/* Leadership trio → PM lines */}
-          {pmPos && cofounder && renderLine(cofounderPos.x, cofounderPos.y + 22, pmPos.x, pmPos.y - 22, "cf-pm",
+          {/* Co-Founder → CEO + CTO (primary delegation) */}
+          {ceoPos && renderLine(cofounderPos.x - 8, cofounderPos.y + 22, ceoPos.x, ceoPos.y - 18, "cf-ceo",
+            isWorking(ceo?.id), agentColor(ceo?.id || ""))}
+          {ctoPos && renderLine(cofounderPos.x + 8, cofounderPos.y + 22, ctoPos.x, ctoPos.y - 18, "cf-cto",
+            isWorking(cto?.id), agentColor(cto?.id || ""))}
+
+          {/* Co-Founder → PM (direct line, cofounder has shortcut access) */}
+          {pmPos && renderLine(cofounderPos.x, cofounderPos.y + 22, pmPos.x, pmPos.y - 22, "cf-pm",
             isWorking(pm?.id), "#ec4899")}
-          {pmPos && ceoPos && renderLine(ceoPos.x, ceoPos.y + 22, pmPos.x - 8, pmPos.y - 22, "ceo-pm",
+
+          {/* CEO → PM, CTO → PM */}
+          {pmPos && ceoPos && renderLine(ceoPos.x, ceoPos.y + 18, pmPos.x - 12, pmPos.y - 22, "ceo-pm",
             isWorking(pm?.id), "#ec4899")}
-          {pmPos && ctoPos && renderLine(ctoPos.x, ctoPos.y + 22, pmPos.x + 8, pmPos.y - 22, "cto-pm",
+          {pmPos && ctoPos && renderLine(ctoPos.x, ctoPos.y + 18, pmPos.x + 12, pmPos.y - 22, "cto-pm",
             isWorking(pm?.id), "#ec4899")}
 
           {/* PM → each worker */}

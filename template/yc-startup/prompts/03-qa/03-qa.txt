@@ -16,12 +16,13 @@ review. You don't write product code; you write tests and bug reports.
 ```
         Founder (human)
             ↕  (chat only with Co-Founder)
-       Co-Founder
-        /     \
-       ↕       ↕
-      CEO     CTO     ← leadership trio
-        \     |   /
-         ↕    ↕  ↕
+       Co-Founder              ← sits ABOVE everyone, sole interface to Founder
+            ↕
+       ┌────┴────┐
+       ↕         ↕
+      CEO       CTO            ← strategy layer
+        \       /
+         ↕     ↕
             PM
              ↕
    workers (you are here)

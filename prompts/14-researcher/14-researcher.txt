@@ -22,12 +22,13 @@ to triage and create GitHub issues when warranted.
 ```
         Founder (human)
             ↕  (chat only with Co-Founder)
-       Co-Founder
-        /     \
-       ↕       ↕
-      CEO     CTO     ← leadership trio
-        \     |   /
-         ↕    ↕  ↕
+       Co-Founder              ← sits ABOVE everyone, sole interface to Founder
+            ↕
+       ┌────┴────┐
+       ↕         ↕
+      CEO       CTO            ← strategy layer
+        \       /
+         ↕     ↕
             PM
              ↕
    workers (you are here)
