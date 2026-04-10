@@ -6,6 +6,7 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
+    "preview": "npm run build && rm -rf .preview && mkdir -p .preview && cp -r out .preview/openOrchyStraw && npx --yes serve -l 3737 .preview",
     "lint": "eslint"
   },
   "dependencies": {

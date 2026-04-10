@@ -220,7 +220,20 @@ function readPixelEvents(projectPath, sinceMs = 0) {
     return [];
   }
 
+  // Load valid agent IDs from agents.conf to filter out phantom/stale dirs
+  let validAgentIds = null;
+  try {
+    const confPath = existsSync(join(projectPath, "agents.conf"))
+      ? join(projectPath, "agents.conf")
+      : join(projectPath, "scripts", "agents.conf");
+    if (existsSync(confPath)) {
+      validAgentIds = new Set(parseAgentsConf(confPath).map((a) => a.id));
+    }
+  } catch {}
+
   for (const dir of entries) {
+    // Skip phantom agents not in agents.conf
+    if (validAgentIds && !validAgentIds.has(dir.name)) continue;
     const sessionFile = join(pixelDir, dir.name, "session.jsonl");
     if (!existsSync(sessionFile)) continue;
 
