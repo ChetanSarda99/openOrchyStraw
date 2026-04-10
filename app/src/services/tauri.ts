@@ -1,12 +1,38 @@
-import type { Agent, AgentsConfig, CycleStatus, LogEntry, ProjectInfo } from "@/types";
+import type {
+  Agent,
+  AgentsConfig,
+  ChatResponse,
+  CycleStatus,
+  DetectedProject,
+  LogEntry,
+  PixelEventsResponse,
+  ProjectInfo,
+} from "@/types";
 
 // ── API Configuration ──
 // The app server runs locally. Configure via env or defaults.
-const API_BASE = import.meta.env.VITE_API_URL || window.location.origin;
+export const API_BASE = import.meta.env.VITE_API_URL || window.location.origin;
 
 async function api<T>(path: string): Promise<T> {
   const res = await fetch(`${API_BASE}${path}`);
   if (!res.ok) throw new Error(`API ${path}: ${res.status}`);
+  return res.json();
+}
+
+async function apiPost<T>(path: string, body: unknown): Promise<T> {
+  const res = await fetch(`${API_BASE}${path}`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(body),
+  });
+  if (!res.ok) {
+    let msg = `API ${path}: ${res.status}`;
+    try {
+      const err = (await res.json()) as { error?: string };
+      if (err?.error) msg = err.error;
+    } catch {}
+    throw new Error(msg);
+  }
   return res.json();
 }
 
@@ -126,4 +152,62 @@ export async function scanProjects(dir: string): Promise<ProjectInfo[]> {
     try { return (await inv("scan_projects", { dir })) as ProjectInfo[]; } catch {}
   }
   return api<ProjectInfo[]>(`/api/projects`);
+}
+
+// ── Pixel Agents ──
+
+export async function getPixelEvents(projectPath: string): Promise<PixelEventsResponse> {
+  return api<PixelEventsResponse>(`/api/pixel-events?project=${encodeURIComponent(projectPath)}`);
+}
+
+// ── Chat ──
+
+export async function sendChatMessage(
+  agent: string,
+  message: string,
+  projectPath: string
+): Promise<ChatResponse> {
+  return apiPost<ChatResponse>(`/api/chat`, { agent, message, project: projectPath });
+}
+
+// ── Onboarding ──
+
+export async function initProject(
+  path: string,
+  template?: string,
+  dryRun = true
+): Promise<DetectedProject> {
+  return apiPost<DetectedProject>(`/api/init-project`, { path, template, dry_run: dryRun });
+}
+
+// ── Streaming output (SSE) ──
+
+export function streamOutput(
+  projectPath: string,
+  onChunk: (text: string) => void,
+  onEnd?: () => void
+): () => void {
+  const url = `${API_BASE}/api/stream/output?project=${encodeURIComponent(projectPath)}`;
+  const es = new EventSource(url);
+
+  es.onmessage = (ev) => {
+    try {
+      const data = JSON.parse(ev.data) as { chunk?: string };
+      if (data.chunk) onChunk(data.chunk);
+    } catch {
+      // ignore malformed
+    }
+  };
+
+  es.addEventListener("end", () => {
+    es.close();
+    if (onEnd) onEnd();
+  });
+
+  es.onerror = () => {
+    es.close();
+    if (onEnd) onEnd();
+  };
+
+  return () => es.close();
 }

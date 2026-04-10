@@ -3,6 +3,7 @@ import { useAppStore } from "@/stores/app";
 import { listAgents, getLatestLogs } from "@/services/tauri";
 import { CycleControl } from "./CycleControl";
 import { AgentCard } from "./AgentCard";
+import { PixelAgents } from "./PixelAgents";
 import { Clock } from "lucide-react";
 
 const LEVEL_COLORS: Record<string, string> = {
@@ -30,6 +31,9 @@ export function Dashboard() {
     <div className="space-y-6">
       {/* Cycle stats */}
       <CycleControl />
+
+      {/* Live pixel agent activity */}
+      <PixelAgents />
 
       {/* Agent grid */}
       <div>

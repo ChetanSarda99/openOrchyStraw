@@ -6,6 +6,8 @@ import { AgentDetail } from "@/components/agents/AgentDetail";
 import { LogViewer } from "@/components/logs/LogViewer";
 import { ConfigEditor } from "@/components/config/ConfigEditor";
 import { Settings } from "@/components/settings/Settings";
+import { AgentChat } from "@/components/chat/AgentChat";
+import { ProjectWizard } from "@/components/onboarding/ProjectWizard";
 
 function MainContent() {
   const activeView = useAppStore((s) => s.activeView);
@@ -15,6 +17,8 @@ function MainContent() {
       return <Dashboard />;
     case "agents":
       return <AgentDetail />;
+    case "chat":
+      return <AgentChat />;
     case "logs":
       return <LogViewer />;
     case "config":
@@ -41,6 +45,7 @@ export default function App() {
           <MainContent />
         </main>
       </div>
+      <ProjectWizard />
     </div>
   );
 }

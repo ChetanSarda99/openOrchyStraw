@@ -8,7 +8,7 @@
 //   orchystraw app                               # via CLI (planned)
 
 import { createServer } from "http";
-import { readFileSync, existsSync, readdirSync, statSync } from "fs";
+import { readFileSync, existsSync, readdirSync, statSync, mkdirSync, writeFileSync } from "fs";
 import { join, resolve, extname, basename } from "path";
 import { homedir } from "os";
 import { execSync, spawn } from "child_process";
@@ -123,9 +123,207 @@ function getLogs(projectPath, limit = 50) {
   return entries.slice(0, limit);
 }
 
+// ── Pixel events (JSONL reader) ──
+
+function readPixelEvents(projectPath, sinceMs = 0) {
+  // Pixel JSONL lives at ~/.claude/projects/orchystraw/<agent_id>/session.jsonl
+  const pixelDir = join(homedir(), ".claude", "projects", "orchystraw");
+  if (!existsSync(pixelDir)) return [];
+
+  const now = Date.now();
+  const agents = [];
+  let entries;
+  try {
+    entries = readdirSync(pixelDir, { withFileTypes: true }).filter((d) => d.isDirectory());
+  } catch {
+    return [];
+  }
+
+  for (const dir of entries) {
+    const sessionFile = join(pixelDir, dir.name, "session.jsonl");
+    if (!existsSync(sessionFile)) continue;
+
+    let lastEvent = null;
+    let lastTool = null;
+    let lastMessage = null;
+    let lastTs = 0;
+    let alive = false;
+
+    try {
+      const lines = readFileSync(sessionFile, "utf-8").split("\n").filter(Boolean);
+      for (const line of lines) {
+        try {
+          const obj = JSON.parse(line);
+          const ts = obj.timestamp ? new Date(obj.timestamp).getTime() : 0;
+          if (ts > lastTs) lastTs = ts;
+          if (obj.type === "assistant" && obj.message?.content?.[0]) {
+            const block = obj.message.content[0];
+            if (block.type === "tool_use") {
+              lastTool = block.name;
+              lastEvent = block;
+            } else if (block.type === "text") {
+              lastMessage = block.text;
+            }
+          } else if (obj.type === "result") {
+            lastTool = "idle";
+          }
+        } catch {
+          // skip malformed line
+        }
+      }
+    } catch {
+      continue;
+    }
+
+    // "alive" = had an event in the last 15 seconds
+    alive = now - lastTs < 15_000;
+    if (lastTs <= sinceMs && sinceMs > 0) continue;
+
+    agents.push({
+      agent_id: dir.name,
+      last_tool: lastTool || "idle",
+      last_message: lastMessage,
+      last_timestamp: lastTs ? new Date(lastTs).toISOString() : null,
+      alive,
+      state: lastTool === "idle" || !alive ? "idle" : "working",
+    });
+  }
+
+  // Also include agents from agents.conf as idle (even if no JSONL exists)
+  try {
+    const confPath = existsSync(join(projectPath, "agents.conf"))
+      ? join(projectPath, "agents.conf")
+      : join(projectPath, "scripts", "agents.conf");
+    const confAgents = parseAgentsConf(confPath);
+    const existingIds = new Set(agents.map((a) => a.agent_id));
+    for (const a of confAgents) {
+      if (!existingIds.has(a.id)) {
+        agents.push({
+          agent_id: a.id,
+          label: a.label,
+          last_tool: "idle",
+          last_message: null,
+          last_timestamp: null,
+          alive: false,
+          state: "idle",
+        });
+      }
+    }
+    // Attach labels to all
+    const labelMap = new Map(confAgents.map((a) => [a.id, a.label]));
+    for (const a of agents) {
+      if (!a.label) a.label = labelMap.get(a.agent_id) || a.agent_id;
+    }
+  } catch {}
+
+  agents.sort((a, b) => a.agent_id.localeCompare(b.agent_id));
+  return agents;
+}
+
+// ── Codebase detection (for onboarding wizard) ──
+
+function detectCodebase(projectPath) {
+  const markers = [
+    { file: "package.json", type: "node", template: "saas" },
+    { file: "next.config.js", type: "nextjs", template: "saas" },
+    { file: "next.config.ts", type: "nextjs", template: "saas" },
+    { file: "Cargo.toml", type: "rust", template: "api" },
+    { file: "go.mod", type: "go", template: "api" },
+    { file: "requirements.txt", type: "python", template: "api" },
+    { file: "pyproject.toml", type: "python", template: "api" },
+    { file: "Gemfile", type: "ruby", template: "api" },
+    { file: "pom.xml", type: "java", template: "api" },
+    { file: "build.gradle", type: "gradle", template: "api" },
+    { file: "composer.json", type: "php", template: "api" },
+    { file: "mix.exs", type: "elixir", template: "api" },
+  ];
+
+  const found = [];
+  for (const m of markers) {
+    if (existsSync(join(projectPath, m.file))) {
+      found.push(m);
+    }
+  }
+
+  // Content detection
+  let suggestedTemplate = "content";
+  let detectedType = "unknown";
+  if (found.length > 0) {
+    const primary = found[0];
+    detectedType = primary.type;
+    suggestedTemplate = primary.template;
+  }
+
+  // Look for hints of content-heavy projects
+  if (
+    existsSync(join(projectPath, "content")) ||
+    existsSync(join(projectPath, "posts")) ||
+    existsSync(join(projectPath, "_posts"))
+  ) {
+    suggestedTemplate = "content";
+  }
+
+  // yc-startup heuristic: has both frontend + docs + marketing
+  if (
+    existsSync(join(projectPath, "site")) &&
+    existsSync(join(projectPath, "docs")) &&
+    found.some((f) => f.type === "node")
+  ) {
+    suggestedTemplate = "yc-startup";
+  }
+
+  return {
+    path: projectPath,
+    exists: existsSync(projectPath),
+    detected_type: detectedType,
+    markers_found: found.map((f) => f.file),
+    suggested_template: suggestedTemplate,
+  };
+}
+
+function readTemplateAgentsConf(template) {
+  const templateDir = join(ORCH_ROOT, "template", template);
+  const confPath = join(templateDir, "agents.conf");
+  if (existsSync(confPath)) {
+    try {
+      return readFileSync(confPath, "utf-8");
+    } catch {
+      return "";
+    }
+  }
+  // Fallback: use the orchystraw root agents.conf
+  const rootConf = join(ORCH_ROOT, "agents.conf");
+  if (existsSync(rootConf)) {
+    try {
+      return readFileSync(rootConf, "utf-8");
+    } catch {
+      return "";
+    }
+  }
+  return "";
+}
+
+// ── POST body reader ──
+
+function readBody(req) {
+  return new Promise((resolve, reject) => {
+    const chunks = [];
+    req.on("data", (c) => chunks.push(c));
+    req.on("end", () => {
+      try {
+        const raw = Buffer.concat(chunks).toString("utf-8");
+        resolve(raw ? JSON.parse(raw) : {});
+      } catch (err) {
+        reject(err);
+      }
+    });
+    req.on("error", reject);
+  });
+}
+
 // ── Running cycle state (multi-project) ──
 
-const runningCycles = new Map(); // projectName -> { process, path, pid, startedAt, cycles, output }
+const runningCycles = new Map(); // projectName -> { process, path, pid, startedAt, cycles, output, listeners }
 
 function getRunningState() {
   const entries = [];
@@ -154,7 +352,7 @@ function expandHome(p) {
   return p;
 }
 
-function handleApi(url, res) {
+async function handleApi(url, req, res) {
   const [path, query] = url.split("?");
   const params = new URLSearchParams(query || "");
   // Expand ~ in path params
@@ -243,12 +441,30 @@ function handleApi(url, res) {
             cycles,
             startedAt: new Date().toISOString(),
             output: "",
+            listeners: new Set(), // SSE response objects
           };
 
-          child.stdout.on("data", (d) => { info.output += d.toString(); });
-          child.stderr.on("data", (d) => { info.output += d.toString(); });
+          const broadcast = (chunk) => {
+            info.output += chunk;
+            for (const listener of info.listeners) {
+              try {
+                listener.write(`data: ${JSON.stringify({ chunk })}\n\n`);
+              } catch {
+                info.listeners.delete(listener);
+              }
+            }
+          };
+
+          child.stdout.on("data", (d) => broadcast(d.toString()));
+          child.stderr.on("data", (d) => broadcast(d.toString()));
           child.on("close", (code) => {
             console.log(`[${projectName}] Cycle finished (exit ${code})`);
+            for (const listener of info.listeners) {
+              try {
+                listener.write(`event: end\ndata: ${JSON.stringify({ code })}\n\n`);
+                listener.end();
+              } catch {}
+            }
             runningCycles.delete(projectName);
           });
 
@@ -308,6 +524,216 @@ function handleApi(url, res) {
           });
         }
         return json(res, { error: "Project not running" }, 404);
+      }
+
+      case "/api/pixel-events": {
+        const p = params.get("project") || params.get("path") || ORCH_ROOT;
+        const since = parseInt(params.get("since") || "0", 10);
+        const agents = readPixelEvents(p, since);
+        return json(res, {
+          project: basename(p),
+          agents,
+          now: new Date().toISOString(),
+        });
+      }
+
+      case "/api/chat": {
+        if (req.method !== "POST") {
+          return json(res, { error: "POST required" }, 405);
+        }
+        let body;
+        try {
+          body = await readBody(req);
+        } catch (err) {
+          return json(res, { error: `Invalid JSON: ${err.message}` }, 400);
+        }
+        const agentId = (body.agent || "").trim();
+        const message = (body.message || "").trim();
+        const projectPath = expandHome(body.project || ORCH_ROOT);
+
+        if (!agentId || !message) {
+          return json(res, { error: "agent and message required" }, 400);
+        }
+
+        // Find the agent prompt path from agents.conf
+        const confPath = existsSync(join(projectPath, "agents.conf"))
+          ? join(projectPath, "agents.conf")
+          : join(projectPath, "scripts", "agents.conf");
+        const confAgents = parseAgentsConf(confPath);
+        const agent = confAgents.find((a) => a.id === agentId);
+        if (!agent) {
+          return json(res, { error: `Agent ${agentId} not found in agents.conf` }, 404);
+        }
+
+        const promptFullPath = join(projectPath, agent.prompt_path);
+        let systemPrompt = "";
+        if (existsSync(promptFullPath)) {
+          try {
+            systemPrompt = readFileSync(promptFullPath, "utf-8");
+          } catch {}
+        }
+
+        // Compose the full prompt: agent prompt + user question
+        const fullPrompt = [
+          `You are the ${agent.label} (${agent.id}) for the OrchyStraw project.`,
+          `Your role and current tasks are described below:`,
+          "",
+          systemPrompt,
+          "",
+          `---`,
+          `User question: ${message}`,
+          ``,
+          `Respond concisely and in character as the ${agent.label}.`,
+        ].join("\n");
+
+        // Spawn claude CLI with the prompt
+        try {
+          const child = spawn("claude", ["-p", fullPrompt], {
+            cwd: projectPath,
+            env: { ...process.env },
+            stdio: ["ignore", "pipe", "pipe"],
+          });
+
+          let stdout = "";
+          let stderr = "";
+          let finished = false;
+
+          const timeout = setTimeout(() => {
+            if (!finished) {
+              try { child.kill("SIGTERM"); } catch {}
+            }
+          }, 120_000);
+
+          child.stdout.on("data", (d) => { stdout += d.toString(); });
+          child.stderr.on("data", (d) => { stderr += d.toString(); });
+
+          const response = await new Promise((resolveP) => {
+            child.on("close", (code) => {
+              finished = true;
+              clearTimeout(timeout);
+              resolveP({
+                agent: agentId,
+                response: stdout.trim() || `(no output) ${stderr.trim()}`,
+                exit_code: code,
+              });
+            });
+            child.on("error", (err) => {
+              finished = true;
+              clearTimeout(timeout);
+              resolveP({
+                agent: agentId,
+                response: `Error invoking claude CLI: ${err.message}`,
+                exit_code: -1,
+              });
+            });
+          });
+
+          return json(res, response);
+        } catch (err) {
+          return json(res, { error: `Failed to invoke claude: ${err.message}` }, 500);
+        }
+      }
+
+      case "/api/stream/output": {
+        const p = params.get("project") || params.get("path") || ORCH_ROOT;
+        const projectName = basename(p);
+
+        // SSE headers
+        res.writeHead(200, {
+          "Content-Type": "text/event-stream",
+          "Cache-Control": "no-cache",
+          Connection: "keep-alive",
+          "Access-Control-Allow-Origin": "*",
+        });
+        res.write(`event: hello\ndata: ${JSON.stringify({ project: projectName })}\n\n`);
+
+        if (runningCycles.has(projectName)) {
+          const info = runningCycles.get(projectName);
+          // Send buffered output first
+          if (info.output) {
+            res.write(`data: ${JSON.stringify({ chunk: info.output })}\n\n`);
+          }
+          info.listeners.add(res);
+          req.on("close", () => {
+            info.listeners.delete(res);
+          });
+        } else {
+          res.write(`event: end\ndata: ${JSON.stringify({ reason: "not_running" })}\n\n`);
+          res.end();
+        }
+        return;
+      }
+
+      case "/api/init-project": {
+        if (req.method !== "POST") {
+          return json(res, { error: "POST required" }, 405);
+        }
+        let body;
+        try {
+          body = await readBody(req);
+        } catch (err) {
+          return json(res, { error: `Invalid JSON: ${err.message}` }, 400);
+        }
+        const folder = expandHome(body.path || "");
+        if (!folder) {
+          return json(res, { error: "path required" }, 400);
+        }
+        if (!existsSync(folder)) {
+          return json(res, { error: `Path does not exist: ${folder}` }, 404);
+        }
+
+        const detection = detectCodebase(folder);
+        const templateOverride = body.template || detection.suggested_template;
+        const agentsConfPreview = readTemplateAgentsConf(templateOverride);
+
+        // Dry-run mode: just return the preview
+        if (body.dry_run !== false) {
+          return json(res, {
+            ...detection,
+            template: templateOverride,
+            agents_conf_preview: agentsConfPreview,
+            dry_run: true,
+          });
+        }
+
+        // Actually initialize: copy agents.conf to project root if missing
+        try {
+          const targetConf = join(folder, "agents.conf");
+          if (!existsSync(targetConf) && agentsConfPreview) {
+            writeFileSync(targetConf, agentsConfPreview, "utf-8");
+          }
+          // Create .orchystraw dir
+          const stateDir = join(folder, ".orchystraw");
+          if (!existsSync(stateDir)) {
+            mkdirSync(stateDir, { recursive: true });
+          }
+          // Register project
+          const registryDir = join(homedir(), ".orchystraw");
+          if (!existsSync(registryDir)) mkdirSync(registryDir, { recursive: true });
+          const existing = readRegistry();
+          if (!existing.some((r) => r.path === folder)) {
+            const entry = {
+              name: basename(folder),
+              path: folder,
+              template: templateOverride,
+              registered_at: new Date().toISOString(),
+            };
+            writeFileSync(
+              REGISTRY_FILE,
+              (existing.length ? existing.map((e) => JSON.stringify(e)).join("\n") + "\n" : "") +
+                JSON.stringify(entry) +
+                "\n"
+            );
+          }
+          return json(res, {
+            ...detection,
+            template: templateOverride,
+            agents_conf_preview: agentsConfPreview,
+            initialized: true,
+          });
+        } catch (err) {
+          return json(res, { error: `Init failed: ${err.message}` }, 500);
+        }
       }
 
       default:
@@ -378,9 +804,19 @@ function serveStatic(url, res) {
 
 // ── Server ──
 
-const server = createServer((req, res) => {
+const server = createServer(async (req, res) => {
+  // Preflight CORS
+  if (req.method === "OPTIONS") {
+    res.writeHead(204, {
+      "Access-Control-Allow-Origin": "*",
+      "Access-Control-Allow-Methods": "GET, POST, OPTIONS",
+      "Access-Control-Allow-Headers": "Content-Type",
+    });
+    res.end();
+    return;
+  }
   if (req.url.startsWith("/api/")) {
-    handleApi(req.url, res);
+    await handleApi(req.url, req, res);
   } else {
     serveStatic(req.url, res);
   }
