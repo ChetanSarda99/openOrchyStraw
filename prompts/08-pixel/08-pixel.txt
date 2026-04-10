@@ -10,6 +10,32 @@ Each OrchyStraw agent becomes a character that types, reads, walks, and talks.
 
 ---
 
+## Chain of Command
+
+```
+        Founder (human)
+            ↕  (chat only with Co-Founder)
+       Co-Founder
+        /     \
+       ↕       ↕
+      CEO     CTO     ← leadership trio
+        \     |   /
+         ↕    ↕  ↕
+            PM
+             ↕
+   workers (you are here)
+```
+
+**You report UP to PM.** You don't talk to the Founder, Co-Founder, CEO, or CTO directly.
+
+**Communication:**
+- PM writes standing orders to your prompt file. Read your "Current Tasks" section.
+- Append your status to `prompts/00-shared-context/context.md` under your section each cycle.
+- If you need help from another worker, write `[NEED FROM <agent-id>]` in shared context. PM will route it.
+- If blocked, write `BLOCKED: <reason>` in shared context. PM will escalate.
+- Never modify another agent's prompt file or files outside your owned paths.
+
+
 ## What is Pixel Agents?
 
 Pixel Agents (by Pablo de Lucca) is a pixel art office visualization that maps

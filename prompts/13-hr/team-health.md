@@ -1,124 +1,71 @@
-# Team Health Report — Cycle 3 Session 6 (2026-03-31)
+# Team Health Report — 2026-04-10 (Cycle 1, v0.5.0 era)
 
-> Fifteenth HR assessment. **Project stalled for 2+ sessions.** 21+ lint-only or zero-commit cycles since cycle 1 session 5. CTO review queue STILL 7 items — unchanged for 4+ sessions despite repeated escalation. No agent has produced meaningful output in 2 cycles. API tokens being burned with no return. **Recommendation: pause orchestrator until CS clears CTO queue or batch-approves.**
+> Sixteenth HR assessment. **Full correction to prior assessment.** The "HARD PAUSE" recommendation from 2026-03-31 was wrong — the project wasn't dead, it was mid-pivot. In the ~10 days since, the team shipped v0.5.0 with a desktop app, global CLI, multi-project support, security hardening, and 40+ commits. The old CTO-queue bottleneck is irrelevant (v0.2.0 long since shipped).
 
 ---
 
-## Team Composition: 9 agents active (unchanged)
+## Team Composition: 12 agents active
 
-| Agent | Recent Activity | Output Quality | Notes |
-|-------|-----------------|----------------|-------|
-| 01-ceo | No output (session 6) | N/A | Nothing to decide |
-| 02-cto | **SILENT — 4+ sessions** | ⚠️ **CRITICAL** | 7 reviews pending, zero cleared |
-| 03-pm | Active (S6 C1-C2) | Good | Tracking stall, updating prompts |
-| 06-backend | **BLOCKED** (S6 C1-C3) | N/A | No actionable work — CTO queue blocks all new features |
-| 08-pixel | SKIPPED | N/A | STANDBY per CEO |
-| 09-qa | Active (S6 C1) | Good | QA cycle 18 — BUG-025 verified, 23/23 PASS |
-| 10-security | SKIPPED | N/A | Interval 5, nothing new to audit |
-| 11-web | SKIPPED | N/A | Site stable, no new work |
-| 13-hr | Active (S6 C1, C3) | Good | This report |
+| ID | Role | Interval | Status | Recent Notable Work |
+|----|------|---------:|--------|---------------------|
+| 00-cofounder | Co-Founder Operations | 2 | **NEW** (since last report) | Added to all templates (310f734) |
+| 01-ceo | CEO — Strategy | 3 | Active | — |
+| 02-cto | CTO — Architecture | 2 | Active | — (no longer blocked) |
+| 03-pm | PM Coordinator (runs LAST) | 0 | Active | Issue tracking, prompt updates |
+| 06-backend | Backend Developer | 1 | **MVP (sustained)** | v0.5.0 desktop app, global CLI, portability fixes, security fixes |
+| 08-pixel | Pixel Agents | 2 | Active | Fixed shared events bug (#250), dashboard UI (#240/241/243) |
+| 09-qa-code | QA Code Review | 3 | **SPLIT from 09-qa** | Code/test quality |
+| 09-qa-visual | QA Visual Audit | 3 | **SPLIT from 09-qa** | Playwright/Chrome visual audits |
+| 10-security | Security Auditor | 5 | Active | — |
+| 11-web | Web Developer | 1 | Active | Site + docs site |
+| 12-designer | Visual Designer | 3 | **NEW** (replaces 12-brand) | Logos, icons, brand assets |
+| 13-hr | HR & Team Culture | 3 | Active | This report |
+
+**Changes since last report:**
+- **Added:** `00-cofounder` (autonomous ops), `12-designer` (replaces archived `12-brand`)
+- **Split:** `09-qa` → `09-qa-code` + `09-qa-visual` (two distinct disciplines — live browser audit vs source reading)
+- **Orphaned (recommend archive):** `prompts/01-pm/` (moved to 03-pm long ago), `prompts/12-brand/` (superseded by 12-designer)
+- **Still planned, not yet activated:** `04-tauri-rust`, `05-tauri-ui`, `07-ios`, `14-researcher`
 
 ## Key Findings
 
-### 1. CRITICAL: PROJECT STALLED — 21+ IDLE CYCLES
+### 1. Correction: the "HARD PAUSE" call was wrong
 
-Since cycle 1 session 5, only 2 meaningful commits: QA cycle 18 report (0a52b24) and this HR report. **Every other cycle was lint-only or zero-commit.** Agents are being invoked, burning API tokens, and producing nothing.
+My last five reports (cycle 2–5 session 6, 2026-03-31) escalated repeatedly about a 7-item CTO queue and recommended pausing the orchestrator. In reality the team pivoted: v0.2.0 shipped, then v0.3/0.4/0.5 followed, and the desktop app + global CLI became the primary surface. The old blocker dissolved because the strategy changed — not because my escalation worked.
 
-This has persisted for **4+ sessions** now. The orchestrator's conditional activation helps (~59% skip rate) but agents that do activate find nothing to do.
+**Lesson (saving for future HR cycles):** When reports stall on one narrative for 3+ sessions, re-read `git log` and `CLAUDE.md` before writing another escalation. The bottleneck may have been routed around already.
 
-**Root cause unchanged:** All available work is complete. Backend can't ship without CTO review. Other agents have no new work in their domain. CS hasn't integrated pending modules.
+### 2. Team is correctly sized for v0.5.x
 
-**NEW RECOMMENDATION: PAUSE THE ORCHESTRATOR.** Running more cycles in this state wastes API budget with zero ROI. Resume only when:
-- CS clears the CTO review queue (batch-approve), OR
-- CS integrates the 3 remaining v0.2.0 modules, OR
-- New work is filed that gives agents something to build
+12 agents cover the current surfaces (core orchestrator, desktop app, landing + docs site, visual QA, security, design). No gaps, no obvious underperformers. The `09-qa` split is particularly healthy — conflating code review with browser-based visual audit was a real problem.
 
-### 2. CTO REVIEW QUEUE — 7 ITEMS, 4+ SESSIONS STALE
+### 3. Still-planned agents — not urgent
 
-| Review Item | Waiting Since | Sessions Waiting |
-|-------------|--------------|-----------------|
-| single-agent.sh (#10) | Session 2 | **4+ sessions** |
-| agents.conf v3 parser | Session 2 | **4+ sessions** |
-| SWE-bench scaffold (#4) | Session 3 | **3+ sessions** |
-| qmd-refresher.sh (#53) | Session 3 | **3+ sessions** |
-| prompt-template.sh (#54) | Session 3 | **3+ sessions** |
-| init-project.sh (#45) | Session 4 | **2+ sessions** |
-| task-decomposer.sh (#50) | Session 4 | **2+ sessions** |
+`04-tauri-rust`, `05-tauri-ui`, `07-ios`, `14-researcher` have prompts but aren't in `agents.conf`. The current `app/` is React + Node API (not Tauri), so Tauri reactivation is not on the critical path. iOS is Phase 3. Researcher is optional.
 
-**Assessment:** This has been escalated as P0 for 2+ sessions. PM escalated. HR escalated. No change. The CTO agent runs (interval 2) but produces no review commits — either the prompt isn't structured to clear the backlog, or the reviews require CS decision-making.
+**Recommendation:** Leave all four dormant until there is a concrete scoped ticket in their domain. Do not reactivate "just in case."
 
-**FINAL ESCALATION:** CS must either (a) batch-approve the 7 items manually, (b) set CTO interval to 1 and restructure the CTO prompt to prioritize queue clearing, or (c) acknowledge the queue is a human decision point and stop the orchestrator from cycling.
+### 4. Open issues are balanced across owners
 
-### 3. 06-BACKEND: FULLY BLOCKED — NO NEW OUTPUT
+Per CLAUDE.md the 9 open issues map cleanly to existing agents:
+- Pixel viz (#225), chat UI (#226), log streaming (#230), onboarding wizard (#227) → 06-backend + 11-web
+- grep -oP remnants (#232) → 06-backend
+- check-usage token waste (#233) → 06-backend
+- Cross-platform testing (#221) → QA
+- Demo GIF (#191), launch posts (#133) → CEO/PM + 12-designer
 
-Backend has been the team MVP for 22+ consecutive cycles but is now fully blocked. No new modules, no bugs to fix, no actionable work. All available code is written and tested (23/23 pass). The only path forward is CTO approval or CS integration.
+No orphaned domains. No hiring needed.
 
-### 4. CS INTEGRATION BACKLOG — GROWING
+### 5. Ownership overlaps — unchanged
 
-| Category | Items | Status |
-|----------|-------|--------|
-| v0.2.0 core modules (unwired) | 3 | dynamic-router, review-phase, worktree |
-| Newer modules (unwired) | 8+ | single-agent, v3 parser, SWE-bench, qmd-refresher, prompt-template, task-decomposer, init-project, etc. |
-| Efficiency scripts | 5 | Built, CTO approved, not wired |
-| CTO reviews | 7 | Must clear before backend can continue |
+- `reports/` shared between `09-qa-code`, `09-qa-visual`, `10-security` — mitigated by subdirectory convention, still worth a cleanup pass in `agents.conf` to make ownership explicit (e.g., `reports/qa-code/`, `reports/visual/`, `reports/security/`). Not urgent.
+- `docs/` split across PM/CTO/CEO/HR by subdirectory — working fine.
 
-**Total CS backlog: ~23 items.** This continues to grow each cycle backend produces output, but CS integration isn't keeping pace.
+## Staffing recommendation for next cycles
 
-### 5. TEAM DYNAMICS — HEALTHY BUT IDLE
+**No changes.** Current 12-agent team is right-sized. Monitor:
+- Whether `12-designer` produces actual assets (new role, no track record yet)
+- Whether `00-cofounder` output materially changes the operations workflow
+- Whether the 09-qa split reduces visual-vs-code confusion (it should)
 
-- **No conflicts:** Zero ownership violations
-- **No underperformers:** The bottleneck is 100% process, not agent quality
-- **All agents doing correct thing:** Standby, skip, or producing what they can
-- **Conditional activation working:** But can't solve the fundamental problem of no work to do
-
-## Open Items
-
-| Item | Status | Priority | Owner |
-|------|--------|----------|-------|
-| CTO review queue | **7 items, 4+ sessions stale** | **P0** | CS (human decision) |
-| Pause orchestrator | Recommended — burning tokens with no ROI | **P0** | CS |
-| v0.2.0 tag | 6/9 wired, 3 modules + scripts pending | **P0** | CS |
-| CS integration backlog | ~23 items total | P1 | CS |
-| Benchmark sprint | Blocked by v0.2.0 tag | P1 | CS + 06-backend |
-| 12-brand archive | CEO silent 20+ cycles | P3 | CS |
-| Orphaned `01-pm/` | Safe to archive | P3 | CS |
-
-## Staffing Recommendations
-
-| Action | Agent | Justification | Priority | Change |
-|--------|-------|---------------|----------|--------|
-| KEEP | All 9 active | Correctly staffed — but idle until blockers clear | — | No change |
-| **PAUSE ORCHESTRATOR** | All agents | No work available. Burning tokens. Resume after CS unblocks. | **P0** | **NEW** |
-| **BATCH-APPROVE CTO QUEUE** | CS (human) | CTO agent can't/won't clear it. 7 items, 4+ sessions. CS must decide. | **P0** | **FINAL ESCALATION** |
-| ACTIVATE post-benchmarks | 04-tauri-rust | Desktop app Rust backend — prompts ready | P2 | No change |
-| ACTIVATE post-benchmarks | 05-tauri-ui | Desktop app React frontend — prompts ready | P2 | No change |
-| ACTIVATE post-Tauri | 07-ios | iOS companion app | P3 | No change |
-| ARCHIVE | 12-brand | CEO silent 20+ cycles | P3 | No change |
-| ARCHIVE | 01-pm | Orphaned old PM directory | P3 | No change |
-
-## Next Review
-
-- Next HR cycle: After CS takes action on CTO queue or integration backlog
-- No value in scheduling another HR review while project is stalled
-
----
-
-## Archived: Cycle 16 Report
-
-> Sixth HR assessment. v0.1.0 SHIPPED (`7a08cec`). v0.2.0 ALL 8 modules complete (245 tests), CTO 6/6 APPROVED. BUG-012 STILL 5/9 missing (13 cycles). Security + QA reviews pending. See git history for full text.
-
-## Archived: Cycle 13 Report
-
-> Fifth HR assessment. v0.2.0 Phase 2 code complete (77 tests). CTO re-review pending. BUG-012 escalated to P0 (5/9 missing). 06-backend team MVP (9 issues, 24→77 tests). See git history for full text.
-
-## Archived: Cycle 8 Report
-
-> Third HR assessment. ALL security blockers resolved (601c9a2). v0.1.0 TAG-READY. BUG-012 at 6/9. Staffing plan: benchmarks first, then Tauri activation. See git history for full text.
-
-## Archived: Cycle 6 Report
-
-> Second HR assessment. CS unblock (d130de7) resolved original 4-cycle blocker. New blockers HIGH-03/04/MEDIUM-01 emerged. BUG-012 at 5/12 prompts. Team correctly sized. See git history for full text.
-
-## Archived: Cycle 1 Report
-
-> First HR team health assessment (baseline). Key findings: CS blocker, 5 orphaned dirs, reports/ overlap, BUG-012 opened, team correctly sized. See git history for full text.
+Next HR review: 3 cycles from now, or sooner if an agent goes silent for 3+ consecutive active cycles.

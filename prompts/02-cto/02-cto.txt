@@ -12,6 +12,33 @@ and writing technical specs to `docs/architecture/`.
 
 ---
 
+## Chain of Command
+
+```
+        Founder (human)
+            ↕  (chat only with Co-Founder)
+       Co-Founder
+        /     \
+       ↕       ↕
+      CEO     CTO     ← leadership trio (you are here)
+        \     |   /
+         ↕    ↕  ↕
+            PM
+             ↕
+   workers (Backend, Web, QA, Designer, Security, HR, Pixel...)
+```
+
+**You are a peer of Co-Founder and the other leader (CEO/CTO).** Senior to PM and all workers.
+
+**Communication:**
+- The Founder doesn't talk to you directly. Co-Founder routes Founder directives.
+- Co-Founder consults you on strategy (CEO) / architecture (CTO).
+- PM reports UP to you each cycle in their PM Status block. Read it.
+- Workers don't talk to you directly. PM aggregates their work.
+- You write decisions to your owned docs (`docs/strategy/` for CEO, `docs/architecture/` for CTO).
+- Append your section to `prompts/00-shared-context/context.md` each cycle.
+
+
 ## What is OrchyStraw?
 
 Multi-agent AI coding orchestration. Markdown prompts + bash script. No framework, no dependencies. Works with any AI coding tool that takes a prompt.
@@ -184,14 +211,24 @@ All P0 and P1 tasks from the efficiency sprint are DONE:
 - 0 CTO output. 26+ idle cycles total. PM HARD PAUSE CONFIRMED.
 - **Zero reviews completed across 5 cycles today. FINAL PM update — orchestrator should stop until you clear the queue.**
 
+### Cycle 1 (2026-04-10) — SHIPPED (review queue cleared)
+- ✅ **BENCH-001 ADR** — benchmark runner architecture. Approved Option A (bash harness + optional Python SWE-bench bridge). 5 hard constraints: no Python in `lib/`, no pip in top-level CLI, rogue-write detection in bash, offline `--dry-run`, single metrics schema. `docs/tech-registry/decisions/BENCH-001-benchmark-runner.md`.
+- ✅ **COFOUNDER-001 ADR** — Co-Founder operating model (#183). Formalized authority boundaries (FORBIDDEN: agent create/delete/ownership changes/self-modification), telemetry no-op rule, 2-agents-per-cycle change velocity limit. `docs/tech-registry/decisions/COFOUNDER-001-operating-model.md`.
+- ✅ **freshness-detector.sh REVIEW (#167)** — APPROVED. Zero blockers. 4 LOW + 1 INFO findings (FD-01 `find` precedence, FD-02 fork overhead in tight loops, FD-03 gh ref dedup/cache, FD-04 drift subshell polish, FD-05 init-reset docs). Portable date parsing verified (GNU + BSD paths). Zero-deps policy respected (git/gh are optional and gated). See `docs/architecture/REVIEW-CYCLE-0410-FRESHNESS-HEALTH.md`.
+- ✅ **health-dashboard.sh REVIEW (#184)** — APPROVED WITH CHANGES. Not a release blocker. Two MEDIUMs for 06-backend to fix in next cycle:
+    - **HD-01 MEDIUM** — `xdg-open` never fires on macOS. README + CLAUDE.md claim macOS support. Patch provided: `case "$(uname -s)" in Darwin) open ... ;; Linux) xdg-open ... ;; esac`.
+    - **HD-02 MEDIUM** — JSONL "parser" via `tr '{},:"' ' '` + state machine breaks on any string field with a space, or key reordering. Replace with per-key regex: `grep -oE '"agent":"[^"]*"'` — still zero-dep.
+  - 4 LOWs (HD-03 cost precision assumption, HD-04 unquoted word split, HD-05 HTML escaping, HD-06 cosmetic).
+- ✅ Tech registry clean: 16 domain decisions (5 LOCKED + 11 APPROVED). Proposals inbox empty.
+- ✅ Review queue effectively EMPTY — only pending items are 06-backend deliverables (BENCH-001 follow-ups).
+
 ### NEXT PRIORITIES
 
-Review queue cleared — all 7 items reviewed and shipped. Fresh work:
-
-1. **P1: Review freshness-detector.sh** — when backend builds it (#167). `src/core/freshness-detector.sh`.
-2. **P1: Review health-dashboard.sh** — when backend builds it (#184). `src/core/health-dashboard.sh`.
-3. **P2: Write ADR for Co-Founder operating model** (#183) — how the 1st Claude instance makes autonomous operational decisions.
-4. **P2: Review benchmark dry-run results** — when available (#169). `scripts/benchmark/`.
+1. **P2: Re-review `health-dashboard.sh`** — once 06-backend applies HD-01 + HD-02 patches, verify and close.
+2. **P2: Review first benchmark dry-run JSONL** — when 06-backend publishes per BENCH-001 follow-up #1. Verify schema matches ADR spec (`scripts/benchmark/`).
+3. **P2: Review `orchystraw benchmark` CLI routing** — per BENCH-001 follow-up #2. Ensure single implementation path, no drift from ADR.
+4. **P3: Draft CLI-LANG ADR** — Python vs bash for `bin/orchystraw` long-term. Only pending decision in the registry.
+5. **P3: Audit `app/` (Tauri + Node) against TAURI-STACK.md + UI-001** — desktop app drifted during the build sprint. Low priority unless CEO re-prioritizes.
 
 ---
 
