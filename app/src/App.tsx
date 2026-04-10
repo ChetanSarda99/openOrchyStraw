@@ -7,6 +7,7 @@ import { LogViewer } from "@/components/logs/LogViewer";
 import { ConfigEditor } from "@/components/config/ConfigEditor";
 import { Settings } from "@/components/settings/Settings";
 import { AgentChat } from "@/components/chat/AgentChat";
+import { IssuesView } from "@/components/issues/IssuesView";
 import { ProjectWizard } from "@/components/onboarding/ProjectWizard";
 
 function MainContent() {
@@ -19,6 +20,8 @@ function MainContent() {
       return <AgentDetail />;
     case "chat":
       return <AgentChat />;
+    case "issues":
+      return <IssuesView />;
     case "logs":
       return <LogViewer />;
     case "config":

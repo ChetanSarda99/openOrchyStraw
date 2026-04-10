@@ -10,6 +10,7 @@ import {
   FolderOpen,
   MessageSquare,
   Plus,
+  CircleDot,
 } from "lucide-react";
 import { useAppStore } from "@/stores/app";
 import { listProjects } from "@/services/tauri";
@@ -19,6 +20,7 @@ const NAV_ITEMS: { view: View; label: string; icon: typeof LayoutDashboard }[] =
   { view: "dashboard", label: "Dashboard", icon: LayoutDashboard },
   { view: "agents", label: "Agents", icon: Users },
   { view: "chat", label: "Chat", icon: MessageSquare },
+  { view: "issues", label: "Issues", icon: CircleDot },
   { view: "logs", label: "Logs", icon: ScrollText },
   { view: "config", label: "Config", icon: FileCode },
   { view: "settings", label: "Settings", icon: Settings },

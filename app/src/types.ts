@@ -34,7 +34,28 @@ export interface AgentsConfig {
   raw: string;
 }
 
-export type View = "dashboard" | "agents" | "logs" | "config" | "settings" | "chat";
+export type View = "dashboard" | "agents" | "logs" | "config" | "settings" | "chat" | "issues";
+
+// ── GitHub Issues ──
+export interface GitHubIssue {
+  number: number;
+  title: string;
+  body: string;
+  labels: string[];
+  created_at: string;
+  updated_at: string;
+  author: string;
+  assignees: string[];
+  url: string;
+  working_on: boolean;
+}
+
+export interface IssuesResponse {
+  issues: GitHubIssue[];
+  total: number;
+  working_count: number;
+  error?: string;
+}
 
 // ── Pixel Agents events ──
 export interface PixelAgent {

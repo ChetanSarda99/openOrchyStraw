@@ -3,6 +3,7 @@ import { useAppStore } from "@/stores/app";
 import { listAgents, getLatestLogs, getPixelEvents } from "@/services/tauri";
 import { CycleControl } from "./CycleControl";
 import { AgentCard } from "./AgentCard";
+import { AgentFlow } from "./AgentFlow";
 import { PixelAgents } from "./PixelAgents";
 import { Clock } from "lucide-react";
 
@@ -46,6 +47,9 @@ export function Dashboard() {
     <div className="space-y-6">
       {/* Cycle stats */}
       <CycleControl />
+
+      {/* Agent flow diagram */}
+      <AgentFlow />
 
       {/* Live pixel agent activity */}
       <PixelAgents />

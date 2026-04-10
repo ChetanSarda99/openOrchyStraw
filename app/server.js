@@ -408,6 +408,7 @@ function readBody(req) {
 
 const runningCycles = new Map(); // projectName -> { process, path, pid, startedAt, cycles, output, listeners }
 const finishedCycles = new Map(); // projectName -> { ...info, finishedAt, exitCode } — kept 30 min
+const _apiCache = new Map(); // generic cache for expensive calls (gh, etc.)
 
 const FINISHED_RETENTION_MS = 30 * 60 * 1000;
 
@@ -676,6 +677,69 @@ async function handleApi(url, req, res) {
           agents,
           now: new Date().toISOString(),
         });
+      }
+
+      case "/api/issues": {
+        const p = params.get("path") || params.get("project") || ORCH_ROOT;
+        const projectName = basename(p);
+
+        // Cache for 60 seconds to avoid hammering gh CLI
+        const cacheKey = `issues:${p}`;
+        const cached = _apiCache.get(cacheKey);
+        if (cached && Date.now() - cached.ts < 60_000) {
+          return json(res, cached.data);
+        }
+
+        let issues = [];
+        try {
+          const result = execSync(
+            `gh issue list --state open --limit 100 --json number,title,labels,createdAt,updatedAt,author,assignees,body,url`,
+            { cwd: p, encoding: "utf-8", timeout: 10_000 }
+          );
+          issues = JSON.parse(result);
+        } catch (err) {
+          // gh failed — try from orchystraw root as fallback
+          try {
+            const result = execSync(
+              `gh issue list --state open --limit 100 --json number,title,labels,createdAt,updatedAt,author,assignees,body,url`,
+              { cwd: ORCH_ROOT, encoding: "utf-8", timeout: 10_000 }
+            );
+            issues = JSON.parse(result);
+          } catch {
+            // Give up — return empty
+            return json(res, { issues: [], total: 0, working_count: 0, error: "gh CLI not available or no issues" });
+          }
+        }
+
+        // Cross-reference with running/finished cycles
+        const running = runningCycles.get(projectName);
+        const finished = finishedCycles.get(projectName);
+        const recentOutput = (running?.output || "") + "\n" + (finished?.output || "");
+        const workingOn = new Set();
+        for (const issue of issues) {
+          const re = new RegExp(`#${issue.number}\\b`);
+          if (re.test(recentOutput)) workingOn.add(issue.number);
+        }
+
+        const result = {
+          issues: issues.map((i) => ({
+            number: i.number,
+            title: i.title,
+            body: i.body ? i.body.slice(0, 500) : "",
+            labels: (i.labels || []).map((l) => l.name),
+            created_at: i.createdAt,
+            updated_at: i.updatedAt,
+            author: i.author?.login || "unknown",
+            assignees: (i.assignees || []).map((a) => a.login),
+            url: i.url,
+            working_on: workingOn.has(i.number),
+          })),
+          total: issues.length,
+          working_count: workingOn.size,
+        };
+
+        _apiCache.set(cacheKey, { ts: Date.now(), data: result });
+        return json(res, result);
       }
 
       case "/api/chat": {

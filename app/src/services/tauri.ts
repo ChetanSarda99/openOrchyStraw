@@ -4,6 +4,7 @@ import type {
   ChatResponse,
   CycleStatus,
   DetectedProject,
+  IssuesResponse,
   LogEntry,
   PixelEventsResponse,
   ProjectInfo,
@@ -164,6 +165,12 @@ export async function scanProjects(dir: string): Promise<ProjectInfo[]> {
 
 export async function getPixelEvents(projectPath: string): Promise<PixelEventsResponse> {
   return api<PixelEventsResponse>(`/api/pixel-events?project=${encodeURIComponent(projectPath)}`);
+}
+
+// ── GitHub Issues ──
+
+export async function getIssues(projectPath: string): Promise<IssuesResponse> {
+  return api<IssuesResponse>(`/api/issues?path=${encodeURIComponent(projectPath)}`);
 }
 
 // ── Chat ──
