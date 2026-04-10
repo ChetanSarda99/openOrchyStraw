@@ -1581,7 +1581,6 @@ CTXEOF
             if [[ "$(type -t orch_freshness_init)" == "function" ]]; then
                 orch_freshness_init 7 2>/dev/null
                 orch_freshness_scan "$PROJECT_ROOT/prompts" 2>/dev/null
-                local stale_count
                 stale_count=$(orch_freshness_stale_count 2>/dev/null)
                 if [[ "$stale_count" -gt 0 ]]; then
                     log "[freshness] $stale_count stale references found in prompts/"
@@ -1956,7 +1955,7 @@ PEOF
             run_cycle_tests
 
             # Track cumulative files changed
-            local _cycle_files
+            _cycle_files=""
             _cycle_files=$(git -C "$PROJECT_ROOT" diff --name-only HEAD~"${COMMITS:-1}" 2>/dev/null | wc -l | tr -d ' ') || _cycle_files=0
             CUMULATIVE_FILES=$((CUMULATIVE_FILES + _cycle_files))
             CUMULATIVE_AGENTS_RUN=$((CUMULATIVE_AGENTS_RUN + AGENTS_RUN))
@@ -2037,7 +2036,7 @@ Est. cost: \$${_tg_cost}${_tg_errors}"
         echo "╔══════════════════════════════════════════════════╗"
         echo "║            ORCHESTRATION COMPLETE                ║"
         echo "╠══════════════════════════════════════════════════╣"
-        local _final_cost
+        _final_cost=""
         _final_cost=$(awk "BEGIN{printf \"%.4f\", $CUMULATIVE_COST / 1000000}")
         printf "║  Total cycles:      %-29s║\n" "$((CYCLE))"
         printf "║  Total agents run:  %-29s║\n" "$CUMULATIVE_AGENTS_RUN"
