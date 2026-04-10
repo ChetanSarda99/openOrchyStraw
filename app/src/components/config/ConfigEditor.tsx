@@ -7,7 +7,7 @@ import type { Agent, AgentsConfig } from "@/types";
 
 export function ConfigEditor() {
   const currentProjectPath = useAppStore((s) => s.currentProjectPath);
-  const confPath = currentProjectPath + "/agents.conf";
+  const confPath = currentProjectPath;
   const queryClient = useQueryClient();
 
   const { data: config } = useQuery({
