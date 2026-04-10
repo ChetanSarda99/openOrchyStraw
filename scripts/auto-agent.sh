@@ -1331,10 +1331,6 @@ case "${1:-help}" in
     orchestrate)
         # v4: Parse orchestrate-specific flags
         shift  # remove 'orchestrate'
-        # Default: force all agents to run (skip conditional activation)
-        # Use --smart-skip to enable token-saving activation check
-        ORCH_FORCE_AGENTS="${ORCH_FORCE_AGENTS:-1}"
-        export ORCH_FORCE_AGENTS
         while [[ $# -gt 0 ]]; do
             case "$1" in
                 --cost-limit)  COST_LIMIT="$2"; shift 2 ;;
@@ -1346,7 +1342,6 @@ case "${1:-help}" in
                 --dry-run)     shift ;;  # handled by dry-run module
                 --smart-models) ORCH_INTELLIGENT_MODEL=1; export ORCH_INTELLIGENT_MODEL; shift ;;
                 --force) ORCH_FORCE_AGENTS=1; export ORCH_FORCE_AGENTS; shift ;;
-                --smart-skip) ORCH_FORCE_AGENTS=0; export ORCH_FORCE_AGENTS; shift ;;
                 --auto-improve) ORCH_AUTO_IMPROVE=1; export ORCH_AUTO_IMPROVE; shift ;;
                 --improve-iterations) ORCH_IMPROVE_ITERATIONS="$2"; shift 2 ;;
                 [0-9]*)        MAX_CYCLES="$1"; shift ;;

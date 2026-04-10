@@ -291,11 +291,51 @@ orch_activation_check() {
         return 0
     fi
 
+    # v0.5 Check 5: always-run agents (cofounder, PM, security)
+    case "$agent_id" in
+        00-cofounder|*-cofounder|03-pm|*-pm|10-security|*-security)
+            _ORCH_ACTIVATION_DECISION["$agent_id"]="run"
+            _ORCH_ACTIVATION_REASON["$agent_id"]="Critical agent (always runs)"
+            _orch_activation_log INFO "$agent_id: ACTIVATED (always-run)"
+            _orch_activation_record_activation "$agent_id"
+            return 0
+            ;;
+    esac
+
+    # v0.5 Check 6: open GitHub issues exist (work to do)
+    if _orch_activation_has_open_issues "$agent_id"; then
+        _ORCH_ACTIVATION_DECISION["$agent_id"]="run"
+        _ORCH_ACTIVATION_REASON["$agent_id"]="Open GitHub issues to address"
+        _orch_activation_log INFO "$agent_id: ACTIVATED (open issues)"
+        _orch_activation_record_activation "$agent_id"
+        return 0
+    fi
+
     # No work detected — skip
     _ORCH_ACTIVATION_DECISION["$agent_id"]="skip"
-    _ORCH_ACTIVATION_REASON["$agent_id"]="No changes in owned paths, no context mentions, no triggers"
+    _ORCH_ACTIVATION_REASON["$agent_id"]="No changes in owned paths, no context mentions, no open issues, no triggers"
     _orch_activation_log INFO "$agent_id: SKIPPED (no work detected)"
     return 1
+}
+
+# v0.5: Check if there are open GitHub issues for this project
+# Caches the result for the lifetime of the cycle to avoid hammering gh CLI
+declare -g _ORCH_ACTIVATION_ISSUES_CHECKED=false
+declare -g _ORCH_ACTIVATION_HAS_ISSUES=false
+
+_orch_activation_has_open_issues() {
+    # Run gh check once per cycle, not per agent
+    if [[ "$_ORCH_ACTIVATION_ISSUES_CHECKED" != "true" ]]; then
+        _ORCH_ACTIVATION_ISSUES_CHECKED=true
+        if command -v gh &>/dev/null; then
+            local issue_count
+            issue_count=$(gh issue list --state open --limit 1 --json number 2>/dev/null | grep -c '"number"' 2>/dev/null || echo "0")
+            if [[ "$issue_count" -gt 0 ]]; then
+                _ORCH_ACTIVATION_HAS_ISSUES=true
+            fi
+        fi
+    fi
+    [[ "$_ORCH_ACTIVATION_HAS_ISSUES" == "true" ]]
 }
 
 # orch_activation_reason <agent_id>

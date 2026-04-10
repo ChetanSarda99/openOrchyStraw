@@ -132,7 +132,9 @@ while IFS= read -r file; do
 done <<< "$CHANGED_FILES"
 
 # ── Check 5: Ownership violations (if agents.conf exists) ──
-CONF_FILE="$PROJECT_ROOT/scripts/agents.conf"
+# Prefer canonical root agents.conf; fall back to legacy scripts/agents.conf
+CONF_FILE="$PROJECT_ROOT/agents.conf"
+[[ -f "$CONF_FILE" ]] || CONF_FILE="$PROJECT_ROOT/scripts/agents.conf"
 if [[ -f "$CONF_FILE" ]]; then
     PROTECTED_PATTERNS=("scripts/auto-agent.sh" "scripts/agents.conf" "CLAUDE.md")
     while IFS= read -r file; do
