@@ -1341,6 +1341,7 @@ case "${1:-help}" in
                 --sync-state)  SYNC_STATE_ENABLED=true; shift ;;
                 --dry-run)     shift ;;  # handled by dry-run module
                 --smart-models) ORCH_INTELLIGENT_MODEL=1; export ORCH_INTELLIGENT_MODEL; shift ;;
+                --force) ORCH_FORCE_AGENTS=1; export ORCH_FORCE_AGENTS; shift ;;
                 --auto-improve) ORCH_AUTO_IMPROVE=1; export ORCH_AUTO_IMPROVE; shift ;;
                 --improve-iterations) ORCH_IMPROVE_ITERATIONS="$2"; shift 2 ;;
                 [0-9]*)        MAX_CYCLES="$1"; shift ;;
@@ -1597,7 +1598,8 @@ CTXEOF
                     continue
                 elif [ $((CYCLE % interval)) -eq 0 ] || [ "$CYCLE" -eq 1 ]; then
                     # v0.2: Check conditional activation (skip agents with no work)
-                    if [[ "$(type -t orch_activation_check)" == "function" ]]; then
+                    # ORCH_FORCE_AGENTS=1 bypasses this check (--force flag)
+                    if [[ "${ORCH_FORCE_AGENTS:-0}" != "1" ]] && [[ "$(type -t orch_activation_check)" == "function" ]]; then
                         if ! orch_activation_check "$id" 2>/dev/null; then
                             log "[$id] Skipping (no work detected: $(orch_activation_reason "$id" 2>/dev/null))"
                             continue

@@ -172,6 +172,7 @@ cmd_run() {
             --max-parallel) agent_args+=("--max-parallel" "$2"); shift 2 ;;
             --watch)    agent_args+=("--watch"); shift ;;
             --smart-models) agent_args+=("--smart-models"); shift ;;
+            --force) agent_args+=("--force"); shift ;;
             --auto-improve) agent_args+=("--auto-improve"); shift ;;
             --improve-iterations) agent_args+=("--improve-iterations" "$2"); shift 2 ;;
             --budget)   export ORCH_DAILY_BUDGET="$2"; shift 2 ;;

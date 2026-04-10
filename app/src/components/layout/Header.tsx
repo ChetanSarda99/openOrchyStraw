@@ -12,10 +12,18 @@ interface RunningCycle {
   started_at: string;
 }
 
+interface FinishedCycle {
+  project: string;
+  exit_code: number;
+  duration_ms: number;
+  finished_at: string;
+}
+
 interface RunningResponse {
   running: boolean;
   count: number;
   cycles: RunningCycle[];
+  finished?: FinishedCycle[];
 }
 
 export function Header() {
@@ -47,6 +55,11 @@ export function Header() {
   const totalRunning = status?.count ?? 0;
   const otherRunning = totalRunning - (thisProjectRunning ? 1 : 0);
 
+  // Most recent finished cycle for this project
+  const lastFinished = status?.finished
+    ?.filter((f) => f.project === currentProject)
+    .sort((a, b) => new Date(b.finished_at).getTime() - new Date(a.finished_at).getTime())[0];
+
   return (
     <header className="h-14 border-b border-border bg-bg-secondary flex items-center justify-between px-6 shrink-0">
       <div className="flex items-center gap-4">
@@ -58,6 +71,15 @@ export function Header() {
           />
           <span className="text-text-muted">
             {thisProjectRunning ? "Running" : "Idle"}
+            {!thisProjectRunning && lastFinished && (
+              <span className={lastFinished.exit_code === 0 ? "text-status-green" : "text-status-red"}>
+                {" · Last: "}
+                {lastFinished.exit_code === 0 ? "OK" : `exit ${lastFinished.exit_code}`}
+                {" ("}
+                {Math.round(lastFinished.duration_ms / 1000)}
+                s)
+              </span>
+            )}
             {otherRunning > 0 && (
               <span className="text-text-dim"> · {otherRunning} other{otherRunning !== 1 ? "s" : ""}</span>
             )}

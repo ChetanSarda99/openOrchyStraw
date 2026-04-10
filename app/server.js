@@ -324,6 +324,19 @@ function readBody(req) {
 // ── Running cycle state (multi-project) ──
 
 const runningCycles = new Map(); // projectName -> { process, path, pid, startedAt, cycles, output, listeners }
+const finishedCycles = new Map(); // projectName -> { ...info, finishedAt, exitCode } — kept 30 min
+
+const FINISHED_RETENTION_MS = 30 * 60 * 1000;
+
+function cleanupFinished() {
+  const now = Date.now();
+  for (const [name, info] of finishedCycles) {
+    if (now - new Date(info.finishedAt).getTime() > FINISHED_RETENTION_MS) {
+      finishedCycles.delete(name);
+    }
+  }
+}
+setInterval(cleanupFinished, 60_000);
 
 function getRunningState() {
   const entries = [];
@@ -427,7 +440,8 @@ async function handleApi(url, req, res) {
         }
 
         try {
-          const child = spawn(orchBin, ["run", p, "--cycles", String(cycles)], {
+          // Force agents by default in app mode — users expect cycles to actually run
+          const child = spawn(orchBin, ["run", p, "--cycles", String(cycles), "--force"], {
             env: { ...process.env, ORCH_ROOT },
             stdio: ["ignore", "pipe", "pipe"],
             detached: true,  // survives tab switches
@@ -465,6 +479,18 @@ async function handleApi(url, req, res) {
                 listener.end();
               } catch {}
             }
+            // Move to finished history (so users can still see what happened)
+            finishedCycles.set(projectName, {
+              project: projectName,
+              path: info.path,
+              pid: info.pid,
+              cycles: info.cycles,
+              startedAt: info.startedAt,
+              finishedAt: new Date().toISOString(),
+              exitCode: code,
+              output: info.output,
+              durationMs: Date.now() - new Date(info.startedAt).getTime(),
+            });
             runningCycles.delete(projectName);
           });
 
@@ -503,27 +529,59 @@ async function handleApi(url, req, res) {
 
       case "/api/running": {
         const running = getRunningState();
+        const finished = Array.from(finishedCycles.values()).map((f) => ({
+          project: f.project,
+          path: f.path,
+          pid: f.pid,
+          cycles: f.cycles,
+          started_at: f.startedAt,
+          finished_at: f.finishedAt,
+          exit_code: f.exitCode,
+          duration_ms: f.durationMs,
+          output_lines: f.output ? f.output.split("\n").length : 0,
+        }));
         return json(res, {
           running: running.length > 0,
           count: running.length,
           cycles: running,
+          finished,
         });
       }
 
       case "/api/output": {
         const projectName = params.get("project");
+        const last = parseInt(params.get("last") || "50", 10);
+
+        // Check running first
         if (projectName && runningCycles.has(projectName)) {
           const info = runningCycles.get(projectName);
           const lines = info.output.split("\n");
-          const last = parseInt(params.get("last") || "20", 10);
           return json(res, {
             project: projectName,
             pid: info.pid,
+            status: "running",
             total_lines: lines.length,
             output: lines.slice(-last).join("\n"),
           });
         }
-        return json(res, { error: "Project not running" }, 404);
+
+        // Then finished
+        if (projectName && finishedCycles.has(projectName)) {
+          const info = finishedCycles.get(projectName);
+          const lines = (info.output || "").split("\n");
+          return json(res, {
+            project: projectName,
+            pid: info.pid,
+            status: "finished",
+            exit_code: info.exitCode,
+            finished_at: info.finishedAt,
+            duration_ms: info.durationMs,
+            total_lines: lines.length,
+            output: lines.slice(-last).join("\n"),
+          });
+        }
+
+        return json(res, { error: "Project not found in running or recently finished" }, 404);
       }
 
       case "/api/pixel-events": {
