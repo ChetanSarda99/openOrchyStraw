@@ -25,12 +25,12 @@ ORCH_ROOT="$(cd "$SCRIPT_DIR/../.." && pwd)"
 
 # ── Auto-detect bash 5+ ──
 if (( BASH_VERSINFO[0] < 5 )); then
-    for _bash5 in /opt/homebrew/bin/bash /usr/local/bin/bash; do
+    for _bash5 in /opt/homebrew/bin/bash /usr/local/bin/bash /usr/bin/bash /bin/bash $(command -v bash 2>/dev/null); do
         if [[ -x "$_bash5" ]] && "$_bash5" -c '(( BASH_VERSINFO[0] >= 5 ))' 2>/dev/null; then
             exec "$_bash5" "$0" "$@"
         fi
     done
-    printf 'ERROR: bash 5.0+ required. Install with: brew install bash\n' >&2
+    printf 'ERROR: bash 5.0+ required. Install: brew install bash (macOS) | apt install bash (Linux)\n' >&2
     exit 1
 fi
 

@@ -1935,12 +1935,20 @@ PEOF
                 pf="$PROJECT_ROOT/${AGENT_PROMPTS[$id]}"
                 [ ! -f "$pf" ] && continue
 
+                # Portable in-place edit (macOS sed needs '' after -i, Linux doesn't)
+                # Use a temp file approach for cross-platform safety
+                _portable_sed() {
+                    local pattern="$1" file="$2" tmp
+                    tmp=$(mktemp) || return 1
+                    sed "$pattern" "$file" > "$tmp" 2>/dev/null && mv "$tmp" "$file" || rm -f "$tmp"
+                }
+
                 # Use | delimiter to avoid / conflicts in date strings
-                sed -i "s|\*\*Date:\*\* .*|\*\*Date:\*\* ${_safe_date} — ${_safe_time}|" "$pf" 2>/dev/null
-                sed -i "s|[0-9]* TypeScript source + [0-9]* test files = [0-9]* total|${_safe_bsrc} TypeScript source + ${_safe_tc} test files = ${_safe_ts} total|" "$pf" 2>/dev/null
-                sed -i "s|[0-9]* Swift files|${_safe_sw} Swift files|" "$pf" 2>/dev/null
-                sed -i "s|[0-9]* components|${_safe_comp} components|" "$pf" 2>/dev/null
-                sed -i "s|Total:.*source files|Total: ${_safe_total} source files|" "$pf" 2>/dev/null
+                _portable_sed "s|\*\*Date:\*\* .*|\*\*Date:\*\* ${_safe_date} — ${_safe_time}|" "$pf"
+                _portable_sed "s|[0-9]* TypeScript source + [0-9]* test files = [0-9]* total|${_safe_bsrc} TypeScript source + ${_safe_tc} test files = ${_safe_ts} total|" "$pf"
+                _portable_sed "s|[0-9]* Swift files|${_safe_sw} Swift files|" "$pf"
+                _portable_sed "s|[0-9]* components|${_safe_comp} components|" "$pf"
+                _portable_sed "s|Total:.*source files|Total: ${_safe_total} source files|" "$pf"
             done
 
             git add prompts/ 2>/dev/null

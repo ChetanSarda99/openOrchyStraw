@@ -27,8 +27,9 @@ alias ctx='orch-context | pbcopy && echo "Context copied to clipboard"'
 # Option 3: Use as Claude Code system prompt prefix
 alias cctx='echo "$(orch-context)" && claude'
 
-# Make sure bin/ is in PATH:
-export PATH="$HOME/Projects/openOrchyStraw/bin:$PATH"
+# Make sure bin/ is in PATH (default install location):
+export PATH="$HOME/.orchystraw/app/bin:$PATH"
+# Or wherever you cloned orchystraw to.
 INSTRUCTIONS
 }
 

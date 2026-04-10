@@ -543,6 +543,29 @@ async function handleApi(url, req, res) {
             stdio: ["ignore", "pipe", "pipe"],
             detached: true,  // survives tab switches
           });
+
+          // Handle spawn failures (binary missing, permissions, etc.)
+          child.on("error", (err) => {
+            console.error(`[${projectName}] spawn error:`, err.message);
+            runningCycles.delete(projectName);
+            finishedCycles.set(projectName, {
+              project: projectName,
+              path: p,
+              pid: child.pid || 0,
+              cycles,
+              startedAt: new Date().toISOString(),
+              finishedAt: new Date().toISOString(),
+              exitCode: -1,
+              output: `spawn error: ${err.message}`,
+              durationMs: 0,
+            });
+          });
+
+          // Validate spawn actually started
+          if (!child.pid) {
+            return json(res, { error: "Failed to spawn orchystraw — binary not found or not executable" }, 500);
+          }
+
           child.unref();  // don't block server exit
 
           const info = {

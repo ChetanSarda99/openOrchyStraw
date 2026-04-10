@@ -260,21 +260,17 @@ orch_cofounder_adjust_intervals() {
                     $5 = $5 " # cofounder " date ": " flag
                     print
                 }')
-                # Use sed to replace the line
-                sed -i.bak "s|^${escaped_id}[[:space:]]*|.*|${new_line}|" "$conf_file" 2>/dev/null || {
-                    # Fallback: write entire file with replacement
-                    local tmp_file
-                    tmp_file=$(mktemp)
-                    while IFS= read -r line; do
-                        if [[ "$line" =~ ^${id}[[:space:]]*\| ]]; then
-                            echo "$new_line"
-                        else
-                            echo "$line"
-                        fi
-                    done < "$conf_file" > "$tmp_file"
-                    mv "$tmp_file" "$conf_file"
-                }
-                rm -f "${conf_file}.bak"
+                # Replace the line in agents.conf (portable: temp file approach, no sed -i)
+                local tmp_file
+                tmp_file=$(mktemp)
+                while IFS= read -r line; do
+                    if [[ "$line" =~ ^${id}[[:space:]]*\| ]]; then
+                        echo "$new_line"
+                    else
+                        echo "$line"
+                    fi
+                done < "$conf_file" > "$tmp_file"
+                mv "$tmp_file" "$conf_file"
 
                 _COFOUNDER_ADJUSTMENTS+=("$id: $current_interval → $new_interval ($flag)")
                 _cofounder_log "INFO" "Adjusted $id interval: $current_interval → $new_interval (reason: $flag)"
