@@ -1464,7 +1464,7 @@ Flags: $([ "$SYNC_STATE_ENABLED" == true ] && echo "sync-state " || true)telegra
             usage_file="$PROMPTS_DIR/00-shared-context/usage.txt"
             bash "$SCRIPT_DIR/check-usage.sh" 2>/dev/null
             if [ -f "$usage_file" ]; then
-                usage_pct=$(grep -oP '\d+' "$usage_file" 2>/dev/null | head -1)
+                usage_pct=$(grep -o '[0-9]*' "$usage_file" 2>/dev/null | head -1)
                 if [ -n "$usage_pct" ] && [ "$usage_pct" -ge 70 ] 2>/dev/null; then
                     log "PAUSED: Claude Code usage at ${usage_pct}% (threshold: 70%)"
                     notify "Paused: usage at ${usage_pct}% — waiting for reset" "warning"
@@ -1799,7 +1799,7 @@ CTXEOF
                     fi
                 done
                 if [[ ${#_committed_agents[@]} -gt 0 ]]; then
-                    _review_usage_pct=$(grep -oP '\d+' "$usage_file" 2>/dev/null | head -1 || echo 0)
+                    _review_usage_pct=$(grep -o '[0-9]*' "$usage_file" 2>/dev/null | head -1 || echo 0)
                     if orch_review_should_run "${_review_usage_pct:-0}" 2>/dev/null; then
                         orch_review_plan "$CYCLE" "${_committed_agents[@]}" 2>/dev/null
                         log "Review phase: $(orch_review_summary 2>/dev/null)"

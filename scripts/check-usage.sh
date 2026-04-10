@@ -35,10 +35,11 @@ if [ -z "$rate_event" ]; then
     exit 0
 fi
 
-status=$(echo "$rate_event" | grep -oP '"status"\s*:\s*"\K[^"]+')
-overage=$(echo "$rate_event" | grep -oP '"isUsingOverage"\s*:\s*\K(true|false)')
-overage_status=$(echo "$rate_event" | grep -oP '"overageStatus"\s*:\s*"\K[^"]+')
-percent_used=$(echo "$rate_event" | grep -oP '"percentUsed"\s*:\s*\K[0-9.]+')
+# macOS-compatible parsing (no grep -P)
+status=$(echo "$rate_event" | sed -n 's/.*"status"[[:space:]]*:[[:space:]]*"\([^"]*\)".*/\1/p')
+overage=$(echo "$rate_event" | sed -n 's/.*"isUsingOverage"[[:space:]]*:[[:space:]]*\(true\|false\).*/\1/p')
+overage_status=$(echo "$rate_event" | sed -n 's/.*"overageStatus"[[:space:]]*:[[:space:]]*"\([^"]*\)".*/\1/p')
+percent_used=$(echo "$rate_event" | sed -n 's/.*"percentUsed"[[:space:]]*:[[:space:]]*\([0-9.]*\).*/\1/p')
 
 if [ "$status" = "limited" ]; then
     echo "100" > "$USAGE_FILE"
