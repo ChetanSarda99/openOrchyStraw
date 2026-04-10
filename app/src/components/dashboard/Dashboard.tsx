@@ -1,10 +1,12 @@
 import { useQuery } from "@tanstack/react-query";
 import { useAppStore } from "@/stores/app";
-import { listAgents, getLatestLogs } from "@/services/tauri";
+import { listAgents, getLatestLogs, getPixelEvents } from "@/services/tauri";
 import { CycleControl } from "./CycleControl";
 import { AgentCard } from "./AgentCard";
 import { PixelAgents } from "./PixelAgents";
 import { Clock } from "lucide-react";
+
+type AgentStatus = "running" | "idle" | "error" | "inactive";
 
 const LEVEL_COLORS: Record<string, string> = {
   info: "#3b82f6",
@@ -27,6 +29,19 @@ export function Dashboard() {
     refetchInterval: 5_000,
   });
 
+  // Real agent activity from pixel events
+  const { data: pixelData } = useQuery({
+    queryKey: ["pixelEvents", currentProjectPath],
+    queryFn: () => getPixelEvents(currentProjectPath),
+    refetchInterval: 2_000,
+  });
+
+  const agentStatusMap = new Map<string, AgentStatus>();
+  for (const a of pixelData?.agents ?? []) {
+    if (a.alive && a.state === "working") agentStatusMap.set(a.agent_id, "running");
+    else if (a.last_timestamp) agentStatusMap.set(a.agent_id, "idle");
+  }
+
   return (
     <div className="space-y-6">
       {/* Cycle stats */}
@@ -40,7 +55,11 @@ export function Dashboard() {
         <h2 className="text-sm font-medium text-text-muted mb-3">Agents</h2>
         <div className="grid grid-cols-3 gap-3">
           {agents.map((agent) => (
-            <AgentCard key={agent.id} agent={agent} status="idle" />
+            <AgentCard
+              key={agent.id}
+              agent={agent}
+              status={agentStatusMap.get(agent.id) ?? "inactive"}
+            />
           ))}
         </div>
       </div>
