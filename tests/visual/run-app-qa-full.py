@@ -100,11 +100,13 @@ class QA:
         print(f"  [{status}] {name}" + (f" — {note}" if note else ""))
 
     async def assert_no_console_errors(self, name):
-        # Check for any ErrorBoundary or visible error text
+        # Check for ErrorBoundary trigger or runtime crash markers only
+        # Don't match log content (historical errors are not UI bugs)
         has_error = await self.js("""
             !!document.querySelector('[role="alert"]') ||
             document.body.textContent.includes('Something went wrong') ||
-            document.body.textContent.includes('Error:')
+            document.body.textContent.includes('Reload app') ||
+            !document.querySelector('aside') /* sidebar gone = crash */
         """)
         self.record(f"{name}_no_error", not has_error)
 
