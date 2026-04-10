@@ -149,6 +149,17 @@ function getLogs(projectPath, limit = 50) {
   // 3. Fall back to agent log files for historical context
   if (entries.length < limit) {
     try {
+      // Load valid agent IDs from agents.conf so we don't show legacy/orphan dirs
+      let validIds = null;
+      try {
+        const confPath = existsSync(join(projectPath, "agents.conf"))
+          ? join(projectPath, "agents.conf")
+          : join(projectPath, "scripts", "agents.conf");
+        if (existsSync(confPath)) {
+          validIds = new Set(parseAgentsConf(confPath).map((a) => a.id));
+        }
+      } catch {}
+
       const promptsDir = join(projectPath, "prompts");
       if (existsSync(promptsDir)) {
         const logDirs = readdirSync(promptsDir, { withFileTypes: true })
@@ -166,12 +177,21 @@ function getLogs(projectPath, limit = 50) {
               .sort((a, b) => b.mtime - a.mtime)
               .slice(0, 3);
             for (const f of files) {
+              // Derive canonical agent ID from log filename when possible
+              // (handles split prompts like 09-qa/ containing 09-qa-code-*.log)
+              let agentId = dir.name;
+              const fileMatch = f.name.match(/^(\d{2}[a-z]?-[\w-]+?)-\d{8}/);
+              if (fileMatch) agentId = fileMatch[1];
+
+              // Skip orphan/legacy agents not in current agents.conf
+              if (validIds && !validIds.has(agentId)) continue;
+
               const filePath = join(logPath, f.name);
               const content = readFileSync(filePath, "utf-8");
               const firstLine = content.split("\n")[0] || "";
               entries.push({
                 timestamp: new Date(f.mtime).toISOString(),
-                agent_id: dir.name,
+                agent_id: agentId,
                 level: "info",
                 message: firstLine.slice(0, 300),
                 source: "file",
