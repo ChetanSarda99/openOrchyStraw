@@ -197,9 +197,19 @@ function getLogs(projectPath, limit = 50) {
 // ── Pixel events (JSONL reader) ──
 
 function readPixelEvents(projectPath, sinceMs = 0) {
-  // Pixel JSONL lives at ~/.claude/projects/orchystraw/<agent_id>/session.jsonl
-  const pixelDir = join(homedir(), ".claude", "projects", "orchystraw");
-  if (!existsSync(pixelDir)) return [];
+  // Pixel JSONL lives at ~/.claude/projects/orchystraw-<project>/<agent_id>/session.jsonl
+  const projectName = basename(projectPath);
+  let pixelDir = join(homedir(), ".claude", "projects", `orchystraw-${projectName}`);
+
+  // Fallback to legacy non-namespaced dir for backward compat
+  if (!existsSync(pixelDir)) {
+    const legacyDir = join(homedir(), ".claude", "projects", "orchystraw");
+    if (existsSync(legacyDir)) {
+      pixelDir = legacyDir;
+    } else {
+      return [];
+    }
+  }
 
   const now = Date.now();
   const agents = [];

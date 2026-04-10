@@ -15,7 +15,16 @@
 
 # ── Configuration ──────────────────────────────────────────────────────────────
 
-PIXEL_SESSION_DIR="${PIXEL_SESSION_DIR:-$HOME/.claude/projects/orchystraw}"
+# Use project-specific session dir so multiple projects don't collide
+# Format: ~/.claude/projects/orchystraw-<project-name>/
+_pixel_project_name() {
+    if [[ -n "${PROJECT_ROOT:-}" ]]; then
+        basename "$PROJECT_ROOT"
+    else
+        echo "default"
+    fi
+}
+PIXEL_SESSION_DIR="${PIXEL_SESSION_DIR:-$HOME/.claude/projects/orchystraw-$(_pixel_project_name)}"
 PIXEL_ENABLED="${PIXEL_ENABLED:-1}"
 
 # ── Internal helpers ───────────────────────────────────────────────────────────
