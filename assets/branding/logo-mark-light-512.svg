@@ -1,0 +1,21 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="512" height="512">
+  <title>OrchyStraw logo mark — light background variant</title>
+  <desc>Two overlapping hexagons with a center node and connection lines, tuned for light backgrounds.</desc>
+  <rect width="512" height="512" rx="96" fill="#fafafa"/>
+  <rect x="1" y="1" width="510" height="510" rx="95" fill="none" stroke="#e2e8f0" stroke-width="1"/>
+  <g transform="translate(96,96)">
+    <polygon points="160,24 280,92 280,228 160,296 40,228 40,92"
+             fill="#3b82f6" fill-opacity="0.08"
+             stroke="#0a0a0a" stroke-width="10" stroke-linejoin="round"/>
+    <polygon points="160,96 280,164 280,300 160,368 40,300 40,164"
+             fill="#3b82f6" fill-opacity="0.08"
+             stroke="#0a0a0a" stroke-width="10" stroke-linejoin="round"/>
+    <g stroke="#3b82f6" stroke-width="6" stroke-linecap="round" opacity="0.85">
+      <line x1="160" y1="196" x2="160" y2="96"/>
+      <line x1="160" y1="196" x2="40"  y2="196"/>
+      <line x1="160" y1="196" x2="280" y2="196"/>
+      <line x1="160" y1="196" x2="160" y2="296"/>
+    </g>
+    <circle cx="160" cy="196" r="16" fill="#3b82f6"/>
+  </g>
+</svg>

@@ -1,0 +1,24 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 300" width="1200" height="300">
+  <title>OrchyStraw horizontal wordmark — light background</title>
+  <desc>Logo mark paired with the orchystraw wordmark in JetBrains Mono, for use on light surfaces.</desc>
+  <rect width="1200" height="300" fill="#fafafa"/>
+  <g transform="translate(60,50)">
+    <polygon points="100,15 170,57 170,141 100,183 30,141 30,57"
+             fill="#3b82f6" fill-opacity="0.08"
+             stroke="#0a0a0a" stroke-width="6" stroke-linejoin="round"/>
+    <polygon points="100,60 170,102 170,186 100,228 30,186 30,102"
+             fill="#3b82f6" fill-opacity="0.08"
+             stroke="#0a0a0a" stroke-width="6" stroke-linejoin="round"/>
+    <g stroke="#3b82f6" stroke-width="4" stroke-linecap="round" opacity="0.85">
+      <line x1="100" y1="122" x2="100" y2="60"/>
+      <line x1="100" y1="122" x2="30"  y2="122"/>
+      <line x1="100" y1="122" x2="170" y2="122"/>
+      <line x1="100" y1="122" x2="100" y2="183"/>
+    </g>
+    <circle cx="100" cy="122" r="10" fill="#3b82f6"/>
+  </g>
+  <text x="280" y="180"
+        font-family="'JetBrains Mono', 'SF Mono', 'Fira Code', monospace"
+        font-size="112" font-weight="700" fill="#0a0a0a" letter-spacing="-4">orchystraw</text>
+  <rect x="280" y="205" width="640" height="4" fill="#3b82f6" opacity="0.7"/>
+</svg>
