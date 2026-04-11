@@ -8,7 +8,9 @@
 set -euo pipefail
 
 PROJECT_ROOT="${1:-$(cd "$(dirname "$0")/.." && pwd)}"
-CONF_FILE="$PROJECT_ROOT/scripts/agents.conf"
+# Prefer canonical root agents.conf; fall back to legacy scripts/agents.conf
+CONF_FILE="$PROJECT_ROOT/agents.conf"
+[[ -f "$CONF_FILE" ]] || CONF_FILE="$PROJECT_ROOT/scripts/agents.conf"
 CONTEXT_FILE="$PROJECT_ROOT/prompts/00-shared-context/context.md"
 
 # ── Parse agents.conf ──

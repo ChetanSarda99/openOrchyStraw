@@ -7,17 +7,17 @@ _See docs/KNOWLEDGE-REPOSITORIES.md for proposal format._
 
 ## Pending Proposals
 
-### [PROPOSAL] 2026-03-30 | 06-backend | Benchmark Runner Architecture (BENCH-001)
-**Problem:** Need benchmark harness to evaluate OrchyStraw vs single-agent (Ralph) on SWE-bench + custom tasks.
-**Options:**
-- Option A: Custom bash harness + Python SWE-bench glue — already designed as BENCH-001 in Pro repo, ported to public repo. Bash-first, zero pip deps for custom tasks, optional `swebench` package for leaderboard evaluation.
-- Option B: Pure Python harness — easier HuggingFace integration but breaks no-external-deps policy for core.
-- Option C: Use existing SWE-bench CLI directly — limited to their format, no OrchyStraw-specific metrics (rogue writes, multi-agent comparison).
-**Recommendation:** Option A — already implemented and validated. Bash for orchestration (consistent with core), Python only as thin SWE-bench bridge. Scaffold ported to `scripts/benchmark/` with dry-run verified.
+_(none — inbox empty)_
 
 ---
 
 ## Processed Proposals
 
 _(CTO moves resolved proposals here with decision reference)_
+
+### [RESOLVED 2026-04-10] BENCH-001 Benchmark Runner Architecture
+- Proposed by: 06-backend, 2026-03-30
+- Decision: **Option A approved** — bash harness + optional Python SWE-bench bridge
+- ADR: `docs/tech-registry/decisions/BENCH-001-benchmark-runner.md`
+- Hard constraints: no Python in `lib/`, no pip in top-level CLI, rogue-write detection in bash, offline `--dry-run`, single metrics schema
 

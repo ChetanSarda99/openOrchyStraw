@@ -10,7 +10,9 @@ set -euo pipefail
 CYCLE="${1:?Usage: cycle-metrics.sh <cycle_num> <commits>}"
 COMMITS="${2:-0}"
 PROJECT_ROOT="${3:-$(cd "$(dirname "$0")/.." && pwd)}"
-CONF_FILE="$PROJECT_ROOT/scripts/agents.conf"
+# Prefer canonical root agents.conf; fall back to legacy scripts/agents.conf
+CONF_FILE="$PROJECT_ROOT/agents.conf"
+[[ -f "$CONF_FILE" ]] || CONF_FILE="$PROJECT_ROOT/scripts/agents.conf"
 METRICS_FILE="$PROJECT_ROOT/.orchystraw/metrics.jsonl"
 
 mkdir -p "$(dirname "$METRICS_FILE")"

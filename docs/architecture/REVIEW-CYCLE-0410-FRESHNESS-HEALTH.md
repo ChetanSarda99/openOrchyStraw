@@ -129,3 +129,115 @@ BENCH-001 follow-up #1), `orchystraw benchmark` CLI routing (waiting on
 
 CTO review queue is effectively empty until 06-backend publishes
 benchmark artifacts.
+
+---
+
+## Addendum — Cycle 1 follow-up (2026-04-10 18:54 session)
+
+Re-check of the two backend deliverables carried over from the previous
+session. No new review targets landed; this is a verification pass.
+
+### HD-01 / HD-02 — STILL OPEN
+
+`scripts/health-dashboard.sh` was not touched since the previous review.
+
+- **HD-01 (MEDIUM)** — line 437 still gates auto-open on `command -v xdg-open`.
+  On macOS (documented primary platform) this is dead code. Patch from prior
+  review still applies verbatim: `case "$(uname -s)" in Darwin) open "$OUTPUT" &;;
+  Linux) command -v xdg-open &>/dev/null && xdg-open "$OUTPUT" 2>/dev/null &;; esac`.
+- **HD-02 (MEDIUM)** — lines 64 and 102 still use `tr '{},:"' ' '` + state
+  machine to parse JSONL. Replace with per-key regex extraction (same
+  pattern used in `bin/orchystraw` lines 787-803: `[[ "$line" =~
+  \"tokens_est\":([0-9]+) ]]`). Zero-dep, spaces-in-strings safe,
+  key-order independent.
+
+Both remain MEDIUM, not release blockers, but they should land before the
+desktop app wires this dashboard into its telemetry pane. **Flagged to
+06-backend via shared context.**
+
+### BENCH-001 follow-up #1 — NOT STARTED
+
+`.orchystraw/benchmarks/` does not exist in-repo. 06-backend has not
+published a first dry-run artifact. Cannot verify schema conformance to
+ADR spec (run_id, suite, instance_id, cycles_used, rogue_writes,
+tokens_input/output, cost_usd, wall_time_sec, model_tier_mix).
+
+Action: **Open follow-up #1 stays on 06-backend.** Dry-run output must be
+committed (or the command to produce it must be runnable offline in CI)
+before HN / launch cycle begins.
+
+### BENCH-001 follow-up #2 — DRIFT DETECTED (new finding, BENCH-CLI-01 MEDIUM)
+
+`bin/orchystraw` line 731 `cmd_benchmark()` is a **parallel implementation**
+that reads `.orchystraw/audit.jsonl` + `.orchystraw/cost-log.jsonl` and
+prints a cumulative metrics table across registered projects. It does NOT
+route to `scripts/benchmark/run-benchmark.sh` (the BENCH-001 harness).
+
+This violates BENCH-001 follow-up #2 as-written ("Confirm `orchystraw
+benchmark` CLI subcommand routes to `scripts/benchmark/run-benchmark.sh`
+(not a parallel implementation)") — it is literally a parallel
+implementation.
+
+Two legitimate interpretations:
+
+1. **`orchystraw benchmark` should run the harness** (strict reading of
+   ADR follow-up #2). Then the current metrics-dashboard behavior needs
+   to move to `orchystraw metrics` (which already exists per the CLI help
+   text: `orchystraw metrics ~/Projects/Klaro`). This is the cleanest
+   separation: `metrics` summarises past runs, `benchmark` runs new ones.
+
+2. **The CLI hosts both surfaces via subcommands**: `orchystraw benchmark run`
+   → runner, `orchystraw benchmark show` (default, backward-compat) →
+   metrics dashboard. This preserves the current user-facing command but
+   disambiguates the verb.
+
+**CTO decision: Option 1 — collapse the parallel implementation.**
+
+Rationale:
+- BENCH-001 explicitly warned against parallel implementations.
+- `orchystraw metrics` already exists for the cumulative-summary use case.
+  Current `cmd_benchmark` duplicates the intent of `cmd_metrics`; there is
+  no reason for two commands to read the same `.orchystraw/` files and
+  produce similar tables.
+- `metrics` / `benchmark` is a well-understood split in performance tooling
+  (`cargo bench` runs, `cargo metrics` summarises — users won't be surprised).
+- Keeps the runner path single-sourced, which was the whole point of
+  follow-up #2.
+
+**Finding: BENCH-CLI-01 MEDIUM (drift from BENCH-001).**
+
+Action for 06-backend:
+1. Move the existing `cmd_benchmark` body into `cmd_metrics` (or merge if
+   `cmd_metrics` already does the same thing — verify and dedupe).
+2. Reimplement `cmd_benchmark` as a thin wrapper that execs
+   `scripts/benchmark/run-benchmark.sh "$@"` with project-root resolution.
+3. Update help text on line 88 of `bin/orchystraw` from
+   "Performance metrics across projects" to "Run benchmark suite (see
+   scripts/benchmark/)".
+4. `orchystraw benchmark --dry-run` must work offline (BENCH-001
+   constraint #5).
+
+Not a release blocker for v0.5.x, but blocks the benchmark-publication
+sprint. Must land before we publish any numbers externally, otherwise
+we're shipping two different meanings of the same command.
+
+### Tech registry state
+
+- `docs/tech-registry/proposals.md` inbox cleared (BENCH-001 moved to
+  "Processed Proposals").
+- Registry still at 16 domain decisions (5 LOCKED + 11 APPROVED). No new
+  ADRs this cycle — nothing to decide, only findings to record.
+
+### Net review queue after cycle 1 follow-up
+
+| Item | Owner | Status |
+|---|---|---|
+| HD-01 xdg-open macOS gap | 06-backend | OPEN (unchanged) |
+| HD-02 JSONL parser brittleness | 06-backend | OPEN (unchanged) |
+| BENCH-001 #1 dry-run artifact | 06-backend | OPEN (unchanged) |
+| BENCH-001 #2 CLI routing | 06-backend | **NEW finding BENCH-CLI-01** |
+| Post-fix HD re-review | CTO | waiting on backend |
+| First benchmark JSONL schema review | CTO | waiting on backend |
+
+All four open items belong to 06-backend. CTO is not the bottleneck.
+

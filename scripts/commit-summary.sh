@@ -10,7 +10,9 @@ set -euo pipefail
 
 SINCE_REF="${1:-HEAD~10}"
 PROJECT_ROOT="${2:-$(cd "$(dirname "$0")/.." && pwd)}"
-CONF_FILE="$PROJECT_ROOT/scripts/agents.conf"
+# Prefer canonical root agents.conf; fall back to legacy scripts/agents.conf
+CONF_FILE="$PROJECT_ROOT/agents.conf"
+[[ -f "$CONF_FILE" ]] || CONF_FILE="$PROJECT_ROOT/scripts/agents.conf"
 
 # ── Parse agents.conf ──
 declare -a AGENT_IDS=()

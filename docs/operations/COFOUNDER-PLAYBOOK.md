@@ -87,3 +87,6 @@ Format: `YYYY-MM-DD | action | rationale | outcome`
 | Date | Action | Rationale | Outcome |
 |------|--------|-----------|---------|
 | 2026-04-07 | Initial setup | Co-Founder agent created (issue #183) | Baseline established |
+| 2026-04-10 | No interval/model changes | All 12 agents within healthy interval bands; no 3+ consecutive failures attributable to agent logic; git log confirms active shipping. Held changes to avoid chasing a noisy "prev cycle 0 commits" signal that conflicts with actual commit activity. | Stable config preserved |
+| 2026-04-10 | Flagged telemetry gaps to backend | (1) `.orchystraw/audit.jsonl` missing — cannot verify per-agent cost, so budget gate is blind. (2) `logs/cycle-{1,2}.log` today end right after `Router initialized with 12 agents` — no per-agent run lines captured. (3) `router-state.txt` marks every worker status=`fail` despite successful commits landing — exit-code/telemetry mismatch likely. | Written to shared context for 06-backend |
+| 2026-04-10 | Founder directive audit: clean | `gh issue list` returns 0 open issues; `99-me/99-actions.txt` P0/P1 items all have either closed issues or are Founder-only manual tasks. No untracked directives. | No flags raised |

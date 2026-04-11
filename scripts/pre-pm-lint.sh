@@ -10,10 +10,12 @@ set -euo pipefail
 
 CYCLE="${1:?Usage: pre-pm-lint.sh <cycle_num>}"
 PROJECT_ROOT="${2:-$(cd "$(dirname "$0")/.." && pwd)}"
-CONF_FILE="$PROJECT_ROOT/scripts/agents.conf"
+# Prefer canonical root agents.conf; fall back to legacy scripts/agents.conf
+CONF_FILE="$PROJECT_ROOT/agents.conf"
+[[ -f "$CONF_FILE" ]] || CONF_FILE="$PROJECT_ROOT/scripts/agents.conf"
 
 if [[ ! -f "$CONF_FILE" ]]; then
-    echo "ERROR: agents.conf not found at $CONF_FILE" >&2
+    echo "ERROR: agents.conf not found at $PROJECT_ROOT/agents.conf or $PROJECT_ROOT/scripts/agents.conf" >&2
     exit 1
 fi
 CONTEXT_FILE="$PROJECT_ROOT/prompts/00-shared-context/context.md"

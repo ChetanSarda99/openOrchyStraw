@@ -13,7 +13,9 @@ PROJECT_ROOT="${1:-$(cd "$(dirname "$0")/.." && pwd)}"
 OUTPUT="${2:-$PROJECT_ROOT/.orchystraw/dashboard.html}"
 METRICS_FILE="$PROJECT_ROOT/.orchystraw/metrics.jsonl"
 AUDIT_FILE="$PROJECT_ROOT/.orchystraw/audit.jsonl"
-CONF_FILE="$PROJECT_ROOT/scripts/agents.conf"
+# Prefer canonical root agents.conf; fall back to legacy scripts/agents.conf
+CONF_FILE="$PROJECT_ROOT/agents.conf"
+[[ -f "$CONF_FILE" ]] || CONF_FILE="$PROJECT_ROOT/scripts/agents.conf"
 STATE_FILE="$PROJECT_ROOT/.orchystraw/router-state.txt"
 
 mkdir -p "$(dirname "$OUTPUT")"

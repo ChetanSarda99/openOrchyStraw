@@ -1,7 +1,7 @@
 # OrchyStraw — CEO / Vision & Direction
 ## For Claude Code (Opus 4.6) - Strategic Leadership
 
-**Date:** April 10, 2026 — Cycle 22 (one P0 left: #239)
+**Date:** April 10, 2026 — Cycle 23 (launch gate cleared — HN target Tue 2026-04-14 08:30 PT)
 **Your Role:** CEO — Vision, strategy, market positioning, and growth direction
 **Project Owner:** CS — Builder, engineer, ADHD brain with big vision
 
@@ -150,44 +150,43 @@ You are the always-on operator. CS should only hear from you on strategic pivots
 
 ---
 
-## Current Strategic Priorities (Updated Cycle 17 — 2026-03-29)
+## Current Strategic Priorities (Updated Cycle 23 — 2026-04-10)
 
-1. **v0.1.0 SHIPPED** ✅ — Tagged `7a08cec`, pushed to remote March 16.
-2. **v0.2.0 ALL GATES PASS** ✅ — CTO 8/8 APPROVED, QA 8/8 PASS, Security 6/6 APPROVED (cycle 10). **Only CS integration remains.** 9 modules, 278 tests. CS must integrate into auto-agent.sh (protected file).
-3. **Benchmark sprint (days 1-3 post v0.2.0)** — SWE-bench Lite + Ralph head-to-head. Results in README. This is our proof.
-4. **HN launch** — "Show HN: OrchyStraw." Two version tags + benchmarks + demo GIF. The competitive window is narrowing.
-5. **Landing page live** — GitHub Pages: https://chetansarda99.github.io/openOrchyStraw/. Goes live with or before HN.
-6. **v0.2.1: `--single-agent` mode** — Ralph compatibility = growth hack. Low effort, high conversion.
-7. **Tauri desktop app** — Paid product foundation. Starts post-HN.
-8. **Pixel Agents Phase 2** — Fork + adapter after Tauri scaffold exists.
+**Posture: launch week. Feature freeze binding until 24h post-HN.**
 
-### Key Strategic Decisions (Cycle 1–15)
-- Open-source v0.1.0 to openOrchyStraw immediately — the orchestrator is the hook
-- Benchmarks elevated from P4 to P1 — proof before polish
-- README exists and is solid — covers quick start, features, license
-- HIGH-04 was deferred to v0.1.1 but CS fixed it early (601c9a2) — v0.1.1 scope shrinks
-- Hard scope cutoff — infinite audit loop identified as #1 strategic risk (resolved)
-- `--single-agent` mode elevated to v0.2.0 — Ralph user on-ramp, not afterthought
-- Agent freeze LIFTED (Cycle 10) — team activation order: QA/Security → Backend → CTO → Web → Tauri → Pixel → iOS
-- v0.1.0 tag should NOT include v0.2.0 Phase 1 — ship what's validated, Phase 1 goes in v0.2.0
-- Collapse release gap — tag v0.1.0 and v0.2.0 same week for stronger launch narrative
-- NEW (Cycle 15): v0.1.0 shipped — pivot all energy to v0.2.0 tag + benchmark sprint + HN launch
-- Cycle 18 (2026-03-30): Backend efficiency sprint complete — 5 new scripts, WT-SEC-01 fixed. CTO: EFFICIENCY-001 + COST-001 ADRs. v0.2.0 integration still pending CS.
-- Cycle 19 (2026-03-30): Backend fixed all 6 CTO findings (SS-01, CS-01, LINT-01–04). 18/18 tests pass. v0.2.0 integration STILL pending CS.
-- Cycle 20 (2026-03-30): Backend shipped agents.conf v3 parser (7-col format per COST-001 ADR). BUG-012 FULLY RESOLVED (all 9 prompts have PROTECTED FILES). v0.2.0 integration STILL pending CS.
-- Cycle 3 (2026-03-30): Backend shipped SWE-bench scaffold (#4) — benchmark framework now exists. QA filed BUG-019 (#175, HIGH). v0.2.0 integration STILL pending CS.
-- Cycle 1s3 (2026-03-30): BUG-019 FIXED by backend — script wiring now UNBLOCKED for CS. v0.2.0 integration STILL pending CS.
-- Cycle 2 (2026-03-30): Backend shipped qmd-refresher.sh (#53, 17 tests) — last v0.3.0 token optimization module. v0.2.0 integration STILL pending CS.
-- Cycle 3 (2026-03-30): Backend shipped prompt-template.sh (#54, 49 tests, 21/21 suite) — prompt template inheritance complete. QA cycle 13: BUG-019 CLOSED, SWE-bench CONDITIONAL PASS (4 bugs: BUG-020–023). CTO review queue now at 5 items. v0.2.0 integration STILL pending CS.
-- Cycle 4 (2026-03-30): Backend FIXED all 4 SWE-bench bugs (BUG-020–023, issues CLOSED). SWE-bench scaffold now security-hardened. 21/21 tests pass. CTO review queue still at 5 items. v0.2.0 integration STILL pending CS.
-- Cycle 1 (2026-03-30): Backend shipped task-decomposer.sh (#50, 32 tests) + init-project.sh (#45, 57 tests). Both QA PASS. 23/23 suite pass. #50 and #45 CLOSED. CTO review queue now at 7 items (CRITICAL). v0.2.0 integration STILL pending CS.
-- Cycle 4 (2026-03-31): Backend completed BUG-025 namespace rename + integration test expansion (22 modules). CTO review queue STILL at 7 items — primary bottleneck. v0.2.0 integration STILL pending CS.
-- Cycle 1s5 (2026-03-31): Quiet cycle — QA cycle 18 PASS (BUG-025 verified, new scripts reviewed), HR escalated CTO queue to P0 (19 lint-only cycles wasted). Project stalled on CTO reviews + CS integration.
-- Cycle 2 (2026-03-31): Another quiet cycle — 0 agent commits. Project fully stalled on CTO queue (7 items) + CS integration. 20+ lint-only cycles now.
-- Cycle 3 (2026-03-31): 3rd quiet cycle today. HR issued FINAL ESCALATION — recommends pausing orchestrator. 22+ lint-only cycles. CTO zero output.
-- Cycle 4 (2026-03-31): 4th quiet cycle. PM recommends HARD PAUSE — 25+ idle cycles, pure API waste. Nothing changes until CS clears CTO queue or wires v0.2.0 modules.
-- Cycle 5 (2026-03-31): 5th quiet cycle. PM HARD PAUSE CONFIRMED — 26+ idle cycles. FINAL update until blockers clear. Estimated ~45 wasted agent invocations today.
-- Full memos: `docs/strategy/CYCLE-1-STRATEGIC-MEMO.md`, `CYCLE-2-CEO-UPDATE.md`, `CYCLE-5-CEO-UPDATE.md`, `CYCLE-7-CEO-UPDATE.md`, `CYCLE-9-CEO-UPDATE.md`, `CYCLE-10-CEO-UPDATE.md`, `CYCLE-12-CEO-UPDATE.md`, `CYCLE-13-CEO-UPDATE.md`, `CYCLE-15-CEO-UPDATE.md`
+1. **HN LAUNCH — Tuesday 2026-04-14 08:30 PT** — The only thing that matters this week. All team priorities ladder up to this.
+2. **Dry run on Monday 2026-04-13** — CS walks install → app → cycle → pixel viz on a clean clone. Crash-class bugs only get fixed; cosmetics get backlogged.
+3. **Landing page verified live** (GH Pages) with demo GIF above fold — 11-web owns.
+4. **Zero new features** — feature freeze is enforced by 03-pm. If any agent proposes "one more thing," PM rejects and logs it.
+5. **Post-launch feedback intake** — 03-pm compiles `docs/strategy/POST-LAUNCH-FEEDBACK.md` in the first 72h post-HN. No code responses before aggregation.
+
+### Deferred until after HN (in priority order, for cycle 24+ planning)
+- Benchmark sprint (SWE-bench Lite + Ralph head-to-head)
+- Tauri desktop app paid product track (scaffold exists, not active)
+- Pixel Agents visualization UI (#225) — emitter done, no UI
+- Agent chat / co-founder interaction UI (#226)
+- Real-time log streaming during cycles (#230)
+- New project onboarding wizard (#227)
+- Remaining grep -oP cleanup (#232)
+- Telemetry pipeline gaps flagged by Co-Founder (audit.jsonl missing, logger truncation, router-state schema) — backend owns, not launch-blocking
+
+### Launch Gate (all closed as of cycle 23)
+- ✅ v0.1.0 tagged (`7a08cec`), v0.2.0 + v0.3.0 tagged
+- ✅ 0 open GitHub issues
+- ✅ App works with real data (dashboard, agents, config editor, settings, cycles)
+- ✅ Cross-platform (Linux compat fixed, #221)
+- ✅ Demo GIF recorded (#191) — `assets/demo.gif`, vhs-reproducible
+- ✅ Launch posts drafted (#133) — `docs/marketing/LAUNCH-POSTS.md`
+- ✅ Chain of command locked (Founder → Co-Founder → CEO/CTO/PM → workers)
+
+### Key Strategic Decisions (running log, most recent first)
+- **Cycle 23 (2026-04-10):** Feature freeze binding until 24h post-HN. HN target Tue 04-14 08:30 PT. PM enforces. Next CEO memo: Mon 04-13 go/no-go OR Tue 04-14 launch retro — nothing before.
+- **Cycle 22 (2026-04-10):** App-first is the moat, not the bash orchestrator. Pivoted narrative: the orchestrator is the hook, the app is the product.
+- **Cycle 21 (2026-04-10):** Fix-before-feature posture — cleared 15+ issues in one sprint. Worked.
+- **Cycles 15–20:** v0.1.0 → v0.2.0 → v0.3.0 all tagged, all shipped. The old CTO-review-queue + CS-integration bottleneck is fully dissolved.
+- **Open-source stance:** Everything ships to openOrchyStraw immediately. Private repo is for research/benchmarks only.
+- **Differentiator framing for HN:** "bash + markdown, no framework, no dependencies" is the hook — lean into it, don't defend it.
+- Full memos: `docs/strategy/CYCLE-23-CEO-UPDATE.md` (active), `CYCLE-22-*`, `CYCLE-21-*`, earlier cycles in archive.
 
 ---
 
