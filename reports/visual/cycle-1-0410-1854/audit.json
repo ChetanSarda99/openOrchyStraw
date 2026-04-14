@@ -1,0 +1,106 @@
+{
+  "desktop": {
+    "dashboard": {
+      "status": 200,
+      "title": "OrchyStraw",
+      "consoleErrors": [],
+      "pageErrors": [],
+      "bodyBg": "rgb(10, 10, 10)",
+      "h1Count": 1,
+      "linkCount": 0
+    },
+    "agents": {
+      "status": 200,
+      "title": "OrchyStraw",
+      "consoleErrors": [],
+      "pageErrors": [],
+      "bodyBg": "rgb(10, 10, 10)",
+      "h1Count": 1,
+      "linkCount": 0
+    },
+    "chat": {
+      "status": 200,
+      "title": "OrchyStraw",
+      "consoleErrors": [],
+      "pageErrors": [],
+      "bodyBg": "rgb(10, 10, 10)",
+      "h1Count": 1,
+      "linkCount": 0
+    },
+    "logs": {
+      "status": 200,
+      "title": "OrchyStraw",
+      "consoleErrors": [],
+      "pageErrors": [],
+      "bodyBg": "rgb(10, 10, 10)",
+      "h1Count": 1,
+      "linkCount": 0
+    },
+    "config": {
+      "status": 200,
+      "title": "OrchyStraw",
+      "consoleErrors": [],
+      "pageErrors": [],
+      "bodyBg": "rgb(10, 10, 10)",
+      "h1Count": 1,
+      "linkCount": 0
+    },
+    "settings": {
+      "status": 200,
+      "title": "OrchyStraw",
+      "consoleErrors": [],
+      "pageErrors": [],
+      "bodyBg": "rgb(10, 10, 10)",
+      "h1Count": 1,
+      "linkCount": 0
+    }
+  },
+  "mobile": {
+    "dashboard": {
+      "status": 200,
+      "scrollW": 390,
+      "overflow": false,
+      "consoleErrors": []
+    },
+    "agents": {
+      "status": 200,
+      "scrollW": 390,
+      "overflow": false,
+      "consoleErrors": []
+    },
+    "chat": {
+      "status": 200,
+      "scrollW": 390,
+      "overflow": false,
+      "consoleErrors": []
+    },
+    "logs": {
+      "status": 200,
+      "scrollW": 390,
+      "overflow": false,
+      "consoleErrors": []
+    },
+    "config": {
+      "status": 200,
+      "scrollW": 390,
+      "overflow": false,
+      "consoleErrors": []
+    },
+    "settings": {
+      "status": 200,
+      "scrollW": 390,
+      "overflow": false,
+      "consoleErrors": []
+    }
+  },
+  "errors": {},
+  "siteResults": {},
+  "api": {
+    "status": 200,
+    "body": "<html><head><meta name=\"color-scheme\" content=\"light dark\"><meta charset=\"utf-8\"></head><body><pre>[{\"path\":\"/Users/chetansarda/Projects/openOrchyStraw\",\"name\":\"openOrchyStraw\",\"registered\":\"2026-04-08T03:38:07Z\",\"last_run\":null,\"agents_count\":12,\"agents\":[{\"id\":\"00-cofounder\",\"prompt_path\":\"prompts/00-cofounder/00-cofounder.txt\",\"ownership\":\"agents.conf docs/operations/\",\"interval\":2,\"label\":\"Co-Founder Operations\"},{\"id\":\"03-pm\",\"prompt_path\":\"prompts/03-pm/03-pm.txt\",\"ownership\":\"prompts/ docs/\",\"interval\":0,\"label\":\"PM Coordinator\"},{\"id\":\"06-backend\",\"prompt_path\":\"prompts/06-backend/06-backend.txt\",\"ownership\":\"scripts/ src/core/ src/lib/ benchmarks/\",\"interval\":1,\"label\":\"Backend Developer\"},{\"id\":\"11-web\",\"prompt_path\":\"prompts/11-web/11-web.txt\",\"ownership\":\"site/\",\"interval\":1,\"label\":\"Web Developer\"},{\"id\":\"02-cto\",\"prompt_path\":\"prompts/02-cto/02-cto.txt\",\"ownership\":\"docs/architecture/\",\"interval\":2,\"label\":\"CTO\"},{\"id\":\"08-pixel\",\"prompt_path\":\"prompts/08-pixel/08-pixel.txt\",\"ownership\":\"src/pixel/ pixel-agents/\",\"interval\":2,\"label\":\"Pixel Agents\"},{\"id\":\"12-designer\",\"prompt_path\":\"prompts/12-designer/12-designer.txt\",\"ownership\":\"assets/ images/ public/images/\",\"interval\":3,\"label\":\"Visual Designer\"},{\"id\":\"09-qa-code\",\"prompt_path\":\"prompts/09-qa/09-qa-code.txt\",\"ownership\":\"tests/ reports/\",\"interval\":3,\"label\":\"QA Code Review\"},{\"id\":\"09-qa-visual\",\"prompt_path\":\"prompts/09-qa/09-qa-visual.txt\",\"ownership\":\"reports/visual/\",\"interval\":3,\"label\":\"QA Visual Audit\"},{\"id\":\"01-ceo\",\"prompt_path\":\"prompts/01-ceo/01-ceo.txt\",\"ownership\":\"docs/strategy/\",\"interval\":3,\"label\":\"CEO\"},{\"id\":\"13-hr\",\"prompt_path\":\"prompts/13-hr/13-hr.txt\",\"ownership\":\"docs/team/ prompts/13-hr/\",\"interval\":3,\"label\":\"HR &amp; Team Composition\"},{\"id\":\"10-security\",\"prompt_path\":\"prompts/10-security/10-security.txt\",\"ownership\":\"reports/\",\"interval\":5,\"label\":\"Security\"}],\"commits\":351,\"cycles\":0},{\"path\":\"/Users/chetansarda/Projects/AIVA\",\"name\":\"AIVA\",\"registered\":\"2026-04-09T00:57:42Z\",\"last_run\":null,\"agents_count\":12,\"agents\":[{\"id\":\"00-cofounder\",\"prompt_path\":\"prompts/00-cofounder/00-cofounder.txt\",\"ownership\":\"agents.conf docs/operations/\",\"interval\":2,\"label\":\"Co-Founder Operations\"},{\"id\":\"01-pm\",\"prompt_path\":\"prompts/01-pm.md\",\"ownership\":\"prompts/ docs/\",\"interval\":0,\"label\":\"PM Coordinator\"},{\"id\":\"02-content-strat\",\"prompt_path\":\"prompts/02-content-strategist.md\",\"ownership\":\"data/ideas.jsonl content/\",\"interval\":1,\"label\":\"Content Strategist\"},{\"id\":\"03-linkedin-writer\",\"prompt_path\":\"prompts/03-linkedin-writer.md\",\"ownership\":\"content/linkedin/\",\"interval\":1,\"label\":\"LinkedIn Writer\"},{\"id\":\"04-reddit-youtube\",\"prompt_path\":\"prompts/04-reddit-youtube.md\",\"ownership\":\"content/reddit/ content/youtube/\",\"interval\":1,\"label\":\"Reddit + YouTube\"},{\"id\":\"05-instagram\",\"prompt_path\":\"prompts/05-instagram.md\",\"ownership\":\"content/instagram/\",\"interval\":1,\"label\":\"Instagram\"},{\"id\":\"05b-twitter-tiktok\",\"prompt_path\":\"prompts/05b-twitter-tiktok.md\",\"ownership\":\"content/twitter/ content/tiktok/\",\"interval\":1,\"label\":\"Twitter + TikTok\"},{\"id\":\"06-engagement\",\"prompt_path\":\"prompts/06-engagement.md\",\"ownership\":\"data/engagement/\",\"interval\":2,\"label\":\"Engagement Manager\"},{\"id\":\"07-analytics\",\"prompt_path\":\"prompts/07-analytics.md\",\"ownership\":\"data/analytics/ reports/\",\"interval\":3,\"label\":\"Analytics &amp; Growth\"},{\"id\":\"08-qa-code\",\"prompt_path\":\"prompts/08-qa-code.md\",\"ownership\":\"reports/qa/\",\"interval\":2,\"label\":\"QA Code Review\"},{\"id\":\"08-qa-visual\",\"prompt_path\":\"prompts/08-qa-visual.md\",\"ownership\":\"reports/qa-visual/\",\"interval\":2,\"label\":\"QA Visual Audit\"},{\"id\":\"09-pm-issues\",\"prompt_path\":\"prompts/09-pm-issues.md\",\"ownership\":\"reports/issues/\",\"interval\":2,\"label\":\"PM Issue Creator\"}],\"commits\":56,\"cycles\":0},{\"path\":\"/Users/chetansarda/Projects/FreelanceWorker\",\"name\":\"FreelanceWorker\",\"registered\":\"2026-04-09T00:57:42Z\",\"last_run\":null,\"agents_count\":8,\"agents\":[{\"id\":\"00-cofounder\",\"prompt_path\":\"prompts/00-cofounder/"
+  },
+  "pixelEvents": {
+    "status": 200,
+    "body": "<html><head><meta name=\"color-scheme\" content=\"light dark\"><meta charset=\"utf-8\"></head><body><pre>{\"project\":\"openOrchyStraw\",\"agents\":[{\"agent_id\":\"00-cofounder\",\"last_tool\":\"idle\",\"last_message\":null,\"last_timestamp\":\"2026-04-11T01:58:06.000Z\",\"alive\":false,\"state\":\"idle\",\"label\":\"Co-Founder Operations\"},{\"agent_id\":\"01-ceo\",\"last_tool\":\"idle\",\"last_message\":null,\"last_timestamp\":\"2026-04-11T02:01:13.000Z\",\"alive\":false,\"state\":\"idle\",\"label\":\"CEO\"},{\"agent_id\":\"02-cto\",\"last_tool\":\"idle\",\"last_message\":null,\"last_timestamp\":\"2026-04-11T02:02:31.000Z\",\"alive\":false,\"state\":\"idle\",\"label\":\"CTO\"},{\"agent_id\":\"03-pm\",\"label\":\"PM Coordinator\",\"last_tool\":\"idle\",\"last_message\":null,\"last_timestamp\":null,\"alive\":false,\"state\":\"idle\"},{\"agent_id\":\"06-backend\",\"last_tool\":\"idle\",\"last_message\":null,\"last_timestamp\":\"2026-04-11T02:00:35.000Z\",\"alive\":false,\"state\":\"idle\",\"label\":\"Backend Developer\"},{\"agent_id\":\"08-pixel\",\"label\":\"Pixel Agents\",\"last_tool\":\"idle\",\"last_message\":null,\"last_timestamp\":null,\"alive\":false,\"state\":\"idle\"},{\"agent_id\":\"09-qa-code\",\"last_tool\":\"idle\",\"last_message\":null,\"last_timestamp\":\"2026-04-11T01:59:56.000Z\",\"alive\":false,\"state\":\"idle\",\"label\":\"QA Code Review\"},{\"agent_id\":\"09-qa-visual\",\"last_tool\":\"idle\",\"last_message\":null,\"last_timestamp\":\"2026-04-11T01:57:07.000Z\",\"alive\":false,\"state\":\"idle\",\"label\":\"QA Visual Audit\"},{\"agent_id\":\"10-security\",\"last_tool\":\"idle\",\"last_message\":null,\"last_timestamp\":\"2026-04-11T01:57:34.000Z\",\"alive\":false,\"state\":\"idle\",\"label\":\"Security\"},{\"agent_id\":\"11-web\",\"label\":\"Web Developer\",\"last_tool\":\"idle\",\"last_message\":null,\"last_timestamp\":null,\"alive\":false,\"state\":\"idle\"},{\"agent_id\":\"12-designer\",\"label\":\"Visual Designer\",\"last_tool\":\"idle\",\"last_message\":null,\"last_timestamp\":null,\"alive\":false,\"state\":\"idle\"},{\"agent_id\":\"13-hr\",\"last_tool\":\"idle\",\"last_message\":null,\"last_timestamp\":\"2026-04-11T01:59:03.000Z\",\"alive\":false,\"state\":\"idle\",\"label\":\"HR &amp; Team Composition\"}],\"now\":\"2026-04-11T02:02:47.813Z\"}</pre><div class=\"json-formatter-container\"></div></body></html>"
+  }
+}
