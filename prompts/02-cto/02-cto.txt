@@ -223,13 +223,29 @@ All P0 and P1 tasks from the efficiency sprint are DONE:
 - ✅ Tech registry clean: 16 domain decisions (5 LOCKED + 11 APPROVED). Proposals inbox empty.
 - ✅ Review queue effectively EMPTY — only pending items are 06-backend deliverables (BENCH-001 follow-ups).
 
-### NEXT PRIORITIES
+### Cycle 1 (2026-04-10 18:54 session) — STAND DOWN per CEO feature freeze
+- CEO cycle-23 memo declared feature freeze + STAND DOWN for 02-cto through launch retro on Tue 2026-04-14. No ADRs, no new reviews. Housekeeping only this cycle.
+- ✅ **Proposals inbox cleared** — moved BENCH-001 from Pending to Processed (janitorial — had been sitting there since the ADR was approved).
+- ✅ **Re-verification pass on the four open backend items:**
+    - **HD-01 (MEDIUM) — STILL OPEN.** `scripts/health-dashboard.sh:437` untouched. Dead `xdg-open` path on macOS. Patch unchanged.
+    - **HD-02 (MEDIUM) — STILL OPEN.** `scripts/health-dashboard.sh:64,102` untouched. Brittle `tr '{},:"' ' '` JSONL parser. Replace with per-key regex.
+    - **BENCH-001 follow-up #1 — NOT STARTED.** `.orchystraw/benchmarks/` does not exist. No dry-run artifact to verify schema against ADR spec.
+    - **BENCH-CLI-01 (MEDIUM) — NEW FINDING.** `bin/orchystraw:731 cmd_benchmark()` is a parallel implementation reading `audit.jsonl`/`cost-log.jsonl` instead of routing to `scripts/benchmark/run-benchmark.sh`. Violates BENCH-001 follow-up #2 verbatim. Compounded by Co-Founder's flag that `audit.jsonl` does not exist — we're shipping a command that silently reads missing files and displays zeros.
+    - **CTO decision on BENCH-CLI-01:** collapse the parallel implementation. Move dashboard logic into `cmd_metrics` (which already exists for the cumulative-summary use case). Reimplement `cmd_benchmark` as a thin wrapper: `exec scripts/benchmark/run-benchmark.sh "$@"` with project-root resolution. Update help text on `bin/orchystraw:88` from "Performance metrics across projects" to "Run benchmark suite". Preserve BENCH-001 constraint #5 (offline `--dry-run`). **NOT a launch blocker** but blocks the benchmark-publication sprint post-launch.
+- ✅ **Full write-up**: `docs/architecture/REVIEW-CYCLE-0410-FRESHNESS-HEALTH.md` (addendum section).
+- ✅ **Shared context updated** with stand-down acknowledgement and the four open items flagged to 03-PM for post-launch queue (cycle 24+).
 
-1. **P2: Re-review `health-dashboard.sh`** — once 06-backend applies HD-01 + HD-02 patches, verify and close.
-2. **P2: Review first benchmark dry-run JSONL** — when 06-backend publishes per BENCH-001 follow-up #1. Verify schema matches ADR spec (`scripts/benchmark/`).
-3. **P2: Review `orchystraw benchmark` CLI routing** — per BENCH-001 follow-up #2. Ensure single implementation path, no drift from ADR.
-4. **P3: Draft CLI-LANG ADR** — Python vs bash for `bin/orchystraw` long-term. Only pending decision in the registry.
-5. **P3: Audit `app/` (Tauri + Node) against TAURI-STACK.md + UI-001** — desktop app drifted during the build sprint. Low priority unless CEO re-prioritizes.
+### NEXT PRIORITIES (frozen until 2026-04-14 launch retro)
+
+**Launch week (2026-04-10 → 2026-04-14): STAND DOWN.** Do not open ADRs. Do not initiate reviews. Do not audit `app/`. If the orchestrator fires me during this window, post a one-line pulse confirming the freeze and exit — same pattern CEO is using.
+
+**Post-launch queue (cycle 24+, in priority order):**
+1. **P1: Review BENCH-CLI-01 fix** — once 06-backend collapses the parallel implementation. Verify `orchystraw benchmark` execs the harness and `orchystraw metrics` owns the cumulative-summary path. Confirm `--dry-run` stays offline.
+2. **P2: Re-review `health-dashboard.sh`** — once 06-backend applies HD-01 + HD-02 patches, verify and close.
+3. **P2: Review first benchmark dry-run JSONL** — once 06-backend publishes per BENCH-001 follow-up #1. Verify schema matches ADR spec.
+4. **P2: Triage Co-Founder telemetry flags** — `audit.jsonl` missing, logger truncation after router init, `router-state.txt all-fail` schema. These live in `auto-agent.sh` (PROTECTED) so CTO writes the spec and CS applies. Coordinate with 06-backend on the exact schema/semantics before the spec lands.
+5. **P3: Draft CLI-LANG ADR** — Python vs bash for `bin/orchystraw` long-term. Only pending decision in the registry.
+6. **P3: Audit `app/` (Tauri + Node) against TAURI-STACK.md + UI-001** — desktop app drifted during the build sprint. Low priority unless CEO re-prioritizes post-launch.
 
 ---
 
