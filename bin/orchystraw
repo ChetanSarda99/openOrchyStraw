@@ -105,10 +105,10 @@ usage() {
     echo "  --sync-state       Sync state across machines"
     echo ""
     echo "Examples:"
-    echo "  orchystraw run ~/Projects/Klaro --cycles 5"
-    echo "  orchystraw run ~/Projects/Klaro ~/Projects/AIVA --cycles 3 --smart-models"
+    echo "  orchystraw run ~/Projects/my-project --cycles 5"
+    echo "  orchystraw run ~/Projects/my-project ~/Projects/my-saas-project --cycles 3 --smart-models"
     echo "  orchystraw run --all --cycles 1 --dry-run"
-    echo "  orchystraw add ~/Projects/Klaro ~/Projects/AIVA ~/Projects/Momentum"
+    echo "  orchystraw add ~/Projects/my-project ~/Projects/my-saas-project ~/Projects/my-mobile-app"
     echo "  orchystraw init ~/Projects/NewApp --template saas --name NewApp"
     echo "  orchystraw doctor"
 }
@@ -485,8 +485,8 @@ cmd_add() {
         echo "Projects must have an agents.conf file."
         echo ""
         echo "Examples:"
-        echo "  orchystraw add ~/Projects/Klaro"
-        echo "  orchystraw add ~/Projects/Klaro ~/Projects/AIVA ~/Projects/Momentum"
+        echo "  orchystraw add ~/Projects/my-project"
+        echo "  orchystraw add ~/Projects/my-project ~/Projects/my-saas-project ~/Projects/my-mobile-app"
         exit 1
     fi
 

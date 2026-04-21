@@ -105,7 +105,7 @@ OrchyStraw runs agents in parallel per cycle, PM coordinates last. Workers have 
 ## Part 2: Smart Agent Provisioning (Project Bootstrap)
 
 ### The Problem
-When bootstrapping a new project (like Momentum), someone has to manually decide: how many agents? What roles? What ownership? This is currently done by the bootstrap-prompt.txt template, which always creates the same 10 agents.
+When bootstrapping a new project (like my-other-app), someone has to manually decide: how many agents? What roles? What ownership? This is currently done by the bootstrap-prompt.txt template, which always creates the same 10 agents.
 
 But a simple landing page doesn't need 10 agents. A complex full-stack app might need 12. The agent count should match the project.
 

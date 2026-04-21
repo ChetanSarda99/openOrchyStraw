@@ -10,19 +10,19 @@ Multi-agent AI coding orchestration. Markdown prompts + bash script. No framewor
 The orchestrator is now a global tool. Install: add `~/Projects/openOrchyStraw/bin` to PATH.
 
 ```bash
-orchystraw run ~/Projects/Klaro --cycles 5          # Run 5 cycles on Klaro
-orchystraw run ~/Projects/AIVA --dry-run             # Preview without executing
-orchystraw run . --cycles 1 --review                 # Supervised cycle (approve each commit)
-orchystraw run ~/Projects/Klaro --telegram --sync-state  # With notifications + cross-project sync
-orchystraw run ~/Projects/Klaro ~/Projects/AIVA --cycles 3  # Multiple projects sequentially
-orchystraw run --all --cycles 1 --dry-run            # Run all registered projects
-orchystraw run ~/Projects/Klaro --smart-models --budget 20  # Intelligent model selection
-orchystraw add ~/Projects/Klaro ~/Projects/AIVA      # Register projects without running
-orchystraw status                                     # All registered projects
-orchystraw init ~/new-project --template saas         # Bootstrap new project
-orchystraw list                                       # Registered projects
-orchystraw metrics ~/Projects/Klaro                   # Performance data
-orchystraw decisions ~/Projects/Klaro --last 10       # Decision audit trail
+orchystraw run ~/Projects/my-project --cycles 5          # Run 5 cycles on a project
+orchystraw run ~/Projects/my-saas-project --dry-run      # Preview without executing
+orchystraw run . --cycles 1 --review                     # Supervised cycle (approve each commit)
+orchystraw run ~/Projects/my-project --telegram --sync-state  # With notifications + cross-project sync
+orchystraw run ~/Projects/my-project ~/Projects/my-saas-project --cycles 3  # Multiple projects sequentially
+orchystraw run --all --cycles 1 --dry-run                # Run all registered projects
+orchystraw run ~/Projects/my-project --smart-models --budget 20  # Intelligent model selection
+orchystraw add ~/Projects/my-project ~/Projects/my-saas-project  # Register projects without running
+orchystraw status                                         # All registered projects
+orchystraw init ~/new-project --template saas             # Bootstrap new project
+orchystraw list                                           # Registered projects
+orchystraw metrics ~/Projects/my-project                  # Performance data
+orchystraw decisions ~/Projects/my-project --last 10      # Decision audit trail
 orchystraw dashboard                                  # Cross-project HTML dashboard
 orchystraw doctor                                     # Validate environment
 ```
@@ -45,13 +45,8 @@ No auto-agent.sh or src/core/ needed in target projects.
 | Project | Agents | Status |
 |---------|--------|--------|
 | openOrchyStraw | 12 | Self-orchestrating |
-| InstagramAutomation | 10 | Wired |
-| Klaro | 8 | Wired |
-| LinkedInAutomation | 8 | Wired |
-| AIVA | 10 | Wired |
-| FreelanceWorker | 7 | Wired |
-| macro-news-alpha | 5 | Wired (API template) |
-| Momentum | 10 | Wired (paused) |
+
+Register your own projects with `orchystraw add <path>`.
 
 ## Agent Team
 
@@ -192,7 +187,7 @@ Observability spans/events, episodic memory, quality gates wired into orchestrat
 2. Agent chat UI (#226)
 3. Real-time log streaming (#230)
 4. Run real cycles on all projects
-5. Move to other projects (AIVA, Klaro, etc.)
+5. Move to other registered projects
 
 ## Stack Reference Docs (LOCKED — read before building)
 

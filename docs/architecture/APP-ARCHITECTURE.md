@@ -284,7 +284,7 @@ The dashboard is a **transparency layer** — not a control panel. The founder g
 
 ```
 ┌─────────────────────────────────────────────────────────────┐
-│ 🏗️  Momentum                                                │
+│ 🏗️  my-other-app                                                │
 │                                                             │
 │ 💬 Co-founder: "Backend shipped auth + payments today.      │
 │    CTO picked Clerk over Supabase Auth — better iOS SDK.    │
@@ -321,13 +321,13 @@ The primary action is always **"Talk to Co-founder"** — that's the main interf
 │ 📚 Knowledge Browser                    [🔍 Search...]      │
 │                                                             │
 │ ┌─────────┐ ┌──────────┐ ┌──────────┐ ┌──────────────┐    │
-│ │ Global  │ │ Momentum │ │ Memo     │ │ OrchyStraw   │    │
+│ │ Global  │ │ my-other-app │ │ my-mobile-app     │ │ OrchyStraw   │    │
 │ └─────────┘ └──────────┘ └──────────┘ └──────────────┘    │
 │                                                             │
 │ Tech Decisions                                              │
 │ ┌───────────────────────────────────────────────────────┐   │
 │ │ AUTH-001  │ Clerk      │ Global   │ 2026-03-17       │   │
-│ │ AUTH-002  │ Supabase   │ Memo     │ 2026-04-02  (!)  │   │
+│ │ AUTH-002  │ Supabase   │ my-mobile-app     │ 2026-04-02  (!)  │   │
 │ │ DB-001    │ Supabase   │ Global   │ 2026-03-17       │   │
 │ │ STYLE-001 │ Tailwind   │ Global   │ 2026-03-18       │   │
 │ └───────────────────────────────────────────────────────┘   │

@@ -11,7 +11,7 @@
 #
 # Usage:
 #   ./scripts/benchmark/run-cross-project.sh
-#   ./scripts/benchmark/run-cross-project.sh --projects ~/Projects/Klaro,~/Projects/AIVA
+#   ./scripts/benchmark/run-cross-project.sh --projects ~/Projects/project-a,~/Projects/project-b
 #   ./scripts/benchmark/run-cross-project.sh --output json
 #   ./scripts/benchmark/run-cross-project.sh --verbose
 #

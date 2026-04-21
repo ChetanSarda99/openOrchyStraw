@@ -50,7 +50,7 @@ export function agentColor(id: string): string {
   if (role === "hr") return "#14b8a6";
   if (role === "pixel" || role === "pixel-agents") return "#f43f5e";
 
-  // Domain-specific worker patterns (AIVA, content automation, etc.)
+  // Domain-specific worker patterns (content automation, etc.)
   if (role.includes("issue")) return "#94a3b8"; // pm-issues
   if (role.includes("content")) return "#0ea5e9";
   if (role.includes("linkedin")) return "#0a66c2";

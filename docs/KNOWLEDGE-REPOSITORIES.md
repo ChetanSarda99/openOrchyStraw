@@ -90,9 +90,9 @@ docs/tech-registry/
 ```markdown
 | Domain | Solution | Version | Decision | Projects Using | Notes |
 |--------|----------|---------|----------|----------------|-------|
-| Auth | Clerk | 6.x | AUTH-001 | Memo, Momentum | Free up to 10k MAU |
-| Payments | Stripe | latest | PAYMENTS-001 | Momentum | 2.9%+30¢ |
-| DB | Supabase | latest | DATABASE-001 | Memo, Momentum | Free tier generous |
+| Auth | Clerk | 6.x | AUTH-001 | my-mobile-app, my-other-app | Free up to 10k MAU |
+| Payments | Stripe | latest | PAYMENTS-001 | my-other-app | 2.9%+30¢ |
+| DB | Supabase | latest | DATABASE-001 | my-mobile-app, my-other-app | Free tier generous |
 | Email | Resend | latest | EMAIL-001 | - | 3K free/mo |
 ```
 
@@ -126,7 +126,7 @@ full-stack is already on Supabase (to avoid cross-vendor auth + DB).
 - $25/mo after 10K → cross that bridge when there's revenue
 
 ## Projects Using This
-- Memo (v1, iOS + web)
+- my-mobile-app (v1, iOS + web)
 
 ## Supersedes
 Nothing — first auth decision.
@@ -144,10 +144,10 @@ Nothing — first auth decision.
 ```markdown
 | Service | Category | Free Tier | Paid Tier | Auth | SDK | CS Used | Notes |
 |---------|----------|-----------|-----------|------|-----|---------|-------|
-| Supabase | DB/Auth/Storage | 500MB, 50K MAU | $25/mo | API key | ✅ | Memo | Postgres + storage + auth |
-| Clerk | Auth | 10K MAU | $25+/mo | API key | ✅ | Memo | Best iOS SDK |
-| Stripe | Payments | None | 2.9%+30¢ | API key | ✅ | Momentum | Gold standard |
-| RevenueCat | IAP | 10K MAU | $119+/mo | API key | ✅ | Momentum | Best for iOS subscriptions |
+| Supabase | DB/Auth/Storage | 500MB, 50K MAU | $25/mo | API key | ✅ | my-mobile-app | Postgres + storage + auth |
+| Clerk | Auth | 10K MAU | $25+/mo | API key | ✅ | my-mobile-app | Best iOS SDK |
+| Stripe | Payments | None | 2.9%+30¢ | API key | ✅ | my-other-app | Gold standard |
+| RevenueCat | IAP | 10K MAU | $119+/mo | API key | ✅ | my-other-app | Best for iOS subscriptions |
 | Resend | Email | 3K/mo | $20+/mo | API key | ✅ | - | Clean API, great DX |
 | PostHog | Analytics | 1M events | $0+/mo | API key | ✅ | - | Open source option too |
 | Sentry | Monitoring | 5K errors | $26+/mo | DSN | ✅ | - | Industry standard |
@@ -191,7 +191,7 @@ docs/patterns/
 
 **Status:** Tested ✅
 **Last verified:** 2026-03-17
-**Projects using:** Momentum
+**Projects using:** my-other-app
 
 ## The Problem
 Stripe webhooks can arrive out of order, duplicated, or fail. Need idempotent handler.
@@ -269,12 +269,12 @@ docs/prompt-library/
 ```markdown
 ## Blueprint: Consumer iOS App (SaaS)
 Stack: SwiftUI + Supabase + Clerk + RevenueCat + PostHog
-Proven in: Momentum (Phase 1)
+Proven in: my-other-app (Phase 1)
 Files to bootstrap from: [links]
 
 ## Blueprint: Full-Stack Web App
 Stack: Next.js + Supabase + Clerk + Stripe + Vercel
-Proven in: Memo (Web layer)
+Proven in: my-mobile-app (Web layer)
 Files to bootstrap from: [links]
 
 ## Blueprint: CLI Tool
@@ -320,9 +320,9 @@ All repositories above live inside `orchystraw/docs/` but should be **shared acr
     prompt-library/
   orchystraw/
     docs/ → symlinks to relevant parts of _shared-knowledge
-  Memo/
+  my-mobile-app/
     docs/ → symlinks to relevant parts of _shared-knowledge
-  Momentum/
+  my-other-app/
     docs/ → symlinks to relevant parts of _shared-knowledge
 ```
 

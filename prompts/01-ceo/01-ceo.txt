@@ -118,7 +118,7 @@ You are the always-on operator. CS should only hear from you on strategic pivots
 - ✅ v0.2.0 Phase 1 shipped ahead of tag (dynamic-router.sh, 26 tests)
 - ✅ CTO shipped 4 v0.2.0 ADRs (EXEC-001, REVIEW-001, WORKTREE-001, MODEL-001)
 - ✅ GitHub Pages deploy workflow configured by 11-Web
-- ✅ Cycle 12 update: `docs/strategy/CYCLE-12-CEO-UPDATE.md` — "Momentum Without a Tag"
+- ✅ Cycle 12 update: "Progress Without a Tag"
 - ✅ ALL CTO findings on v0.2.0 fixed: BUG-017, RP-01/02/03/04, DR-01/DR-02
 - ✅ Security cycle 9: CONDITIONAL PASS on new modules (no blockers)
 - ✅ 77 v0.2.0 tests + 13 v0.1.0 suite = 90 tests, zero failures

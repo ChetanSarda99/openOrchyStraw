@@ -12,7 +12,7 @@ After evaluating the competitive landscape on March 16, 2026, the decision was m
 
 > **Agent Factory as a standalone product is NOT worth building yet. CrewAI and MetaGPT already occupy the multi-agent framework space. Devin has $400M. The market is crowded.**
 >
-> **What IS worth building: the PM-driven prompt scaffold. It's genuinely novel, battle-tested across 15+ dev cycles (Memo project, 441 source files, 1877 tests), and zero-dependency.**
+> **What IS worth building: the PM-driven prompt scaffold. It's genuinely novel, battle-tested across 15+ dev cycles (production project, 441 source files, 1877 tests), and zero-dependency.**
 
 **Action taken:** Extracted the scaffold into its own repo: `orchystraw`  
 - Location: `~/Projects/orchystraw/`  
