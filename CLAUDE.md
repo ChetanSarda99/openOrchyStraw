@@ -244,7 +244,7 @@ Shared scripts, modules, and cross-project state. See `~/Projects/shared/CLAUDE.
 - **Notion guide:** `~/Projects/shared/NOTION-GUIDE.md` (DB IDs, routing rules)
 - **Infra docs:** `~/Projects/shared/infra/` (machines, network, services, API keys)
 
-**Cross-project state** (Syncthing-synced; Mac Mini hub, MacBook, Lenovo. ASUS decommissioned 2026-04-30):
+**Cross-project state** (Syncthing-synced; Mac Mini hub, MacBook, Lenovo. ASUS = Pi-hole DNS only since 2026-04-30):
 `~/Projects/shared/shared-state/` is a symlink → `~/Sync/shared-state/`.
 - `claude-activity/` — ACTIVITY-LOG.md, PROJECT-STATUS.md, DECISIONS.md
 - `memory/` — structured cross-instance memory (architecture, decisions, playbooks)

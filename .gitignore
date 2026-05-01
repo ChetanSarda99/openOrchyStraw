@@ -68,3 +68,7 @@ app/src-tauri/target/
 dist/
 *.tar.gz
 *.zip
+
+# Added by cleanup pass 2026-04-30
+*.bak
+*.tmp
