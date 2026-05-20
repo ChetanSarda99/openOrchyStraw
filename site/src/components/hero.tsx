@@ -3,6 +3,8 @@
 import { motion, useScroll, useTransform, useSpring } from "framer-motion";
 import { useRef, useState, useEffect } from "react";
 import { Github } from "lucide-react";
+import { GradientBlobs } from "@/components/cinematic/GradientBlobs";
+import { ProgressScroll } from "@/components/cinematic";
 
 const terminalLines = [
   { text: "$ orchystraw run . --cycles 3", type: "command" as const },
@@ -147,6 +149,8 @@ export function Hero() {
 
   return (
     <section ref={ref} className="relative overflow-hidden" style={{ minHeight: "100vh" }}>
+      <ProgressScroll color="var(--accent)" height={2} />
+      <GradientBlobs className="-z-10" />
       <div className="hero-glow pointer-events-none absolute inset-0 -z-10" />
 
       <motion.div

@@ -1,6 +1,7 @@
 import { Navbar } from "@/components/navbar";
 import { Hero } from "@/components/hero";
 import { Features } from "@/components/features";
+import { AgentCinematic } from "@/components/agent-cinematic";
 import { HowItWorks } from "@/components/how-it-works";
 import { Demo } from "@/components/demo";
 import { Comparison } from "@/components/comparison";
@@ -16,6 +17,7 @@ export default function Home() {
       <main className="flex-1">
         <Hero />
         <Features />
+        <AgentCinematic />
         <HowItWorks />
         <Demo />
         <Comparison />
